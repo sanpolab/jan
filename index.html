@@ -1492,6 +1492,7 @@ body.midw .hm-mode b { font-size: 14px; }
 /* v143: 引き継ぎコード */
 .xf-code { font: 500 11px/1.4 ui-monospace, monospace; word-break: break-all; }
 .site .cloud-row, .site .cloud-note { display: none !important; }
+.site .tnote { display: none !important; }
 </style>
 
 <div id="boot">
@@ -1739,7 +1740,7 @@ body.midw .hm-mode b { font-size: 14px; }
       <div class="note first-note" id="firstNote" hidden>初回限定：10連のうち1枚はUR確定。残り9枚も通常の確率で抽選し、運が良ければURは最大5枚まで出ます。</div>
       <div class="pity"><div>UR確定まで あと <b id="pityLeft">100</b> 回</div><div class="pbar"><div id="pityFill"></div></div></div>
       <button class="rates-btn" id="showRates">排出率（確率）を見る</button>
-      <div class="note">テスト中：コインが足りなくても引けます</div>
+      <div class="note tnote">テスト中：コインが足りなくても引けます</div>
     </div>
   </div>
   <div class="replay-ui" id="replayUI" hidden>
@@ -8710,7 +8711,7 @@ function swatch(it) {
     ? `radial-gradient(circle,#0b0f18 0 28%,${hex(sub)} 29% 36%,${hex(main)} 37% 70%,#151515 71%)`
     : `linear-gradient(135deg,${hex(main)} 60%,${hex(sub)} 61%)`);
 }
-const TEST_UNLOCK = true;   // test build: every item can be equipped to preview it
+const TEST_UNLOCK = !SITE;   // claude.ai test build: every item can be equipped to preview it (never on the public site / app)
 let garageTab = 'frame', garageSort = 'get', tuneOpen = false;
 function rebuildPlayer() {
   if (!player) return;
