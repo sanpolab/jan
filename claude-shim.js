@@ -204,6 +204,9 @@
     },
   };
 
+  // purchase log for support (the iPhone app only): who bought what, with Apple's signed transaction
+  window.__janPurchaseLog = async function (row) { try { await uid(); await sb.from('purchases').insert(row); } catch (_) {} };
+
   var NS = { db: db, user: user, room: lobby, downloads: downloads };
   var cache = {};
   window.claude = Object.freeze({

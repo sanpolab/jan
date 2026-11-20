@@ -1493,6 +1493,14 @@ body.midw .hm-mode b { font-size: 14px; }
 .xf-code { font: 500 11px/1.4 ui-monospace, monospace; word-break: break-all; }
 .site .cloud-row, .site .cloud-note { display: none !important; }
 .site .tnote { display: none !important; }
+
+/* v144: 友達招待 — fits a short landscape screen (in-app browsers); small buttons inside the card */
+.fr-inv { gap: 6px; padding: 10px 12px; }
+.fr-inv-h { font-size: 14px; } .fr-inv-h b { font-size: 16px; }
+.fr-steps { margin: 0; font-size: 12px; line-height: 1.5; opacity: 0.92; }
+.fr-myrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.fr-inv .fr-share, .fr-inv .fr-claim, .fr-add button.go, .fr-acts button.go { font: 800 14px/1 var(--body); letter-spacing: 0.02em; padding: 10px 16px; min-width: 0; justify-self: auto; }
+.fr-card > .pm-btns { position: static; margin-bottom: 0; padding: 4px 0 0; background: none; }
 </style>
 
 <div id="boot">
@@ -1898,8 +1906,11 @@ function startGame(__assets) {
 // season-pass premium are hidden). Online, friends and rankings run on Supabase through site/claude-shim.js.
 // NOG: a gacha-free build (UR確定 tickets become UR交換券). Not used right now; kept for later.
 var SITE = !!window.__JAN_SITE;
+// APP: running inside the iPhone app (Capacitor). Only the app sells coins, through App Store in-app purchase.
+var APP = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 var NOG = false;
-if (SITE) document.documentElement.classList.add('site');
+if (SITE && !APP) document.documentElement.classList.add('site');
+if (APP) document.documentElement.classList.add('app');
 if (NOG) document.documentElement.classList.add('nog');
 
 // ===== 00-track.js =====
@@ -7324,7 +7335,7 @@ function openPass() {
     <div class="ps-rows"><div class="ps-lab"><span>無料</span><span>プレミアム</span></div><div class="ps-track">${cols}</div></div>
     ${passForecastHtml()}
     <p class="pm-p">レースを走るとポイントがたまります（CPUレース10〜20pt・レートマッチ20〜35pt・課題達成10pt）。<b>月末の${PASS_BOOST_DAYS}日間はポイント1.5倍</b>。プレミアムは15段で限定フレーム「金鐘」、30段でUR券。さらにレースのコインが1.5倍に。</p>`,
-    S.prem || SITE ? [{ label: '閉じる' }] : [{ label: `プレミアムを買う（${PASS_PRICE.toLocaleString()}円・今月だけ）`, cls: 'go', fn: () => setTimeout(passConfirm, 0) }, { label: '閉じる' }]);
+    S.prem || (SITE && !APP) ? [{ label: '閉じる' }] : [{ label: `プレミアムを買う（${PASS_PRICE.toLocaleString()}円・今月だけ）`, cls: 'go', fn: () => setTimeout(passConfirm, 0) }, { label: '閉じる' }]);
   // the store isn't connected in the test build: the button switches the premium row on for free
   setTimeout(() => { const t = $('pmCard').querySelector('.ps-track .next') || $('pmCard').querySelector('.ps-track .on:last-child'); if (t) t.scrollIntoView({ inline: 'center', block: 'nearest' }); }, 30);
 }
@@ -7345,7 +7356,7 @@ function passConfirm() {
   pmShow(`<div class="pm-h">プレミアムを購入しますか？</div>
     <div class="ps-buy"><div><small>値段</small><b>${PASS_PRICE.toLocaleString()}円</b></div><div><small>使える期間</small><b>${Number(m)}月末まで</b></div><div><small>自動更新</small><b>なし</b></div></div>
     <p class="pm-p">今月（${seasonLabel(S.id)}）だけのプレミアムです。<b>来月に勝手にお金がかかることはありません。</b>今までに上がった段のプレミアム報酬は、買った時点でまとめて届きます。<br><small>未成年の方は、保護者の方に確認してから購入してください。</small></p>`,
-    [{ label: `購入する（${PASS_PRICE.toLocaleString()}円）`, cls: 'go', fn: () => { buyPass(); setTimeout(openPass, 0); } }, { label: 'やめる', fn: () => { setTimeout(openPass, 0); } }]);
+    [{ label: `購入する（${APP ? iapPrice(IAP_PASS, PASS_PRICE) : PASS_PRICE.toLocaleString() + '円'}）`, cls: 'go', fn: () => { if (APP) { iapBuy(IAP_PASS, 'シーズンパス').then(() => setTimeout(openPass, 0)); return; } buyPass(); setTimeout(openPass, 0); } }, { label: 'やめる', fn: () => { setTimeout(openPass, 0); } }]);
 }
 
 // --- month rollover: class decided by the season's best rate, reward, soft reset ---
@@ -7429,6 +7440,8 @@ function openRecord() {
 // --- コインショップ: the same packs and prices as VS BOAT (100 coins = one pull) ---
 const SHOP = [[100, 160], [300, 480], [510, 800], [980, 1500], [1580, 2400], [2500, 3800], [3400, 5000], [7000, 10000]];
 function openShop() {
+  if (APP) return openShopApp();
+  if (SITE) return;
   audio();
   const cards = SHOP.map(([c, yen], i) => `<button class="sh-p" data-i="${i}"><span class="coin"></span><b>${c.toLocaleString()}</b><small>ガチャ${Math.floor(c / 100)}回分</small><em>¥${yen.toLocaleString()}</em></button>`).join('');
   pmShow(`<div class="pm-h">コインショップ　<small class="rc-sub">所持 <span class="coin"></span>${(save.coins || 0).toLocaleString()}</small></div>
@@ -9834,7 +9847,7 @@ async function doPull(n, ticket) {
   if (BANNERS[gBanner].chip) { if (chipN() < CHIP_COST[n]) return; save.chip -= CHIP_COST[n]; }
   else if (ticket) { if (!(save.urTk > 0)) return; save.urTk--; firstUR = true; n = 1; }
   else if (n === 10 && save.freeTen) { save.freeTen = false; firstUR = true; }
-  else if ((save.coins || 0) >= PULL_COST[n]) save.coins -= PULL_COST[n];
+  else if ((save.coins || 0) >= PULL_COST[n]) coinSpend(PULL_COST[n]);
   else if (!TEST_UNLOCK) return;
   persist(); renderHome();
   const res = pull(n, firstUR);
@@ -10919,7 +10932,7 @@ let frIsOpen = false;
 function openFriends() {
   audio(); frIsOpen = true; frSync();
   pmShow(`<div class="pm-h">フレンド</div><div class="seg fr-tabs" id="frTabs"><button data-t="list">フレンド</button><button data-t="req">申請<i class="fr-n" id="frReqN" hidden></i></button><button data-t="inv">友達招待<i class="fr-n" id="frInvN" hidden>!</i></button></div><div id="frBox" class="fr-box"></div><div class="fr-msg" id="frMsg"></div>`,
-    [{ label: '閉じる', fn: () => { frIsOpen = false; } }], 'wide');
+    [{ label: '閉じる', fn: () => { frIsOpen = false; } }], 'wide fr-card');
   $('frTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; frTab = b.dataset.t; frToast(''); frRender(); tone(880, 0.06, 'triangle', 0.06); });
   frRender();
 }
@@ -10950,9 +10963,9 @@ function frRender() {
     h = rq.length ? rq.map((d) => frRow(d, `<button class="go" data-ok="${d.id}">承認</button><button data-no="${d.id}">見送る</button>`)).join('') : '<p class="pm-p fr-empty">届いている申請はありません</p>';
   } else {
     const got = (frMe.invGot || []).length, cl = frInvClaimable(), wait = frInv.filter((d) => !(d.races >= 1));
-    h = `<div class="fr-inv"><div class="fr-inv-h">友達を招待して<br><b>2人とも UR確定ガチャ！</b></div>
-      <ol><li>下のボタンで招待メッセージをコピーして友達に送る</li><li>友達がフレンド画面の「招待コードを入力」にあなたのコードを入れる → <b>友達にUR確定チケット</b></li><li>友達が1レース走る → <b>あなたにもUR確定チケット</b></li></ol>
-      <div class="fr-my">あなたの招待コード <b>${frCode()}</b></div><button class="go fr-share" id="frShare">招待メッセージをコピー</button>
+    h = `<div class="fr-inv"><div class="fr-inv-h">友達を招待して <b>2人ともUR確定ガチャ！</b></div>
+      <p class="fr-steps">コードを送る → 友達が入力すると<b>友達にUR確定</b> → 友達が1レース走ると<b>あなたにもUR確定</b></p>
+      <div class="fr-my fr-myrow"><span>あなたの招待コード <b>${frCode()}</b></span><button class="go fr-share" id="frShare">招待文をコピー</button></div>
       <div class="fr-h">招待した友達 ${frInv.length}人 ・ 受け取り済み ${got}/${INV_MAX}</div>
       ${cl.length && got < INV_MAX ? `<button class="go fr-claim" id="frClaim">UR確定チケットを受け取る ×${Math.min(cl.length, INV_MAX - got)}</button>` : ''}
       ${wait.length ? `<small class="fr-note">${wait.map((d) => escapeHtml(d.nm || '名無し選手')).join('、')} さん：1レース走るとチケットが届きます</small>` : ''}</div>`;
@@ -12980,6 +12993,102 @@ function xferIn() {
 }
 $('codeOut').addEventListener('click', xferOut);
 $('codeIn').addEventListener('click', xferIn);
+
+// ===== 45-iap.js =====
+// ---------- v144 アプリ内課金（App Store）----------
+// Only the iPhone app sells anything (APP). The public site never does, and the claude.ai test build keeps its
+// free test shop. Bought coins are 有償コイン: kept in lots that expire 180 days after purchase (so the coins stay
+// outside the 資金決済法 filing rules), spent after the free ones, and shown separately in the shop.
+var IAP = { ok: false, plug: null, prods: {}, busy: false };
+var IAP_COIN = SHOP.map(([c, yen]) => ({ id: 'io.github.sanpolab.jan.coin' + c, c, yen }));
+var IAP_PASS = 'io.github.sanpolab.jan.pass';
+var PAID_DAYS = 180;
+function paidLots() { return save.paidLots || (save.paidLots = []); }
+function paidRaw() { return paidLots().reduce((a, l) => a + l.n, 0); }
+function coinExpire() {
+  const now = Date.now(), L = paidLots(); let gone = 0;
+  for (let i = L.length - 1; i >= 0; i--) if (L[i].exp <= now) { gone += L[i].n; L.splice(i, 1); }
+  if (gone) { save.coins = Math.max(0, (save.coins || 0) - gone); persist(); try { showWarn(`有効期限が切れた有償コイン ${gone}枚が消えました`); } catch (_) {} }
+  return gone;
+}
+function paidTotal() { coinExpire(); return Math.min(paidRaw(), save.coins || 0); }
+function freeTotal() { return Math.max(0, (save.coins || 0) - paidTotal()); }
+// spend free coins first, then the paid lot closest to expiry
+function coinSpend(n) {
+  coinExpire();
+  let rest = Math.max(0, n - freeTotal());
+  const L = paidLots().sort((a, b) => a.exp - b.exp);
+  for (const l of L) { if (!rest) break; const k = Math.min(l.n, rest); l.n -= k; rest -= k; }
+  save.paidLots = L.filter((l) => l.n > 0);
+  save.coins = Math.max(0, (save.coins || 0) - n);
+}
+function coinGrantPaid(n, tx) {
+  coinExpire();
+  paidLots().push({ n, exp: Date.now() + PAID_DAYS * 864e5, tx: tx || '' });
+  save.coins = (save.coins || 0) + n;
+}
+function nextExpiry() { const L = paidLots().slice().sort((a, b) => a.exp - b.exp)[0]; return L ? L : null; }
+function ymd(t) { const d = new Date(t); return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; }
+
+function iapLog(row) { try { if (window.__janPurchaseLog) window.__janPurchaseLog(row); } catch (_) {} }
+// one grant per transaction, even if the store reports it twice
+function iapGrant(t) {
+  const id = t && (t.transactionId || t.id); const pid = t && t.productIdentifier;
+  save.iapTx = save.iapTx || {};
+  if (!id || save.iapTx[id]) return false;
+  const coin = IAP_COIN.find((x) => x.id === pid);
+  if (coin) coinGrantPaid(coin.c, String(id));
+  else if (pid === IAP_PASS) buyPass();
+  else return false;
+  save.iapTx[id] = Date.now(); persist(); renderHome();
+  iapLog({ product: pid, tx: String(id), jws: t.jwsRepresentation || null });
+  return true;
+}
+async function iapBoot() {
+  if (!APP) return;
+  try {
+    const P = window.Capacitor.registerPlugin('NativePurchases');
+    const s = await P.isBillingSupported(); if (!s || !s.isBillingSupported) return;
+    IAP.plug = P;
+    const r = await P.getProducts({ productIdentifiers: IAP_COIN.map((x) => x.id).concat([IAP_PASS]), productType: 'inapp' });
+    for (const p of (r && r.products) || []) IAP.prods[p.identifier] = p;
+    IAP.ok = true;
+    // anything bought but not granted (the app closed mid-purchase)
+    try { const g = await P.getPurchases({ productType: 'inapp' }); for (const t of (g && g.purchases) || []) iapGrant(t); } catch (_) {}
+  } catch (e) { console.error('iap', e); }
+}
+async function iapBuy(pid, label) {
+  if (!IAP.ok || IAP.busy) { pmShow('<div class="pm-h">いまは購入できません</div><p class="pm-p">通信状態を確かめて、少し待ってからもう一度お試しください。</p>', [{ label: 'わかった' }]); return false; }
+  IAP.busy = true;
+  try {
+    const t = await IAP.plug.purchaseProduct({ productIdentifier: pid, productType: 'inapp', quantity: 1 });
+    const ok = iapGrant(Object.assign({ productIdentifier: pid }, t));
+    if (ok) { [988, 1318, 1568].forEach((f, k) => tone(f, 0.12, 'triangle', 0.1, k * 0.07)); buzz(30); showWarn(`${label} を受け取りました`, 'up'); }
+    return ok;
+  } catch (e) {
+    const m = String((e && (e.message || e.code)) || e);
+    if (!/cancel/i.test(m)) pmShow(`<div class="pm-h">購入できませんでした</div><p class="pm-p">お金は請求されていません。<br><small>${escapeHtml(m).slice(0, 120)}</small></p>`, [{ label: 'わかった' }]);
+    return false;
+  } finally { IAP.busy = false; }
+}
+function iapPrice(pid, yen) { const p = IAP.prods[pid]; return p && p.priceString ? p.priceString : `¥${yen.toLocaleString()}`; }
+// the app's coin shop (replaces the claude.ai test shop)
+function openShopApp() {
+  audio(); coinExpire();
+  const nx = nextExpiry();
+  const cards = IAP_COIN.map((x, i) => `<button class="sh-p" data-i="${i}"><span class="coin"></span><b>${x.c.toLocaleString()}</b><small>ガチャ${Math.floor(x.c / 100)}回分</small><em>${iapPrice(x.id, x.yen)}</em></button>`).join('');
+  pmShow(`<div class="pm-h">コインショップ　<small class="rc-sub">有償 <span class="coin"></span>${paidTotal().toLocaleString()} ・ 無償 <span class="coin"></span>${freeTotal().toLocaleString()}</small></div>
+    <button class="sh-pass" id="shPass"><b>シーズンパス</b><small>${hasPass() ? '加入中' : `今月だけ ${iapPrice(IAP_PASS, PASS_PRICE)} ・ 30段の報酬と限定フレーム`}</small></button>
+    <div class="sh-grid">${cards}</div>
+    <p class="pm-p sh-law">有償コインの有効期限は購入から${PAID_DAYS}日です${nx ? `（次に切れるのは ${ymd(nx.exp)} に ${nx.n}枚）` : ''}。無償コインから先に使われます。<br>未成年の方は保護者の同意を得てから購入してください。<br>特定商取引法に基づく表記：sanpolab.github.io/jan/law.html</p>`, [{ label: '閉じる' }], 'shop-app');
+  for (const b of $('pmCard').querySelectorAll('.sh-p')) b.addEventListener('click', async () => {
+    const x = IAP_COIN[+b.dataset.i];
+    if (await iapBuy(x.id, `コイン ${x.c}枚`)) { pmNext(); setTimeout(openShopApp, 0); }
+  });
+  $('shPass').addEventListener('click', () => { pmNext(); setTimeout(openPass, 0); });
+}
+iapBoot();
+try { coinExpire(); setInterval(coinExpire, 60000); } catch (_) {}
 
 // ===== 99-ready.js =====
 // ---------- last: every file has run, so draw the home screen once more (the first draw happened mid-load,
