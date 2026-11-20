@@ -1,0 +1,1 @@
+{"name": "打鐘 -JAN-", "short_name": "打鐘", "start_url": "./", "scope": "./", "display": "fullscreen", "orientation": "landscape", "background_color": "#04070f", "theme_color": "#04070f", "lang": "ja", "icons": [{"src": "icon_192.png", "sizes": "192x192", "type": "image/png"}, {"src": "icon_512.png", "sizes": "512x512", "type": "image/png"}]}
