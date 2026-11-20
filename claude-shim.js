@@ -204,6 +204,9 @@
     },
   };
 
+  // 運営からのプレゼント: claim everything waiting for my friend code (the server checks the code is mine)
+  window.__janClaimPresents = async function (code) { await uid(); var r = await sb.rpc('claim_presents', { p_code: String(code || '') }); if (r.error) throw r.error; return r.data || []; };
+
   // purchase log for support (the iPhone app only): who bought what, with Apple's signed transaction
   window.__janPurchaseLog = async function (row) { try { await uid(); await sb.from('purchases').insert(row); } catch (_) {} };
 

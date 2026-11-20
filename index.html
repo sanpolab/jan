@@ -1501,6 +1501,9 @@ body.midw .hm-mode b { font-size: 14px; }
 .fr-myrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .fr-inv .fr-share, .fr-inv .fr-claim, .fr-add button.go, .fr-acts button.go { font: 800 14px/1 var(--body); letter-spacing: 0.02em; padding: 10px 16px; min-width: 0; justify-self: auto; }
 .fr-card > .pm-btns { position: static; margin-bottom: 0; padding: 4px 0 0; background: none; }
+/* v144: app coin shop — the legal notes stay readable above the close button */
+.shop-app > .pm-btns { position: static; margin-bottom: 0; padding: 4px 0 0; background: none; }
+.sh-law { font-size: 11px !important; line-height: 1.5; opacity: 0.85; margin: 0; }
 </style>
 
 <div id="boot">
@@ -12646,8 +12649,8 @@ function gifts() { return save.gifts || (save.gifts = []); }
 // r: { coin, tk: { SSR: 1 }, ur, items: [ids] }
 function giftAdd(from, r) {
   if (NOG && r.ur) { const tk = Object.assign({}, r.tk || {}); tk.UR = (tk.UR || 0) + (r.ur | 0); r = Object.assign({}, r, { ur: 0, tk }); }
-  const g = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), t: Date.now(), from, coin: r.coin | 0, tk: r.tk || null, ur: r.ur | 0, items: r.items && r.items.length ? r.items : null };
-  if (!g.coin && !g.ur && !g.tk && !g.items) return;
+  const g = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), t: Date.now(), from, coin: r.coin | 0, chip: r.chip | 0, tk: r.tk || null, ur: r.ur | 0, items: r.items && r.items.length ? r.items : null };
+  if (!g.coin && !g.chip && !g.ur && !g.tk && !g.items) return;
   gifts().unshift(g); if (gifts().length > GIFT_MAX) gifts().length = GIFT_MAX;
   try { persist(); giftBadge(); } catch (_) {}
 }
@@ -12655,6 +12658,7 @@ var GIFT_NOTE = '<small class="to-gift">→プレゼント</small>';
 function giftParts(g) {
   const p = [];
   if (g.coin) p.push(`<span class="coin"></span>${g.coin.toLocaleString()}`);
+  if (g.chip) p.push(`予想チップ ${g.chip.toLocaleString()}`);
   if (g.tk) for (const k in g.tk) if (g.tk[k]) p.push(`${GIFT_TK[k] || k}×${g.tk[k]}`);
   if (g.ur) p.push(`UR確定チケット×${g.ur}`);
   if (g.items) for (const id of g.items) { const it = ALL_ITEMS().find((x) => x.id === id); if (it) p.push(`${KIND_LABEL[it.kind] || ''}「${it.name}」`); }
@@ -12662,9 +12666,10 @@ function giftParts(g) {
 }
 function giftIcon(g) { return g.items ? '<img src="ui/ic_gift.webp" alt="">' : g.ur ? '<i class="gb-tk ur">UR<br>確定</i>' : g.tk ? `<i class="gb-tk ${Object.keys(g.tk)[0]}">${Object.keys(g.tk)[0]}</i>` : '<span class="coin"></span>'; }
 function giftTake(list) {
-  const sum = { coin: 0, tk: {}, ur: 0, items: [] };
+  const sum = { coin: 0, chip: 0, tk: {}, ur: 0, items: [] };
   for (const g of list) {
     if (g.coin) { save.coins = (save.coins || 0) + g.coin; sum.coin += g.coin; }
+    if (g.chip) { save.chip = (save.chip == null ? CHIP_START : save.chip) + g.chip; sum.chip += g.chip; }
     if (g.tk) for (const k in g.tk) { save.tickets[k] = (save.tickets[k] || 0) + g.tk[k]; sum.tk[k] = (sum.tk[k] || 0) + g.tk[k]; }
     if (g.ur) { save.urTk = (save.urTk || 0) + g.ur; sum.ur += g.ur; }
     if (g.items) for (const id of g.items) { save.owned[id] = Math.max(1, save.owned[id] || 0); sum.items.push(id); }
@@ -12699,7 +12704,7 @@ function giftOpen(tab) {
     [...(n && giftTab === 'box' ? [{ label: `まとめて受け取る（${n}）`, cls: 'go', fn: () => { const s = giftTake(gifts().slice()); giftShowSum(s); } }] : []), { label: '閉じる' }], 'wide');
 }
 function giftShowSum(s) {
-  const p = giftParts({ coin: s.coin, tk: s.tk, ur: s.ur, items: s.items.length ? s.items : null });
+  const p = giftParts({ coin: s.coin, chip: s.chip, tk: s.tk, ur: s.ur, items: s.items.length ? s.items : null });
   if (p.length) pmShow(`<div class="pm-h pm-up">受け取りました！</div><p class="pm-p gb-sum">${p.join('<br>')}</p>`, [{ label: 'わかった' }], 'celebrate');
 }
 document.addEventListener('click', (e) => {
@@ -13089,6 +13094,24 @@ function openShopApp() {
 }
 iapBoot();
 try { coinExpire(); setInterval(coinExpire, 60000); } catch (_) {}
+
+// ===== 46-presents.js =====
+// ---------- 運営からのプレゼント: the operator puts a present on the server for a friend code; the player's game
+// picks it up (once — the server marks it as received) and it lands in the プレゼントボックス. Site / app only. ----------
+var PRESENT_BUSY = false;
+async function presentCheck() {
+  if (PRESENT_BUSY || !window.__janClaimPresents || !save.frCode) return;
+  PRESENT_BUSY = true;
+  try {
+    const rows = await window.__janClaimPresents(save.frCode);
+    for (const r of rows || []) giftAdd(r.msg || '運営より', { coin: r.coin | 0, chip: r.chip | 0 });
+    if (rows && rows.length) { try { renderHome(); showWarn('運営からプレゼントが届きました', 'up'); } catch (_) {} }
+  } catch (e) { console.error('presents', e); }
+  PRESENT_BUSY = false;
+}
+setTimeout(presentCheck, 8000);
+setInterval(presentCheck, 5 * 60000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') presentCheck(); });
 
 // ===== 99-ready.js =====
 // ---------- last: every file has run, so draw the home screen once more (the first draw happened mid-load,
