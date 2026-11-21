@@ -1504,6 +1504,12 @@ body.midw .hm-mode b { font-size: 14px; }
 /* v144: app coin shop — the legal notes stay readable above the close button */
 .shop-app > .pm-btns { position: static; margin-bottom: 0; padding: 4px 0 0; background: none; }
 .sh-law { font-size: 11px !important; line-height: 1.5; opacity: 0.85; margin: 0; }
+/* v146 アプリ版の観戦予想は無料（賭けなし） */
+.freepick .wb-amtl, .freepick .wb-amt, .freepick #lvAmt { display: none; }
+.freepick .wb-od b { font-size: 14px; }
+.freepick .wb-od .chipi { margin-right: 1px; }
+.noshop .hm-plus { display: none !important; }
+.noshop #openShop { pointer-events: none; }
 </style>
 
 <div id="boot">
@@ -7002,7 +7008,7 @@ function checkLogin() {
 const DAILY_POOL = {
   run3: { text: 'レースを3回走る', goal: 3 }, win1: { text: '1着になる', goal: 1 }, top3x2: { text: '3着以内に2回入る', goal: 2 },
   makuri: { text: '捲り（残り200mで4番手以下）から1着', goal: 1 }, nige: { text: '逃げ（残り200mで先頭）で1着', goal: 1 },
-  clean: { text: '接触なしで完走する', goal: 1 }, ta1: { text: 'タイムアタックを1回走る', goal: 1 }, bet1: { text: '観戦・予想でチップを賭ける', goal: 1 },
+  clean: { text: '接触なしで完走する', goal: 1 }, ta1: { text: 'タイムアタックを1回走る', goal: 1 }, bet1: { text: (APP || window.__JAN_FREEPICK) ? '観戦で予想する' : '観戦・予想でチップを賭ける', goal: 1 },
 };
 const DAILY_REW = 30, DAILY_ALL = 60;
 function daily() {
@@ -7338,7 +7344,7 @@ function openPass() {
     <div class="ps-rows"><div class="ps-lab"><span>無料</span><span>プレミアム</span></div><div class="ps-track">${cols}</div></div>
     ${passForecastHtml()}
     <p class="pm-p">レースを走るとポイントがたまります（CPUレース10〜20pt・レートマッチ20〜35pt・課題達成10pt）。<b>月末の${PASS_BOOST_DAYS}日間はポイント1.5倍</b>。プレミアムは15段で限定フレーム「金鐘」、30段でUR券。さらにレースのコインが1.5倍に。</p>`,
-    S.prem || (SITE && !APP) ? [{ label: '閉じる' }] : [{ label: `プレミアムを買う（${PASS_PRICE.toLocaleString()}円・今月だけ）`, cls: 'go', fn: () => setTimeout(passConfirm, 0) }, { label: '閉じる' }]);
+    S.prem || (SITE && !APP) || (APP && !shopOn()) ? [{ label: '閉じる' }] : [{ label: `プレミアムを買う（${PASS_PRICE.toLocaleString()}円・今月だけ）`, cls: 'go', fn: () => setTimeout(passConfirm, 0) }, { label: '閉じる' }]);
   // the store isn't connected in the test build: the button switches the premium row on for free
   setTimeout(() => { const t = $('pmCard').querySelector('.ps-track .next') || $('pmCard').querySelector('.ps-track .on:last-child'); if (t) t.scrollIntoView({ inline: 'center', block: 'nearest' }); }, 30);
 }
@@ -7413,11 +7419,11 @@ function checkTitles() {
 function titleName() { const t = TITLES.find((x) => x.id === save.title); return t ? t.name : ''; }
 function guessRecHtml() {
   const G = save.gStat || { n: 0, hit: 0, coin: 0, best: 0 }, C = save.chipSt || { bets: 0, hits: 0, stake: 0, ret: 0, best: 0 }, H = (save.gHist || []).slice(-10);
-  if (!G.n && !C.bets) return `<div class="rc-h">予想成績</div><p class="pm-p"><small>出走表で1着を予想したり、観戦で予想チップを賭けると記録されます。</small></p>`;
+  if (!G.n && !C.bets) return `<div class="rc-h">予想成績</div><p class="pm-p"><small>出走表で1着を予想したり、${(APP || window.__JAN_FREEPICK) ? '観戦で予想する' : '観戦で予想チップを賭ける'}と記録されます。</small></p>`;
   const dots = H.map(([t, h]) => `<i class="gh ${h ? 'hit' : ''}" title="${t === 'g' ? '1着予想' : '観戦'}">${h ? '◎' : '×'}</i>`).join('');
   return `<div class="rc-h">予想成績</div>
     <div class="rc-grid"><div><small>1着予想</small><b>${G.hit}/${G.n}</b></div><div><small>的中率</small><b>${pct(G.hit, G.n)}</b></div><div><small>獲得コイン</small><b>${G.coin}</b></div><div><small>最高配当</small><b>${G.best}</b></div></div>
-    ${C.bets ? `<div class="rc-grid"><div><small>観戦の予想</small><b>${C.hits}/${C.bets}</b></div><div><small>的中率</small><b>${pct(C.hits, C.bets)}</b></div><div><small>回収率</small><b>${C.stake ? Math.round((C.ret || 0) / C.stake * 100) + '%' : '-'}</b></div><div><small>最高払戻</small><b>${C.best}</b></div></div>` : ''}
+    ${C.bets ? `<div class="rc-grid"><div><small>観戦の予想</small><b>${C.hits}/${C.bets}</b></div><div><small>的中率</small><b>${pct(C.hits, C.bets)}</b></div>${(APP || window.__JAN_FREEPICK) ? `<div><small>最高獲得</small><b>${C.best}</b></div>` : `<div><small>回収率</small><b>${C.stake ? Math.round((C.ret || 0) / C.stake * 100) + '%' : '-'}</b></div><div><small>最高払戻</small><b>${C.best}</b></div>`}</div>` : ''}
     ${H.length ? `<div class="gh-row"><small>直近${H.length}回</small>${dots}</div>` : ''}`;
 }
 function openRecord() {
@@ -7443,7 +7449,7 @@ function openRecord() {
 // --- コインショップ: the same packs and prices as VS BOAT (100 coins = one pull) ---
 const SHOP = [[100, 160], [300, 480], [510, 800], [980, 1500], [1580, 2400], [2500, 3800], [3400, 5000], [7000, 10000]];
 function openShop() {
-  if (APP) return openShopApp();
+  if (APP) return shopOn() ? openShopApp() : undefined;
   if (SITE) return;
   audio();
   const cards = SHOP.map(([c, yen], i) => `<button class="sh-p" data-i="${i}"><span class="coin"></span><b>${c.toLocaleString()}</b><small>ガチャ${Math.floor(c / 100)}回分</small><em>¥${yen.toLocaleString()}</em></button>`).join('');
@@ -11914,6 +11920,12 @@ applyLayout();
 // 予想チップ are for watching only: you can't buy them and they never turn into coins. 100 free every day.
 // Bets: 単勝 (pick the winner) and 2車単 (1着→2着 in order). Odds come from each rider's strength.
 const CHIP_START = 300, CHIP_DAILY = 100, CHIP_COST = { 1: 100, 10: 900 }, BET_AMTS = [10, 50, 100, 300], BET_MAX = 5;
+// FREEPICK (the iPhone app): no stake at all. Picks are free — 単勝 and 2車単 one each per race (the live race: one
+// player) — and a hit pays a fixed number of 予想チップ by how unfancied the pick was. Nothing to bet, no odds.
+const FREEPICK = APP || !!window.__JAN_FREEPICK;
+const PICK_REW = { '◎': 30, '○': 40, '▲': 60, '△': 80, '': 100 }, PICK_EX = 3, PICK_LV = 50;
+function pickRew(b) { if (b.t === 'lv') return PICK_LV; const m = (W.odds && W.odds.mark[b.a]) || ''; return PICK_REW[m] * (b.t === 'ex' ? PICK_EX : 1); }
+try { if (FREEPICK) { document.body.classList.add('freepick'); const n = document.querySelector('.wb-note'); if (n) n.textContent = '予想は無料です。当たると予想チップがもらえます（チップはチップガチャ専用で、購入もコインへの交換もできません）。毎日 100 チップもらえます。'; } } catch (_) {}
 const W = { live: false, cam: 'tv', fast: false, bets: [], type: 'win', pickA: null, amt: 50, odds: null, won: false, endT: 0, cut: 0, cutT: 0, focus: null };
 function W_FAST() { return W.fast; }
 function chipN() { if (save.chip == null) { save.chip = CHIP_START; persist(); } return save.chip; }
@@ -11983,19 +11995,24 @@ function renderBet() {
     if (W.type === 'ex' && W.pickA) return r.no === W.pickA ? '<em class="wb-1st">1着</em>' : `<em>${W.pickA}→${r.no}</em><b>${O.exa[W.pickA + '-' + r.no]}</b>倍`;
     return `<em>単勝</em><b>${O.win[r.no]}</b>倍`;
   };
+  const pickTxt = (r) => {
+    if (W.type === 'ex' && W.pickA) return r.no === W.pickA ? '<em class="wb-1st">1着</em>' : `<em>${W.pickA}→${r.no}</em>`;
+    return `<em>的中で</em>${CHIP_HTML}<b>+${PICK_REW[O.mark[r.no] || '']}</b>`;
+  };
   $('wbLines').innerHTML = byLine.map((ln) => `<div class="wb-line"><div class="wb-lh">${ln[0].region}ライン <span>${ln.map((r) => r.no).join('-')}</span></div>` +
-    ln.map((r) => `<button class="wb-r ${W.pickA === r.no ? 'sel' : ''}" data-no="${r.no}"><i class="wb-mk">${O.mark[r.no]}</i>${DOT_HTML(r)}<span class="wb-nm"><b>${escapeHtml(r.name)}</b>${starTag(r)}<small>${r.cls}・${STYLE_LABEL[r.style]}${r.role ? '・' + roleL(r) : ''}</small><small class="wb-form">近況 ${(r.form || []).map((n) => n <= 3 ? `<i class="t${n}">${n}</i>` : n).join(' ')}</small></span><span class="wb-od">${oddTxt(r)}</span></button>`).join('') + '</div>').join('');
+    ln.map((r) => `<button class="wb-r ${W.pickA === r.no ? 'sel' : ''}" data-no="${r.no}"><i class="wb-mk">${O.mark[r.no]}</i>${DOT_HTML(r)}<span class="wb-nm"><b>${escapeHtml(r.name)}</b>${starTag(r)}<small>${r.cls}・${STYLE_LABEL[r.style]}${r.role ? '・' + roleL(r) : ''}</small><small class="wb-form">近況 ${(r.form || []).map((n) => n <= 3 ? `<i class="t${n}">${n}</i>` : n).join(' ')}</small></span><span class="wb-od">${FREEPICK ? pickTxt(r) : oddTxt(r)}</span></button>`).join('') + '</div>').join('');
   for (const b of $('wbType').children) b.setAttribute('aria-pressed', b.dataset.v === W.type);
   for (const b of $('wbAmt').children) b.setAttribute('aria-pressed', +b.dataset.v === W.amt);
   $('wbChips').textContent = chipN();
   const spent = W.bets.reduce((s, b) => s + b.amt, 0), left = chipN() - spent;
   $('wbHint').innerHTML = W.type === 'win' ? '1着になる選手をタップ' : W.pickA ? `<b>${W.pickA}番</b>が1着 → 2着をタップ` : '1着になる選手をタップ（次に2着）';
-  $('wbList').innerHTML = W.bets.length ? W.bets.map((b, i) => `<div class="wb-bet"><span>${b.t === 'win' ? '単勝' : '2車単'} <b>${b.t === 'win' ? b.a : b.a + '→' + b.b}</b></span><span>${CHIP_HTML}${b.amt} × ${b.odds}倍</span><button data-i="${i}" aria-label="取り消す">×</button></div>`).join('') : '<div class="wb-empty">まだ予想していません（賭けずに観るだけでもOK）</div>';
-  $('wbLeft').innerHTML = `賭け ${CHIP_HTML}<b>${spent}</b>　残り ${CHIP_HTML}<b>${left}</b>`;
-  $('wbGo').textContent = W.bets.length ? '発走！' : '賭けずに観る';
+  $('wbList').innerHTML = W.bets.length ? W.bets.map((b, i) => `<div class="wb-bet"><span>${b.t === 'win' ? '単勝' : '2車単'} <b>${b.t === 'win' ? b.a : b.a + '→' + b.b}</b></span><span>${FREEPICK ? `的中で ${CHIP_HTML}+${pickRew(b)}` : `${CHIP_HTML}${b.amt} × ${b.odds}倍`}</span><button data-i="${i}" aria-label="取り消す">×</button></div>`).join('') : (FREEPICK ? '<div class="wb-empty">まだ予想していません（観るだけでもOK）</div>' : '<div class="wb-empty">まだ予想していません（賭けずに観るだけでもOK）</div>');
+  $('wbLeft').innerHTML = FREEPICK ? '予想は無料。単勝・2車単を1つずつ選べます' : `賭け ${CHIP_HTML}<b>${spent}</b>　残り ${CHIP_HTML}<b>${left}</b>`;
+  $('wbGo').textContent = W.bets.length ? '発走！' : FREEPICK ? '予想せずに観る' : '賭けずに観る';
   for (const b of $('wbAmt').children) b.disabled = +b.dataset.v > left;
 }
 function addBet(t, a, b) {
+  if (FREEPICK) { W.bets = W.bets.filter((x) => x.t !== t); W.bets.push({ t, a, b, amt: 0, odds: 0 }); tone(1175, 0.07, 'triangle', 0.07); tone(1568, 0.08, 'triangle', 0.05, 0.06); return; }
   const spent = W.bets.reduce((s, x) => s + x.amt, 0);
   if (W.bets.length >= BET_MAX) { showWarn(`予想は1レース${BET_MAX}つまで`); return; }
   if (spent + W.amt > chipN()) { showWarn('チップが足りません'); return; }
@@ -12106,9 +12123,9 @@ function watchFinish() {
   const order = currentOrder(), win = order[0];
   let paid = 0, hits = 0;
   const lines = W.bets.map((b) => {
-    const hit = betLive(b, order), pay = hit ? Math.floor(b.amt * b.odds) : 0;
+    const hit = betLive(b, order), pay = hit ? (FREEPICK ? pickRew(b) : Math.floor(b.amt * b.odds)) : 0;
     if (hit) { hits++; paid += pay; }
-    return `<div class="wb-res ${hit ? 'hit' : ''}"><span>${b.t === 'lv' ? `人間トップ <b>${escapeHtml(b.nm)}</b>` : `${b.t === 'win' ? '単勝' : '2車単'} <b>${b.t === 'win' ? b.a : b.a + '→' + b.b}</b>`}</span><span>${CHIP_HTML}${b.amt}</span><span>${hit ? `的中 ${CHIP_HTML}<b>+${pay}</b>` : 'はずれ'}</span></div>`;
+    return `<div class="wb-res ${hit ? 'hit' : ''}"><span>${b.t === 'lv' ? `人間トップ <b>${escapeHtml(b.nm)}</b>` : `${b.t === 'win' ? '単勝' : '2車単'} <b>${b.t === 'win' ? b.a : b.a + '→' + b.b}</b>`}</span><span>${FREEPICK ? '' : CHIP_HTML + b.amt}</span><span>${hit ? `的中 ${CHIP_HTML}<b>+${pay}</b>` : 'はずれ'}</span></div>`;
   });
   save.chip = chipN() + paid;
   const st = save.chipSt || (save.chipSt = { races: 0, bets: 0, hits: 0, best: 0 });
@@ -12119,9 +12136,9 @@ function watchFinish() {
   $('rBig').textContent = !W.bets.length ? `${win.no}番 1着` : hits ? '的中！' : 'はずれ';
   $('rBig').classList.toggle('wb-hitbig', hits > 0);
   const wn = escapeHtml(win.netName || win.name);
-  $('rKv').innerHTML = `<div>着順 <b>${order.slice(0, 3).map((r) => r.no).join(' - ')}</b></div><div>決まり手 <b>${kimarite}</b>（${win.no}番 ${wn}）</div>` + (W.live ? '<div>レートマッチ生観戦</div>' : `<div>単勝 <b>${W.odds.win[win.no]}倍</b> ／ 2車単 <b>${W.odds.exa[win.no + '-' + order[1].no]}倍</b></div>`);
+  $('rKv').innerHTML = `<div>着順 <b>${order.slice(0, 3).map((r) => r.no).join(' - ')}</b></div><div>決まり手 <b>${kimarite}</b>（${win.no}番 ${wn}）</div>` + (W.live ? '<div>レートマッチ生観戦</div>' : FREEPICK ? `<div>1着 ${win.no}番は ${W.odds.mark[win.no] || '無印'}</div>` : `<div>単勝 <b>${W.odds.win[win.no]}倍</b> ／ 2車単 <b>${W.odds.exa[win.no + '-' + order[1].no]}倍</b></div>`);
   $('rHint').innerHTML = '';
-  $('rRew').innerHTML = (lines.length ? lines.join('') : '') + `<div class="wb-bal">予想チップ ${CHIP_HTML}<b>${save.chip}</b>${paid ? `（+${paid}）` : ''}　通算的中 ${st.hits}/${st.bets}${st.stake ? `　回収率 <b>${Math.round((st.ret || 0) / st.stake * 100)}%</b>` : ''}</div>`;
+  $('rRew').innerHTML = (lines.length ? lines.join('') : '') + `<div class="wb-bal">予想チップ ${CHIP_HTML}<b>${save.chip}</b>${paid ? `（+${paid}）` : ''}　通算的中 ${st.hits}/${st.bets}${st.stake && !FREEPICK ? `　回収率 <b>${Math.round((st.ret || 0) / st.stake * 100)}%</b>` : ''}</div>`;
   if (W.bets.length) { const dl = dailyEvent({ kind: 'bet' }); if (dl.length) $('rRew').innerHTML += dl.map((l) => `<div>${l}</div>`).join(''); }
   $('rRew').hidden = false;
   renderResultTable(order);
@@ -12246,14 +12263,15 @@ function renderLiveBet() {
   }
   box.hidden = false;
   const o = liveOdds(list), mine = new Set(W.bets.map((b) => b.peer));
-  $('lvRows').innerHTML = list.map((p) => `<button class="lv-r ${mine.has(p.peer) ? 'sel' : ''}" data-p="${escapeHtml(p.peer)}"><b>${escapeHtml(netName(p))}</b><small>レート ${+p.presence.rt || '—'}</small><span><b>${o[p.peer]}</b>倍</span></button>`).join('');
+  $('lvRows').innerHTML = list.map((p) => `<button class="lv-r ${mine.has(p.peer) ? 'sel' : ''}" data-p="${escapeHtml(p.peer)}"><b>${escapeHtml(netName(p))}</b><small>レート ${+p.presence.rt || '—'}</small><span>${FREEPICK ? `的中で ${CHIP_HTML}+${PICK_LV}` : `<b>${o[p.peer]}</b>倍`}</span></button>`).join('');
   for (const b of $('lvAmt').children) b.setAttribute('aria-pressed', +b.dataset.v === lvAmt);
   const spent = W.bets.reduce((s, b) => s + b.amt, 0);
-  $('lvInfo').innerHTML = `賭け ${CHIP_HTML}<b>${spent}</b>　残り ${CHIP_HTML}<b>${chipN()}</b>${W.bets.length ? '　' + W.bets.map((b) => `${escapeHtml(b.nm)} ${b.amt}`).join(' / ') : ''}`;
+  $('lvInfo').innerHTML = FREEPICK ? (W.bets.length ? `予想：<b>${escapeHtml(W.bets[0].nm)}</b>（タップで変更）` : '人間でいちばん上の着順になる人を予想（無料）') : `賭け ${CHIP_HTML}<b>${spent}</b>　残り ${CHIP_HTML}<b>${chipN()}</b>${W.bets.length ? '　' + W.bets.map((b) => `${escapeHtml(b.nm)} ${b.amt}`).join(' / ') : ''}`;
 }
 $('lvRows').addEventListener('click', (e) => {
   const el = e.target.closest('.lv-r'); if (!el || W.live !== 'wait') return;
   const list = liveWaiting(), p = list.find((x) => x.peer === el.dataset.p); if (!p) return;
+  if (FREEPICK) { W.bets = [{ t: 'lv', peer: p.peer, nm: netName(p), amt: 0, odds: 0 }]; tone(1175, 0.07, 'triangle', 0.07); renderLiveBet(); return; }
   if (W.bets.length >= 3) { showWarn('レート戦の予想は3つまで'); return; }
   if (chipN() < lvAmt) { showWarn('チップが足りません'); return; }
   save.chip -= lvAmt; persist();
@@ -13049,8 +13067,11 @@ function iapGrant(t) {
   iapLog({ product: pid, tx: String(id), jws: t.jwsRepresentation || null });
   return true;
 }
+// the shop only shows once the App Store has handed over products (and never in a build made without purchases)
+function shopOn() { return !!(IAP.ok && Object.keys(IAP.prods).length); }
+try { if (APP) document.body.classList.add('noshop'); } catch (_) {}
 async function iapBoot() {
-  if (!APP) return;
+  if (!APP || window.__JAN_NOIAP) return;
   try {
     const P = window.Capacitor.registerPlugin('NativePurchases');
     const s = await P.isBillingSupported(); if (!s || !s.isBillingSupported) return;
@@ -13058,6 +13079,7 @@ async function iapBoot() {
     const r = await P.getProducts({ productIdentifiers: IAP_COIN.map((x) => x.id).concat([IAP_PASS]), productType: 'inapp' });
     for (const p of (r && r.products) || []) IAP.prods[p.identifier] = p;
     IAP.ok = true;
+    try { document.body.classList.toggle('noshop', !shopOn()); } catch (_) {}
     // anything bought but not granted (the app closed mid-purchase)
     try { const g = await P.getPurchases({ productType: 'inapp' }); for (const t of (g && g.purchases) || []) iapGrant(t); } catch (_) {}
   } catch (e) { console.error('iap', e); }
