@@ -53,6 +53,7 @@ canvas{width:100%;height:100%;display:block}
     <h3>どのギフトで何が起きるか</h3>
     <p>ギフト名を入力するか、「受信で登録」を押してからそのギフトを1個投げてもらうと登録できます。空らんの効果はギフトでは起きません。</p>
     <div id="cfgRows"></div>
+    <p><button id="cfgTable" type="button">ギフト表を開く（配信にのせる用）</button></p>
     <h3>ギフト以外</h3>
     <div class="row both"><div class="nm">いいね1000<small>ランダム動物が落ちてくる</small></div><button id="optLike" type="button"></button></div>
     <div class="row both"><div class="nm">フォロー<small>ランダム動物が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
@@ -1039,15 +1040,16 @@ function tfConnect(){ clearTimeout(TF.timer); try{ if(TF.ws){ TF.ws.onclose=null
   ws.onclose=()=>{ if(TF.ws!==ws) return; const was=TF.ok; TF.ok=false; tfUI(); if(was) tfLogAdd('TikFinityとの接続が切れた'); TF.wait=Math.min(20000,TF.wait*1.5); TF.timer=setTimeout(tfConnect,TF.wait); };
   ws.onerror=()=>{}; ws.onmessage=e=>{ let m=null; try{ m=JSON.parse(e.data); }catch(_){ return; } try{ tfEvent(m); }catch(err){ tfLogAdd('読み取りエラー：'+err.message); } }; }
 function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.data||m||{}, u=d.user||{}, name=d.nickname||u.nickname||d.uniqueId||u.uniqueId||'だれか';
-  if(ev==='gift'){ const gd=d.giftDetails||d.extendedGiftInfo||d.gift||{}, id=d.giftId!=null?d.giftId:(gd.id!=null?gd.id:gd.giftId), gname=d.giftName||gd.giftName||gd.name||('ID'+id), coins=d.diamondCount!=null?d.diamondCount:(gd.diamondCount!=null?gd.diamondCount:gd.diamond_count), gtype=d.giftType!=null?d.giftType:gd.giftType, rc=Math.max(1,parseInt(d.repeatCount,10)||1), end=!!d.repeatEnd;
+  if(ev==='gift'){ const gd=d.giftDetails||d.extendedGiftInfo||d.gift||{}, id=d.giftId!=null?d.giftId:(gd.id!=null?gd.id:gd.giftId), gname=d.giftName||gd.giftName||gd.name||('ID'+id), coins=d.diamondCount!=null?d.diamondCount:(gd.diamondCount!=null?gd.diamondCount:gd.diamond_count), pic=d.giftPictureUrl||gd.giftPictureUrl||gd.pictureUrl||(gd.icon&&gd.icon.url_list&&gd.icon.url_list[0])||(gd.image&&gd.image.url_list&&gd.image.url_list[0])||null, gtype=d.giftType!=null?d.giftType:gd.giftType, rc=Math.max(1,parseInt(d.repeatCount,10)||1), end=!!d.repeatEnd;
     let n=rc; if(gtype===1){ const k=(d.uniqueId||u.uniqueId||name)+'|'+id, last=TF.streak[k]||0; n=Math.max(0,rc-last); if(end) delete TF.streak[k]; else TF.streak[k]=rc; }
-    if(n<=0) return; tfGift({id,name:gname,coins},name,Math.min(n,50)); }
+    if(n<=0) return; tfGift({id,name:gname,coins,pic},name,Math.min(n,50)); }
   else if(ev==='chat'){ Game.chat(name); tfLogAdd('コメント：'+name+(OPT.chatOn?'（'+(chatN===0?'この人の名前の動物が出る':'あと'+(CHAT_EVERY-chatN)+'回で動物')+'）':'（オフ）')); }
   else if(ev==='like'){ const c=parseInt(d.likeCount,10)||1; Game.like(c); }
   else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') Game.follow(name); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
 function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
-  if(TF.learn){ const id=TF.learn; TF.learn=null; TF.map[id]={id:gf.id,name:gf.name,coins:gf.coins}; tfSave(); cfgBuild(); tfLogAdd('登録：'+gf.name+coin+' → '+(FX_LIST.find(f=>f[0]===id)||[])[2]); return; }
+  if(TF.learn){ const id=TF.learn; TF.learn=null; TF.map[id]={id:gf.id,name:gf.name,coins:gf.coins,pic:gf.pic||null}; tfSave(); cfgBuild(); tfLogAdd('登録：'+gf.name+coin+' → '+(FX_LIST.find(f=>f[0]===id)||[])[2]); return; }
   const hit=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && ((b.id!=null && gf.id!=null && String(b.id)===String(gf.id)) || (b.name && tfNorm(b.name)===tfNorm(gf.name))); });
+  { let ch=false; for(const f of hit){ const b=TF.map[f[0]]; if(b.id==null && gf.id!=null){ b.id=gf.id; ch=true; } if(b.coins==null && gf.coins!=null){ b.coins=gf.coins; ch=true; } if(!b.pic && gf.pic){ b.pic=gf.pic; ch=true; } } if(ch) tfSave(); }
   tfLogAdd('ギフト：'+name+' が '+gf.name+coin+' ×'+n+(hit.length?' → '+hit.map(f=>f[2]).join('・'):' → 割り当てなし'));
   for(let i=0;i<n;i++) for(const f of hit) setTimeout(()=>{ try{ f[4](name); }catch(e){} },i*350); }
 function cfgBuild(){ const box=document.getElementById('cfgRows'); if(!box) return; box.innerHTML='';
@@ -1057,6 +1059,7 @@ function cfgBuild(){ const box=document.getElementById('cfgRows'); if(!box) retu
     const lr=document.createElement('button'); lr.type='button'; lr.className='lr'+(TF.learn===f[0]?' wait':''); lr.textContent=TF.learn===f[0]?'ギフト待ち…':'受信で登録'; lr.addEventListener('click',()=>{ TF.learn=TF.learn===f[0]?null:f[0]; cfgBuild(); });
     row.appendChild(nm); row.appendChild(inp); row.appendChild(lr); box.appendChild(row); } }
 { const cfg=document.getElementById('cfg'); document.getElementById('cfgBtn').addEventListener('click',()=>{ cfgBuild(); tfUI(); cfg.hidden=false; panel.hidden=true; }); document.getElementById('cfgClose').addEventListener('click',()=>{ TF.learn=null; cfg.hidden=true; });
+  document.getElementById('cfgTable').addEventListener('click',()=>{ window.open('./gifts.html','_blank'); });
   document.getElementById('tfRe').addEventListener('click',()=>{ TF.wait=3000; tfConnect(); });
   document.getElementById('cfgExp').addEventListener('click',()=>{ const t=document.getElementById('cfgIO'); t.value=JSON.stringify(TF.map); t.select(); });
   document.getElementById('cfgImp').addEventListener('click',()=>{ try{ const o=JSON.parse(document.getElementById('cfgIO').value); if(o && typeof o==='object'){ TF.map=o; tfSave(); cfgBuild(); tfLogAdd('設定を読みこんだ'); } }catch(e){ tfLogAdd('読みこみ失敗：文字が正しくない'); } }); }

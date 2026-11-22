@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>つみつみアニマル ギフト表</title>
+<style>
+@font-face{font-family:'MPR';src:url('./font/mpr.woff2') format('woff2');font-weight:100 900;font-display:swap}
+html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku Gothic ProN','Noto Sans JP','Yu Gothic','Meiryo',sans-serif}
+#grid{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.55vw;padding:.6vw;box-sizing:border-box;width:100%}
+.c{border:.32vw solid #e0262e;border-radius:1.3vw;background:linear-gradient(#17171d,#08080b);padding:.5vw .3vw .45vw;display:flex;flex-direction:column;align-items:center;min-width:0;box-shadow:0 0 1vw rgba(224,38,46,.35) inset}
+.c.help{border-color:#2fbf4f;box-shadow:0 0 1vw rgba(47,191,79,.35) inset}
+.c.both{border-color:#ffcc33;box-shadow:0 0 1vw rgba(255,204,51,.35) inset}
+.pair{display:flex;align-items:center;justify-content:center;gap:.2vw;width:100%}
+.pair>div{flex:1 1 50%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;min-width:0;position:relative}
+.pair img{width:100%;height:100%;object-fit:contain}
+.g .t{font-weight:900;font-size:calc(11.5vw / var(--cols));line-height:1.15;text-align:center;word-break:break-all;color:#ffe680}
+.g .q{font-weight:900;font-size:calc(34vw / var(--cols));color:#555}
+.g .coin{position:absolute;right:0;bottom:0;font-weight:900;font-size:calc(10.5vw / var(--cols));background:rgba(0,0,0,.78);border-radius:.6vw;padding:0 .35vw;color:#ffd23f}
+.nm{font-weight:900;font-size:calc(13.5vw / var(--cols));line-height:1.15;text-align:center;margin-top:.25vw;text-shadow:0 .15vw 0 #000;white-space:nowrap;overflow:hidden;max-width:100%}
+.hide .c.none{display:none}
+</style>
+</head>
+<body>
+<div id="grid"></div>
+<script>
+/* つみつみアニマルのギフト表。ゲームの「ギフト」画面で登録した割り当てをそのまま表示する。
+   URLの後ろに ?cols=9（1段の数）や ?all=1（未登録の効果も出す）を付けられる */
+const FX=[['ant','jam','アリ'],['wind','jam','突風'],['ink','jam','イカスミ'],['quake','jam','地震'],['crow','jam','カラス'],['giant','jam','巨大化'],['slot','jam','動物スロット'],['usagi','jam','早送り'],['eel','jam','タコ解除'],
+ ['necro','jam','見えない'],['witch','jam','ゴール+3m'],['wrm','jam','−ルーレット'],['dragon','jam','全消し'],['robot','jam','全リセット'],['reaper','jam','WIN −1000'],
+ ['fairy','help','ちび化'],['kame','help','スロー'],['tako','help','吸着MAX'],['rewind','help','やり直し'],['golem','help','落ちない壁'],['angel','help','ゴール−2m'],['wrp','help','＋ルーレット'],['tree','help','台が広がる'],
+ ['statue','help','5回ガード'],['phoenix','help','WIN ＋1000'],['double','both','5分間 2倍']];
+const q=new URLSearchParams(location.search), cols=Math.max(3,Math.min(13,parseInt(q.get('cols'),10)||9)), showAll=q.get('all')==='1';
+document.documentElement.style.setProperty('--cols',cols);
+let last='';
+function load(){ let m={}; try{ m=JSON.parse(localStorage.getItem('tsumi_gifts')||'{}')||{}; }catch(e){} if(window.__sample) m=window.__sample; return m; }
+function build(){ const m=load(), key=JSON.stringify(m); if(key===last) return; last=key; const g=document.getElementById('grid'); g.innerHTML=''; const any=FX.some(f=>m[f[0]]&&m[f[0]].name);
+  for(const f of FX){ const b=m[f[0]]; if(!showAll && any && !(b&&b.name)) continue; const c=document.createElement('div'); c.className='c '+f[1];
+    const pair=document.createElement('div'); pair.className='pair'; const gd=document.createElement('div'); gd.className='g';
+    if(b&&b.pic){ const im=document.createElement('img'); im.src=b.pic; im.alt=b.name||''; im.referrerPolicy='no-referrer'; im.onerror=()=>{ gd.innerHTML=''; const t=document.createElement('div'); t.className='t'; t.textContent=b.name||'？'; gd.appendChild(t); }; gd.appendChild(im); }
+    else if(b&&b.name){ const t=document.createElement('div'); t.className='t'; t.textContent=b.name; gd.appendChild(t); }
+    else { const t=document.createElement('div'); t.className='q'; t.textContent='？'; gd.appendChild(t); }
+    if(b&&b.coins!=null){ const cn=document.createElement('div'); cn.className='coin'; cn.textContent=b.coins; gd.appendChild(cn); }
+    const fx=document.createElement('div'); const fi=document.createElement('img'); fi.src='./img/fx/'+f[0]+'.png'; fi.alt=f[2]; fx.appendChild(fi);
+    pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; nm.textContent=f[2]; c.appendChild(pair); c.appendChild(nm); g.appendChild(c); } }
+build(); window.addEventListener('storage',build); setInterval(build,3000);
+</script>
+</body>
+</html>
