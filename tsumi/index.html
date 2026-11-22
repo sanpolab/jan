@@ -241,7 +241,7 @@ function newRound(mode){
   engine = Engine.create({ positionIterations:12, velocityIterations:10, enableSleeping:true }); engine.gravity.y = 1;
   table = Bodies.rectangle(540, TOP_Y+30, curse?CFG.smallW:(bless?CFG.wideW:CFG.tableW), 60, { isStatic:true, friction:1, frictionStatic:2, slop:.5 });
   Composite.add(engine.world, table);
-  S = { mode: mode||'playing', phase:'aim', bodies:[], cur:null, next:null, falling:null, settle:0, fallT:0, px:540, rot:0, names:S?S.names:[], log:[], like:(S&&S.like)||0,
+  S = { mode: mode||'playing', phase:'aim', bodies:[], cur:null, next:null, falling:null, settle:0, fallT:0, px:540, rot:0, names:S?S.names:[], log:[], reroll:3, like:(S&&S.like)||0,
         wind:0, windDir:1, windPre:0, windY:1000, spA:0, quake:0, glue:0, wide:false, banner:null, endT:0, shake:0, count:0, topY:TOP_Y, t:0, parts:[], cut:null, cutQ:[], crow:null, crowQ:[], band:null, doom:0, holy:0, white:0, red:0, rings:[], seq:null, seqQ:[], meteors:[], booms:[], strikes:[], ghost:0, ghostFlash:0, purple:0, roul:null, roulQ:[], fairy:null, fairyQ:[], walk:[], wg:null, wgQ:[], ink:null };
   S.cur = nextSpec(); S.next = nextSpec();
   walls=null; if(wallT>0) makeWalls(false);
@@ -528,6 +528,8 @@ function drop(){ if(PAUSED || S.mode!=='playing' || S.phase!=='aim' || seqLock()
   const b=makeBody(c.key,c.s);
   Body.setPosition(b,{x:S.px,y:AIM_Y}); Body.setAngle(b,S.rot); b.plugin.name=c.name; b.plugin.by=c.by; Composite.add(engine.world,b); S.bodies.push(b); if(S.snap) S.snap.body=b;
   S.falling=b; S.phase='fall'; S.settle=0; S.fallT=0; S.count++; sfx.drop(); }
+/* 「つぎ」の動物の引き直し：1ラウンドに3回まで、つぎの枠をクリックすると別の動物に変わる（名前や大きさはそのまま） */
+function rerollNext(){ if(S.mode!=='playing' || !S.next || S.next.statue || S.reroll<=0) return; const old=S.next.key; let k=old, n=0; while(k===old && n++<20) k=pick(KEYS); S.next.key=k; S.reroll--; S.rrFlash=.35; play('rot'); }
 function rotate(){ if(S.mode!=='playing' || S.phase!=='aim' || seqLock() || S.cur.statue) return; S.rot=(S.rot+Math.PI/4)%(Math.PI*2); sfx.rot(); }
 
 /* ====== 更新 ====== */
@@ -994,7 +996,7 @@ function drawHUD(){
   const hm=heightM(); txtD(hm.toFixed(1)+'m',540,82,98,'#fff','center'); txt('目標 '+GOAL_M+'m　いま'+S.bodies.filter(b=>!b.plugin.rock && b.plugin.key!=='ari').length+'匹',540,160,30,'#b9c6e6','center',null,700);
   g.fillStyle='#2a3a5e'; g.fillRect(0,188,W,12); g.fillStyle='#ffd23f'; g.fillRect(0,188,W*clamp(hm/GOAL_M,0,1),12);
   // つぎの動物
-  if(S.next){ g.fillStyle='#22315a'; rr(742,62,150,124,18); g.fill(); txt('つぎ',817,84,24,'#b9c6e6','center',null,700); g.save(); const a=ANIMALS[S.next.key], k=Math.min(120/a.w,72/a.h)*Math.min(1,.75*S.next.s+.2); g.translate(817-a.w*k/2,142-a.h*k/2); g.scale(k,k); drawAnimal(S.next.key); g.restore();
+  if(S.next){ if(S.rrFlash>0) S.rrFlash-=1/60; g.fillStyle=S.rrFlash>0?'#4a66c0':'#22315a'; rr(742,62,150,124,18); g.fill(); if(S.mode==='playing'){ const on=S.reroll>0; g.fillStyle=on?'#ffd23f':'#55607f'; rr(700,150,84,36,18); g.fill(); txt('変更'+S.reroll,742,169,22,on?'#201400':'#c5cbe0','center',null,900); } txt('つぎ',817,84,24,'#b9c6e6','center',null,700); g.save(); const a=ANIMALS[S.next.key], k=Math.min(120/a.w,72/a.h)*Math.min(1,.75*S.next.s+.2); g.translate(817-a.w*k/2,142-a.h*k/2); g.scale(k,k); drawAnimal(S.next.key); g.restore();
     if(S.next.s>1.2 || ANIMALS[S.next.key].big) txt('巨大',920,170,22,'#ff9aa8','center'); if(S.next.s<.9) txt('ちび',920,170,22,'#9dffb8','center'); }
   // 下のパネル
   g.fillStyle='#17223b'; g.fillRect(0,1570,W,H-1570);
@@ -1054,7 +1056,7 @@ function toX(ev){ const r=cv.getBoundingClientRect(); return clamp(540+((ev.clie
 function toY(ev){ const r=cv.getBoundingClientRect(), y=(ev.clientY-r.top)*VH()/r.height; return (!SHORT||y<200)?y:y+SHORT; }
 let dragging=false;
 function toXraw(ev){ const r=cv.getBoundingClientRect(); return (ev.clientX-r.left)*W/r.width; }
-cv.addEventListener('pointerdown',ev=>{ ev.preventDefault(); audioOn(); if(S.mode==='title'){ const x=IOX(toXraw(ev)), y=IOY(toY(ev)); for(const b of TITLE_BTN) if(x>=b.x-6&&x<=b.x+b.w+6&&y>=b.y-10&&y<=b.y+b.h+10){ wins=b.d===0?0:clamp(wins+b.d,-999,999); saveWins(); return; } for(const b of SPD_BTN) if(x>=b.x-4&&x<=b.x+b.w+4&&y>=b.y-8&&y<=b.y+b.h+8){ setBaseSpd(b.v); return; } if(x>=START_BTN.x&&x<=START_BTN.x+START_BTN.w&&y>=START_BTN.y-10&&y<=START_BTN.y+START_BTN.h+20) newRound('playing'); return; } if(ev.button===2){ rotate(); return; } if(toY(ev)<200||toY(ev)>1570) return; S.px=toX(ev); dragging=true; });
+cv.addEventListener('pointerdown',ev=>{ ev.preventDefault(); audioOn(); if(S.mode==='title'){ const x=IOX(toXraw(ev)), y=IOY(toY(ev)); for(const b of TITLE_BTN) if(x>=b.x-6&&x<=b.x+b.w+6&&y>=b.y-10&&y<=b.y+b.h+10){ wins=b.d===0?0:clamp(wins+b.d,-999,999); saveWins(); return; } for(const b of SPD_BTN) if(x>=b.x-4&&x<=b.x+b.w+4&&y>=b.y-8&&y<=b.y+b.h+8){ setBaseSpd(b.v); return; } if(x>=START_BTN.x&&x<=START_BTN.x+START_BTN.w&&y>=START_BTN.y-10&&y<=START_BTN.y+START_BTN.h+20) newRound('playing'); return; } if(ev.button===2){ rotate(); return; } { const x=toXraw(ev), y=toY(ev); if(S.mode==='playing' && x>=732&&x<=902&&y>=52&&y<=196){ rerollNext(); return; } } if(toY(ev)<200||toY(ev)>1570) return; S.px=toX(ev); dragging=true; });
 cv.addEventListener('pointermove',ev=>{ if(ev.pointerType==='mouse' || dragging) S.px=toX(ev); });
 window.addEventListener('pointerup',ev=>{ if(dragging){ dragging=false; drop(); } });
 window.addEventListener('pointercancel',()=>{ dragging=false; });
