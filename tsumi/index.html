@@ -126,6 +126,7 @@ canvas{width:100%;height:100%;display:block}
     <button class="b-j" data-a="witch"><small>妨害 ？</small>魔女<br>ゴール+3m 上限100m</button>
     <button class="b-t" data-a="robot" style="background:#111;outline:2px solid #c22"><small>ちゃぶ台返し</small>黒い機体<br>WIN以外ぜんぶリセット</button>
     <button class="b-j" data-a="wrm" style="background:#5b2f8f"><small>妨害 ギフト</small>−WINルーレット<br>WIN −1〜10</button>
+    <button class="b-j" data-a="cerb" style="background:#3a1a5a"><small>妨害 上位</small>ケルベロス<br>WIN −100</button>
     <button class="b-j" data-a="reaper" style="background:#2a1040"><small>妨害 最上位</small>死神<br>WIN −1000</button>
     <button class="b-j" data-a="jam3"><small>妨害 大</small>ドラゴン<br>全消し＋台縮む</button>
     <button class="b-h" data-a="help1"><small>お助け 小</small>妖精<br>10秒 ちび化</button>
@@ -136,6 +137,7 @@ canvas{width:100%;height:100%;display:block}
     <button class="b-h" data-a="statue"><small>お助け 最上位</small>天使像<br>5ラウンド確定</button>
     <button class="b-h" data-a="rewind"><small>お助け 小</small>砂時計<br>負けを取り消す</button>
     <button class="b-h" data-a="wrp" style="background:#c98a00"><small>お助け ギフト</small>＋WINルーレット<br>WIN ＋1〜10</button>
+    <button class="b-h" data-a="pega" style="background:#c9a227"><small>お助け 上位</small>ペガサス<br>WIN ＋100</button>
     <button class="b-h" data-a="phoenix" style="background:#b8860b"><small>お助け 最上位</small>不死鳥<br>WIN ＋1000</button>
     <button class="b-h" data-a="help3"><small>お助け 大</small>世界樹<br>台が広がる</button>
   </div>
@@ -157,7 +159,7 @@ const OX=x=>540+(x-540)*OS(), OY=y=>1570+(y-1570)*OS(), IOX=x=>540+(x-540)/OS(),
 function ovOn(){ g.save(); if(SHORT){ const k=OS(); g.translate(540,1570); g.scale(k,k); g.translate(-540,-1570); } }
 function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
-function present(){ const vh=VH(); if(cv.height!==vh) cv.height=vh; if(!SHORT){ vx.drawImage(ocv,0,0); return; } if(S.cut){ const sh=(S.cut.vid && !/^(necro|golem|robo|reaper|phoenix|fox|statue)$/.test(S.cut.type))?1920-BG_OFF:1920, sy0=Math.max(0,(sh-vh)*.16); vx.drawImage(ocv,0,sy0,1080,Math.min(vh,sh),0,0,1080,vh); return; } vx.drawImage(ocv,0,0,1080,200,0,0,1080,200); const ph=1370-SHORT+PANEL_S; vx.drawImage(ocv,0,200+SHORT,1080,ph,0,200,1080,ph); }
+function present(){ const vh=VH(); if(cv.height!==vh) cv.height=vh; if(!SHORT){ vx.drawImage(ocv,0,0); return; } if(S.cut){ const sh=(S.cut.vid && !/^(necro|golem|robo|reaper|phoenix|fox|peg|cer|statue)$/.test(S.cut.type))?1920-BG_OFF:1920, sy0=Math.max(0,(sh-vh)*.16); vx.drawImage(ocv,0,sy0,1080,Math.min(vh,sh),0,0,1080,vh); return; } vx.drawImage(ocv,0,0,1080,200,0,0,1080,200); const ph=1370-SHORT+PANEL_S; vx.drawImage(ocv,0,200+SHORT,1080,ph,0,200,1080,ph); }
 const FONT = "'MPR','Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP','Noto Sans CJK JP','Yu Gothic','Meiryo',sans-serif", FONTD = "'DELA',"+"'MPR','Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP','Noto Sans CJK JP','Yu Gothic','Meiryo',sans-serif";
 try{ document.fonts.load("900 40px 'MPR'",'つみ'); document.fonts.load("400 40px 'DELA'",'つみ'); }catch(e){}
 
@@ -211,7 +213,7 @@ function sndInit(){ if(actx) return; const AC=window.AudioContext||window.webkit
   for(const k of SND_NAMES){ fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,ng)=>actx.decodeAudioData(b,ok,ng))).then(buf=>{ SND[k]=buf; }).catch(()=>{}); } }
 function play(k,v){ const buf=SND[k]; if(!buf || !actx) return; try{ if(actx.state==='suspended') actx.resume(); const src=actx.createBufferSource(), gn=actx.createGain(); src.buffer=buf; gn.gain.value=(v===undefined?1:v)*(SND_VOL[k]||.6); src.connect(gn); gn.connect(actx.destination); src.start(); }catch(e){} }
 let audioUnlocked=false;
-function audioOn(){ sndInit(); if(actx && actx.state==='suspended') actx.resume(); if(audioUnlocked) return; audioUnlocked=true; for(const v of [riftVid,dragonVid,treeVid,necroVid,golemVid,statueVid,roboVid,reaperVid,phoenixVid]){ try{ v.muted=false; const p=v.play(); if(p&&p.then) p.then(()=>{ v.pause(); v.currentTime=0; }).catch(()=>{}); }catch(e){} } }
+function audioOn(){ sndInit(); if(actx && actx.state==='suspended') actx.resume(); if(audioUnlocked) return; audioUnlocked=true; for(const v of [riftVid,dragonVid,treeVid,necroVid,golemVid,statueVid,roboVid,reaperVid,phoenixVid,pegVid,cerVid]){ try{ v.muted=false; const p=v.play(); if(p&&p.then) p.then(()=>{ v.pause(); v.currentTime=0; }).catch(()=>{}); }catch(e){} } }
 const sfx = { drop(){},   // 落とすときの音は無し
   land(){play('land');}, rot(){play('rot');}, bad(){play('bad');}, good(){play('good');}, win(){play('win');}, lose(){play('lose');} };
 
@@ -248,7 +250,7 @@ function newRound(mode){
   table = Bodies.rectangle(540, TOP_Y+30, curse?CFG.smallW:(bless?CFG.wideW:CFG.tableW), 60, { isStatic:true, friction:1, frictionStatic:2, slop:.5 });
   Composite.add(engine.world, table);
   S = { mode: mode||'playing', phase:'aim', bodies:[], cur:null, next:null, falling:null, settle:0, fallT:0, px:540, rot:0, names:S?S.names:[], log:[], reroll:3, like:(S&&S.like)||0,
-        wind:0, windDir:1, windPre:0, windY:1000, spA:0, quake:0, glue:0, wide:false, banner:null, endT:0, shake:0, count:0, topY:TOP_Y, t:0, parts:[], cut:null, cutQ:[], crow:null, crowQ:[], band:null, doom:0, holy:0, white:0, red:0, rings:[], seq:null, seqQ:[], meteors:[], booms:[], strikes:[], ghost:0, ghostFlash:0, purple:0, roul:null, roulQ:[], fairy:null, fairyQ:[], walk:[], wg:null, wgQ:[], ink:null };
+        wind:0, windDir:1, windPre:0, windY:1000, spA:0, quake:0, glue:0, wide:false, banner:null, endT:0, shake:0, count:0, topY:TOP_Y, t:0, parts:[], cut:null, cutQ:[], crow:null, crowQ:[], wf:null, wfQ:[], band:null, doom:0, holy:0, white:0, red:0, rings:[], seq:null, seqQ:[], meteors:[], booms:[], strikes:[], ghost:0, ghostFlash:0, purple:0, roul:null, roulQ:[], fairy:null, fairyQ:[], walk:[], wg:null, wgQ:[], ink:null };
   S.cur = nextSpec(); S.next = nextSpec();
   walls=null; if(wallT>0) makeWalls(false);
   setGoal();   // 魔女・天使で変わったゴールの高さは、ラウンドが変わっても続く
@@ -287,6 +289,7 @@ const golemVid=mkVid('golem');                            // ゴーレムが立�
 const statueVid=mkVid('statue');                          // 天使像が降りてくる（お助け最上位）
 const roboVid=mkVid('robo');                              // 黒い機体が降りてくる（全リセット）
 const reaperVid=mkVid('reaper'), phoenixVid=mkVid('phoenix'), foxVid=mkVid('fox');   // 死神（WIN−1000）／不死鳥（WIN＋1000）
+const pegVid=mkVid('peg'), cerVid=mkVid('cer');   // ペガサス（WIN＋100）／ケルベロス（WIN−100）
 const treeVid=mkVid('tree');                              // 世界樹が生える（お助け大）
 const dragonImg=new Image(); dragonImg.src='./img/dragon.jpg';
 const BG_OFF=260;   // 背景写真と動画を、地平線が台の足元に来るように上へずらす量
@@ -296,7 +299,7 @@ function vStop(v){ try{ v.pause(); }catch(e){} }
 function startCut(type,title,sub,cb){ if(S.cut){ S.cutQ.push([type,title,sub,cb]); return; }
   const rocks=[]; for(let i=0;i<26;i++) rocks.push({x:rand(0,W),y:rand(900,2100),vx:rand(-120,120),vy:rand(-900,-300),r:rand(14,46),rot:rand(0,6),vr:rand(-4,4)});
   S.cut={type,title,sub,cb,t:0,dur:type==='doom'?3.2:2.1,rocks,bolt:null,boltT:.3,boltA:0,vid:false};
-  const list = (type==='doom' ? [riftVid] : type==='necro' ? [necroVid] : type==='golem' ? [golemVid] : type==='statue' ? [statueVid] : type==='robo' ? [roboVid] : type==='reaper' ? [reaperVid] : type==='phoenix' ? [phoenixVid] : type==='fox' ? [foxVid] : [treeVid]).filter(vOK);
+  const list = (type==='doom' ? [riftVid] : type==='necro' ? [necroVid] : type==='golem' ? [golemVid] : type==='statue' ? [statueVid] : type==='robo' ? [roboVid] : type==='reaper' ? [reaperVid] : type==='phoenix' ? [phoenixVid] : type==='fox' ? [foxVid] : type==='peg' ? [pegVid] : type==='cer' ? [cerVid] : [treeVid]).filter(vOK);
   if(list.length){ const c=S.cut; c.vid=true; c.list=list; c.idx=0; c.ends=[]; let tt=0; for(const v of list){ tt+=v.duration; c.ends.push(tt); } c.dur=tt; c.flash=0; vPlay(list[0]); }
   else play(type==='doom'?'doom':'heaven'); }
 function showBand(title,sub,color){ S.band={title,sub,color,t:0,dur:1.5}; }
@@ -363,7 +366,7 @@ function drawCut(){ const c=S.cut; if(!c) return; const t=c.t, d=c.dur, doom=c.t
   if(c.vid){ g.fillStyle='#000'; g.fillRect(0,0,W,H); const v=c.list[c.idx]; if(c.type==='statue'){ const env=x=>x>0?Math.exp(-x*3.2):0, dive=clamp((t-3)/.5,0,1)*clamp((7.3-t)/.3,0,1), amp=env(t-1.4)*14+env(t-7.3)*44+dive*7, k=1.05+.05*(t/d)+dive*.04+env(t-7.3)*.06; g.save(); g.translate(540+rand(-1,1)*amp,960+rand(-1,1)*amp*.7); g.scale(k,k); if(v.readyState>=2) g.drawImage(v,-540,-960,W,H); g.restore();
       g.save(); g.globalCompositeOperation='lighter'; for(let i=0;i<46;i++){ const ph=(t*(.16+(i%7)*.03)+i*.137)%1, x=(i*197.3)%W+Math.sin(t*1.3+i)*40, y=H-ph*H*1.1, a=Math.sin(ph*Math.PI)*(clamp(1-t/2.6,0,1)+clamp((t-7.4)/.6,0,1))*.8; glow('o',x,y,10+(i%5)*5,a); } g.restore(); g.globalAlpha=a;
       const fl=env(t-7.3)*.6; if(fl>.01){ g.fillStyle='rgba(255,244,200,'+fl+')'; g.fillRect(0,0,W,H); } }
-    else if(v.readyState>=2) g.drawImage(v,0,(c.type==='necro'||c.type==='golem'||c.type==='robo'||c.type==='reaper'||c.type==='phoenix'||c.type==='fox')?0:-BG_OFF,W,H); if(c.flash>0){ g.fillStyle='rgba(255,255,255,'+Math.min(1,c.flash/.35)+')'; g.fillRect(0,0,W,H); } }
+    else if(v.readyState>=2) g.drawImage(v,0,(c.type==='necro'||c.type==='golem'||c.type==='robo'||c.type==='reaper'||c.type==='phoenix'||c.type==='fox'||c.type==='peg'||c.type==='cer')?0:-BG_OFF,W,H); if(c.flash>0){ g.fillStyle='rgba(255,255,255,'+Math.min(1,c.flash/.35)+')'; g.fillRect(0,0,W,H); } }
   else if(doom){
     { if(dragonImg.complete && dragonImg.naturalWidth){ const k=1+t*.09, jx=rand(-4,4), jy=rand(-4,4); g.drawImage(dragonImg,540-W*k/2+jx,900-H*k/2+jy,W*k,H*k); }
       if(c.bolt && c.boltA>0){ g.save(); g.globalAlpha=a*c.boltA; g.fillStyle='rgba(255,210,210,.22)'; g.fillRect(0,0,W,H); g.strokeStyle='#fff'; g.lineWidth=9; g.lineJoin='round'; g.shadowColor='#ff2a2a'; g.shadowBlur=44; g.beginPath(); c.bolt.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.stroke(); g.restore(); }
@@ -374,7 +377,7 @@ function drawCut(){ const c=S.cut; if(!c) return; const t=c.t, d=c.dur, doom=c.t
     const w=300+clamp((t-.3)/1.1,0,1)*640; g.save(); g.shadowColor='#fff'; g.shadowBlur=50; const wd=g.createLinearGradient(0,960,0,1030); wd.addColorStop(0,'#d9a66a'); wd.addColorStop(1,'#7a4e2a'); g.fillStyle=wd; rr(540-w/2,960,w,70,12); g.fill(); g.restore();
   }
   // 上下の黒帯と文字
-  const bar=((doom||c.vid)?0:170)*clamp(t/.25,0,1), barB=(c.vid?((c.type==='necro'||c.type==='golem'||c.type==='statue'||c.type==='robo'||c.type==='reaper'||c.type==='phoenix'||c.type==='fox')?0:BG_OFF):170)*(c.vid?1:clamp(t/.25,0,1)); g.fillStyle='#000'; g.fillRect(0,0,W,bar); g.fillRect(0,H-barB,W,barB);
+  const bar=((doom||c.vid)?0:170)*clamp(t/.25,0,1), barB=(c.vid?((c.type==='necro'||c.type==='golem'||c.type==='statue'||c.type==='robo'||c.type==='reaper'||c.type==='phoenix'||c.type==='fox'||c.type==='peg'||c.type==='cer')?0:BG_OFF):170)*(c.vid?1:clamp(t/.25,0,1)); g.fillStyle='#000'; g.fillRect(0,0,W,bar); g.fillRect(0,H-barB,W,barB);
   const t0=(c.vid&&c.list.length>1)?c.ends[0]-3.2:.45, tEnd=(c.vid&&c.list.length>1)?c.ends[0]+2.8:1e9, ta=clamp((tEnd-t)/.4,0,1);
   if(!doom && !c.vid) txt('✨ お助けギフト',540,bar-70,46,'#ffd23f','center');
   if(!doom && !c.vid && t>t0 && t<tEnd){ g.globalAlpha=a*ta; const sc=1+Math.pow(clamp((t0+.35-t)/.35,0,1),2)*2.4, jx=doom?rand(-6,6):0, jy=doom?rand(-6,6):0; g.save(); g.translate(540+jx,(doom?1380:1300)+jy); g.scale(sc,sc); g.shadowColor=doom?'#ff0000':'#fff'; g.shadowBlur=40; txt(c.title,0,0,doom?150:178,'#fff','center',doom?'#4a0008':'#a86a00'); g.restore();
@@ -494,6 +497,8 @@ const Game = {
   double(name){ if(S.mode!=='playing') return; startDouble(name); },
   winRoulette(sign,name){ if(S.mode!=='playing') return; startWinRoul(sign<0?-1:1,name); },
   phoenix(name){ if(S.mode!=='playing') return; startWinGift(1,name); },
+  pegasus(name){ if(S.mode!=='playing') return; startWinFly(1,name); },
+  cerberus(name){ if(S.mode!=='playing') return; startWinFly(-1,name); },
   robot(name){ if(S.mode!=='playing') return; startRobot(name); },
   statue(name){ if(S.mode!=='playing') return; startStatue(name); },
   bigGacha(name){ if(S.mode!=='playing') return; if(stGuard()){ guarded(name,'巨大ガチャ'); return; } startBigGacha(name); if(DB()>1) startBigGacha(name); logAdd(name+' が巨大ガチャを回した','#ff9aa8'); sfx.bad(); },
@@ -622,7 +627,7 @@ function update(dt){
   const gdt=dt*baseSpd;
   if(S.wind>0) S.wind-=gdt; if(S.quake>0){ S.quake-=gdt; }
   if(S.phase==='aim' && !seqLock() && !window.__noAim && !PAUSED){ const a0=S.aimT||0; S.aimT=a0+dt; if(S.aimT>=aimSec()){ S.aimT=0; drop(); } } else if(S.phase!=='aim') S.aimT=0;
-  updateInk(dt); updateTako(dt); updateWinGift(dt); updateNamazu(dt); updateSpeed(dt); updateFairy(dt); updateWalls(dt); updateRoulette(dt); updateWinRoul(dt); updateCrow(dt); updateStatue(dt); updateRobot(dt);
+  updateInk(dt); updateTako(dt); updateWinGift(dt); updateNamazu(dt); updateSpeed(dt); updateFairy(dt); updateWalls(dt); updateRoulette(dt); updateWinRoul(dt); updateCrow(dt); updateWinFly(dt); updateStatue(dt); updateRobot(dt);
   for(const b of S.bodies){ const p=b.plugin; if(p.air){ p.airT+=gdt; if(p.airT>.6 && b.speed<.5){ p.air=false; if(p.key==='ari') play('ant'); else { play('heavy'); S.shake=Math.max(S.shake,.3); } } } if(p.labelT>0) p.labelT-=dt; }
   if(S.glue>0){ S.glue-=dt; if(S.glue<=0){ for(const b of S.bodies) if(b.plugin.glued){ Body.setStatic(b,false); b.plugin.glued=false; } } }
   acc+=gdt*1000; let n=0; while(acc>=STEP && n<6){ physics(); acc-=STEP; n++; } if(acc>STEP*3) acc=0;
@@ -806,6 +811,26 @@ function updateWinGift(dt){ for(const k of ['r','p']){ }
   if(w.sign>0 && S.scar && S.scar.t<3.6 && Math.random()<dt*60){ const pt=pick(S.scar.pts), wx=540+(OX(pt[0])-540)/camZ, wy=AIM_Y+(OY(pt[1])-AY())/camZ; S.parts.push({k:'ember',x:wx+rand(-20,20),y:wy+rand(-20,20),vx:rand(-50,50),vy:rand(-260,-80),g:-40,t:rand(.6,1.4),c:pick(['#ffd400','#ff8a1f','#fff3a0']),r:rand(4,10)}); }
   if(w.sign<0 && w.t>C.end-1.0 && Math.random()<dt*40){ const wx=540+rand(-200,200)/camZ, wy=AIM_Y+(rand(420,900)-560)/camZ; S.parts.push({k:'smoke',x:wx,y:wy,vx:rand(-40,40),vy:rand(-120,-30),g:-10,t:rand(.7,1.3),r:rand(50,110)}); }
   if(w.t>=C.end) S.wg=S.wgQ.shift()||null; }
+/* ペガサス（WIN＋100）とケルベロス（WIN−100）：短い全画面の登場映像のあと、本人がゲーム画面を横切ってWINを動かす。横切る間、ゲームは止めない */
+const pegSh=mkSheet('peg',{n:24,cols:6,fw:440,fh:313,fps:24}), cerSh=mkSheet('cer',{n:29,cols:6,fw:440,fh:270,fps:24});
+const WF={amount:100,dur:2.6,hit:1.3,tail:1.2};
+function startWinFly(sign,name){ logAdd(name+(sign<0?' がケルベロスを呼んだ':' がペガサスを呼んだ'),sign<0?'#c79bff':'#ffe680');
+  const go=()=>{ if(S.mode!=='playing') return; const o={sign,name,t:0,done:false,m:1}; if(S.wf) S.wfQ.push(o); else S.wf=o; };
+  const v=sign<0?cerVid:pegVid; if(vOK(v)) startCut(sign<0?'cer':'peg','',name,go); else go(); }
+const wfPos=(w,t)=>{ const u=t/WF.dur; if(w.sign>0) return {x:-320+1720*u, y:1040-470*Math.sin(u*Math.PI)-200*u}; const j=(u>.3&&u<.7)?Math.sin((u-.3)/.4*Math.PI):0; return {x:1400-1720*u, y:1120-300*j}; };
+const wfWorld=p=>({x:540+(OX(p.x)-540)/camZ, y:AIM_Y+(OY(p.y)-AY())/camZ});
+function updateWinFly(dt){ const w=S.wf; if(!w) return; w.t+=dt;
+  if(!w.done && w.t>=WF.hit){ w.done=true; const from=wins, wm=DB(); w.m=wm; wins+=w.sign*WF.amount*wm; saveWins(); S.winRoll={from,to:wins,t:0,dur:1.2}; const q=wfWorld(wfPos(w,w.t));
+    if(w.sign>0){ S.holy=Math.max(S.holy,1.2); S.white=Math.max(S.white,.25); play('kira',1.2); } else { S.red=Math.max(S.red,.4); S.shake=Math.max(S.shake,.5); play('impact'); }
+    for(let i=0;i<46;i++) S.parts.push({k:'spark',x:q.x+rand(-90,90)/camZ,y:q.y+rand(-70,70)/camZ,vx:rand(-460,460),vy:rand(-620,-60),g:800,t:rand(.6,1.4),c:pick(w.sign>0?['#ffd400','#fff','#ffe680','#9be9ff','#ff9ad5']:['#b06bff','#6a3cff','#ff3d5a','#fff']),r:rand(7,15),rot:rand(0,6),vr:rand(-9,9)});
+    logAdd(w.name+(w.sign<0?' のケルベロス：WIN −':' のペガサス：WIN ＋')+WF.amount*wm,w.sign<0?'#ff5c5c':'#ffe680'); }
+  if(w.sign>0 && w.t<WF.dur && Math.random()<dt*45){ const q=wfWorld(wfPos(w,w.t)); S.parts.push({k:'spark',x:q.x+rand(-150,40)/camZ,y:q.y+rand(-50,70)/camZ,vx:rand(-60,60),vy:rand(-40,120),g:120,t:rand(.5,1.1),c:pick(['#ffd400','#fff','#ffe680']),r:rand(5,10),rot:rand(0,6),vr:rand(-6,6)}); }
+  if(w.t>=WF.dur+WF.tail) S.wf=S.wfQ.shift()||null; }
+function drawWinFly(){ const w=S.wf; if(!w || S.mode!=='playing') return; const sh=w.sign>0?pegSh:cerSh, t=Math.min(w.t,WF.dur), p=wfPos(w,t);
+  if(w.sign>0){ const cols=['#ff4d6d','#ff9f1c','#ffe14d','#5ad66f','#4cc3ff','#a06bff'], fade=clamp((WF.dur+.5-w.t)/.5,0,1); g.save(); g.lineCap='butt';
+    for(let i=0;i<6;i++){ g.strokeStyle=cols[i]; g.lineWidth=14; for(let k=0;k<22;k++){ const ta=t-k*.03, tb=ta-.034; if(tb<0) break; const a=wfPos(w,ta), b=wfPos(w,tb), off=(i-2.5)*13+30; g.globalAlpha=.8*fade*(1-k/22); g.beginPath(); g.moveTo(a.x-150,a.y+off); g.lineTo(b.x-150,b.y+off); g.stroke(); } } g.restore(); }
+  if(sh.ok && w.t<WF.dur) drawSheet(sh,w.t,p.x,p.y,w.sign>0?600:540,w.sign<0);
+  if(w.done){ const s2=w.t-WF.hit; if(s2<1.4){ const hp=wfPos(w,WF.hit), al=clamp((1.4-s2)/.3,0,1), z=1+1.2*Math.pow(clamp(1-s2/.2,0,1),2); g.save(); g.globalAlpha=al; g.translate(540,(w.sign>0?hp.y+270:hp.y-230)-s2*50); g.scale(z,z); g.shadowColor=w.sign>0?'#ffb000':'#7a2cff'; g.shadowBlur=36; txtD((w.sign>0?'+':'−')+WF.amount*w.m,0,0,150,w.sign>0?'#ffd400':'#ff2a3a','center',w.sign>0?'#5a2a00':'#1a0006',26); g.restore(); } } }
 function drawWinGift(){ const w=S.wg;
   if(w){ const C=WG[w.k], al=clamp(w.t/.5,0,1)*clamp((C.end-w.t)/.8,0,1), drop=(1-Math.pow(clamp(w.t/C.tin,0,1),.6))*-520;
     if(w.sign<0){ const R=C; g.save(); g.fillStyle='rgba(4,0,14,'+(.42*al)+')'; g.fillRect(-3000,200,7080,1370); let f; const t=w.t; if(t<R.tin) f=Math.floor(t*12)%19; else if(t<R.tin+R.raise) f=Math.min(30,19+Math.floor((t-R.tin)*12)); else if(t<R.tin+R.raise+R.hold) f=30; else { const q=31+Math.floor((t-R.tin-R.raise-R.hold)*R.fps); f=q<=64?q:Math.floor(t*12)%19; }
@@ -866,7 +891,7 @@ function doRewind(name){ const wasLosing=S.phase==='losing'; if(!wasLosing) retu
   for(let i=0;i<40;i++) S.parts.push({k:'spark',x:540+rand(-420,420),y:AIM_Y+rand(-200,700),vx:rand(-60,60),vy:rand(-420,-120),g:-60,t:rand(.6,1.2),c:pick(['#9be9ff','#ffe680','#fff']),r:rand(7,14)});
   logAdd(name+' の砂時計が'+(wasLosing?'負けを食い止めた！':'1手巻き戻した'),'#9be9ff'); }
 /* 演出やギフトの効果が動いている間は、負けのカウントダウンを止めて待つ（演出と効果を最後まで見せてから数える） */
-function fxBusy(){ return !!(S.cut || S.cutQ.length || S.seq || S.seqQ.length || S.wg || S.rb || S.roul || S.roulQ.length || wrCur.p || wrCur.m || wrQ.p.length || wrQ.m.length || S.crow || S.fairy || TEN || rwCur || S.nz || S.ink || dblFlash>0); }
+function fxBusy(){ return !!(S.cut || S.cutQ.length || S.seq || S.seqQ.length || S.wg || S.wf || S.wfQ.length || S.rb || S.roul || S.roulQ.length || wrCur.p || wrCur.m || wrQ.p.length || wrQ.m.length || S.crow || S.fairy || TEN || rwCur || S.nz || S.ink || dblFlash>0); }
 function drawLosing(){ if(S.mode!=='playing' || S.phase!=='losing') return; const left=Math.max(0,S.loseT), n=Math.ceil(left), f=n-left, T=performance.now()/1000;
   g.save(); const gr=g.createRadialGradient(540,885,300,540,885,980); gr.addColorStop(0,'rgba(120,0,10,0)'); gr.addColorStop(1,'rgba(160,0,14,'+(.5+.18*Math.sin(T*9))+')'); g.fillStyle=gr; g.fillRect(-3000,200,7080,1370);
   g.fillStyle='rgba(20,0,4,.72)'; rr(150,470,780,96,48); g.fill(); g.strokeStyle='#ff5c5c'; g.lineWidth=4; rr(150,470,780,96,48); g.stroke(); txt(S.loseWhy+'！',540,519,46,'#fff','center',null,900);
@@ -1106,7 +1131,7 @@ function draw(){
     { const left=clamp(1-(S.aimT||0)/aimSec(),0,1), secs=Math.ceil(aimSec()-(S.aimT||0)), bx=S.px-90, by=AIM_Y+(c.statue?320:ANIMALS[c.key].h*c.s*.5+26), hot=secs<=2; g.fillStyle='rgba(10,16,40,.55)'; rr(bx,by,180,16,8); g.fill(); g.fillStyle=hot?'#ff3d3d':(secs<=3?'#ffb020':'#7cff4f'); rr(bx,by,Math.max(16,180*left),16,8); g.fill(); if(secs<=3) txt(String(secs),S.px+118,by+8,hot?54:42,hot?'#ff3d3d':'#ffb020','center','#000'); }
     const lh=c.statue?stH()/2+60-Math.max(0,stH()/2-300)+Math.max(0,stH()/2-300):ANIMALS[c.key].h*c.s*.5+60;
     const label=c.by? c.by+' の'+ANIMALS[c.key].name : (c.name||ANIMALS[c.key].name); g.font='900 30px '+FONT; const w=g.measureText(label).width+30; g.fillStyle=c.by?'#d61f2c':'rgba(255,255,255,.92)'; rr(S.px-w/2,AIM_Y-lh-22,w,44,22); g.fill(); txt(label,S.px,AIM_Y-lh-22+23,30,c.by?'#fff':'#1a1a1a','center'); }
-  g.restore(); drawDoubleGlow(); ovOn(); drawNamazu(); drawWalkers(); drawInk(); drawNamazuCut(); drawWinGift(); drawRewind(); drawDouble(); drawRoulette(); drawWinRoul(); drawGoalHint(); drawHold(); drawLosing(); if(PAUSED && S.mode==='playing'){ g.save(); g.fillStyle='rgba(8,12,30,.72)'; rr(240,300,600,96,48); g.fill(); g.strokeStyle='#ff9ac1'; g.lineWidth=4; rr(240,300,600,96,48); g.stroke(); txt('一時停止中',540,350,50,'#fff','center',null,900); g.restore(); } ovOff();
+  g.restore(); drawDoubleGlow(); ovOn(); drawNamazu(); drawWalkers(); drawInk(); drawNamazuCut(); drawWinGift(); drawWinFly(); drawRewind(); drawDouble(); drawRoulette(); drawWinRoul(); drawGoalHint(); drawHold(); drawLosing(); if(PAUSED && S.mode==='playing'){ g.save(); g.fillStyle='rgba(8,12,30,.72)'; rr(240,300,600,96,48); g.fill(); g.strokeStyle='#ff9ac1'; g.lineWidth=4; rr(240,300,600,96,48); g.stroke(); txt('一時停止中',540,350,50,'#fff','center',null,900); g.restore(); } ovOff();
   g.restore(); drawHUD(); ovOn(); drawFairy(); overlay(); drawBand(); ovOff();
   if(S.white>0){ g.fillStyle='rgba(255,255,255,'+Math.min(.9,S.white*1.6)+')'; g.fillRect(0,200,W,1370); }
   if(S.red>0){ g.fillStyle='rgba(255,0,30,'+Math.min(.6,S.red)+')'; g.fillRect(0,200,W,1370); }
@@ -1135,10 +1160,10 @@ const FX_LIST=[
  ['ant','jam','アリ','ちっちゃいのが落ちてくる',n=>Game.jam(1,n,'ant')],['wind','jam','突風','風の精霊',n=>Game.jam(1,n,'wind')],['ink','jam','イカスミ','画面が隠れる',n=>Game.jam(1,n,'ink')],['quake','jam','ゆれ','大ナマズ',n=>Game.jam(1,n,'quake')],
  ['crow','jam','カラス','一番上を1匹さらう',n=>Game.crow(n)],['giant','jam','黒い妖精','次の動物を巨大に',n=>Game.jam(1,n,'giant')],['slot','jam','動物スロット','動物が落ちてくる',n=>Game.jam(1,n,'big')],['biggacha','jam','巨大ガチャ','デカい生き物だけ出る',n=>Game.bigGacha(n)],['usagi','jam','ウサギ','早送り',n=>Game.speed(1,n)],
  ['eel','jam','ウツボ','タコとのりを消す',n=>Game.ungrip(n)],['necro','jam','ネクロマンサー','動物が見えなくなる',n=>Game.jam(2,n)],['witch','jam','魔女','ゴールが上がる',n=>Game.witch(n)],['wrm','jam','−WINルーレット','WINが減る',n=>Game.winRoulette(-1,n)],
- ['dragon','jam','ドラゴン','全消し＋台が縮む',n=>Game.jam(3,n)],['robot','jam','黒い機体','WIN以外ぜんぶリセット',n=>Game.robot(n)],['reaper','jam','死神','WIN −1000',n=>Game.reaper(n)],
+ ['dragon','jam','ドラゴン','全消し＋台が縮む',n=>Game.jam(3,n)],['robot','jam','黒い機体','WIN以外ぜんぶリセット',n=>Game.robot(n)],['cerberus','jam','ケルベロス','WIN −100',n=>Game.cerberus(n)],['reaper','jam','死神','WIN −1000',n=>Game.reaper(n)],
  ['fairy','help','妖精','動物を小さく',n=>Game.help(1,n)],['kame','help','カメ','スロー',n=>Game.speed(-1,n)],['tako','help','タコ','吸着MAX',n=>Game.grip(n)],['rewind','help','砂時計','1手戻す・負けを耐える',n=>Game.rewind(n)],
  ['golem','help','ゴーレム','横に落ちない壁',n=>Game.help(2,n)],['angel','help','天使','ゴールが下がる',n=>Game.angel(n)],['wrp','help','＋WINルーレット','WINが増える',n=>Game.winRoulette(1,n)],['tree','help','世界樹','台が広がる',n=>Game.help(3,n)],
- ['statue','help','天使像','5ラウンド守る',n=>Game.statue(n)],['phoenix','help','不死鳥','WIN ＋1000',n=>Game.phoenix(n)],['double','both','2倍タイム','5分間ぜんぶ2倍',n=>Game.double(n)]];
+ ['statue','help','天使像','5ラウンド守る',n=>Game.statue(n)],['pegasus','help','ペガサス','WIN ＋100',n=>Game.pegasus(n)],['phoenix','help','不死鳥','WIN ＋1000',n=>Game.phoenix(n)],['double','both','2倍タイム','5分間ぜんぶ2倍',n=>Game.double(n)]];
 const PEND=[]; let PEND_T=0;   // 勝ち・負けの画面の間に届いたギフトは、次のラウンドの頭で順番に反映する
 function runFx(fn){ if(S.mode==='clear'||S.mode==='dead') PEND.push(fn); else fn(); }
 const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://127.0.0.1:21213/'],url:'ws://localhost:21213/',ws:null,ok:false,wait:3000,timer:null,streak:{},log:[],learn:null,map:{}};
@@ -1219,7 +1244,7 @@ window.TsumiTF={ TF, simulate:m=>tfEvent(m), connect:tfConnect };
 tfConnect();
 
 panel.addEventListener('click',ev=>{ const b=ev.target.closest('button'); if(!b) return; audioOn(); const n=pick(NAMES), a=b.dataset.a; if(!/^(spd|vh|wm10|wm1|wp1|wp10|title|like)$/.test(a)) panel.hidden=true; if(S.mode==='title' && a!=='title' && a!=='vh' && a!=='spd') newRound('playing');
-  if(a==='comment') Game.comment(n); else if(a==='like') Game.like(250); else if(a==='follow') Game.follow(n); else if(a==='jam1w') Game.jam(1,n,'wind'); else if(a==='jam1b') Game.jam(1,n,'big'); else if(a==='bigg') Game.bigGacha(n); else if(a==='jam1a') Game.jam(1,n,'ant'); else if(a==='jam1q') Game.jam(1,n,'quake'); else if(a==='dbl') Game.double(n); else if(a==='crow') Game.crow(n); else if(a==='rewind') Game.rewind(n); else if(a==='jam1g') Game.jam(1,n,'giant'); else if(a==='jam1i') Game.jam(1,n,'ink'); else if(a==='witch') Game.witch(n); else if(a==='angel') Game.angel(n); else if(a==='statue') Game.statue(n); else if(a==='robot') Game.robot(n); else if(a==='wrp') Game.winRoulette(1,n); else if(a==='wrm') Game.winRoulette(-1,n); else if(a==='reaper') Game.reaper(n); else if(a==='phoenix') Game.phoenix(n); else if(a==='grip') Game.grip(n); else if(a==='ungrip') Game.ungrip(n); else if(a==='fast') Game.speed(1,n); else if(a==='slow') Game.speed(-1,n); else if(a==='jam2') Game.jam(2,n); else if(a==='jam3') Game.jam(3,n);
+  if(a==='comment') Game.comment(n); else if(a==='like') Game.like(250); else if(a==='follow') Game.follow(n); else if(a==='jam1w') Game.jam(1,n,'wind'); else if(a==='jam1b') Game.jam(1,n,'big'); else if(a==='bigg') Game.bigGacha(n); else if(a==='jam1a') Game.jam(1,n,'ant'); else if(a==='jam1q') Game.jam(1,n,'quake'); else if(a==='dbl') Game.double(n); else if(a==='crow') Game.crow(n); else if(a==='rewind') Game.rewind(n); else if(a==='jam1g') Game.jam(1,n,'giant'); else if(a==='jam1i') Game.jam(1,n,'ink'); else if(a==='witch') Game.witch(n); else if(a==='angel') Game.angel(n); else if(a==='statue') Game.statue(n); else if(a==='robot') Game.robot(n); else if(a==='wrp') Game.winRoulette(1,n); else if(a==='wrm') Game.winRoulette(-1,n); else if(a==='reaper') Game.reaper(n); else if(a==='cerb') Game.cerberus(n); else if(a==='pega') Game.pegasus(n); else if(a==='phoenix') Game.phoenix(n); else if(a==='grip') Game.grip(n); else if(a==='ungrip') Game.ungrip(n); else if(a==='fast') Game.speed(1,n); else if(a==='slow') Game.speed(-1,n); else if(a==='jam2') Game.jam(2,n); else if(a==='jam3') Game.jam(3,n);
   else if(a==='help1') Game.help(1,n); else if(a==='help2') Game.help(2,n); else if(a==='help3') Game.help(3,n); else if(a==='lose') endRound(false,'テスト'); else if(a==='title'){ if(S.cut&&S.cut.vid) S.cut.list.forEach(vStop); resetAll(); newRound('title'); panel.hidden=true; } else if(a==='vh'){ setShort(SHORT_OPTS[(SHORT_OPTS.indexOf(SHORT)+1)%SHORT_OPTS.length]); spdBtnUI(); } else if(a==='spd'){ setBaseSpd(SPD_OPTS[(SPD_OPTS.indexOf(baseSpd)+1)%SPD_OPTS.length]); spdBtnUI(); } else if(a==='wm10'||a==='wm1'||a==='wp1'||a==='wp10'){ const dv={wm10:-10,wm1:-1,wp1:1,wp10:10}[a], from=wins; wins+=dv; saveWins(); S.winRoll={from,to:wins,t:0,dur:.4}; } else if(a==='reset'){ wins=0; saveWins(); witch=0; setGoal(); statue=0; } });
 
 function fit(){ const vh=VH(), k=Math.min(window.innerWidth/1080, window.innerHeight/vh), w=Math.floor(1080*k), h=Math.floor(vh*k); stage.style.width=w+'px'; stage.style.height=h+'px'; stage.style.setProperty('--u',(w/100)+'px'); if(cv.height!==vh) cv.height=vh;
@@ -1230,7 +1255,7 @@ window.addEventListener('resize',fit); fit();
 newRound('title');
 let last=performance.now(); window.__ready=false;
 Promise.all(ALLKEYS.map(k=>ANIMALS[k].img)
-  .concat([tenshiImg,missileImg,slotImg,fairyImg,usagiRun,nzImg,nzFace]).concat(roboI.imgs).concat(roboA.imgs).concat([FXW.scar,FXW.arc,FXW.flame]).concat(reapSh.imgs).concat(phxSh.imgs).concat([bgReaper,bgPhoenix,bgFox,dblPlate,dblX2,hgImg]).concat(crowSh.imgs).concat(kameSh.imgs).concat(witchSh.imgs).concat(angelSh.imgs).concat([bgStatue,bgTree,bgImg,dragonImg,spiritImg,windImg,handImg,FX.circle,FX.metA,FX.metC,FX.boomA,FX.boomC]).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.addEventListener('load',r); im.addEventListener('error',r); } }))).then(()=>{ window.__ready=true; });
+  .concat([tenshiImg,missileImg,slotImg,fairyImg,usagiRun,nzImg,nzFace]).concat(roboI.imgs).concat(roboA.imgs).concat([FXW.scar,FXW.arc,FXW.flame]).concat(reapSh.imgs).concat(phxSh.imgs).concat([bgReaper,bgPhoenix,bgFox,dblPlate,dblX2,hgImg]).concat(crowSh.imgs).concat(pegSh.imgs).concat(cerSh.imgs).concat(kameSh.imgs).concat(witchSh.imgs).concat(angelSh.imgs).concat([bgStatue,bgTree,bgImg,dragonImg,spiritImg,windImg,handImg,FX.circle,FX.metA,FX.metC,FX.boomA,FX.boomC]).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.addEventListener('load',r); im.addEventListener('error',r); } }))).then(()=>{ window.__ready=true; });
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ update(dt); draw(); } requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
 window.__dbg = { CFG, ANIMALS, HIT, get dblT(){return dblT;}, set dblT(v){dblT=v;}, get gripT(){return gripT;}, get spLv(){return spLv;}, get spT(){return spT;}, get statue(){return statue;}, WT, AN, get witch(){return witch;}, get GOAL_M(){return GOAL_M;}, get camZ(){return camZ;}, BIGKEYS, get wallT(){return wallT;}, set wallT(v){wallT=v;}, get walls(){return walls;}, get S(){ return S; }, get curse(){ return curse; }, get bless(){ return bless; }, get tableW(){ return table.bounds.max.x-table.bounds.min.x; }, get wins(){ return wins; }, Game, update, draw, drop, rotate, newRound, KEYS, setCur(k,s){ S.cur={key:k,s:s||1,name:null,by:null}; } };
