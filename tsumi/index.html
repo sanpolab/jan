@@ -53,6 +53,10 @@ canvas{width:100%;height:100%;display:block}
     <h3>どのギフトで何が起きるか</h3>
     <p>ギフト名を入力するか、「受信で登録」を押してからそのギフトを1個投げてもらうと登録できます。空らんの効果はギフトでは起きません。</p>
     <div id="cfgRows"></div>
+    <h3>ギフト以外</h3>
+    <div class="row both"><div class="nm">いいね1000<small>ランダム動物が落ちてくる</small></div><button id="optLike" type="button"></button></div>
+    <div class="row both"><div class="nm">フォロー<small>ランダム動物が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
+    <div class="row both"><div class="nm">コメント<small>名前つきの動物が順番に出る（いつもオン）</small></div></div>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
     <h3>設定の持ち運び</h3>
@@ -63,7 +67,8 @@ canvas{width:100%;height:100%;display:block}
   <div id="panel" hidden>
     <button class="b-n" data-a="dbl" style="background:#1c3c9a"><small>妨害もお助けも</small>2倍タイム<br>5分間 ぜんぶ2倍</button>
     <button class="b-n" data-a="comment">コメント<br>名前つき動物</button>
-    <button class="b-l" data-a="like">いいね+25<br>100でのり</button>
+    <button class="b-l" data-a="like">いいね+250<br>1000でランダム動物</button>
+    <button class="b-l" data-a="follow">フォロー<br>ランダム動物</button>
     <button class="b-t" data-a="lose">わざと<br>落とす</button>
     <button class="b-t" data-a="reset">Winとゴールを<br>元に戻す</button>
     <button class="b-t" data-a="title" style="background:#7a5a00">タイトルに<br>戻る</button>
@@ -119,7 +124,7 @@ const CFG = {
   ghostCount: 10, holdSec: 5, aimSec: 5, speedSec: 20, speedMax: 300, fastMult: 2, slowMult: .5, witchM: 3, angelM: 2, statueRounds: 5, goalMin: 3, goalMax: 100, zoomMin: .6,     // ネクロマンサー：あと何匹置くまで台の上が見えないか
   curseCount: 5,     // 呪い・加護が消えるまでの回数（5回勝つ or 5回負ける）
   wideW: 1040,       // お助けで広がった台の幅       // 台の幅
-  likeGoal: 100,     // いいね何回で「のり」が出るか
+  likeGoal: 1000,     // いいね何回で「のり」が出るか
   windSec: 6, windPre: 1.0, quakeSec: 4, quakeKick: 1.05, gripSec: 8, gripMax: 60, glueSec: 12, wallSec: 30, wallM: 3,
 };
 const TOP_Y = 1440;                       // 台の上面
@@ -143,6 +148,8 @@ const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 let wins = 0, best = 0;
 /* 2倍タイム：5分間、ギフトの効果とWINの増減がぜんぶ2倍（演出の長さはそのまま） */
 const DBL={sec:300,max:1800,flash:2.0}; let dblT=0, dblFlash=0, dblHit=0; const DB=()=>dblT>0?2:1;
+const OPT={likeOn:true,followOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('tsumi_opts')||'{}')); }catch(e){}
+function optSave(){ try{ localStorage.setItem('tsumi_opts',JSON.stringify(OPT)); }catch(e){} }
 const SPD_OPTS=[1,1.25,1.5,2]; let baseSpd=1; try{ const v=parseFloat(localStorage.getItem('tsumi_spd')); if(SPD_OPTS.includes(v)) baseSpd=v; }catch(e){}
 function setBaseSpd(v){ if(!SPD_OPTS.includes(v)) return; baseSpd=v; try{ localStorage.setItem('tsumi_spd',String(v)); }catch(e){} }
 const TITLE_BTN=[{t:'−10',d:-10,x:100,y:985,w:150,h:84,c:['#ff6b5e','#d9342b','#8a1711']},{t:'−1',d:-1,x:266,y:985,w:130,h:84,c:['#ff8f85','#e2584e','#96261f']},{t:'リセット',d:0,x:412,y:985,w:256,h:84,c:['#8b96b8','#5d688c','#333c5c'],fs:36},{t:'+1',d:1,x:684,y:985,w:130,h:84,c:['#6fe08f','#2fae5d','#17703a']},{t:'+10',d:10,x:830,y:985,w:150,h:84,c:['#4fd47a','#1f9a4e','#0f5f2e']}], START_BTN={x:170,y:1222,w:740,h:136}, SPD_BTN=SPD_OPTS.map((v,i)=>({v,x:356+i*164,y:1118,w:152,h:70}));   // 最初の画面でスタートのWIN数を決めるボタン
@@ -195,7 +202,7 @@ function newRound(mode){
   engine = Engine.create({ positionIterations:12, velocityIterations:10, enableSleeping:true }); engine.gravity.y = 1;
   table = Bodies.rectangle(540, TOP_Y+30, curse?CFG.smallW:(bless?CFG.wideW:CFG.tableW), 60, { isStatic:true, friction:1, frictionStatic:2, slop:.5 });
   Composite.add(engine.world, table);
-  S = { mode: mode||'playing', phase:'aim', bodies:[], cur:null, next:null, falling:null, settle:0, fallT:0, px:540, rot:0, names:S?S.names:[], log:[], like:0,
+  S = { mode: mode||'playing', phase:'aim', bodies:[], cur:null, next:null, falling:null, settle:0, fallT:0, px:540, rot:0, names:S?S.names:[], log:[], like:(S&&S.like)||0,
         wind:0, windDir:1, windPre:0, windY:1000, spA:0, quake:0, glue:0, wide:false, banner:null, endT:0, shake:0, count:0, topY:TOP_Y, t:0, parts:[], cut:null, cutQ:[], crow:null, crowQ:[], band:null, doom:0, holy:0, white:0, red:0, rings:[], seq:null, seqQ:[], meteors:[], booms:[], strikes:[], ghost:0, ghostFlash:0, purple:0, roul:null, roulQ:[], fairy:null, fairyQ:[], walk:[], wg:null, wgQ:[], ink:null };
   S.cur = nextSpec(); S.next = nextSpec();
   walls=null; if(wallT>0) makeWalls(false);
@@ -424,7 +431,9 @@ function drawMeteors(){
 function setGlue(sec){ S.glue=Math.max(S.glue,sec); for(const b of S.bodies) if(b!==S.falling && !b.isStatic){ Sleeping.set(b,false); Body.setStatic(b,true); b.plugin.glued=true; } }
 const Game = {
   comment(name){ if(S.mode!=='playing') return; if(S.names.length<20) S.names.push(name); if(!S.next.name && !S.next.by){ S.next.name=S.names.shift(); } logAdd(name+' さんの動物が順番待ち','#bfe3ff'); },
-  like(n){ if(S.mode!=='playing') return; S.like+=n; if(S.like>=CFG.likeGoal){ S.like=0; setGlue(8*DB()); showBand('みんなののり','いいね達成 '+8*DB()+'秒くっつく','#2fae4e'); logAdd('いいね達成！'+8*DB()+'秒間のりで固定','#7cff4f'); sfx.good(); } },
+  randomAnimal(name,why){ if(S.mode!=='playing') return; startRoulette(name); if(DB()>1) startRoulette(name); logAdd(name+(why||'')+'：ランダム動物が落ちてくる','#ff9ac1'); },
+  follow(name){ if(!OPT.followOn) return; Game.randomAnimal(name,' がフォロー'); },
+  like(n){ if(S.mode!=='playing' || !OPT.likeOn) return; S.like+=n; while(S.like>=CFG.likeGoal){ S.like-=CFG.likeGoal; startRoulette('みんなのいいね'); if(DB()>1) startRoulette('みんなのいいね'); logAdd('いいね'+CFG.likeGoal+'達成！ランダム動物が落ちてくる','#ff9ac1'); sfx.good(); } },
   witch(name){ if(S.mode!=='playing') return; if(GOAL_M>=CFG.goalMax){ logAdd(name+' の魔女：これ以上は上がらない','#d9b3ff'); return; } witch+=CFG.witchM*DB(); setGoal(); S.purple=.8; WT.carry=witchSh.ok?2.6:0; play('witch'); if(!witchSh.ok) banner('ゴール '+GOAL_M+'m！','#d9b3ff',name+' の魔女'); logAdd(name+' の魔女がゴールを+'+CFG.witchM*DB()+'m','#d9b3ff'); sfx.bad(); },
   grip(name){ if(S.mode!=='playing') return; addGrip(name); },
   ungrip(name){ if(S.mode!=='playing') return; cutGrip(name); },
@@ -941,8 +950,8 @@ function drawHUD(){
     if(S.next.s>1.2 || ANIMALS[S.next.key].big) txt('巨大',920,170,22,'#ff9aa8','center'); if(S.next.s<.9) txt('ちび',920,170,22,'#9dffb8','center'); }
   // 下のパネル
   g.fillStyle='#17223b'; g.fillRect(0,1570,W,H-1570);
-  txt('いいねでのり',40,1612,30,'#ff9ac1'); g.fillStyle='#2a3a5e'; rr(270,1594,770,36,18); g.fill();
-  const lw=770*clamp(S.like/CFG.likeGoal,0,1); if(lw>4){ g.fillStyle='#ff4f93'; rr(270,1594,Math.max(36,lw),36,18); g.fill(); } txt(Math.floor(S.like)+' / '+CFG.likeGoal,655,1613,24,'#fff','center');
+  txt('いいねで動物',40,1612,30,OPT.likeOn?'#ff9ac1':'#6b7699'); g.fillStyle='#2a3a5e'; rr(270,1594,770,36,18); g.fill(); if(!OPT.likeOn){ txt('オフ',655,1613,24,'#8b96b8','center'); } else {
+  const lw=770*clamp(S.like/CFG.likeGoal,0,1); if(lw>4){ g.fillStyle='#ff4f93'; rr(270,1594,Math.max(36,lw),36,18); g.fill(); } txt(Math.floor(S.like)+' / '+CFG.likeGoal,655,1613,24,'#fff','center'); }
   let sx=40; const tag=(t,c)=>{ g.font='900 28px '+FONT; const w=g.measureText(t).width+30; g.fillStyle=c; rr(sx,1650,w,44,22); g.fill(); txt(t,sx+w/2,1673,28,'#101828','center'); sx+=w+12; };
   if(gripT>0) tag('吸着MAX　'+Math.ceil(gripT)+'秒','#9dffb8'); if(baseSpd!==1) tag('ゲーム速度 ×'+baseSpd,'#ffe680'); if(spLv>0) tag('ウサギ：早送り ×'+CFG.fastMult+'　'+Math.ceil(spT)+'秒','#ffb38a'); if(spLv<0) tag('カメ：スロー ×'+CFG.slowMult+'　'+Math.ceil(spT)+'秒','#9bd0ff'); if(statue>0) tag('天使像：残り'+statue+'ラウンド','#fff3b0'); if(witch>0) tag('魔女：ゴール'+GOAL_M+'m','#d9b3ff'); if(witch<0) tag('天使：ゴール'+GOAL_M+'m','#fff3b0'); if(S.windPre>0) tag('風の精霊が息を吸ってる…','#9be9ff'); if(S.wind>0) tag('突風 '+Math.ceil(S.wind)+'秒','#9be9ff'); if(S.quake>0) tag('ゆれ '+Math.ceil(S.quake)+'秒','#ffb020'); if(walls) tag('ゴーレムの壁 '+Math.ceil(wallT)+'秒','#e0c98a'); if(S.glue>0) tag('のり '+Math.ceil(S.glue)+'秒','#ffd400'); if(bless) tag('加護：台が広い　勝ち'+bless.w+'/'+CFG.curseCount+'　負け'+bless.d+'/'+CFG.curseCount,'#ffe680'); if(S.seq) tag('ドラゴン襲来中','#ff5c5c'); if(S.ghost>0) tag('見えない　あと'+S.ghost+'匹置くと戻る','#c79bff'); if(curse) tag('呪い：台が小さい　勝ち'+curse.w+'/'+CFG.curseCount+'　負け'+curse.d+'/'+CFG.curseCount,'#c79bff');
   if(sx===40) txt('順番待ち '+S.names.length+'人',40,1673,28,'#b9c6e6','left',null,700);
@@ -1034,7 +1043,7 @@ function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.dat
     if(n<=0) return; tfGift({id,name:gname,coins},name,Math.min(n,50)); }
   else if(ev==='chat'){ tfLogAdd('コメント：'+name); Game.comment(name); }
   else if(ev==='like'){ const c=parseInt(d.likeCount,10)||1; Game.like(c); }
-  else if(ev==='follow'||ev==='share'||ev==='subscribe'){ tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
+  else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') Game.follow(name); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
 function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
   if(TF.learn){ const id=TF.learn; TF.learn=null; TF.map[id]={id:gf.id,name:gf.name,coins:gf.coins}; tfSave(); cfgBuild(); tfLogAdd('登録：'+gf.name+coin+' → '+(FX_LIST.find(f=>f[0]===id)||[])[2]); return; }
   const hit=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && ((b.id!=null && gf.id!=null && String(b.id)===String(gf.id)) || (b.name && tfNorm(b.name)===tfNorm(gf.name))); });
@@ -1050,11 +1059,13 @@ function cfgBuild(){ const box=document.getElementById('cfgRows'); if(!box) retu
   document.getElementById('tfRe').addEventListener('click',()=>{ TF.wait=3000; tfConnect(); });
   document.getElementById('cfgExp').addEventListener('click',()=>{ const t=document.getElementById('cfgIO'); t.value=JSON.stringify(TF.map); t.select(); });
   document.getElementById('cfgImp').addEventListener('click',()=>{ try{ const o=JSON.parse(document.getElementById('cfgIO').value); if(o && typeof o==='object'){ TF.map=o; tfSave(); cfgBuild(); tfLogAdd('設定を読みこんだ'); } }catch(e){ tfLogAdd('読みこみ失敗：文字が正しくない'); } }); }
+function optUI(){ for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
+for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); }); optUI();
 window.TsumiTF={ TF, simulate:m=>tfEvent(m), connect:tfConnect };
 tfConnect();
 
-panel.addEventListener('click',ev=>{ const b=ev.target.closest('button'); if(!b) return; audioOn(); const n=pick(NAMES), a=b.dataset.a; if(S.mode==='title') newRound('playing');
-  if(a==='comment') Game.comment(n); else if(a==='like') Game.like(25); else if(a==='jam1w') Game.jam(1,n,'wind'); else if(a==='jam1b') Game.jam(1,n,'big'); else if(a==='jam1a') Game.jam(1,n,'ant'); else if(a==='jam1q') Game.jam(1,n,'quake'); else if(a==='dbl') Game.double(n); else if(a==='crow') Game.crow(n); else if(a==='rewind') Game.rewind(n); else if(a==='jam1g') Game.jam(1,n,'giant'); else if(a==='jam1i') Game.jam(1,n,'ink'); else if(a==='witch') Game.witch(n); else if(a==='angel') Game.angel(n); else if(a==='statue') Game.statue(n); else if(a==='robot') Game.robot(n); else if(a==='wrp') Game.winRoulette(1,n); else if(a==='wrm') Game.winRoulette(-1,n); else if(a==='reaper') Game.reaper(n); else if(a==='phoenix') Game.phoenix(n); else if(a==='grip') Game.grip(n); else if(a==='ungrip') Game.ungrip(n); else if(a==='fast') Game.speed(1,n); else if(a==='slow') Game.speed(-1,n); else if(a==='jam2') Game.jam(2,n); else if(a==='jam3') Game.jam(3,n);
+panel.addEventListener('click',ev=>{ const b=ev.target.closest('button'); if(!b) return; audioOn(); const n=pick(NAMES), a=b.dataset.a; if(!/^(spd|wm10|wm1|wp1|wp10|title|like)$/.test(a)) panel.hidden=true; if(S.mode==='title' && a!=='title') newRound('playing');
+  if(a==='comment') Game.comment(n); else if(a==='like') Game.like(250); else if(a==='follow') Game.follow(n); else if(a==='jam1w') Game.jam(1,n,'wind'); else if(a==='jam1b') Game.jam(1,n,'big'); else if(a==='jam1a') Game.jam(1,n,'ant'); else if(a==='jam1q') Game.jam(1,n,'quake'); else if(a==='dbl') Game.double(n); else if(a==='crow') Game.crow(n); else if(a==='rewind') Game.rewind(n); else if(a==='jam1g') Game.jam(1,n,'giant'); else if(a==='jam1i') Game.jam(1,n,'ink'); else if(a==='witch') Game.witch(n); else if(a==='angel') Game.angel(n); else if(a==='statue') Game.statue(n); else if(a==='robot') Game.robot(n); else if(a==='wrp') Game.winRoulette(1,n); else if(a==='wrm') Game.winRoulette(-1,n); else if(a==='reaper') Game.reaper(n); else if(a==='phoenix') Game.phoenix(n); else if(a==='grip') Game.grip(n); else if(a==='ungrip') Game.ungrip(n); else if(a==='fast') Game.speed(1,n); else if(a==='slow') Game.speed(-1,n); else if(a==='jam2') Game.jam(2,n); else if(a==='jam3') Game.jam(3,n);
   else if(a==='help1') Game.help(1,n); else if(a==='help2') Game.help(2,n); else if(a==='help3') Game.help(3,n); else if(a==='lose') endRound(false,'テスト'); else if(a==='title'){ if(S.cut&&S.cut.vid) S.cut.list.forEach(vStop); resetAll(); newRound('title'); panel.hidden=true; } else if(a==='spd'){ setBaseSpd(SPD_OPTS[(SPD_OPTS.indexOf(baseSpd)+1)%SPD_OPTS.length]); spdBtnUI(); } else if(a==='wm10'||a==='wm1'||a==='wp1'||a==='wp10'){ const dv={wm10:-10,wm1:-1,wp1:1,wp10:10}[a], from=wins; wins+=dv; saveWins(); S.winRoll={from,to:wins,t:0,dur:.4}; } else if(a==='reset'){ wins=0; saveWins(); witch=0; setGoal(); statue=0; } });
 
 function fit(){ const k=Math.min(window.innerWidth/9, window.innerHeight/16), w=Math.floor(9*k), h=Math.floor(16*k); stage.style.width=w+'px'; stage.style.height=h+'px'; stage.style.setProperty('--u',(w/100)+'px'); }
