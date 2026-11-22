@@ -203,8 +203,8 @@ function saveWins(){ try { localStorage.setItem('tsumi_wins', String(wins)); } c
 /* ====== 効果音（音声ファイル方式） ======
    snd フォルダに音を入れて、下の表にファイル名を書くと鳴る。空のあいだは無音 */
 /* 効果音（効果音ラボの音）。Web Audio で読み込んで鳴らす。最初のタップで音が出るようになる */
-const SND_NAMES=['drop','land','heavy','rot','bad','good','win','lose','impact','jean','fall','count','quake','wind','witch','angel','break','ant','shakin','bomb','bigboom','missile','laser','beam','charge','robo','alert','gara','jakon','coins','roll','kira','flee','slash','slash2','flame','knell','splat','doon','rumble','crow'];
-const SND_VOL={drop:.35,land:.55,heavy:.8,rot:.4,bad:.6,good:.55,win:.75,lose:.7,impact:.8,jean:.7,fall:.5,count:.7,quake:.8,wind:.65,witch:.6,angel:.6,break:.7,ant:.6,shakin:.5,bomb:.6,bigboom:.95,missile:.45,laser:.6,beam:.75,charge:.7,robo:.7,alert:.55,gara:.5,jakon:.7,coins:.7,roll:.6,kira:.6,flee:.55,slash:.9,slash2:.8,flame:.7,knell:.7,splat:.7,doon:.9,rumble:.9,crow:.8};
+const SND_NAMES=['drop','land','heavy','rot','bad','good','win','lose','impact','jean','fall','count','quake','wind','witch','angel','break','ant','shakin','bomb','bigboom','missile','laser','beam','charge','robo','alert','gara','jakon','coins','roll','kira','flee','slash','slash2','flame','knell','splat','doon','rumble','crow','tentacle'];
+const SND_VOL={drop:.35,land:.55,heavy:.8,rot:.4,bad:.6,good:.55,win:.75,lose:.7,impact:.8,jean:.7,fall:.5,count:.7,quake:.8,wind:.65,witch:.6,angel:.6,break:.7,ant:.6,shakin:.5,bomb:.6,bigboom:.95,missile:.45,laser:.6,beam:.75,charge:.7,robo:.7,alert:.55,gara:.5,jakon:.7,coins:.7,roll:.6,kira:.6,flee:.55,slash:.9,slash2:.8,flame:.7,knell:.7,splat:.7,doon:.9,rumble:.9,crow:.8,tentacle:.9};
 const SND={}; let actx=null;
 function sndInit(){ if(actx) return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; try{ actx=new AC(); }catch(e){ return; }
   for(const k of SND_NAMES){ fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,ng)=>actx.decodeAudioData(b,ok,ng))).then(buf=>{ SND[k]=buf; }).catch(()=>{}); } }
@@ -556,13 +556,28 @@ function drawDouble(){ if(dblT<=0 && dblFlash<=0) return; const T=performance.no
     const u=clamp(1-dblFlash/DBL.flash,0,1), fly=clamp((u-.55)/.45,0,1), e=fly*fly*(3-2*fly), pop=u<.12?u/.12:1, big=4.6*(pop<1?(.3+.9*pop):(1.2-.2*clamp((u-.12)/.12,0,1)));
     if(dblX2.naturalWidth){ const sc=big+(1-big)*e, cx=(0)+(LX-0)*e, cy=(620-PY)+(4-(620-PY))*e; if(u<1){ g.save(); g.globalCompositeOperation='lighter'; glow('w',cx,cy,LW*sc*1.1,.6*(1-e)); g.restore(); g.globalAlpha=blink; } g.drawImage(dblX2,cx-LW*sc/2,cy-LH*sc/2,LW*sc,LH*sc); } else txtD('×2',LX,2,50,'#ffe14a','center','#3a2400',8);
     g.restore(); } }
-function addGrip(name){ const was=gripOn; gripOn=true; gripT=1; S.gripFlash=.8; play('good'); play('kira',.8); logAdd(name+(was?' のタコ：もう吸着中':' のタコ：これからずっと吸着（ウツボか黒い機体で解除）'),'#9dffb8'); }
-function cutGripNow(name){ const had=gripOn||S.glue>0; gripT=0; gripOn=false; if(S.glue>0){ S.glue=0; for(const b of S.bodies) if(b.plugin.glued){ Body.setStatic(b,false); b.plugin.glued=false; } } wakeAll(); S.purple=Math.max(S.purple,.5); play('bad'); logAdd(name+(had?' が吸着を解除した':' の解除：いまは何もくっついていない'),'#ff9aa8'); }
+/* タコの触手：吸着がかかる時は台のまわりからにゅるにゅる伸びて巻きつき、解除の時はほどけて引っこむ。絵を輪切りにして根元から順に曲げて描く */
+const tenImg=new Image(); tenImg.src='./img/tentacle.png'; let TEN=null; const TENT={wrap:2.9,unwrap:1.9,n:34};
+function startTen(mode){ TEN={t:0,mode,ph:[0,1,2,3,4,5,6].map(()=>rand(0,6.28))}; play('tentacle'); }
+function updateTen(dt){ if(!TEN) return; TEN.t+=dt; if(TEN.t>=TENT[TEN.mode]) TEN=null; }
+function drawTen(){ const q=TEN; if(!q || !tenImg.naturalWidth || S.mode==='title') return; const t=q.t, iw=tenImg.naturalWidth, ih=tenImg.naturalHeight, N=TENT.n;
+  const tl=table.bounds.min.x, tr=table.bounds.max.x, stackH=clamp(TOP_Y-S.topY,0,1400), rootY=TOP_Y+210;
+  let grow, curl, wave; const sm=u=>{ u=clamp(u,0,1); return u*u*(3-2*u); };
+  if(q.mode==='wrap'){ grow=t<2.1?sm(t/.95):1-sm((t-2.1)/.75); curl=sm((t-.75)/.6)*(1-sm((t-2.0)/.5)); wave=1-.75*curl; }
+  else { grow=t<1.2?sm(t/.22):1-sm((t-1.2)/.65); curl=1-1.7*sm((t-.2)/.6); wave=.35+sm((t-.2)/.5)*.9; }
+  const arms=[[tl-95,-1,1,1],[tl-25,-1,.8,.86],[tl+ (tr-tl)*.26,-1,.42,.5],[540,0,.3,.4],[tr-(tr-tl)*.26,1,.42,.5],[tr+25,1,.8,.86],[tr+95,1,1,1]];
+  arms.forEach((A,k)=>{ const sd=A[1], L=(430+stackH*.85+260)*A[3]+ (A[3]<.6?120:0), w=L*iw/ih*1.15, seg=L/N, n=Math.max(0,Math.round(N*grow)); if(n<2) return;
+    let x=A[0], y=rootY; const lean=-sd*.1, cdir=sd===0?(k%2?1:-1)*.25:-sd, ph=q.ph[k];
+    g.save(); for(let j=0;j<n;j++){ const i=N-n+j, s0=j/N, a=lean+cdir*curl*A[2]*2.3*Math.pow(s0,1.5)+Math.sin(s0*6.2-t*7+ph)*.2*wave*(.25+s0);
+      const sy0=ih*(1-(i+1)/N), sh=ih/N; g.save(); g.translate(x,y); g.rotate(a); if(sd>0 || (sd===0 && k%2)) g.scale(-1,1); g.drawImage(tenImg,0,sy0,iw,sh,-w/2,-seg-1.5,w,seg+3); g.restore();
+      x+=Math.sin(a)*seg; y-=Math.cos(a)*seg; } g.restore(); }); }
+function addGrip(name){ const was=gripOn; gripOn=true; gripT=1; S.gripFlash=.8; startTen('wrap'); S.shake=Math.max(S.shake,.2); logAdd(name+(was?' のタコ：もう吸着中':' のタコ：これからずっと吸着（ウツボか黒い機体で解除）'),'#9dffb8'); }
+function cutGripNow(name){ const had=gripOn||S.glue>0; if(gripOn) startTen('unwrap'); gripT=0; gripOn=false; if(S.glue>0){ S.glue=0; for(const b of S.bodies) if(b.plugin.glued){ Body.setStatic(b,false); b.plugin.glued=false; } } wakeAll(); S.purple=Math.max(S.purple,.5); play('bad'); logAdd(name+(had?' が吸着を解除した':' の解除：いまは何もくっついていない'),'#ff9aa8'); }
 /* タコ（吸着MAXのあいだ台の下から抱えてのぞく）とウツボ（解除：突っこんできて、タコが墨を吐いて逃げる） */
 const takoImg=new Image(); takoImg.src='./img/tako.png'; const eelImg=new Image(); eelImg.src='./img/utsubo.png';
 const TK={a:0, flee:0, dir:1, show:false}, EEL={dur:1.0};
 function cutGrip(name){ if(S.eel){ cutGripNow(name); return; } S.eel={t:0,dir:pick([-1,1]),name,hit:false}; }
-function updateTako(dt){ const on=gripT>0 && !TK.flee; TK.a=clamp(TK.a+(on?dt/.45:-dt/.5),0,1); if(TK.flee>0){ TK.flee+=dt; if(TK.flee>.9){ TK.flee=0; TK.a=0; } }
+function updateTako(dt){ updateTen(dt); const on=gripT>0 && !TK.flee; TK.a=clamp(TK.a+(on?dt/.45:-dt/.5),0,1); if(TK.flee>0){ TK.flee+=dt; if(TK.flee>.9){ TK.flee=0; TK.a=0; } }
   const e=S.eel; if(!e) return; e.t+=dt;
   if(!e.hit && e.t>=EEL.dur*.5){ e.hit=true; if(TK.a>.3 && gripT>0){ TK.flee=.001; TK.dir=e.dir; play('splat',.7); S.shake=Math.max(S.shake,.25); for(let i=0;i<16;i++) S.parts.push({k:'smoke',x:540+rand(-170,170),y:TOP_Y+rand(-80,110),vx:rand(-90,90),vy:rand(-70,50),g:-10,t:rand(.7,1.3),r:rand(70,130)}); } cutGripNow(e.name); }
   if(e.t>=EEL.dur) S.eel=null; }
@@ -845,7 +860,7 @@ function doRewind(name){ const wasLosing=S.phase==='losing'; if(!wasLosing) retu
   for(let i=0;i<40;i++) S.parts.push({k:'spark',x:540+rand(-420,420),y:AIM_Y+rand(-200,700),vx:rand(-60,60),vy:rand(-420,-120),g:-60,t:rand(.6,1.2),c:pick(['#9be9ff','#ffe680','#fff']),r:rand(7,14)});
   logAdd(name+' の砂時計が'+(wasLosing?'負けを食い止めた！':'1手巻き戻した'),'#9be9ff'); }
 /* 演出やギフトの効果が動いている間は、負けのカウントダウンを止めて待つ（演出と効果を最後まで見せてから数える） */
-function fxBusy(){ return !!(S.cut || S.cutQ.length || S.seq || S.seqQ.length || S.wg || S.rb || S.roul || S.roulQ.length || wrCur.p || wrCur.m || wrQ.p.length || wrQ.m.length || S.crow || S.fairy || rwCur || S.nz || S.ink || dblFlash>0); }
+function fxBusy(){ return !!(S.cut || S.cutQ.length || S.seq || S.seqQ.length || S.wg || S.rb || S.roul || S.roulQ.length || wrCur.p || wrCur.m || wrQ.p.length || wrQ.m.length || S.crow || S.fairy || TEN || rwCur || S.nz || S.ink || dblFlash>0); }
 function drawLosing(){ if(S.mode!=='playing' || S.phase!=='losing') return; const left=Math.max(0,S.loseT), n=Math.ceil(left), f=n-left, T=performance.now()/1000;
   g.save(); const gr=g.createRadialGradient(540,885,300,540,885,980); gr.addColorStop(0,'rgba(120,0,10,0)'); gr.addColorStop(1,'rgba(160,0,14,'+(.5+.18*Math.sin(T*9))+')'); g.fillStyle=gr; g.fillRect(-3000,200,7080,1370);
   g.fillStyle='rgba(20,0,4,.72)'; rr(150,470,780,96,48); g.fill(); g.strokeStyle='#ff5c5c'; g.lineWidth=4; rr(150,470,780,96,48); g.stroke(); txt(S.loseWhy+'！',540,519,46,'#fff','center',null,900);
@@ -1044,7 +1059,7 @@ function draw(){
   drawField(); drawSpirit();
   drawWalls(); drawTako();
   for(const b of S.bodies) drawBody(b);
-  drawEel(); drawCrow(); drawGust(); drawParts(); drawFlyers(); drawMeteors(); drawRobot();
+  drawTen(); drawEel(); drawCrow(); drawGust(); drawParts(); drawFlyers(); drawMeteors(); drawRobot();
   if(S.mode==='playing' && S.phase==='aim' && !seqLock()){ const c=S.cur; g.setLineDash([10,16]); g.strokeStyle='rgba(30,60,110,.45)'; g.lineWidth=5; g.beginPath(); g.moveTo(S.px,AIM_Y+60); g.lineTo(S.px,TOP_Y); g.stroke(); g.setLineDash([]);
     if(c.statue){ const h=stH(), hw=stW(h)*.4; g.save(); g.translate(clamp(S.px,table.bounds.min.x+hw,table.bounds.max.x-hw),stAimY(h)+Math.sin(S.t*4)*6); drawStatue(stW(h),h); g.restore(); } else {
     g.save(); g.translate(S.px,AIM_Y+Math.sin(S.t*4)*6); g.rotate(S.rot); g.scale(c.s,c.s); g.translate(-ANIMALS[c.key].com.x,-ANIMALS[c.key].com.y); drawAnimal(c.key); g.restore(); }
