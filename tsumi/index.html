@@ -87,7 +87,7 @@ canvas{width:100%;height:100%;display:block}
     <h3>ギフト以外</h3>
     <div class="row both"><div class="nm">いいね1000<small>ランダム動物が落ちてくる</small></div><button id="optLike" type="button"></button></div>
     <div class="row both"><div class="nm">フォロー<small>ランダム動物が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
-    <div class="row both"><div class="nm">コメント<small>5回ごとに、5回目の人の名前の動物が1体出る</small></div><button id="optChat" type="button"></button></div>
+    <div class="row both"><div class="nm">コメント<small>コメントした人の名前の動物が1体出る（1人につき1分に1回まで）</small></div><button id="optChat" type="button"></button></div>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
     <h3>調査用：TikFinityから届いた生データ</h3>
@@ -100,7 +100,7 @@ canvas{width:100%;height:100%;display:block}
   </div>
   <div id="panel" hidden>
     <button class="b-n" data-a="dbl" style="background:#1c3c9a"><small>妨害もお助けも</small>2倍タイム<br>5分間 ぜんぶ2倍</button>
-    <button class="b-n" data-a="comment">コメント5回分<br>名前つき動物</button>
+    <button class="b-n" data-a="comment">コメント<br>名前つき動物</button>
     <button class="b-l" data-a="like">いいね+250<br>1000でランダム動物</button>
     <button class="b-l" data-a="follow">フォロー<br>ランダム動物</button>
     <button class="b-t" data-a="lose">わざと<br>落とす</button>
@@ -196,7 +196,8 @@ const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 let wins = 0, best = 0;
 /* 2倍タイム：5分間、ギフトの効果とWINの増減がぜんぶ2倍（演出の長さはそのまま） */
 const DBL={sec:300,max:1800,flash:2.0}; let dblT=0, dblFlash=0, dblHit=0; const DB=()=>dblT>0?2:1;
-const OPT={likeOn:true,followOn:true,chatOn:true}; const CHAT_EVERY=5; let chatN=0; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('tsumi_opts')||'{}')); }catch(e){}
+const OPT={likeOn:true,followOn:true,chatOn:true}; const CHAT_GAP=60, chatLast=new Map();   // コメントで動物が出るのは1人につき60秒に1回
+ try{ Object.assign(OPT,JSON.parse(localStorage.getItem('tsumi_opts')||'{}')); }catch(e){}
 function optSave(){ try{ localStorage.setItem('tsumi_opts',JSON.stringify(OPT)); }catch(e){} }
 const SPD_OPTS=[1,1.25,1.5,2]; let baseSpd=1; try{ const v=parseFloat(localStorage.getItem('tsumi_spd')); if(SPD_OPTS.includes(v)) baseSpd=v; }catch(e){}
 function setBaseSpd(v){ if(!SPD_OPTS.includes(v)) return; baseSpd=v; try{ localStorage.setItem('tsumi_spd',String(v)); }catch(e){} }
@@ -482,7 +483,7 @@ function drawMeteors(){
 /* ====== 外部から呼ぶ入口（あとでTikTok連携をここにつなぐ） ====== */
 function setGlue(sec){ S.glue=Math.max(S.glue,sec); for(const b of S.bodies) if(b!==S.falling && !b.isStatic){ Sleeping.set(b,false); Body.setStatic(b,true); b.plugin.glued=true; } }
 const Game = {
-  chat(name){ if(!OPT.chatOn || S.mode!=='playing') return; chatN++; if(chatN>=CHAT_EVERY){ chatN=0; Game.comment(name); } },
+  chat(name,uid){ if(!OPT.chatOn || S.mode!=='playing') return -1; const k=String(uid||name), now=Date.now(), last=chatLast.get(k)||0, left=CHAT_GAP-(now-last)/1000; if(left>0) return Math.ceil(left); chatLast.set(k,now); if(chatLast.size>3000){ for(const [kk,v] of chatLast){ if(now-v>CHAT_GAP*1000) chatLast.delete(kk); } } Game.comment(name); return 0; },
   comment(name){ if(S.mode!=='playing') return; if(S.names.length<20) S.names.push(name); if(!S.next.name && !S.next.by){ S.next.name=S.names.shift(); } logAdd(name+' さんの動物が順番待ち','#bfe3ff'); },
   randomAnimal(name,why){ if(S.mode!=='playing') return; startRoulette(name); if(DB()>1) startRoulette(name); logAdd(name+(why||'')+'：ランダム動物が落ちてくる','#ff9ac1'); },
   follow(name){ if(!OPT.followOn) return; Game.randomAnimal(name,' がフォロー'); },
@@ -970,7 +971,7 @@ function startCoin(name){ const res=Math.random()<.5?0:1, o={coin:1,name,res,t:0
 const ctW=(x,y)=>({x:540+(OX(x)-540)/camZ, y:AIM_Y+(OY(y)-AY())/camZ});
 const ctCoin=r=>{ const fly=clamp((r.t-CT.tin)/.55,0,1), e=1-Math.pow(1-fly,2); return {x:CT.hx+(CT.cx-CT.hx)*e, y:CT.hy+(CT.cy-CT.hy)*e-Math.sin(fly*Math.PI)*190, e}; };
 function updateCoin(r,dt){ const T=CT.tin+CT.spin; if(!r.fl && r.t>=CT.tin){ r.fl=true; play('coins',.7); }
-  if(!r.in && r.t>.4){ r.in=true; for(let i=0;i<26;i++){ const q=ctW(CT.bx+rand(-140,140),CT.dy-rand(0,CT.dh)); S.parts.push({k:'wisp',x:q.x,y:q.y,vx:rand(-90,90),vy:rand(-220,-60),g:-30,t:rand(.7,1.5),r:rand(40,90)}); } }
+  if(!r.in && r.t>.6){ r.in=true; S.shake=Math.max(S.shake,.3); for(let i=0;i<26;i++){ const q=ctW(CT.bx+rand(-140,140),CT.dy-rand(0,CT.dh)); S.parts.push({k:'wisp',x:q.x,y:q.y,vx:rand(-90,90),vy:rand(-220,-60),g:-30,t:rand(.7,1.5),r:rand(40,90)}); } }
   if(r.t>1 && r.t<T+CT.shows[r.res] && Math.random()<dt*26){ const q=ctW(CT.bx+rand(-130,130),CT.dy-rand(0,80)); S.parts.push({k:'wisp',x:q.x,y:q.y,vx:rand(-30,30),vy:rand(-260,-110),g:-40,t:rand(.8,1.5),r:rand(26,54)}); }
   if(r.t>=CT.tin && !r.stop && Math.random()<dt*40){ const c=ctCoin(r), q=ctW(c.x+rand(-90,90),c.y+rand(-90,90)); S.parts.push({k:'ember',x:q.x,y:q.y,vx:rand(-120,120),vy:rand(-160,60),g:160,t:rand(.4,.9),c:pick(['#ffd400','#b06bff','#fff','#ff5c8a']),r:rand(3,7)}); }
   if(!r.stop && r.t>=T){ r.stop=3; r.punch=.5; r.m=DB(); const from=wins, v=CT.v[r.res]*r.m; wins-=v; saveWins(); S.winRoll={from,to:wins,t:0,dur:1.0}; play('jakon',r.res?1.3:1); S.shake=Math.max(S.shake,r.res?.7:.25); S.white=Math.max(S.white,r.res?.45:.2); if(r.res) S.red=Math.max(S.red,.5); { const q=ctW(CT.cx,CT.cy); S.rings.push({x:q.x,y:q.y,t:0}); if(r.res){ r.bolts=[0,1,2].map(i=>{ const pts=[[CT.cx+rand(-260,260),200]]; let x=pts[0][0], y=200; while(y<CT.cy-60){ y+=rand(50,110); x+=(CT.cx-x)*.3+rand(-70,70); pts.push([x,Math.min(y,CT.cy)]); } pts.push([CT.cx+rand(-30,30),CT.cy]); return pts; }); for(let i=0;i<30;i++){ const z=ctW(CT.bx+rand(-150,150),CT.dy-rand(0,CT.dh)); S.parts.push({k:'wisp',x:z.x,y:z.y,vx:rand(-160,160),vy:rand(-320,-80),g:-30,t:rand(.8,1.6),r:rand(50,110)}); } } }
@@ -989,16 +990,17 @@ function drawCoin(r){ if(S.mode!=='playing') return; const T=CT.tin+CT.spin, hit
     g.rotate(-S.t*2.6); for(let i=0;i<10;i++){ const a2=i*Math.PI/5; g.beginPath(); g.arc(Math.cos(a2)*R0*.91,Math.sin(a2)*R0*.91,7,0,7); g.stroke(); }
     g.restore(); }
   { /* 闇の渦が開く → 悪魔が黒い影のまま出てきて色がつく → 渦が閉じる。最後は黒い煙に包まれて消える */
-    const em=clamp((r.t-.35)/.85,0,1), ee=1-Math.pow(1-em,2), vcx=CT.bx, vcy=CT.dy-CT.dh*.55, vs=Math.max(clamp(r.t/.4,0,1)*clamp((1.8-r.t)/.45,0,1), clamp((r.t-tEnd+.2)/.3,0,1)*clamp((tEnd+CT.out-r.t)/.3,0,1));
-    if(vs>0 && vortexImg.naturalWidth){ const R=400*(.3+.7*vs); g.save(); g.globalAlpha=Math.min(1,vs*1.4); g.translate(vcx,vcy); g.rotate(-S.t*2.4); g.drawImage(vortexImg,-R,-R,R*2,R*2); g.restore(); }
-    const sh=hit?(r.res?dvSh.c:dvSh.b):dvSh.a, sc=CT.dh/460, k=(.6+.4*ee)*(1-.35*ex), br=Math.min(ee*ee,1-clamp(ex/.6,0,1)), da=clamp((r.t-.35)/.25,0,1)*(1-clamp((ex-.45)/.45,0,1));
-    if(da>0){ g.save(); g.globalAlpha=da; g.translate(vcx,vcy); g.scale(k,k); g.translate(-vcx,-vcy); if(br<.98) g.filter='brightness('+Math.max(0,br).toFixed(2)+')'; else { g.shadowColor=hit&&r.res?'rgba(255,40,80,.8)':'rgba(140,70,255,.75)'; g.shadowBlur=34; }
+    const vcx=CT.bx, vcy=CT.dy-CT.dh*.55, IN=.62, OUT=tEnd+.28, dkIn=clamp(r.t/.28,0,1)*clamp((IN+.5-r.t)/.5,0,1), dkOut=clamp((r.t-tEnd)/.28,0,1)*clamp((tEnd+CT.out-r.t)/(CT.out-.38),0,1), dk=Math.max(dkIn,dkOut), shown=r.t>=IN && r.t<OUT;
+    if(dk>0 && vortexImg.naturalWidth){ const R=430*(.25+.75*dk); g.save(); g.globalAlpha=Math.min(1,dk*1.5); g.translate(vcx,vcy); g.rotate(-S.t*3); g.drawImage(vortexImg,-R,-R,R*2,R*2); g.restore(); }
+    const sh=hit?(r.res?dvSh.c:dvSh.b):dvSh.a, sc=CT.dh/460, pop=shown?1+.16*Math.pow(clamp(1-(r.t-IN)/.22,0,1),2):1;
+    if(shown){ g.save(); g.translate(vcx,vcy); g.scale(pop,pop); g.translate(-vcx,-vcy); g.shadowColor=hit&&r.res?'rgba(255,40,80,.8)':'rgba(140,70,255,.75)'; g.shadowBlur=34;
       if(dvSh.a.ok && dvSh.b.ok && dvSh.c.ok){ const f=Math.min(sh.n-1,Math.floor((hit?since:Math.max(0,r.t-(CT.tin-.67)))*12)), w=sh.fw*sc, h=sh.fh*sc; g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,CT.bx-w/2,CT.dy-h+sh.foot*sc+bob,w,h); }
       else { const im=dvImg[hit&&since>.1?(r.res?2:1):0]; if(im.naturalWidth){ const h=CT.dh, w=h*im.naturalWidth/im.naturalHeight; g.drawImage(im,CT.dx-w,CT.dy-h+bob,w,h); } }
       g.restore(); }
-    if(smokeImg.naturalWidth){ const rt=smokeImg.naturalHeight/smokeImg.naturalWidth, sa=clamp((r.t-.3)/.4,0,1)*clamp((2.1-r.t)/.7,0,1)*.92, xa=clamp((r.t-tEnd+.1)/.35,0,1)*clamp((tEnd+CT.out-r.t)/.3,0,1);
-      if(sa>0){ const w=500+60*Math.sin(S.t*3), h=w*rt*.62; g.save(); g.globalAlpha=sa; g.drawImage(smokeImg,CT.bx-w/2,CT.dy+46-h,w,h); g.restore(); }
-      if(xa>0){ const w=620, h=w*rt*(.55+.5*clamp((r.t-tEnd)/(CT.out*.6),0,1)); g.save(); g.globalAlpha=xa; g.drawImage(smokeImg,CT.bx-w/2,CT.dy+50-h,w,h); g.restore(); } } }
+    /* 闇のかたまり：悪魔の体をすっぽり隠す黒。これが晴れた時には、もう悪魔が立っている */
+    if(dk>0){ g.save(); const R=CT.dh*(.5+.45*dk), gr=g.createRadialGradient(vcx,vcy,R*.15,vcx,vcy,R); gr.addColorStop(0,'rgba(4,0,10,'+Math.min(1,dk*1.6)+')'); gr.addColorStop(.62,'rgba(10,0,22,'+Math.min(1,dk*1.25)+')'); gr.addColorStop(1,'rgba(20,0,40,0)'); g.fillStyle=gr; g.fillRect(vcx-R,vcy-R,R*2,R*2);
+      if(smokeImg.naturalWidth){ const rt=smokeImg.naturalHeight/smokeImg.naturalWidth, w=CT.dh*1.25*(.7+.5*dk), h=w*rt; g.globalAlpha=Math.min(1,dk*1.4); g.drawImage(smokeImg,vcx-w/2,CT.dy+60-h,w,h); g.scale(-1,1); g.globalAlpha=Math.min(1,dk*1.1); g.drawImage(smokeImg,-vcx-w*.42,CT.dy+40-h*.8,w*.84,h*.8); }
+      g.restore(); } }
   if(r.t>=CT.tin){ const u=clamp((r.t-CT.tin)/CT.spin,0,1), fly=clamp((r.t-CT.tin)/.55,0,1), e=1-Math.pow(1-fly,2), x=CT.hx+(CT.cx-CT.hx)*e, y=CT.hy+(CT.cy-CT.hy)*e-Math.sin(fly*Math.PI)*190, ang=(12+r.res)*Math.PI*(1-Math.pow(1-u,2.6)), c=Math.cos(ang), face=hit?r.res:(Math.floor(ang/Math.PI+.5)%2), R=CT.r*(.45+.55*e)*(1+(r.punch||0)*.5), sy=hit?1:Math.max(.06,Math.abs(c));
     { g.save(); g.globalCompositeOperation='lighter'; const cc=face?'255,170,40':'190,205,255', gl=g.createRadialGradient(x,y,R*.4,x,y,R*2.1); gl.addColorStop(0,'rgba('+cc+','+(hit?.6:.4)*al+')'); gl.addColorStop(1,'rgba('+cc+',0)'); g.fillStyle=gl; g.fillRect(x-R*2.2,y-R*2.2,R*4.4,R*4.4);
       if(!hit){ const pr=(S.t*1.6)%1; g.strokeStyle='rgba(180,110,255,'+(.8*(1-pr)*al)+')'; g.lineWidth=8*(1-pr)+2; g.beginPath(); g.arc(x,y,R*(1.05+pr*.9),0,7); g.stroke(); }
@@ -1260,7 +1262,7 @@ function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.dat
   if(ev==='gift'){ const gd=d.giftDetails||d.extendedGiftInfo||d.gift||{}, id=d.giftId!=null?d.giftId:(gd.id!=null?gd.id:gd.giftId), gname=d.giftName||gd.giftName||gd.name||('ID'+id), coins=d.diamondCount!=null?d.diamondCount:(gd.diamondCount!=null?gd.diamondCount:gd.diamond_count), pic=d.giftPictureUrl||gd.giftPictureUrl||gd.pictureUrl||(gd.icon&&gd.icon.url_list&&gd.icon.url_list[0])||(gd.image&&gd.image.url_list&&gd.image.url_list[0])||null, gtype=d.giftType!=null?d.giftType:gd.giftType, rc=Math.max(1,parseInt(d.repeatCount,10)||1), end=!!d.repeatEnd;
     let n=rc; if(gtype===1){ const k=(d.uniqueId||u.uniqueId||name)+'|'+id, last=TF.streak[k]||0; n=Math.max(0,rc-last); if(end) delete TF.streak[k]; else TF.streak[k]=rc; }
     if(n<=0) return; tfGift({id,name:gname,coins,pic},name,Math.min(n,50)); }
-  else if(ev==='chat'){ Game.chat(name); tfLogAdd('コメント：'+name+(OPT.chatOn?'（'+(chatN===0?'この人の名前の動物が出る':'あと'+(CHAT_EVERY-chatN)+'回で動物')+'）':'（オフ）')); }
+  else if(ev==='chat'){ const w=Game.chat(name,d.uniqueId||u.uniqueId||d.userId||u.userId); tfLogAdd('コメント：'+name+(!OPT.chatOn?'（オフ）':w===0?'（この人の名前の動物が出る）':w>0?'（この人はあと'+w+'秒は出ない）':'')); }
   else if(ev==='like'){ const c=parseInt(d.likeCount,10)||1; Game.like(c); }
   else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') runFx(()=>Game.follow(name)); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
 function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
