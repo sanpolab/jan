@@ -29,9 +29,9 @@ html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku G
 <script>
 /* つみつみアニマルのギフト表。ゲームの「ギフト」画面で登録した割り当てをそのまま表示する。
    URLの後ろに ?cols=9（1段の数）や ?all=1（未登録の効果も出す）を付けられる */
-const FX=[['ant','jam','アリ'],['wind','jam','突風'],['ink','jam','イカスミ'],['quake','jam','地震'],['crow','jam','カラス'],['giant','jam','巨大化'],['slot','jam','動物スロット'],['usagi','jam','早送り'],['eel','jam','タコ解除'],
+const FX=[['ant','jam','アリ'],['wind','jam','突風'],['ink','jam','イカスミ'],['quake','jam','地震'],['crow','jam','カラス'],['giant','jam','10秒 巨大化'],['slot','jam','動物スロット'],['usagi','jam','早送り'],['eel','jam','タコ解除'],
  ['necro','jam','見えない'],['witch','jam','ゴール+3m'],['wrm','jam','−ルーレット'],['dragon','jam','全消し'],['robot','jam','全リセット'],['reaper','jam','WIN −1000'],
- ['fairy','help','ちび化'],['kame','help','スロー'],['tako','help','吸着MAX'],['rewind','help','やり直し'],['golem','help','落ちない壁'],['angel','help','ゴール−2m'],['wrp','help','＋ルーレット'],['tree','help','台が広がる'],
+ ['fairy','help','10秒 ちび化'],['kame','help','スロー'],['tako','help','ずっと吸着'],['rewind','help','負け取消'],['golem','help','落ちない壁'],['angel','help','ゴール−2m'],['wrp','help','＋ルーレット'],['tree','help','台が広がる'],
  ['statue','help','5回ガード'],['phoenix','help','WIN ＋1000'],['double','both','5分間 2倍']];
 const q=new URLSearchParams(location.search), cols=Math.max(3,Math.min(13,parseInt(q.get('cols'),10)||9)), showAll=q.get('all')==='1';
 document.documentElement.style.setProperty('--cols',cols);

@@ -118,7 +118,7 @@ canvas{width:100%;height:100%;display:block}
     <button class="b-j" data-a="jam1q"><small>妨害 小</small>ゆれ<br>大ナマズ</button>
     <button class="b-j" data-a="fast"><small>妨害 小</small>ウサギ<br>早送り +20秒</button>
     <button class="b-j" data-a="crow"><small>妨害 小</small>カラス<br>一番上を1匹さらう</button>
-    <button class="b-j" data-a="jam1g"><small>妨害 小</small>黒い妖精<br>次の動物を巨大に</button>
+    <button class="b-j" data-a="jam1g"><small>妨害 小</small>黒い妖精<br>10秒 巨大化</button>
     <button class="b-j" data-a="jam1i"><small>妨害 小</small>イカスミ<br>3秒 画面が隠れる</button>
     <button class="b-j" data-a="ungrip"><small>妨害 小</small>ウツボ 解除<br>タコとのりを消す</button>
     <button class="b-j" data-a="jam2"><small>妨害 中</small>ネクロマンサー<br>10匹見えない</button>
@@ -127,13 +127,13 @@ canvas{width:100%;height:100%;display:block}
     <button class="b-j" data-a="wrm" style="background:#5b2f8f"><small>妨害 ギフト</small>−WINルーレット<br>WIN −1〜10</button>
     <button class="b-j" data-a="reaper" style="background:#2a1040"><small>妨害 最上位</small>死神<br>WIN −1000</button>
     <button class="b-j" data-a="jam3"><small>妨害 大</small>ドラゴン<br>全消し＋台縮む</button>
-    <button class="b-h" data-a="help1"><small>お助け 小</small>妖精<br>動物を小さくする</button>
+    <button class="b-h" data-a="help1"><small>お助け 小</small>妖精<br>10秒 ちび化</button>
     <button class="b-h" data-a="slow"><small>お助け 小</small>カメ<br>スロー +20秒</button>
-    <button class="b-h" data-a="grip"><small>お助け 小</small>タコ 吸着MAX<br>+8秒</button>
-    <button class="b-h" data-a="help2"><small>お助け 中</small>ゴーレム<br>30秒の壁</button>
+    <button class="b-h" data-a="grip"><small>お助け 小</small>タコ 吸着<br>今ある動物をずっと</button>
+    <button class="b-h" data-a="help2"><small>お助け 中</small>ゴーレム<br>60秒 ゴールの8割の壁</button>
     <button class="b-h" data-a="angel"><small>お助け ？</small>天使<br>ゴール−2m 下限3m</button>
     <button class="b-h" data-a="statue"><small>お助け 最上位</small>天使像<br>5ラウンド確定</button>
-    <button class="b-h" data-a="rewind"><small>お助け 小</small>砂時計<br>1手戻す 負けも取消</button>
+    <button class="b-h" data-a="rewind"><small>お助け 小</small>砂時計<br>負けを取り消す</button>
     <button class="b-h" data-a="wrp" style="background:#c98a00"><small>お助け ギフト</small>＋WINルーレット<br>WIN ＋1〜10</button>
     <button class="b-h" data-a="phoenix" style="background:#b8860b"><small>お助け 最上位</small>不死鳥<br>WIN ＋1000</button>
     <button class="b-h" data-a="help3"><small>お助け 大</small>世界樹<br>台が広がる</button>
@@ -165,11 +165,11 @@ const CFG = {
   goalM: 5.0,        // 目標の高さ（メートル。100px = 1m）
   tableW: 700,       // 台の幅
   smallW: 460,       // ドラゴンの呪いで小さくなった台の幅
-  ghostCount: 10, holdSec: 5, aimSec: 5, speedSec: 20, speedMax: 300, fastMult: 2, slowMult: .5, witchM: 3, angelM: 2, statueRounds: 5, goalMin: 3, goalMax: 100, zoomMin: .6,     // ネクロマンサー：あと何匹置くまで台の上が見えないか
+  ghostCount: 10, holdSec: 10, aimSec: 5, speedSec: 20, speedMax: 300, fastMult: 2, slowMult: .5, witchM: 3, angelM: 2, statueRounds: 5, goalMin: 3, goalMax: 100, zoomMin: .6,     // ネクロマンサー：あと何匹置くまで台の上が見えないか
   curseCount: 5,     // 呪い・加護が消えるまでの回数（5回勝つ or 5回負ける）
   wideW: 1040,       // お助けで広がった台の幅       // 台の幅
   likeGoal: 1000,     // いいね何回で「のり」が出るか
-  windSec: 6, windPre: 1.0, quakeSec: 4, quakeKick: 1.05, gripSec: 8, gripMax: 60, glueSec: 12, wallSec: 30, wallM: 3,
+  windSec: 6, windPre: 1.0, quakeSec: 4, quakeKick: 1.05, gripSec: 8, gripMax: 60, glueSec: 12, wallSec: 60, wallM: 3,
 };
 const TOP_Y = 1440;                       // 台の上面
 /* ゴールの高さは魔女（妨害）で +3m ずつ上がる。重ねがけ可。ラウンドが変わってもずっと続く（天使で下げるまで） */
@@ -256,9 +256,9 @@ function newRound(mode){
 /* ゴーレムの壁（お助け中）：台の両脇に岩の手が立って、横に落ちなくなる。ラウンドをまたいでも残り時間は続く */
 let wallT=0, walls=null, wallRise=1;
 const handImg=new Image(); handImg.src='./img/golem_hand.png';
-const WALL_W=66, wallH=()=>CFG.wallM*100;
+const WALL_W=66; let wallHpx=300; const wallH=()=>wallHpx;   // 壁の高さ＝出した時のゴールの8割
 function wallX(side){ const e=side<0?table.bounds.min.x:table.bounds.max.x; return side<0 ? Math.max(70,e)-WALL_W/2 : Math.min(W-70,e)+WALL_W/2; }
-function makeWalls(rise){ if(walls) return; const h=wallH()+70, hw=WALL_W/2, cap=130;   // てっぺんは内向きの急な斜面。上に乗ったら内側へすべる
+function makeWalls(rise){ if(walls){ for(const b of walls) Composite.remove(engine.world,b); walls=null; } wallHpx=Math.round(GOAL_M*100*.8); const h=wallH()+70, hw=WALL_W/2, cap=130;   // てっぺんは内向きの急な斜面。上に乗ったら内側へすべる
   walls=[-1,1].map(sd=>{ const vs=[{x:sd*hw,y:-h/2},{x:sd*hw,y:h/2},{x:-sd*hw,y:h/2},{x:-sd*hw,y:-h/2+cap}]; if(sd<0) vs.reverse();
     const b=Bodies.fromVertices(0,0,[vs],{isStatic:true, friction:.03, frictionStatic:0, slop:.5}); const bx=(b.bounds.min.x+b.bounds.max.x)/2;
     b.plugin={wall:true,side:sd,ox:b.position.x-bx}; Body.setPosition(b,{x:wallX(sd)+b.plugin.ox, y:b.position.y+(TOP_Y-wallH()-b.bounds.min.y)}); Composite.add(engine.world,b); return b; }); wallRise=rise?0:1; }
@@ -271,7 +271,7 @@ function blastWalls(x,y,big){ if(!walls) return; if(big){ endWalls('ドラゴン
 function updateWalls(dt){ if(!walls) return; wallRise=Math.min(1,wallRise+dt*1.8); for(const b of walls){ const x=wallX(b.plugin.side)+b.plugin.ox; if(Math.abs(x-b.position.x)>.5){ Body.setPosition(b,{x,y:b.position.y}); wakeAll(); } } wallT-=dt; if(wallT<=0) endWalls(); }
 function drawWalls(){ if(!walls || !handImg.complete || !handImg.naturalWidth) return; const hw=128, hh=743, e=1-Math.pow(1-wallRise,3), warn=wallT<5;
   for(const b of walls){ const sd=b.plugin.side; g.save(); g.translate((b.bounds.min.x+b.bounds.max.x)/2+sd*10+(warn?rand(-1,1)*(5-wallT)*.9:0), TOP_Y-wallH()+(1-e)*hh); if(sd>0) g.scale(-1,1);
-    if(warn && Math.sin(S.t*(14+(5-wallT)*4))>0) g.globalAlpha=.62; g.drawImage(handImg,-hw/2,0,hw,hh);
+    if(warn && Math.sin(S.t*(14+(5-wallT)*4))>0) g.globalAlpha=.62; g.drawImage(handImg,-hw/2,0,hw,Math.max(hh,wallH()+443));
     if(warn){ g.globalAlpha=1; g.strokeStyle='rgba(20,12,6,.9)'; g.lineWidth=4; g.lineJoin='round'; const n=Math.min(4,Math.ceil((5-wallT)*1.0)); for(let i=0;i<n;i++){ const y=120+i*80; g.beginPath(); g.moveTo(-22,y); g.lineTo(-4,y+26); g.lineTo(-14,y+48); g.lineTo(12,y+70); g.stroke(); } }
     g.restore(); } }
 const heightM = () => Math.max(0, (TOP_Y - S.topY)/100);
@@ -541,8 +541,8 @@ function rotate(){ if(S.mode!=='playing' || S.phase!=='aim' || seqLock() || S.cu
 const STEP = 1000/60; let acc = 0;
 /* くっつきやすさ（吸着力）。ふだんは少しゆるめ。お助け「吸着MAX」のあいだだけ最大になる。
    f=すべりにくさ / fs=動き出しにくさ / dx,dy,da=触れているときに横・縦・回転の動きをどれだけ残すか（小さいほど止まる）/ z=これより遅ければ完全に止める */
-const GRIP={ normal:{f:.46,fs:.72,dx:.972,dy:.985,da:.965,z:.06,za:.0005}, max:{f:1.5,fs:2.0,dx:.55,dy:.85,da:.45,z:.5,za:.004} };
-let gripT=0; const grip=()=>gripT>0?GRIP.max:GRIP.normal;
+const GRIP={ normal:{f:.46,fs:.72,dx:.972,dy:.985,da:.94,z:.06,za:.0005}, max:{f:1.5,fs:2.0,dx:.55,dy:.85,da:.45,z:.5,za:.004} };
+let gripT=0; const suckN=()=>S?S.bodies.filter(b=>b.plugin.suck).length:0;   // gripT: タコが吸着している動物がいるあいだ 1
 const bgFox=new Image(); bgFox.src='./img/bg_fox.jpg'; const dblPlate=new Image(); dblPlate.src='./img/dbl_plate.png'; const dblX2=new Image(); dblX2.src='./img/dbl_x2.png'; let dblBg=0;
 function startDouble(name){ const go=()=>{ setBg('fox'); const was=dblT>0; dblT=Math.min(DBL.max,dblT+DBL.sec); dblFlash=DBL.flash; S.white=Math.max(S.white,.5); S.shake=Math.max(S.shake,.3); logAdd(name+(was?' が2倍タイムを延長（残り'+fmtMS(dblT)+'）':' が2倍タイムを始めた（5分間）'),'#9be9ff'); };
   if(vOK(foxVid)) startCut('fox','',name,go); else { play('jean'); play('coins',.8); go(); } }
@@ -556,8 +556,8 @@ function drawDouble(){ if(dblT<=0 && dblFlash<=0) return; const T=performance.no
     const u=clamp(1-dblFlash/DBL.flash,0,1), fly=clamp((u-.55)/.45,0,1), e=fly*fly*(3-2*fly), pop=u<.12?u/.12:1, big=4.6*(pop<1?(.3+.9*pop):(1.2-.2*clamp((u-.12)/.12,0,1)));
     if(dblX2.naturalWidth){ const sc=big+(1-big)*e, cx=(0)+(LX-0)*e, cy=(620-PY)+(4-(620-PY))*e; if(u<1){ g.save(); g.globalCompositeOperation='lighter'; glow('w',cx,cy,LW*sc*1.1,.6*(1-e)); g.restore(); g.globalAlpha=blink; } g.drawImage(dblX2,cx-LW*sc/2,cy-LH*sc/2,LW*sc,LH*sc); } else txtD('×2',LX,2,50,'#ffe14a','center','#3a2400',8);
     g.restore(); } }
-function addGrip(name){ gripT=Math.min(CFG.gripMax,gripT+CFG.gripSec*DB()); S.gripFlash=.8; play('good'); play('kira',.8); logAdd(name+' の吸着MAX：残り'+Math.ceil(gripT)+'秒','#9dffb8'); }
-function cutGripNow(name){ const had=gripT>0||S.glue>0; gripT=0; if(S.glue>0){ S.glue=0; for(const b of S.bodies) if(b.plugin.glued){ Body.setStatic(b,false); b.plugin.glued=false; } } wakeAll(); S.purple=Math.max(S.purple,.5); play('bad'); logAdd(name+(had?' が吸着を解除した':' の解除：いまは何もくっついていない'),'#ff9aa8'); }
+function addGrip(name){ let n=0; for(const b of S.bodies){ const p=b.plugin; if(b===S.falling || p.air || p.statue || p.wall || p.rock) continue; p.suck=true; n++; } gripT=n>0?1:0; S.gripFlash=.8; play('good'); play('kira',.8); logAdd(name+' のタコ：いま台にある'+n+'匹を吸着（ずっと続く）','#9dffb8'); }
+function cutGripNow(name){ const had=gripT>0||S.glue>0; gripT=0; for(const b of S.bodies) b.plugin.suck=false; if(S.glue>0){ S.glue=0; for(const b of S.bodies) if(b.plugin.glued){ Body.setStatic(b,false); b.plugin.glued=false; } } wakeAll(); S.purple=Math.max(S.purple,.5); play('bad'); logAdd(name+(had?' が吸着を解除した':' の解除：いまは何もくっついていない'),'#ff9aa8'); }
 /* タコ（吸着MAXのあいだ台の下から抱えてのぞく）とウツボ（解除：突っこんできて、タコが墨を吐いて逃げる） */
 const takoImg=new Image(); takoImg.src='./img/tako.png'; const eelImg=new Image(); eelImg.src='./img/utsubo.png';
 const TK={a:0, flee:0, dir:1, show:false}, EEL={dur:1.0};
@@ -572,7 +572,7 @@ function drawTako(){ if(S.mode==='title') return; const tw=table.bounds.max.x-ta
 }
 function drawEel(){ const el=S.eel; if(S.mode!=='title' && el && eelImg.naturalWidth){ const w=760/camZ, h=w*eelImg.naturalHeight/eelImg.naturalWidth, half=540/camZ+w*.6, u=el.t/EEL.dur, x=540+el.dir*(-half+2*half*u);
     g.save(); g.translate(x,TOP_Y+10+Math.sin(el.t*26)*14); if(el.dir<0) g.scale(-1,1); g.rotate(Math.sin(el.t*26+1)*.06); g.drawImage(eelImg,-w/2,-h/2,w,h); g.restore(); } }
-function physics(){ const G=grip(); for(const b of S.bodies){ if(b.plugin.statue||b.plugin.wall) continue; b.friction=G.f; b.frictionStatic=G.fs; }
+function physics(){ const Gb=b=>b.plugin.suck?GRIP.max:GRIP.normal; for(const b of S.bodies){ if(b.plugin.statue||b.plugin.wall) continue; const G=Gb(b); b.friction=G.f; b.frictionStatic=G.fs; }
   if(S.wind>0 || S.quake>0){ for(const b of S.bodies) if(b.isSleeping) Sleeping.set(b,false); }
   if(S.wind>0){ for(const b of S.bodies) if(!b.isStatic) Body.applyForce(b,b.position,{x:S.windDir*.00035*(S.windMul||1)*b.mass,y:0}); }
   if(S.quake>0){ S.qk=(S.qk||0)+1; if(S.qk%5===0){ const d=(S.qk%10===0?1:-1)*CFG.quakeKick*(S.qkMul||1); for(const b of S.bodies) if(!b.isStatic) Body.setVelocity(b,{x:b.velocity.x+d,y:b.velocity.y}); } }
@@ -580,12 +580,17 @@ function physics(){ const G=grip(); for(const b of S.bodies){ if(b.plugin.statue
   Engine.update(engine, STEP);
   // 何かに触れている動物は、ゆれや横すべりを強めにおさえる（ぐらぐら歩き出すのを防ぐ）
   for(const pr of engine.pairs.list){ if(!pr.isActive) continue; pr.bodyA.parent.plugin && (pr.bodyA.parent.plugin.touch=2); pr.bodyB.parent.plugin && (pr.bodyB.parent.plugin.touch=2); }
-  for(const b of S.bodies){ b.plugin.contact=b.plugin.touch>0; if(b.isStatic || b.isSleeping || !b.plugin.touch) continue; b.plugin.touch--; if(b.speed<3){ Body.setVelocity(b,{x:b.velocity.x*G.dx,y:b.velocity.y*G.dy}); Body.setAngularVelocity(b,b.angularVelocity*G.da); } }
+  for(const b of S.bodies){ b.plugin.contact=b.plugin.touch>0; if(b.isStatic || b.isSleeping || !b.plugin.touch) continue; b.plugin.touch--; const G=Gb(b); if(b.speed<3){ Body.setVelocity(b,{x:b.velocity.x*G.dx,y:b.velocity.y*G.dy}); Body.setAngularVelocity(b,b.angularVelocity*G.da); } }
   // ほぼ止まっている動物は完全に止める（じわじわ滑る・勝手に動くのを防ぐ）
-  for(const b of S.bodies) if(!b.isStatic && !b.isSleeping && b.plugin.contact && b.speed<G.z && Math.abs(b.angularVelocity)<G.za){ Body.setVelocity(b,{x:0,y:0}); Body.setAngularVelocity(b,0); }
+  const calm=!(S.wind>0 || S.quake>0);
+  for(const b of S.bodies){ if(b.isStatic || b.isSleeping) continue; const G=Gb(b), p=b.plugin; if(p.contact && b.speed<G.z && Math.abs(b.angularVelocity)<G.za){ Body.setVelocity(b,{x:0,y:0}); Body.setAngularVelocity(b,0); }
+    // 着地してほぼ止まった状態が少し続いたら、そこで寝かせて固定する（じわじわ動き出すのを防ぐ。何かが当たれば起きる）
+    if(calm && p.contact && b!==S.falling && !p.air && b.speed<.4 && Math.abs(b.angularVelocity)<.008){ p.restN=(p.restN||0)+1; if(p.restN>=20){ Body.setVelocity(b,{x:0,y:0}); Body.setAngularVelocity(b,0); Sleeping.set(b,true); p.restN=0; } } else p.restN=0; }
 }
 function update(dt){
-  updateRewind(dt);
+  updateRewind(dt); updateScaleFx(dt);
+  if(statue>0 && S.mode==='playing' && S.phase==='aim' && !S.stRound && !S.cut && !seqLock()){ S.cur={key:'tenshi',s:1,statue:true,name:null,by:null}; S.stRound=true; S.rot=0; }   // 天使像は、落下中に来ても次に持つ番で必ず出す
+  if(S.mode==='playing' && PEND.length && !S.cut){ PEND_T-=dt; if(PEND_T<=0){ PEND_T=.4; try{ PEND.shift()(); }catch(e){} } }
   if(S.mode!=='title'){ if(dblT>0){ dblT=Math.max(0,dblT-dt); if(dblT===0){ logAdd('2倍タイムが終わった','#9be9ff'); play('count'); } } { const f0=dblFlash; dblFlash=Math.max(0,dblFlash-dt); if(f0>0 && dblFlash===0 && dblT>0){ dblHit=.45; play('jakon',1.5); play('coins',.9); S.shake=Math.max(S.shake,.3); } dblHit=Math.max(0,dblHit-dt); }  }
   S.t+=dt; if(S.banner){ S.banner.t-=dt; if(S.banner.t<=0) S.banner=null; } S.shake=Math.max(0,S.shake-dt);
   updateFx(dt);
@@ -666,7 +671,7 @@ const RB={enter:1.0,lock:.7,laser:3.0,misFrom:2.0,misN:22,misGap:.13,charge:1.0,
 const rbT=()=>({l0:RB.enter+RB.lock, l1:RB.enter+RB.lock+RB.laser, m0:RB.enter+RB.lock+RB.misFrom, c0:RB.enter+RB.lock+RB.laser+.9, b0:RB.enter+RB.lock+RB.laser+.9+RB.charge, e0:RB.enter+RB.lock+RB.laser+.9+RB.charge+RB.beam});
 function rbBoom(x,y,big){ const blobs=[]; for(let i=0;i<(big?16:9);i++) blobs.push({a:rand(0,6.28),d:rand(.1,.75),s:rand(.35,.75)}); S.booms.push({x,y,t:0,big,R:big?DRAGON.bigRadius:DRAGON.radius*.8,blobs}); S.shake=Math.max(S.shake,big?1:.3); S.rings.push({x,y,t:0}); }
 function rbVapor(b){ const x=b.position.x,y=b.position.y; for(let i=0;i<14;i++) S.parts.push({k:'ember',x:x+rand(-40,40),y:y+rand(-40,40),vx:rand(-220,220),vy:rand(-320,40),g:200,t:rand(.4,1),c:pick(['#ff3b2f','#ffb020','#fff']),r:rand(4,10)}); for(let i=0;i<4;i++) S.parts.push({k:'smoke',x:x+rand(-30,30),y:y+rand(-30,30),vx:rand(-40,40),vy:rand(-90,-30),g:-10,t:rand(.8,1.5),r:rand(40,90)}); removeBody(b); }
-function resetAll(){ BGX.key=null; BGX.t=0; if(S.phase==='losing'){ S.phase='aim'; S.loseT=0; } for(const b of S.bodies.slice()) removeBody(b); S.falling=null; S.stBody=null; S.stRound=false; statue=0; witch=0; setGoal(); curse=null; bless=null;
+function resetAll(){ miniT=0; bigT=0; BGX.key=null; BGX.t=0; if(S.phase==='losing'){ S.phase='aim'; S.loseT=0; } for(const b of S.bodies.slice()) removeBody(b); S.falling=null; S.stBody=null; S.stRound=false; statue=0; witch=0; setGoal(); curse=null; bless=null;
   Body.scale(table, CFG.tableW/(table.bounds.max.x-table.bounds.min.x), 1); if(walls){ for(const b of walls.slice()){ Composite.remove(engine.world,b); } walls=null; } wallT=0;
   dblT=0; dblFlash=0; dblHit=0; spSec=0; spSync(); gripT=0; S.ghost=0; S.glue=0; S.wind=0; S.windPre=0; S.quake=0; S.roul=null; S.roulQ.length=0; S.seq=null; S.seqQ.length=0; S.meteors=[]; S.doom=0; S.hold=0; S.cur=nextSpec(); rollNext(); S.rot=0; S.phase='aim'; S.topY=TOP_Y; }
 function startRobot(name){ if(S.rb) return; logAdd(name+' が黒い機体を呼んだ','#ff5c5c');
@@ -707,7 +712,7 @@ function drawRobot(){ const r=S.rb; if(!r) return; const T=rbT(), w=660/Math.sqr
   if(missileImg.naturalWidth) for(const m of r.mis){ g.save(); g.translate(m.x,m.y); g.rotate(Math.atan2(m.vy,m.vx)+Math.PI); const mw=96, mh=mw*missileImg.naturalHeight/missileImg.naturalWidth; g.drawImage(missileImg,-mw*.2,-mh/2,mw,mh); g.restore(); } }
 /* 妖精（お助け小）：横から飛んできて、いま持っている動物（落下中なら「つぎ」の動物）のまわりを回り、杖でちょんと触って小さくする */
 const fairyImg=new Image(); fairyImg.src='./img/fairy.png'; const fairyDark=new Image(); fairyDark.src='./img/fairy_dark.png';
-const FY={fly:.55,loop:.6,out:.6,w:310,small:.62,big:1.55,small2:.45,big2:2.0};
+const FY={fly:.55,loop:.6,out:.6,w:310,small:.62,big:1.55,sec:10}; let miniT=0, bigT=0, fyScale=1;   // ちび化・巨大化は1回につき10秒。重ねると時間がのびる
 function startFairy(name,dark){ const o={name,dark:!!dark,m:DB(),t:0,side:Math.random()<.5?-1:1,done:false}; if(S.fairy) S.fairyQ.push(o); else S.fairy=o; }
 function fairyTarget(f){ if(!f.spec){ const useCur=S.phase==='aim' && !S.cur.statue && !seqLock(); f.spec=useCur?S.cur:S.next; f.onCur=useCur; } return (f.onCur && f.spec===S.cur && S.phase==='aim')?{x:sx(S.px),y:sy(AIM_Y)}:{x:IOX(817),y:IOY(142)}; }
 function fairyPos(f){ const tg=fairyTarget(f), sd=f.side, x0=sd<0?-220:W+220, y0=tg.y-260;
@@ -716,9 +721,9 @@ function fairyPos(f){ const tg=fairyTarget(f), sd=f.side, x0=sd<0?-220:W+220, y0
   const u=(f.t-FY.fly-FY.loop)/FY.out, e=u*u; return {x:tg.x-sd*165+(-sd)*-1*e*0+(sd<0?1:-1)*e*900, y:tg.y-e*520, dir:-sd}; }
 function updateFairy(dt){ const f=S.fairy; if(!f) return; f.t+=dt; const p=fairyPos(f);
   if(Math.random()<dt*46){ const wx=540+(OX(p.x)-540)/camZ, wy=AIM_Y+(OY(p.y)-AY())/camZ; S.parts.push({k:'spark',x:wx+rand(-24,24),y:wy+rand(-14,24),vx:rand(-30,30),vy:rand(10,80),g:60,t:rand(.4,.9),c:pick(f.dark?['#8a8a8a','#ff3344','#2a2a2a']:['#c9ffb0','#ffe680','#fff']),r:rand(5,10)}); }
-  if(!f.done && f.t>=FY.fly+FY.loop){ f.done=true; const sp=f.spec; sp.by=null; if(!sp.name) sp.name=f.name; f.s0=sp.s; if(f.dark){ play('bad'); play('heavy',.8); S.shake=Math.max(S.shake,.3); } else { play('kira'); play('good',.7); } const tg=fairyTarget(f), wx=540+(OX(tg.x)-540)/camZ, wy=AIM_Y+(OY(tg.y)-AY())/camZ; for(let i=0;i<26;i++) S.parts.push({k:'spark',x:wx+rand(-50,50),y:wy+rand(-50,50),vx:rand(-240,240),vy:rand(-260,120),g:200,t:rand(.4,.9),c:pick(f.dark?['#8a8a8a','#ff3344','#2a2a2a']:['#c9ffb0','#ffe680','#fff']),r:rand(7,14)}); }
-  if(f.done){ const u=clamp((f.t-FY.fly-FY.loop)/.3,0,1), tgt=f.dark?Math.max(f.s0,f.m>1?FY.big2:FY.big):Math.min(f.s0,f.m>1?FY.small2:FY.small); f.spec.s=f.s0+(tgt-f.s0)*(1-Math.pow(1-u,3)); }
-  if(f.t>=FY.fly+FY.loop+FY.out){ if(f.spec){ const b0=f.s0===undefined?f.spec.s:f.s0; f.spec.s=f.dark?Math.max(b0,f.m>1?FY.big2:FY.big):Math.min(b0,f.m>1?FY.small2:FY.small); } S.fairy=S.fairyQ.shift()||null; } }
+  if(!f.done && f.t>=FY.fly+FY.loop){ f.done=true; if(f.dark) bigT+=FY.sec*f.m; else miniT+=FY.sec*f.m; if(f.dark){ play('bad'); play('heavy',.8); S.shake=Math.max(S.shake,.3); } else { play('kira'); play('good',.7); } const tg=fairyTarget(f), wx=540+(OX(tg.x)-540)/camZ, wy=AIM_Y+(OY(tg.y)-AY())/camZ; for(let i=0;i<26;i++) S.parts.push({k:'spark',x:wx+rand(-50,50),y:wy+rand(-50,50),vx:rand(-240,240),vy:rand(-260,120),g:200,t:rand(.4,.9),c:pick(f.dark?['#8a8a8a','#ff3344','#2a2a2a']:['#c9ffb0','#ffe680','#fff']),r:rand(7,14)}); }
+  if(f.t>=FY.fly+FY.loop+FY.out){ S.fairy=S.fairyQ.shift()||null; } }
+function updateScaleFx(dt){ if(S.mode==='playing' && !S.cut){ miniT=Math.max(0,miniT-dt); bigT=Math.max(0,bigT-dt); } const tg=(miniT>0?FY.small:1)*(bigT>0?FY.big:1); fyScale+=(tg-fyScale)*Math.min(1,dt*8); if(Math.abs(tg-fyScale)<.004) fyScale=tg; for(const sp of [S.cur,S.next]) if(sp && !sp.statue) sp.s=fyScale; }
 function drawFairy(){ const f=S.fairy; if(!f || !fairyImg.naturalWidth || S.mode!=='playing') return; const fim=f.dark&&fairyDark.naturalWidth?fairyDark:fairyImg; const p=fairyPos(f), w=FY.w, h=w*fairyImg.naturalHeight/fairyImg.naturalWidth;
   g.save(); g.globalCompositeOperation='lighter'; glow(f.dark?'p':'w',p.x,p.y,f.dark?120:90,f.dark?.5:.35); g.restore(); g.save(); g.translate(p.x,p.y+Math.sin(S.t*14)*4); if(p.dir<0) g.scale(-1,1); g.rotate(-.12); g.drawImage(fim,-w*.55,-h*.45,w,h); g.restore(); }
 /* 速さ（ウサギ＝早送り×2／カメ＝スロー×0.5）：ギフト1個で speedSec 秒。重ねがけは「時間」が延びる（速さは変わらない）。
@@ -730,7 +735,7 @@ const spMult=()=>spLv>0?CFG.fastMult:(spLv<0?CFG.slowMult:1), aimSec=()=>CFG.aim
 function spSync(){ spLv=spSec>0.001?1:(spSec<-0.001?-1:0); spT=Math.abs(spSec); }
 function addSpeed(d,name){ const before=spLv; spSec=clamp(spSec+d*CFG.speedSec*DB(),-CFG.speedMax,CFG.speedMax); spSync(); S.spFlash=.8; play(d>0?'bad':'good',.8); addWalker(d>0?'usagi':'kame');
   const now=spLv===0?'打ち消して元の速さ':(spLv>0?'早送り 残り':'スロー 残り')+Math.ceil(spT)+'秒'; logAdd(name+(d>0?' のウサギ':' のカメ')+'：'+now,d>0?'#ff9aa8':'#9dffb8'); }
-function updateSpeed(dt){ if(gripT>0){ gripT=Math.max(0,gripT-dt); if(gripT===0) logAdd('吸着MAXが切れた','#b9c6e6'); if(Math.random()<dt*26 && S.bodies.length){ const b=pick(S.bodies); S.parts.push({k:'spark',x:rand(b.bounds.min.x,b.bounds.max.x),y:rand(b.bounds.min.y,b.bounds.max.y),vx:rand(-20,20),vy:rand(-80,-20),g:0,t:rand(.5,1),c:pick(['#9dffb8','#e7ffd0','#fff']),r:rand(5,10)}); } } if(S.gripFlash>0) S.gripFlash-=dt; updateWalkers(dt); if(S.spFlash>0) S.spFlash-=dt; if(spLv!==0){ spSec-=Math.sign(spSec)*dt; if(Math.abs(spSec)<dt){ spSec=0; logAdd('速さが元に戻った','#b9c6e6'); } spSync(); } }
+function updateSpeed(dt){ { const sk=S.bodies.filter(b=>b.plugin.suck); gripT=sk.length?1:0; S.suckN=sk.length; } if(gripT>0){ if(Math.random()<dt*14){ const b=pick(S.bodies.filter(b=>b.plugin.suck)); S.parts.push({k:'spark',x:rand(b.bounds.min.x,b.bounds.max.x),y:rand(b.bounds.min.y,b.bounds.max.y),vx:rand(-20,20),vy:rand(-80,-20),g:0,t:rand(.5,1),c:pick(['#9dffb8','#e7ffd0','#fff']),r:rand(5,10)}); } } if(S.gripFlash>0) S.gripFlash-=dt; updateWalkers(dt); if(S.spFlash>0) S.spFlash-=dt; if(spLv!==0){ spSec-=Math.sign(spSec)*dt; if(Math.abs(spSec)<dt){ spSec=0; logAdd('速さが元に戻った','#b9c6e6'); } spSync(); } }
 /* カメ（とウサギ）は、ギフトが来るたびに画面の下を横切る。絵は右向き */
 const kameSh=mkSheet('kame_w',{n:10,cols:6,fw:420,fh:298,fps:8});
 const usagiRun=new Image(); usagiRun.src='./img/usagi_run.png';
@@ -831,14 +836,11 @@ function updateCrow(dt){ const c=S.crow; if(!c) return; if(!c.tg0){ const b=crow
   if(c.t>=CROW.tin+CROW.grab+CROW.out){ S.crow=S.crowQ.shift()||null; if(S.crow) play('crow'); } }
 function drawCrow(){ const c=S.crow; if(!c || !crowSh.ok || !c.tg0) return; const p=crowPos(c); if(c.carry) drawBody(c.carry); drawSheet(crowSh,c.t,p.x,p.y-22,CROW.w/Math.sqrt(camZ),c.dir<0); }
 /* やり直しの砂時計（お助け 小）：いま落とした1匹を、落とす前まで巻き戻す。落として負けた直後なら、負けも取り消す */
-const LOSE={sec:5,end:2.6}; const hgImg=new Image(); hgImg.src='./img/hourglass.png'; const RW={spin:.55,show:1.1}; let rwCur=null;
-function takeSnap(c){ S.snap={list:S.bodies.filter(b=>b!==S.stBody).map(b=>({b,x:b.position.x,y:b.position.y,a:b.angle})),cur:Object.assign({},c),rot:S.rot,px:S.px,count:S.count,body:null}; }
-function canRewind(){ return S.mode==='playing' && !S.cut && !seqLock() && (!!S.snap || S.phase==='losing'); }
-function startRewind(name){ if(rwCur) return; if(!canRewind()){ logAdd(name+' の砂時計：戻せる手がなかった','#9be9ff'); return; } rwCur={t:0,name,done:false}; if(S.phase==='losing') S.loseT=Math.max(S.loseT,RW.spin+.4); play('good'); }
-function doRewind(name){ const sn=S.snap, wasLosing=S.phase==='losing'; if(!sn && !wasLosing) return;
-  if(sn){ if(sn.body) removeBody(sn.body);
-    for(const it of sn.list){ const b=it.b; if(S.crow && (S.crow.carry===b || S.crowQ.some(q=>q.carry===b))) continue; if(b.plugin.taken) continue; if(!S.bodies.includes(b)){ Composite.add(engine.world,b); S.bodies.push(b); } if(b.isStatic) continue; Sleeping.set(b,false); Body.setPosition(b,{x:it.x,y:it.y}); Body.setAngle(b,it.a); Body.setVelocity(b,{x:0,y:0}); Body.setAngularVelocity(b,0); b.plugin.air=false; }
-    S.cur=sn.cur; S.rot=sn.rot; S.px=wasLosing?540:sn.px; S.count=sn.count; }
+const LOSE={sec:10,end:2.6}; const hgImg=new Image(); hgImg.src='./img/hourglass.png'; const RW={spin:.55,show:1.1}; let rwCur=null;
+function takeSnap(c){ return; S.snap={list:S.bodies.filter(b=>b!==S.stBody).map(b=>({b,x:b.position.x,y:b.position.y,a:b.angle})),cur:Object.assign({},c),rot:S.rot,px:S.px,count:S.count,body:null}; }
+function canRewind(){ return S.mode==='playing' && S.phase==='losing'; }
+function startRewind(name){ if(rwCur) return; if(!canRewind()){ logAdd(name+' の砂時計：負けのカウントダウン中だけ使える','#9be9ff'); return; } rwCur={t:0,name,done:false}; if(S.phase==='losing') S.loseT=Math.max(S.loseT,RW.spin+.4); play('good'); }
+function doRewind(name){ const wasLosing=S.phase==='losing'; if(!wasLosing) return;
   S.falling=null; S.phase='aim'; S.aimT=0; S.hold=0; S.settle=0; S.loseT=0; S.snap=null; S.red=0; S.white=Math.max(S.white,.45); play('kira',.7);
   for(let i=0;i<40;i++) S.parts.push({k:'spark',x:540+rand(-420,420),y:AIM_Y+rand(-200,700),vx:rand(-60,60),vy:rand(-420,-120),g:-60,t:rand(.6,1.2),c:pick(['#9be9ff','#ffe680','#fff']),r:rand(7,14)});
   logAdd(name+' の砂時計が'+(wasLosing?'負けを食い止めた！':'1手巻き戻した'),'#9be9ff'); }
@@ -1008,7 +1010,7 @@ function drawHUD(){
   txt('いいねで動物',40,1612,30,OPT.likeOn?'#ff9ac1':'#6b7699'); const LW=SHORT?640:770; g.fillStyle='#2a3a5e'; rr(270,1594,LW,36,18); g.fill(); if(!OPT.likeOn){ txt('オフ',270+LW/2,1613,24,'#8b96b8','center'); } else {
   const lw=LW*clamp(S.like/CFG.likeGoal,0,1); if(lw>4){ g.fillStyle='#ff4f93'; rr(270,1594,Math.max(36,lw),36,18); g.fill(); } txt(Math.floor(S.like)+' / '+CFG.likeGoal,270+LW/2,1613,24,'#fff','center'); }
   let sx=40; const tag=(t,c)=>{ g.font='900 28px '+FONT; const w=g.measureText(t).width+30; g.fillStyle=c; rr(sx,1650,w,44,22); g.fill(); txt(t,sx+w/2,1673,28,'#101828','center'); sx+=w+12; };
-  if(gripT>0) tag('吸着MAX　'+Math.ceil(gripT)+'秒','#9dffb8'); if(baseSpd!==1) tag('ゲーム速度 ×'+baseSpd,'#ffe680'); if(spLv>0) tag('ウサギ：早送り ×'+CFG.fastMult+'　'+Math.ceil(spT)+'秒','#ffb38a'); if(spLv<0) tag('カメ：スロー ×'+CFG.slowMult+'　'+Math.ceil(spT)+'秒','#9bd0ff'); if(statue>0) tag('天使像：残り'+statue+'ラウンド','#fff3b0'); if(witch>0) tag('魔女：ゴール'+GOAL_M+'m','#d9b3ff'); if(witch<0) tag('天使：ゴール'+GOAL_M+'m','#fff3b0'); if(S.windPre>0) tag('風の精霊が息を吸ってる…','#9be9ff'); if(S.wind>0) tag('突風 '+Math.ceil(S.wind)+'秒','#9be9ff'); if(S.quake>0) tag('ゆれ '+Math.ceil(S.quake)+'秒','#ffb020'); if(walls) tag('ゴーレムの壁 '+Math.ceil(wallT)+'秒','#e0c98a'); if(S.glue>0) tag('のり '+Math.ceil(S.glue)+'秒','#ffd400'); if(bless) tag('加護：台が広い　勝ち'+bless.w+'/'+CFG.curseCount+'　負け'+bless.d+'/'+CFG.curseCount,'#ffe680'); if(S.seq) tag('ドラゴン襲来中','#ff5c5c'); if(S.ghost>0) tag('見えない　あと'+S.ghost+'匹置くと戻る','#c79bff'); if(curse) tag('呪い：台が小さい　勝ち'+curse.w+'/'+CFG.curseCount+'　負け'+curse.d+'/'+CFG.curseCount,'#c79bff');
+  if(gripT>0) tag('タコ吸着　'+(S.suckN||0)+'匹','#9dffb8'); if(miniT>0) tag('ちび化　'+Math.ceil(miniT)+'秒','#c9ffb0'); if(bigT>0) tag('巨大化　'+Math.ceil(bigT)+'秒','#ff9aa8'); if(baseSpd!==1) tag('ゲーム速度 ×'+baseSpd,'#ffe680'); if(spLv>0) tag('ウサギ：早送り ×'+CFG.fastMult+'　'+Math.ceil(spT)+'秒','#ffb38a'); if(spLv<0) tag('カメ：スロー ×'+CFG.slowMult+'　'+Math.ceil(spT)+'秒','#9bd0ff'); if(statue>0) tag('天使像：残り'+statue+'ラウンド','#fff3b0'); if(witch>0) tag('魔女：ゴール'+GOAL_M+'m','#d9b3ff'); if(witch<0) tag('天使：ゴール'+GOAL_M+'m','#fff3b0'); if(S.windPre>0) tag('風の精霊が息を吸ってる…','#9be9ff'); if(S.wind>0) tag('突風 '+Math.ceil(S.wind)+'秒','#9be9ff'); if(S.quake>0) tag('ゆれ '+Math.ceil(S.quake)+'秒','#ffb020'); if(walls) tag('ゴーレムの壁 '+Math.ceil(wallT)+'秒','#e0c98a'); if(S.glue>0) tag('のり '+Math.ceil(S.glue)+'秒','#ffd400'); if(bless) tag('加護：台が広い　勝ち'+bless.w+'/'+CFG.curseCount+'　負け'+bless.d+'/'+CFG.curseCount,'#ffe680'); if(S.seq) tag('ドラゴン襲来中','#ff5c5c'); if(S.ghost>0) tag('見えない　あと'+S.ghost+'匹置くと戻る','#c79bff'); if(curse) tag('呪い：台が小さい　勝ち'+curse.w+'/'+CFG.curseCount+'　負け'+curse.d+'/'+CFG.curseCount,'#c79bff');
   if(sx===40){ if(SHORT && S.log.length){ const L=S.log[S.log.length-1]; txt(L.text,40,1673,28,L.color,'left',null,700); } else txt('順番待ち '+S.names.length+'人',40,1673,28,'#b9c6e6','left',null,700); }
   for(let i=0;i<S.log.length;i++){ const L=S.log[i]; txt(L.text,40,1730+i*44,30,L.color,'left',null,700); }
   g.fillStyle='#101a30'; g.fillRect(0,1862,W,58); txt('ゴールを超えて5秒キープで WIN+1　1匹でも落としたら WIN−1',540,1892,28,'#ffd23f','center');
@@ -1082,6 +1084,8 @@ const FX_LIST=[
  ['fairy','help','妖精','動物を小さく',n=>Game.help(1,n)],['kame','help','カメ','スロー',n=>Game.speed(-1,n)],['tako','help','タコ','吸着MAX',n=>Game.grip(n)],['rewind','help','砂時計','1手戻す・負けを耐える',n=>Game.rewind(n)],
  ['golem','help','ゴーレム','横に落ちない壁',n=>Game.help(2,n)],['angel','help','天使','ゴールが下がる',n=>Game.angel(n)],['wrp','help','＋WINルーレット','WINが増える',n=>Game.winRoulette(1,n)],['tree','help','世界樹','台が広がる',n=>Game.help(3,n)],
  ['statue','help','天使像','5ラウンド守る',n=>Game.statue(n)],['phoenix','help','不死鳥','WIN ＋1000',n=>Game.phoenix(n)],['double','both','2倍タイム','5分間ぜんぶ2倍',n=>Game.double(n)]];
+const PEND=[]; let PEND_T=0;   // 勝ち・負けの画面の間に届いたギフトは、次のラウンドの頭で順番に反映する
+function runFx(fn){ if(S.mode==='clear'||S.mode==='dead') PEND.push(fn); else fn(); }
 const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://127.0.0.1:21213/'],url:'ws://localhost:21213/',ws:null,ok:false,wait:3000,timer:null,streak:{},log:[],learn:null,map:{}};
 try{ TF.map=JSON.parse(localStorage.getItem('tsumi_gifts')||'{}')||{}; }catch(e){ TF.map={}; }
 const tfNorm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.');
@@ -1104,20 +1108,20 @@ function tfConnect(){ clearTimeout(TF.timer); try{ if(TF.ws){ TF.ws.onclose=null
   ws.onclose=()=>{ if(TF.ws!==ws) return; const was=TF.ok; TF.ok=false; tfUI(); if(was) tfLogAdd('TikFinityとの接続が切れた'); TF.wait=Math.min(20000,TF.wait*1.5); TF.timer=setTimeout(tfConnect,TF.wait); };
   ws.onerror=()=>{}; ws.onmessage=e=>{ let m=null; TF.rawN=(TF.rawN||0)+1; try{ const t=String(e.data); if(!/"event"\s*:\s*"(like|roomUser|member|chat)"/.test(t) || !TF.raw.length){ TF.raw.unshift(t.slice(0,700)); if(TF.raw.length>6) TF.raw.length=6; } const el=document.getElementById('tfRaw'); if(el) el.textContent='受信 '+TF.rawN+' 件\n'+TF.raw.join('\n---\n'); }catch(_){} try{ m=JSON.parse(e.data); }catch(_){ return; } { const kk=String(m.event||m.type||'?').toLowerCase(); TF.kinds[kk]=(TF.kinds[kk]||0)+1; tfDiag(); } try{ tfEvent(m); }catch(err){ tfLogAdd('読み取りエラー：'+err.message); } }; }
 function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.data||m||{}, u=d.user||{}, name=d.nickname||u.nickname||d.uniqueId||u.uniqueId||'だれか';
-  if(ev==='gift' && S.mode!=='playing'){ tfLogAdd('ギフトが届いたけど、ゲームがプレイ中ではないので何も起きません（スタートを押してください）'); }
+  if(ev==='gift' && S.mode==='title'){ tfLogAdd('ギフトが届いたけど、タイトル画面なので何も起きません（スタートを押してください）'); }
   if(ev==='gift'){ const gd=d.giftDetails||d.extendedGiftInfo||d.gift||{}, id=d.giftId!=null?d.giftId:(gd.id!=null?gd.id:gd.giftId), gname=d.giftName||gd.giftName||gd.name||('ID'+id), coins=d.diamondCount!=null?d.diamondCount:(gd.diamondCount!=null?gd.diamondCount:gd.diamond_count), pic=d.giftPictureUrl||gd.giftPictureUrl||gd.pictureUrl||(gd.icon&&gd.icon.url_list&&gd.icon.url_list[0])||(gd.image&&gd.image.url_list&&gd.image.url_list[0])||null, gtype=d.giftType!=null?d.giftType:gd.giftType, rc=Math.max(1,parseInt(d.repeatCount,10)||1), end=!!d.repeatEnd;
     let n=rc; if(gtype===1){ const k=(d.uniqueId||u.uniqueId||name)+'|'+id, last=TF.streak[k]||0; n=Math.max(0,rc-last); if(end) delete TF.streak[k]; else TF.streak[k]=rc; }
     if(n<=0) return; tfGift({id,name:gname,coins,pic},name,Math.min(n,50)); }
   else if(ev==='chat'){ Game.chat(name); tfLogAdd('コメント：'+name+(OPT.chatOn?'（'+(chatN===0?'この人の名前の動物が出る':'あと'+(CHAT_EVERY-chatN)+'回で動物')+'）':'（オフ）')); }
   else if(ev==='like'){ const c=parseInt(d.likeCount,10)||1; Game.like(c); }
-  else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') Game.follow(name); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
+  else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') runFx(()=>Game.follow(name)); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
 function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
   if(TF.learn){ const id=TF.learn; TF.learn=null; if(TF.seqLearn){ const k=FX_LIST.findIndex(f=>f[0]===id); let nx=null; for(let q=k+1;q<FX_LIST.length;q++){ if(TF.map[FX_LIST[q][0]] && TF.map[FX_LIST[q][0]].name){ nx=FX_LIST[q][0]; break; } } if(nx) TF.learn=nx; else { TF.seqLearn=false; tfLogAdd('順番に受信登録：ぜんぶ終わりました'); } } { const old=TF.map[id]||{}; TF.map[id]={id:gf.id,name:old.name||gf.name,rx:gf.name,coins:gf.coins!=null?gf.coins:old.coins,pic:gf.pic||null,ci:old.ci!=null?old.ci:null}; } tfSave(); cfgBuild(); tfLogAdd('登録：'+gf.name+coin+' → '+(FX_LIST.find(f=>f[0]===id)||[])[2]); return; }
   let hit=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && ((b.id!=null && gf.id!=null && String(b.id)===String(gf.id)) || (b.name && tfNorm(b.name)===tfNorm(gf.name)) || (b.rx && tfNorm(b.rx)===tfNorm(gf.name))); }), byCoin=false;
   if(!hit.length && gf.coins!=null){ const same=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && b.id==null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(same.length===1){ hit=same; byCoin=true; } }
   { let ch=false; for(const f of hit){ const b=TF.map[f[0]]; if(byCoin) continue; if(b.id==null && gf.id!=null){ b.id=gf.id; ch=true; } if(b.coins==null && gf.coins!=null){ b.coins=gf.coins; ch=true; } if(!b.pic && gf.pic){ b.pic=gf.pic; ch=true; } } if(ch) tfSave(); }
   tfLogAdd('ギフト：'+name+' が '+gf.name+coin+' ×'+n+(hit.length?' → '+hit.map(f=>f[2]).join('・')+(byCoin?'（コイン数で判定）':''):' → 割り当てなし'));
-  for(let i=0;i<n;i++) for(const f of hit) setTimeout(()=>{ try{ f[4](name); }catch(e){} },i*350); }
+  for(let i=0;i<n;i++) for(const f of hit) setTimeout(()=>{ try{ runFx(()=>f[4](name)); }catch(e){} },i*350); }
 const CAT={list:null,cols:24,img:'./img/giftcat.jpg'}; let pickFx=null, pickTab=0;
 const PICK_TABS=[['ぜんぶ',0,1e9],['1',1,1],['5〜30',5,30],['50〜199',50,199],['200〜499',200,499],['500〜999',500,999],['1000〜4999',1000,4999],['5000〜',5000,1e9]];
 function catLink(){ if(!CAT.list) return; let ch=false; for(const k in TF.map){ const b=TF.map[k]; if(!b || !b.name || b.ci!=null) continue; const i=CAT.list.findIndex(e=>tfNorm(e[0])===tfNorm(b.name)); if(i>=0){ b.ci=i; if(b.coins==null) b.coins=CAT.list[i][1]; ch=true; } } if(ch) tfSave(); }
