@@ -141,8 +141,8 @@ const W = 1080, H = 1920;
 const cv = document.getElementById('cv'), ocv = document.createElement('canvas'), vx = cv.getContext('2d'), stage = document.getElementById('stage');
 ocv.width=1080; ocv.height=1920; const g = ocv.getContext('2d');
 /* 画面の高さを短くするモード：積む場所の上の空を SHORT ピクセルぶん削り、下の情報らんも小さくして、短い画面にまとめる（中身は 1080×1920 で描いてから切り貼りする） */
-const SHORT_OPTS=[0,210,310,410], PANEL_S=140; let SHORT=0; try{ SHORT=parseInt(localStorage.getItem('tsumi_short'),10)||0; }catch(e){} if(!SHORT_OPTS.includes(SHORT)) SHORT=0;
-const AY=()=>560+SHORT, OS=()=>(1370-SHORT)/1370, VH=()=>SHORT?1920-SHORT-(350-PANEL_S):1920;
+const SHORT_OPTS=[0,310,410,510,610], PANEL_S=140, AIM_TOP=190; let SHORT=0; try{ SHORT=parseInt(localStorage.getItem('tsumi_short'),10)||0; }catch(e){} if(!SHORT_OPTS.includes(SHORT)) SHORT=0;
+const AY=()=>SHORT?(200+SHORT+1.56*AIM_TOP)/(1+AIM_TOP/1000):560, Z0=()=>(1560-AY())/1000, OS=()=>(1370-SHORT)/1370, VH=()=>SHORT?1920-SHORT-(350-PANEL_S):1920;
 const OX=x=>540+(x-540)*OS(), OY=y=>1570+(y-1570)*OS(), IOX=x=>540+(x-540)/OS(), IOY=y=>1570+(y-1570)/OS();
 function ovOn(){ g.save(); if(SHORT){ const k=OS(); g.translate(540,1570); g.scale(k,k); g.translate(-540,-1570); } }
 function ovOff(){ g.restore(); }
@@ -169,8 +169,8 @@ function setGoal(){ GOAL_M=clamp(CFG.goalM+witch,CFG.goalMin,CFG.goalMax); witch
   GOAL_Y=TOP_Y-GOAL_M*100; }
 /* カメラ：動物を落とす位置（AIM_Y）は塔のてっぺんの3.8m上。塔が伸びたら画面を引き、
    引ききったら（zoomMin）上へスクロールして、てっぺん付近だけ映す。ゴールの線が近ければそれも入れる。 */
-function aimTarget(){ const byTop=(S?S.topY:TOP_Y)-380, byGoal=GOAL_Y-380; return Math.min(AY(), byTop, byGoal>=byTop-500?byGoal:1e9); }
-function updateCam(dt){ AIM_Y+=(aimTarget()-AIM_Y)*Math.min(1,dt*2.4); camZ=clamp((CAM_PY-AY())/(CAM_PY-AIM_Y),CFG.zoomMin,1); }
+function aimTarget(){ const byTop=(S?S.topY:TOP_Y)-380, byGoal=GOAL_Y-380; return Math.min(560, byTop, byGoal>=byTop-500?byGoal:1e9); }
+function updateCam(dt){ AIM_Y+=(aimTarget()-AIM_Y)*Math.min(1,dt*2.4); camZ=clamp((CAM_PY-AY())/(CAM_PY-AIM_Y),CFG.zoomMin*Z0(),1); }
 const viewTop=()=>AIM_Y+(OY(200)-AY())/camZ, viewBot=()=>AIM_Y+(1570-AY())/camZ;
 const sy=y=>IOY(AY()+(y-AIM_Y)*camZ), sx=x=>IOX(540+(x-540)*camZ), viewL=()=>540-540/camZ, viewR=()=>540+540/camZ;
 const NAMES = ['ねこ太郎','ゆうき','まめ大福','そらまめ','たぬ吉','みかん','りんりん','もちこ','クロ','はるまき','しらたま','ぽんず'];
@@ -693,7 +693,7 @@ function drawRobot(){ const r=S.rb; if(!r) return; const T=rbT(), w=660/Math.sqr
 const fairyImg=new Image(); fairyImg.src='./img/fairy.png'; const fairyDark=new Image(); fairyDark.src='./img/fairy_dark.png';
 const FY={fly:.55,loop:.6,out:.6,w:310,small:.62,big:1.55,small2:.45,big2:2.0};
 function startFairy(name,dark){ const o={name,dark:!!dark,m:DB(),t:0,side:Math.random()<.5?-1:1,done:false}; if(S.fairy) S.fairyQ.push(o); else S.fairy=o; }
-function fairyTarget(f){ if(!f.spec){ const useCur=S.phase==='aim' && !S.cur.statue && !seqLock(); f.spec=useCur?S.cur:S.next; f.onCur=useCur; } return (f.onCur && f.spec===S.cur && S.phase==='aim')?{x:sx(S.px),y:sy(AIM_Y)}:{x:IOX(817),y:IOY(142-(SHORT?SHORT:0))}; }
+function fairyTarget(f){ if(!f.spec){ const useCur=S.phase==='aim' && !S.cur.statue && !seqLock(); f.spec=useCur?S.cur:S.next; f.onCur=useCur; } return (f.onCur && f.spec===S.cur && S.phase==='aim')?{x:sx(S.px),y:sy(AIM_Y)}:{x:IOX(817),y:IOY(142)}; }
 function fairyPos(f){ const tg=fairyTarget(f), sd=f.side, x0=sd<0?-220:W+220, y0=tg.y-260;
   if(f.t<FY.fly){ const u=f.t/FY.fly, e=1-Math.pow(1-u,2.2); return {x:x0+(tg.x-sd*165-x0)*e, y:y0+(tg.y-y0)*e+Math.sin(u*Math.PI)*-60, dir:-sd}; }
   if(f.t<FY.fly+FY.loop){ const u=(f.t-FY.fly)/FY.loop, an=(sd<0?Math.PI:0)+u*Math.PI*2*(-sd); return {x:tg.x+Math.cos(an)*165, y:tg.y+Math.sin(an)*105, dir:(Math.sin(an)*sd>0?1:-1)*(-1)}; }
