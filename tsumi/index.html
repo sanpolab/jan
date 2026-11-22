@@ -135,7 +135,7 @@ canvas{width:100%;height:100%;display:block}
     <button class="b-h" data-a="grip"><small>お助け 小</small>タコ 吸着<br>ずっと続く</button>
     <button class="b-h" data-a="help2"><small>お助け 中</small>ゴーレム<br>60秒 ゴールの8割の壁</button>
     <button class="b-h" data-a="angel"><small>お助け ？</small>天使<br>ゴール−2m 下限3m</button>
-    <button class="b-h" data-a="statue"><small>お助け 最上位</small>天使像<br>5ラウンド確定</button>
+    <button class="b-h" data-a="statue"><small>お助け 最上位</small>天使像<br>WIN＋5・5ラウンド確定</button>
     <button class="b-h" data-a="rewind"><small>お助け 小</small>砂時計<br>負けを取り消す</button>
     <button class="b-h" data-a="wrp" style="background:#c98a00"><small>お助け ギフト</small>＋WINルーレット<br>WIN ＋1〜10</button>
     <button class="b-h" data-a="pega" style="background:#c9a227"><small>お助け 上位</small>ペガサス<br>WIN ＋100</button>
@@ -165,7 +165,7 @@ const FONT = "'MPR','Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP','
 try{ document.fonts.load("900 40px 'MPR'",'つみ'); document.fonts.load("400 40px 'DELA'",'つみ'); }catch(e){}
 
 /* ====== 調整しやすい設定 ====== */
-const CFG = {
+const CFG = { statueWin:5,
   goalM: 5.0,        // 目標の高さ（メートル。100px = 1m）
   tableW: 700,       // 台の幅
   smallW: 460,       // ドラゴンの呪いで小さくなった台の幅
@@ -688,7 +688,7 @@ function updateStatue(dt){ const b=S.stBody; if(!b) return; const th=stH(); if(b
   if(Math.random()<dt*30) S.parts.push({k:'spark',x:b.position.x+rand(-nw,nw),y:b.bounds.min.y+rand(-10,60),vx:rand(-60,60),vy:rand(-160,-40),g:60,t:rand(.5,1),c:'#ffe680',r:rand(6,12)}); }
 const stGuard=()=>S.stRound && S.mode==='playing';
 function guarded(name,what){ logAdd('天使像が '+name+' の'+what+'をはね返した','#fff3b0'); S.holy=Math.max(S.holy,1.2); const b=S.stBody; if(b) S.rings.push({x:b.position.x,y:b.position.y,t:0}); sfx.good(); }
-function startStatue(name){ const apply=()=>{ setBg('statue'); statue=CFG.statueRounds*DB(); statueBy=name; witch=0; setGoal(); S.wind=0; S.windPre=0; S.quake=0; S.roul=null; S.roulQ.length=0; S.white=Math.max(S.white,.6); S.holy=6;
+function startStatue(name){ const apply=()=>{ { const from=wins, add=CFG.statueWin*DB(); wins+=add; saveWins(); S.winRoll={from,to:wins,t:0,dur:1.0}; logAdd(name+' の天使像：WIN ＋'+add,'#ffe680'); } setBg('statue'); statue=CFG.statueRounds*DB(); statueBy=name; witch=0; setGoal(); S.wind=0; S.windPre=0; S.quake=0; S.roul=null; S.roulQ.length=0; S.white=Math.max(S.white,.6); S.holy=6;
     if(S.mode==='playing' && S.phase==='aim' && !S.stRound){ S.cur={key:'tenshi',s:1,statue:true,name:null,by:null}; S.stRound=true; S.rot=0; } };
   logAdd(name+' が天使像を呼んだ','#fff3b0'); if(vOK(statueVid)) startCut('statue','',name,apply); else { apply(); showBand('天使像',name+' のお助け '+CFG.statueRounds+'ラウンド 絶対に落ちない','#c9a227'); } }
 /* 黒い機体（全リセット）：全画面の登場映像のあと、ステージの上に浮かんで、レーザーとミサイルで全部を消して更地にする。
@@ -1225,7 +1225,7 @@ const FX_LIST=[
  ['dragon','jam','ドラゴン','全消し＋台が縮む',n=>Game.jam(3,n)],['robot','jam','黒い機体','WIN以外ぜんぶリセット',n=>Game.robot(n)],['cerberus','jam','ケルベロス','WIN −100',n=>Game.cerberus(n)],['reaper','jam','死神','WIN −1000',n=>Game.reaper(n)],
  ['fairy','help','妖精','動物を小さく',n=>Game.help(1,n)],['kame','help','カメ','スロー',n=>Game.speed(-1,n)],['tako','help','タコ','吸着MAX',n=>Game.grip(n)],['rewind','help','砂時計','1手戻す・負けを耐える',n=>Game.rewind(n)],
  ['golem','help','ゴーレム','横に落ちない壁',n=>Game.help(2,n)],['angel','help','天使','ゴールが下がる',n=>Game.angel(n)],['wrp','help','＋WINルーレット','WINが増える',n=>Game.winRoulette(1,n)],['tree','help','世界樹','台が広がる',n=>Game.help(3,n)],
- ['statue','help','天使像','5ラウンド守る',n=>Game.statue(n)],['pegasus','help','ペガサス','WIN ＋100',n=>Game.pegasus(n)],['phoenix','help','不死鳥','WIN ＋1000',n=>Game.phoenix(n)],['double','both','2倍タイム','5分間ぜんぶ2倍',n=>Game.double(n)]];
+ ['statue','help','天使像','WIN ＋5 と 5ラウンド守る',n=>Game.statue(n)],['pegasus','help','ペガサス','WIN ＋100',n=>Game.pegasus(n)],['phoenix','help','不死鳥','WIN ＋1000',n=>Game.phoenix(n)],['double','both','2倍タイム','5分間ぜんぶ2倍',n=>Game.double(n)]];
 const PEND=[]; let PEND_T=0;   // 勝ち・負けの画面の間に届いたギフトは、次のラウンドの頭で順番に反映する
 function runFx(fn){ if(S.mode==='clear'||S.mode==='dead') PEND.push(fn); else fn(); }
 const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://127.0.0.1:21213/'],url:'ws://localhost:21213/',ws:null,ok:false,wait:3000,timer:null,streak:{},log:[],learn:null,map:{}};
