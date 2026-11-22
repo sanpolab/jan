@@ -305,7 +305,7 @@ function updateFx(dt){
   updateCam(dt); GOAL_D+=(GOAL_Y-GOAL_D)*Math.min(1,dt*(flyCarry()>1.6?0:2.4)); updateFlyers(dt);
   S.ghostFlash=Math.max(0,S.ghostFlash-dt); S.purple=Math.max(0,S.purple-dt);
   if(S.ghost>0 && S.mode==='playing' && Math.random()<dt*14){ const tx0=table.bounds.min.x, tx1=table.bounds.max.x; S.parts.push({k:'wisp',x:rand(tx0,tx1),y:rand(S.topY-40,TOP_Y),vx:rand(-25,25),vy:rand(-90,-30),g:-12,t:rand(1.2,2.4),r:rand(26,60)}); }
-  treeA=clamp(treeA+(bless?1:-1)*dt*.8,0,1); stA=clamp(stA+(statue>0?1:-1)*dt*.8,0,1);
+  if(S.mode!=='title' && BGX.t>0){ BGX.t-=dt; if(BGX.t<=0){ BGX.t=0; BGX.key=null; } } { const up=k=>BGX.key===k?1:-1, sp=dt*.9; treeA=clamp(treeA+up('tree')*sp,0,1); stA=clamp(stA+up('statue')*sp,0,1); dblBg=clamp(dblBg+up('fox')*sp,0,1); wgBg.r=clamp(wgBg.r+up('reaper')*sp,0,1); wgBg.p=clamp(wgBg.p+up('phoenix')*sp,0,1); drgA=clamp(drgA+up('dragon')*sp,0,1); }
   if(statue>0 && S.mode!=='title'){ S.holy=Math.max(S.holy,.9);   // 天使像のあいだは、後光・舞う羽根・金の粒を出し続ける
     if(Math.random()<dt*7) S.parts.push({k:'leaf',x:rand(-40,W+40),y:viewTop()-20,vx:rand(-50,50),vy:rand(40,110),g:10,t:rand(5,8),r:rand(13,22),rot:rand(0,6),vr:rand(-2,2),c:'#ffffff'});
     if(Math.random()<dt*14) S.parts.push({k:'spark',x:rand(0,W),y:rand(viewTop(),viewBot()),vx:rand(-15,15),vy:rand(-60,-20),g:0,t:rand(.8,1.8),c:pick(['#ffe680','#fff6c8']),r:rand(4,9)}); }
@@ -382,7 +382,9 @@ glowSprite('r',[[0,'rgba(255,70,30,.7)'],[.6,'rgba(180,20,0,.3)'],[1,'rgba(120,0
 glowSprite('p',[[0,'rgba(200,150,255,.8)'],[.5,'rgba(120,60,220,.35)'],[1,'rgba(60,0,140,0)']]);
 glowSprite('s',[[0,'rgba(36,26,26,.6)'],[.6,'rgba(36,26,26,.28)'],[1,'rgba(36,26,26,0)']]);
 function glow(id,x,y,r,a){ g.globalAlpha=Math.max(0,Math.min(1,a)); g.drawImage(GLOW[id],x-r,y-r,r*2,r*2); }
-let circleCv=null, dragonSky=null;
+let circleCv=null, dragonSky=null, drgA=0;
+/* 背景の差し替え：大きい演出のあと5分間その背景にする。あとから来た演出が上書きし、黒い機体のリセットで消える */
+const BGX={key:null,t:0,sec:300}; function setBg(k){ BGX.key=k; BGX.t=BGX.sec; }
 // 絵の素材（魔法陣・隕石・爆発）。a=光として重ねる版、c=黒を透かした版
 const FX={}; for(const [k,f] of [['circle','fx_circle.jpg'],['metA','fx_meteor_a.jpg'],['metC','fx_meteor_c.png'],['boomA','fx_boom_a.jpg'],['boomC','fx_boom_c.png']]){ const im=new Image(); im.src='./img/'+f; FX[k]=im; }
 const fxOK = k => FX[k].complete && FX[k].naturalWidth>0;
@@ -394,7 +396,7 @@ function buildCircle(){ const c=document.createElement('canvas'); c.width=c.heig
   x.beginPath(); for(let i=0;i<5;i++){ const a=-Math.PI/2+i*Math.PI*4/5; x.lineTo(Math.cos(a)*122,Math.sin(a)*122); } x.closePath(); x.stroke(); circleCv=c; }
 function buildDragonSky(){ if(!dragonImg.complete||!dragonImg.naturalWidth) return; const c=document.createElement('canvas'); c.width=1080; c.height=1100; const x=c.getContext('2d'); x.drawImage(dragonImg,-108,-170,1296,2304);
   x.globalCompositeOperation='destination-in'; const gr=x.createRadialGradient(540,430,120,540,430,640); gr.addColorStop(0,'rgba(0,0,0,1)'); gr.addColorStop(.6,'rgba(0,0,0,.75)'); gr.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=gr; x.fillRect(0,0,1080,1100); dragonSky=c; }
-function startDragon(name){ if(S.seq){ S.seqQ.push(name); return; } S.seq={name,stage:'omen',t:0,fired:0,next:.2,shots:0}; }
+function startDragon(name){ if(S.seq){ S.seqQ.push(name); return; } S.seq={name,stage:'omen',t:0,fired:0,next:.2,shots:0}; setBg('dragon'); }
 function seqAlpha(){ const q=S.seq; if(!q) return 0; if(q.stage==='charge') return clamp(q.t/1.4,0,1); if(q.stage==='barrage'||q.stage==='final') return 1; if(q.stage==='fade') return clamp(1-q.t/2.6,0,1); return 0; }
 const CIRCLE={x:540,y:470};
 const seqLock = () => !!S.rb || (!!S.wg && !S.wg.done) || (!!S.seq && S.seq.stage!=='omen' && S.seq.stage!=='fade');   // この間は置けない・落ちても負けにならない
@@ -505,7 +507,7 @@ const Game = {
       const apply=(vid)=>{ if(S.mode!=='playing') return; wallT=CFG.wallSec*DB(); makeWalls(true); S.shake=.4; for(const b of walls) for(let i=0;i<24;i++) S.parts.push({x:b.position.x+rand(-50,50),y:TOP_Y+rand(-10,60),vx:rand(-180,180),vy:rand(-420,-120),t:rand(.5,1),c:pick(['#8b8577','#b7a98a','#6c675c']),r:rand(6,16)}); if(!vid) showBand('ゴーレム',name+' のお助け '+CFG.wallSec*DB()+'秒 横に落ちない','#8a6a2a'); };
       if(vOK(golemVid)) startCut('golem','',name,()=>apply(true)); else apply(false); }
     else { logAdd(name+' が世界樹を呼んだ','#9dffb8');
-      startCut('heaven','',name,()=>{ if(S.mode!=='playing') return; curse=null; bless={w:0,d:0}; treeA=1; Body.scale(table, CFG.wideW/(table.bounds.max.x-table.bounds.min.x), 1); setGlue(6); S.holy=6; S.leafT=7; S.white=.7; S.rings.push({x:540,y:TOP_Y+10,t:0}); }); }
+      startCut('heaven','',name,()=>{ if(S.mode!=='playing') return; curse=null; bless={w:0,d:0}; treeA=1; setBg('tree'); Body.scale(table, CFG.wideW/(table.bounds.max.x-table.bounds.min.x), 1); setGlue(6); S.holy=6; S.leafT=7; S.white=.7; S.rings.push({x:540,y:TOP_Y+10,t:0}); }); }
     sfx.good(); },
 };
 window.TsumiGame = Game;
@@ -530,7 +532,7 @@ const STEP = 1000/60; let acc = 0;
 const GRIP={ normal:{f:.46,fs:.72,dx:.972,dy:.985,da:.965,z:.06,za:.0005}, max:{f:1.5,fs:2.0,dx:.55,dy:.85,da:.45,z:.5,za:.004} };
 let gripT=0; const grip=()=>gripT>0?GRIP.max:GRIP.normal;
 const bgFox=new Image(); bgFox.src='./img/bg_fox.jpg'; const dblPlate=new Image(); dblPlate.src='./img/dbl_plate.png'; const dblX2=new Image(); dblX2.src='./img/dbl_x2.png'; let dblBg=0;
-function startDouble(name){ const go=()=>{ const was=dblT>0; dblT=Math.min(DBL.max,dblT+DBL.sec); dblFlash=DBL.flash; S.white=Math.max(S.white,.5); S.shake=Math.max(S.shake,.3); logAdd(name+(was?' が2倍タイムを延長（残り'+fmtMS(dblT)+'）':' が2倍タイムを始めた（5分間）'),'#9be9ff'); };
+function startDouble(name){ const go=()=>{ setBg('fox'); const was=dblT>0; dblT=Math.min(DBL.max,dblT+DBL.sec); dblFlash=DBL.flash; S.white=Math.max(S.white,.5); S.shake=Math.max(S.shake,.3); logAdd(name+(was?' が2倍タイムを延長（残り'+fmtMS(dblT)+'）':' が2倍タイムを始めた（5分間）'),'#9be9ff'); };
   if(vOK(foxVid)) startCut('fox','',name,go); else { play('jean'); play('coins',.8); go(); } }
 const fmtMS=t=>{ const s=Math.ceil(t); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
 function drawDoubleGlow(){ if(dblT<=0) return; const T=performance.now()/1000, PT=200+SHORT, blink=dblT<10?(.55+.45*Math.sin(T*12)):1, a=(.34+.1*Math.sin(T*2.2))*blink;
@@ -572,7 +574,7 @@ function physics(){ const G=grip(); for(const b of S.bodies){ if(b.plugin.statue
 }
 function update(dt){
   updateRewind(dt);
-  if(S.mode!=='title'){ if(dblT>0){ dblT=Math.max(0,dblT-dt); if(dblT===0){ logAdd('2倍タイムが終わった','#9be9ff'); play('count'); } } { const f0=dblFlash; dblFlash=Math.max(0,dblFlash-dt); if(f0>0 && dblFlash===0 && dblT>0){ dblHit=.45; play('jakon',1.5); play('coins',.9); S.shake=Math.max(S.shake,.3); } dblHit=Math.max(0,dblHit-dt); } dblBg=clamp(dblBg+(dblT>0&&!S.cut?1:-1)*dt*(dblT>0?1.6:.6),0,1); }
+  if(S.mode!=='title'){ if(dblT>0){ dblT=Math.max(0,dblT-dt); if(dblT===0){ logAdd('2倍タイムが終わった','#9be9ff'); play('count'); } } { const f0=dblFlash; dblFlash=Math.max(0,dblFlash-dt); if(f0>0 && dblFlash===0 && dblT>0){ dblHit=.45; play('jakon',1.5); play('coins',.9); S.shake=Math.max(S.shake,.3); } dblHit=Math.max(0,dblHit-dt); }  }
   S.t+=dt; if(S.banner){ S.banner.t-=dt; if(S.banner.t<=0) S.banner=null; } S.shake=Math.max(0,S.shake-dt);
   updateFx(dt);
   if(S.mode==='dead'||S.mode==='clear'){ S.endT-=dt; acc+=dt*1000; let n=0; while(acc>=STEP && n<3){ Engine.update(engine,STEP); acc-=STEP; n++; } if(S.endT<=0) newRound('playing'); return; }
@@ -641,7 +643,7 @@ function updateStatue(dt){ const b=S.stBody; if(!b) return; const th=stH(); if(b
   if(Math.random()<dt*30) S.parts.push({k:'spark',x:b.position.x+rand(-nw,nw),y:b.bounds.min.y+rand(-10,60),vx:rand(-60,60),vy:rand(-160,-40),g:60,t:rand(.5,1),c:'#ffe680',r:rand(6,12)}); }
 const stGuard=()=>S.stRound && S.mode==='playing';
 function guarded(name,what){ logAdd('天使像が '+name+' の'+what+'をはね返した','#fff3b0'); S.holy=Math.max(S.holy,1.2); const b=S.stBody; if(b) S.rings.push({x:b.position.x,y:b.position.y,t:0}); sfx.good(); }
-function startStatue(name){ const apply=()=>{ statue=CFG.statueRounds*DB(); statueBy=name; witch=0; setGoal(); S.wind=0; S.windPre=0; S.quake=0; S.roul=null; S.roulQ.length=0; S.white=Math.max(S.white,.6); S.holy=6;
+function startStatue(name){ const apply=()=>{ setBg('statue'); statue=CFG.statueRounds*DB(); statueBy=name; witch=0; setGoal(); S.wind=0; S.windPre=0; S.quake=0; S.roul=null; S.roulQ.length=0; S.white=Math.max(S.white,.6); S.holy=6;
     if(S.mode==='playing' && S.phase==='aim' && !S.stRound){ S.cur={key:'tenshi',s:1,statue:true,name:null,by:null}; S.stRound=true; S.rot=0; } };
   logAdd(name+' が天使像を呼んだ','#fff3b0'); if(vOK(statueVid)) startCut('statue','',name,apply); else { apply(); showBand('天使像',name+' のお助け '+CFG.statueRounds+'ラウンド 絶対に落ちない','#c9a227'); } }
 /* 黒い機体（全リセット）：全画面の登場映像のあと、ステージの上に浮かんで、レーザーとミサイルで全部を消して更地にする。
@@ -652,7 +654,7 @@ const RB={enter:1.0,lock:.7,laser:3.0,misFrom:2.0,misN:22,misGap:.13,charge:1.0,
 const rbT=()=>({l0:RB.enter+RB.lock, l1:RB.enter+RB.lock+RB.laser, m0:RB.enter+RB.lock+RB.misFrom, c0:RB.enter+RB.lock+RB.laser+.9, b0:RB.enter+RB.lock+RB.laser+.9+RB.charge, e0:RB.enter+RB.lock+RB.laser+.9+RB.charge+RB.beam});
 function rbBoom(x,y,big){ const blobs=[]; for(let i=0;i<(big?16:9);i++) blobs.push({a:rand(0,6.28),d:rand(.1,.75),s:rand(.35,.75)}); S.booms.push({x,y,t:0,big,R:big?DRAGON.bigRadius:DRAGON.radius*.8,blobs}); S.shake=Math.max(S.shake,big?1:.3); S.rings.push({x,y,t:0}); }
 function rbVapor(b){ const x=b.position.x,y=b.position.y; for(let i=0;i<14;i++) S.parts.push({k:'ember',x:x+rand(-40,40),y:y+rand(-40,40),vx:rand(-220,220),vy:rand(-320,40),g:200,t:rand(.4,1),c:pick(['#ff3b2f','#ffb020','#fff']),r:rand(4,10)}); for(let i=0;i<4;i++) S.parts.push({k:'smoke',x:x+rand(-30,30),y:y+rand(-30,30),vx:rand(-40,40),vy:rand(-90,-30),g:-10,t:rand(.8,1.5),r:rand(40,90)}); removeBody(b); }
-function resetAll(){ if(S.phase==='losing'){ S.phase='aim'; S.loseT=0; } for(const b of S.bodies.slice()) removeBody(b); S.falling=null; S.stBody=null; S.stRound=false; statue=0; witch=0; setGoal(); curse=null; bless=null;
+function resetAll(){ BGX.key=null; BGX.t=0; if(S.phase==='losing'){ S.phase='aim'; S.loseT=0; } for(const b of S.bodies.slice()) removeBody(b); S.falling=null; S.stBody=null; S.stRound=false; statue=0; witch=0; setGoal(); curse=null; bless=null;
   Body.scale(table, CFG.tableW/(table.bounds.max.x-table.bounds.min.x), 1); if(walls){ for(const b of walls.slice()){ Composite.remove(engine.world,b); } walls=null; } wallT=0;
   dblT=0; dblFlash=0; dblHit=0; spSec=0; spSync(); gripT=0; S.ghost=0; S.glue=0; S.wind=0; S.windPre=0; S.quake=0; S.roul=null; S.roulQ.length=0; S.seq=null; S.seqQ.length=0; S.meteors=[]; S.doom=0; S.hold=0; S.cur=nextSpec(); rollNext(); S.rot=0; S.phase='aim'; S.topY=TOP_Y; }
 function startRobot(name){ if(S.rb) return; logAdd(name+' が黒い機体を呼んだ','#ff5c5c');
@@ -754,10 +756,10 @@ const WG={amount:1000, bgSec:10, r:{tin:.9,raise:1.0,hold:.45,fps:14,hitF:8,end:
 WG.r.hit=WG.r.tin+WG.r.raise+WG.r.hold+WG.r.hitF/WG.r.fps;
 function drawSheetF(sh,f,x,y,w){ if(!sh.ok) return; const h=w*sh.fh/sh.fw; g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,x-w/2,y-h/2,w,h); }
 function startWinGift(sign,name){ const k=sign<0?'r':'p'; logAdd(name+(sign<0?' が死神を呼んだ':' が不死鳥を呼んだ'),sign<0?'#c79bff':'#ffe680');
-  const go=()=>{ if(S.mode!=='playing') return; const o={sign,k,name,t:0,done:false}; if(S.wg) S.wgQ.push(o); else S.wg=o; wgBgT[k]=WG[k].end+WG.bgSec; if(sign<0){ wgBgT.p=0; } else { wgBgT.r=0; } };
+  const go=()=>{ if(S.mode!=='playing') return; const o={sign,k,name,t:0,done:false}; if(S.wg) S.wgQ.push(o); else S.wg=o; setBg(sign<0?'reaper':'phoenix'); };
   if(vOK(sign<0?reaperVid:phoenixVid)) startCut(sign<0?'reaper':'phoenix','',name,go); else go(); }
 function scarPath(sign){ const a=sign<0?[70,330]:[70,1440], b=sign<0?[1010,1440]:[1010,330], pts=[]; for(let i=0;i<=14;i++){ const u=i/14, j=(i===0||i===14)?0:1; pts.push([a[0]+(b[0]-a[0])*u+rand(-26,26)*j, a[1]+(b[1]-a[1])*u+rand(-26,26)*j]); } return pts; }
-function updateWinGift(dt){ for(const k of ['r','p']){ wgBgT[k]=Math.max(0,wgBgT[k]-dt); wgBg[k]=clamp(wgBg[k]+(wgBgT[k]>0?1:-1)*dt*(wgBgT[k]>0?2.5:.5),0,1); }
+function updateWinGift(dt){ for(const k of ['r','p']){ }
   if(S.winRoll){ S.winRoll.t+=dt; if(S.winRoll.t>=S.winRoll.dur) S.winRoll=null; } if(S.scar){ S.scar.t+=dt; if(S.scar.t>5.2) S.scar=null; }
   const w=S.wg; if(!w) return; const C=WG[w.k]; w.t+=dt;
   if(!w.done && w.t>=C.hit){ w.done=true; const from=wins, wm=DB(); wins+=w.sign*WG.amount*wm; saveWins(); S.winRoll={from,to:wins,t:0,dur:1.8}; S.scar={sign:w.sign,t:0,m:wm,pts:scarPath(w.sign)}; S.shake=1;
@@ -964,6 +966,7 @@ function drawBG(){
   if(dblBg>0 && bgFox.naturalWidth && S.mode!=='title'){ g.save(); g.beginPath(); g.rect(0,200,W,1370); g.clip(); g.globalAlpha=dblBg; g.drawImage(bgFox,0,0,W,H); g.restore(); }
   for(const [k,im] of [['r',bgReaper],['p',bgPhoenix]]) if(wgBg[k]>0 && im.naturalWidth){ g.save(); g.beginPath(); g.rect(0,200,W,1370); g.clip(); g.globalAlpha=wgBg[k]; g.drawImage(im,0,0,W,H); g.restore(); }
   if(treeA>0 && bgTree.complete && bgTree.naturalWidth){ g.save(); g.beginPath(); g.rect(0,200,W,1370); g.clip(); g.globalAlpha=treeA; g.drawImage(bgTree,0,-BG_OFF,W,H); g.restore(); }
+  if(drgA>0){ if(!dragonSky) buildDragonSky(); g.save(); g.beginPath(); g.rect(0,200,W,1370); g.clip(); g.globalAlpha=drgA*.62; const gr=g.createLinearGradient(0,200,0,1570); gr.addColorStop(0,'#1a0006'); gr.addColorStop(.6,'#6a0a14'); gr.addColorStop(1,'#2a0508'); g.fillStyle=gr; g.fillRect(0,200,W,1370); if(dragonSky){ g.globalCompositeOperation='screen'; g.globalAlpha=drgA*(.6+Math.sin(S.t*1.6)*.06); g.drawImage(dragonSky,0,170+SHORT*.9); } g.restore(); }
 }
 function drawField(){ const xl=viewL()-20, xr=viewR()+20, ts=1/Math.sqrt(camZ);
   g.setLineDash([26,18]); g.strokeStyle='#ff3d6e'; g.lineWidth=8*ts; g.beginPath(); g.moveTo(xl,GOAL_D); g.lineTo(xr,GOAL_D); g.stroke(); g.setLineDash([]);
