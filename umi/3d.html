@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ウミガメの魚集め（3D版）</title>
+</head>
+<body>
+<script src="./sim.js"></script>
+<script src="./ui.js"></script>
+<script type="module">
+/* 3D版：カメの後ろ上からついていく視点。形はいまは球や円すいを組み合わせた仮のモデル */
+import * as THREE from './lib/three.module.min.js';
+const W=1900, H=1900, CAP=800, rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let renderer, scene, camera, fishMesh, turtleMain, buddies=[], whaleG, sharkG, bubbles, bubN=0, T=0, camPos=new THREE.Vector3(), camLook=new THREE.Vector3(), inkEl, vortexG;
+const dummy=new THREE.Object3D(), col=new THREE.Color();
+function mergeGeo(list){ let pos=[], nor=[], idx=[], off=0; for(const ge of list){ const g2=ge.index?ge.toNonIndexed():ge; const p=g2.attributes.position.array, n=g2.attributes.normal.array; for(let i=0;i<p.length;i++){ pos.push(p[i]); nor.push(n[i]); } } const o=new THREE.BufferGeometry(); o.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); o.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); return o; }
+function fishGeo(){ const body=new THREE.SphereGeometry(1,10,8); body.scale(13,5.5,3.6); const tail=new THREE.ConeGeometry(6,10,4); tail.rotateZ(Math.PI/2); tail.scale(1,1,.25); tail.translate(-15,0,0); return mergeGeo([body,tail]); }
+function mat(c,o){ return new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.75,metalness:.05},o||{})); }
+function makeTurtle(scale){ const G=new THREE.Group();
+  const shell=new THREE.Mesh(new THREE.SphereGeometry(1,24,16),mat(0x6b5422)); shell.scale.set(54,24,42); shell.position.y=6; G.add(shell);
+  const rim=new THREE.Mesh(new THREE.SphereGeometry(1,24,12),mat(0x3d3410)); rim.scale.set(58,10,46); G.add(rim);
+  for(let i=-1;i<=1;i++) for(let j=-1;j<=1;j++){ const sc=new THREE.Mesh(new THREE.SphereGeometry(1,8,6),mat(0x8a6d2e)); sc.scale.set(13,5,11); sc.position.set(i*27,24-Math.abs(i)*6-Math.abs(j)*7,j*22); G.add(sc); }
+  const belly=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),mat(0xd8d0a0)); belly.scale.set(48,9,36); belly.position.y=-6; G.add(belly);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),mat(0x69a85c)); head.scale.set(20,14,15); head.position.set(64,4,0); G.add(head);
+  for(const s of [-1,1]){ const eye=new THREE.Mesh(new THREE.SphereGeometry(3.2,8,8),mat(0x10202e)); eye.position.set(74,9,s*10); G.add(eye); }
+  G.userData.fl=[]; const flip=(x,z,len,wd,front)=>{ const P=new THREE.Group(); P.position.set(x,0,z); const m=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),mat(0x4f8a47)); m.scale.set(len/2,3.5,wd/2); m.position.set(0,0,Math.sign(z)*len/2); m.rotation.y=Math.sign(z)*(front?.5:-.6); P.add(m); G.add(P); G.userData.fl.push({P,front,side:Math.sign(z)}); };
+  flip(30,30,70,24,true); flip(30,-30,70,24,true); flip(-36,26,38,18,false); flip(-36,-26,38,18,false);
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(5,18,6),mat(0x4f8a47)); tail.rotation.z=Math.PI/2; tail.position.set(-60,0,0); G.add(tail);
+  G.scale.setScalar(scale); return G; }
+function makeBig(kind){ const G=new THREE.Group(), whale=kind==='whale', L=whale?330:120, B=whale?112:36, c=whale?0x2d68aa:0x8d9aa6, d=whale?0x1d4a80:0x55636f;
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1,28,18),mat(c)); body.scale.set(L,B*(whale?.9:.8),B); G.add(body);
+  const bel=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),mat(0xe8eef4)); bel.scale.set(L*.9,B*.5,B*.85); bel.position.y=-B*.45; G.add(bel);
+  const tp=new THREE.Group(); tp.position.x=-L*.9; const fl=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),mat(d)); fl.scale.set(L*.22,B*.12,B*1.0); fl.position.x=-L*.2; tp.add(fl); G.add(tp); G.userData.tail=tp;
+  for(const s of [-1,1]){ const fin=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),mat(d)); fin.scale.set(L*.2,B*.1,B*.6); fin.position.set(L*.2,-B*.3,s*B*1.1); fin.rotation.y=s*.5; G.add(fin); const eye=new THREE.Mesh(new THREE.SphereGeometry(whale?7:4,8,8),mat(0x0b1420)); eye.position.set(L*.7,B*.2,s*B*.62); G.add(eye); }
+  if(!whale){ const df=new THREE.Mesh(new THREE.ConeGeometry(16,44,4),mat(d)); df.position.set(-6,B*.9,0); df.scale.z=.25; G.add(df); }
+  G.visible=false; return G; }
+function label(text){ const c=document.createElement('canvas'); c.width=256; c.height=64; const x=c.getContext('2d'); x.font='900 34px MPR,sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.lineWidth=8; x.strokeStyle='rgba(0,20,50,.9)'; x.strokeText(text,128,32); x.fillStyle='#fff'; x.fillText(text,128,32); const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false})); sp.scale.set(150,38,1); return sp; }
+UmiUI.boot({ W,H,cap:CAP,
+  init(view,sim){ renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'}); renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1)); view.appendChild(renderer.domElement);
+    scene=new THREE.Scene(); const sea=0x0b5fa0; scene.background=new THREE.Color(sea); scene.fog=new THREE.Fog(sea,500,2100);
+    camera=new THREE.PerspectiveCamera(52,1080/1370,5,5000);
+    scene.add(new THREE.HemisphereLight(0xbfe8ff,0x0a3058,1.25)); const sun=new THREE.DirectionalLight(0xffffff,1.6); sun.position.set(300,900,200); scene.add(sun);
+    // 海の底：砂と波もよう
+    const tc=document.createElement('canvas'); tc.width=tc.height=512; const tx=tc.getContext('2d'); tx.fillStyle='#d9c79a'; tx.fillRect(0,0,512,512); for(let i=0;i<900;i++){ tx.fillStyle='rgba('+(Math.random()<.5?'120,100,60':'255,245,210')+','+rand(.05,.2)+')'; tx.beginPath(); tx.arc(rand(0,512),rand(0,512),rand(1,5),0,7); tx.fill(); } tx.strokeStyle='rgba(150,125,80,.35)'; tx.lineWidth=5; for(let y=10;y<512;y+=28){ tx.beginPath(); for(let x=0;x<=512;x+=16) tx.lineTo(x,y+Math.sin(x*.05+y)*7); tx.stroke(); }
+    const tex=new THREE.CanvasTexture(tc); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(14,14); tex.colorSpace=THREE.SRGBColorSpace;
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(W*3,H*3),new THREE.MeshStandardMaterial({map:tex,roughness:1})); floor.rotation.x=-Math.PI/2; floor.position.set(W/2,-120,H/2); scene.add(floor);
+    const rocks=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1,0),mat(0x4a5560,{roughness:1}),160); for(let i=0;i<160;i++){ const s=rand(20,70); dummy.position.set(rand(-W*.4,W*1.4),-120+s*.3,rand(-H*.4,H*1.4)); dummy.scale.set(s,s*rand(.5,.9),s); dummy.rotation.set(rand(0,3),rand(0,3),rand(0,3)); dummy.updateMatrix(); rocks.setMatrixAt(i,dummy.matrix); } scene.add(rocks);
+    const weed=new THREE.InstancedMesh(new THREE.ConeGeometry(1,1,5),mat(0x1f8a5a,{roughness:1}),420); for(let i=0;i<420;i++){ const h=rand(50,150); dummy.position.set(rand(-W*.3,W*1.3),-120+h/2,rand(-H*.3,H*1.3)); dummy.scale.set(rand(6,12),h,rand(6,12)); dummy.rotation.set(rand(-.15,.15),rand(0,6),rand(-.15,.15)); dummy.updateMatrix(); weed.setMatrixAt(i,dummy.matrix); weed.setColorAt(i,col.setHSL(rand(.3,.45),.6,rand(.25,.4))); } scene.add(weed);
+    const coral=new THREE.InstancedMesh(new THREE.SphereGeometry(1,8,6),mat(0xff7a96,{roughness:.9}),200); for(let i=0;i<200;i++){ const s=rand(10,34); dummy.position.set(rand(-W*.3,W*1.3),-120+s*.6,rand(-H*.3,H*1.3)); dummy.scale.set(s,s*rand(.7,1.4),s); dummy.rotation.set(0,0,0); dummy.updateMatrix(); coral.setMatrixAt(i,dummy.matrix); coral.setColorAt(i,col.setHSL([.95,.07,.78][i%3],.75,.62)); } scene.add(coral);
+    fishMesh=new THREE.InstancedMesh(fishGeo(),new THREE.MeshStandardMaterial({roughness:.4,metalness:.35}),CAP); fishMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); fishMesh.frustumCulled=false; for(let i=0;i<CAP;i++) fishMesh.setColorAt(i,col.set(0xffffff)); scene.add(fishMesh);
+    turtleMain=makeTurtle(1); scene.add(turtleMain); whaleG=makeBig('whale'); scene.add(whaleG); sharkG=makeBig('shark'); scene.add(sharkG);
+    bubbles=new THREE.InstancedMesh(new THREE.SphereGeometry(1,6,5),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.7}),160); bubbles.frustumCulled=false; bubbles.userData.p=Array.from({length:160},()=>({t:0,x:0,y:0,z:0,r:1})); scene.add(bubbles);
+    vortexG=new THREE.Mesh(new THREE.TorusGeometry(210,7,6,40),new THREE.MeshBasicMaterial({color:0xdff6ff,transparent:true,opacity:.5})); vortexG.rotation.x=Math.PI/2; vortexG.visible=false; scene.add(vortexG);
+    inkEl=document.createElement('div'); inkEl.style.cssText='position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,rgba(6,4,14,.55),rgba(6,4,14,.92));opacity:0;pointer-events:none;transition:opacity .4s'; view.appendChild(inkEl);
+    const fit=()=>{ const w=view.clientWidth, h=view.clientHeight; if(w&&h){ renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); } }; fit(); window.addEventListener('resize',()=>setTimeout(fit,0));
+    const m=sim.main; camPos.set(m.x,560,m.y+620); camLook.set(m.x,0,m.y-150); },
+  render(dt,sim,evs){ const S=sim.S, m=sim.main; T+=dt; const P=bubbles.userData.p;
+    for(const e of evs){ if(e.type==='eat'){ const p=P[bubN++%P.length]; p.t=.6; p.x=e.x+rand(-8,8); p.y=40+rand(-8,8); p.z=e.y+rand(-8,8); p.r=rand(3,7); } }
+    const HC=[0xdfeaf6,0xffa94d,0xffe04d]; let i=0; const wag=Math.sin(T*14)*.25;
+    for(const f of S.fish){ if(i>=CAP) break; dummy.position.set(f.x,40+Math.sin(T*1.7+f.ph)*14,f.y); dummy.rotation.set(0,-f.a+Math.sin(T*12+f.ph)*.18,0); dummy.scale.setScalar(f.s*1.5); dummy.updateMatrix(); fishMesh.setMatrixAt(i,dummy.matrix); fishMesh.setColorAt(i,col.set(HC[f.sc.kind])); i++; }
+    fishMesh.count=i; fishMesh.instanceMatrix.needsUpdate=true; if(fishMesh.instanceColor) fishMesh.instanceColor.needsUpdate=true;
+    const pose=(G,t)=>{ G.position.set(t.x,34+Math.sin(T*2+t.flap*.1)*5,t.y); G.rotation.y=-t.a; for(const f of G.userData.fl){ f.P.rotation.x=f.side*Math.sin(t.flap+(f.front?0:1.2))*(f.front?.6:.3); f.P.rotation.y=f.side*Math.sin(t.flap)*(f.front?.25:.1); } };
+    pose(turtleMain,m);
+    const bs=S.turtles.filter(t=>!t.main); while(buddies.length<bs.length){ const G=makeTurtle(.48); const lb=label(''); lb.position.y=95; G.add(lb); G.userData.lb=lb; G.userData.nm=null; scene.add(G); buddies.push(G); }
+    buddies.forEach((G,k)=>{ const t=bs[k]; G.visible=!!t; if(t){ pose(G,t); if(G.userData.nm!==t.name){ G.userData.nm=t.name; G.remove(G.userData.lb); const lb=label(t.name); lb.position.y=95; G.add(lb); G.userData.lb=lb; } } });
+    whaleG.visible=!!S.whale; if(S.whale){ whaleG.position.set(S.whale.x,60,S.whale.y); whaleG.rotation.y=S.whale.vx>0?0:Math.PI; whaleG.userData.tail.rotation.z=Math.sin(T*3)*.25; }
+    sharkG.visible=!!S.shark; if(S.shark){ sharkG.position.set(S.shark.x,50,S.shark.y); sharkG.rotation.y=-S.shark.a; sharkG.userData.tail.rotation.y=Math.sin(T*10)*.5; }
+    vortexG.visible=S.vortexT>0; if(vortexG.visible){ vortexG.position.set(m.x,40,m.y); vortexG.rotation.z=T*5; const k=1+.25*Math.sin(T*8); vortexG.scale.set(k,k,1); }
+    for(let k=0;k<P.length;k++){ const p=P[k]; if(p.t>0){ p.t-=dt; p.y+=90*dt; const s=p.r*clamp(p.t/.3,0,1); dummy.position.set(p.x,p.y,p.z); dummy.rotation.set(0,0,0); dummy.scale.setScalar(s); } else dummy.scale.setScalar(0); dummy.updateMatrix(); bubbles.setMatrixAt(k,dummy.matrix); } bubbles.instanceMatrix.needsUpdate=true;
+    inkEl.style.opacity=S.inkT>0?1:0;
+    // 向きは固定のまま、カメの少し後ろ上からついていくカメラ（カメが向きを変えても画面が振り回されない）
+    const far=S.boostT>0?1.12:1, k=Math.min(1,dt*2.2); camPos.x+=(m.x-camPos.x)*k; camPos.z+=(m.y+620*far-camPos.z)*k; camPos.y+=(560*far-camPos.y)*k;
+    camLook.x+=(m.x-camLook.x)*k; camLook.z+=(m.y-150-camLook.z)*k; camera.position.copy(camPos); camera.lookAt(camLook.x,10,camLook.z);
+    renderer.render(scene,camera); }
+});
+</script>
+</body>
+</html>
