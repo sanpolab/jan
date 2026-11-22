@@ -146,7 +146,7 @@ const AY=()=>SHORT?(200+SHORT+1.56*AIM_TOP)/(1+AIM_TOP/1000):560, Z0=()=>(1560-A
 const OX=x=>540+(x-540)*OS(), OY=y=>1570+(y-1570)*OS(), IOX=x=>540+(x-540)/OS(), IOY=y=>1570+(y-1570)/OS();
 function ovOn(){ g.save(); if(SHORT){ const k=OS(); g.translate(540,1570); g.scale(k,k); g.translate(-540,-1570); } }
 function ovOff(){ g.restore(); }
-function present(){ const vh=VH(); if(cv.height!==vh) cv.height=vh; if(!SHORT){ vx.drawImage(ocv,0,0); return; } if(S.cut){ const sh=(S.cut.vid && !/^(necro|golem|robo|reaper|phoenix|fox|statue)$/.test(S.cut.type))?1920-BG_OFF:1920, k=Math.min(1,vh/sh), dw=1080*k, dh=sh*k, dx=(1080-dw)/2, dy=(vh-dh)/2; vx.save(); try{ vx.filter='blur(26px) brightness(.45)'; }catch(e){} vx.drawImage(ocv,0,(1920-vh)/2,1080,vh,-40,-40,1160,vh+80); vx.restore(); try{ vx.filter='none'; }catch(e){} vx.drawImage(ocv,0,0,1080,sh,dx,dy,dw,dh); return; } vx.drawImage(ocv,0,0,1080,200,0,0,1080,200); const ph=1370-SHORT+PANEL_S; vx.drawImage(ocv,0,200+SHORT,1080,ph,0,200,1080,ph); }
+function present(){ const vh=VH(); if(cv.height!==vh) cv.height=vh; if(!SHORT){ vx.drawImage(ocv,0,0); return; } if(S.cut){ const sh=(S.cut.vid && !/^(necro|golem|robo|reaper|phoenix|fox|statue)$/.test(S.cut.type))?1920-BG_OFF:1920, sy0=Math.max(0,(sh-vh)*.42); vx.drawImage(ocv,0,sy0,1080,Math.min(vh,sh),0,0,1080,vh); return; } vx.drawImage(ocv,0,0,1080,200,0,0,1080,200); const ph=1370-SHORT+PANEL_S; vx.drawImage(ocv,0,200+SHORT,1080,ph,0,200,1080,ph); }
 const FONT = "'MPR','Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP','Noto Sans CJK JP','Yu Gothic','Meiryo',sans-serif", FONTD = "'DELA',"+"'MPR','Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP','Noto Sans CJK JP','Yu Gothic','Meiryo',sans-serif";
 try{ document.fonts.load("900 40px 'MPR'",'つみ'); document.fonts.load("400 40px 'DELA'",'つみ'); }catch(e){}
 
@@ -514,8 +514,9 @@ function endRound(win, why){ if(S.mode!=='playing') return; S.preEnd=win?null:{w
   if(S.stRound){ statue=Math.max(0,statue-1); if(statue===0) S.curseEnded='天使像の加護が終わった'; }
   if(win){ wins+=DB(); S.mode='clear'; S.endT=4.5; sfx.win(); confetti(); S.white=.45; } else { wins-=DB(); S.mode='dead'; S.endT=4.5; S.why=why||''; sfx.lose(); S.shake=.5; S.red=.5; } saveWins(); best=Math.max(best,heightM()); }
 
+const stAimY=h=>Math.max(AIM_Y-Math.max(0,h/2-300), viewTop()+h/2+24);
 function drop(){ if(S.mode!=='playing' || S.phase!=='aim' || seqLock()) return; const c=S.cur; S.snap=null; if(!c.statue) takeSnap(c);
-  if(c.statue){ const h=stH(), b=makeStatue(h), hw=stW(h)*.4; Body.setPosition(b,{x:clamp(S.px,table.bounds.min.x+hw,table.bounds.max.x-hw),y:AIM_Y-Math.max(0,h/2-300)}); Composite.add(engine.world,b); S.bodies.push(b); S.falling=b; S.phase='fall'; S.settle=0; S.fallT=0; S.count++; sfx.drop(); return; }
+  if(c.statue){ const h=stH(), b=makeStatue(h), hw=stW(h)*.4; Body.setPosition(b,{x:clamp(S.px,table.bounds.min.x+hw,table.bounds.max.x-hw),y:stAimY(h)}); Composite.add(engine.world,b); S.bodies.push(b); S.falling=b; S.phase='fall'; S.settle=0; S.fallT=0; S.count++; sfx.drop(); return; }
   const b=makeBody(c.key,c.s);
   Body.setPosition(b,{x:S.px,y:AIM_Y}); Body.setAngle(b,S.rot); b.plugin.name=c.name; b.plugin.by=c.by; Composite.add(engine.world,b); S.bodies.push(b); if(S.snap) S.snap.body=b;
   S.falling=b; S.phase='fall'; S.settle=0; S.fallT=0; S.count++; sfx.drop(); }
@@ -658,7 +659,7 @@ function startRobot(name){ if(S.rb) return; logAdd(name+' が黒い機体を呼�
   if(vOK(roboVid)) startCut('robo','',name,go); else go(); }
 function rbHands(r){ const w=660/Math.sqrt(camZ); return [[r.x-.36*w,r.y+.05*w],[r.x+.36*w,r.y+.05*w]]; }
 function rbLaserX(r,i){ const T=rbT(), p=clamp((r.t-T.l0)/RB.laser,0,1), a=table.bounds.min.x-140, b=table.bounds.max.x+140, q=.5-.5*Math.cos(p*Math.PI*2); return i? b+(a-b)*q : a+(b-a)*q; }
-function updateRobot(dt){ const r=S.rb; if(!r) return; const T=rbT(); r.t+=dt; const hy=AIM_Y-70;
+function updateRobot(dt){ const r=S.rb; if(!r) return; const T=rbT(); r.t+=dt; const hy=Math.max(AIM_Y-70,viewTop()+255/Math.sqrt(camZ));
   r.y+=((r.t<T.e0?hy:hy-1300)-r.y)*Math.min(1,dt*(r.t<T.e0?3.2:1.3));
   if(r.t>=T.l0 && !r.las){ r.las=true; play('laser'); play('beam'); }
   if(r.t>=T.l0 && r.t<T.l1){ r.hitT-=dt; const hs=rbHands(r); for(let i=0;i<2;i++){ const gx=rbLaserX(r,i), hx=hs[i][0], hY=hs[i][1];
@@ -1025,7 +1026,7 @@ function draw(){
   for(const b of S.bodies) drawBody(b);
   drawEel(); drawCrow(); drawGust(); drawParts(); drawFlyers(); drawMeteors(); drawRobot();
   if(S.mode==='playing' && S.phase==='aim' && !seqLock()){ const c=S.cur; g.setLineDash([10,16]); g.strokeStyle='rgba(30,60,110,.45)'; g.lineWidth=5; g.beginPath(); g.moveTo(S.px,AIM_Y+60); g.lineTo(S.px,TOP_Y); g.stroke(); g.setLineDash([]);
-    if(c.statue){ const h=stH(), hw=stW(h)*.4; g.save(); g.translate(clamp(S.px,table.bounds.min.x+hw,table.bounds.max.x-hw),AIM_Y-Math.max(0,h/2-300)+Math.sin(S.t*4)*6); drawStatue(stW(h),h); g.restore(); } else {
+    if(c.statue){ const h=stH(), hw=stW(h)*.4; g.save(); g.translate(clamp(S.px,table.bounds.min.x+hw,table.bounds.max.x-hw),stAimY(h)+Math.sin(S.t*4)*6); drawStatue(stW(h),h); g.restore(); } else {
     g.save(); g.translate(S.px,AIM_Y+Math.sin(S.t*4)*6); g.rotate(S.rot); g.scale(c.s,c.s); g.translate(-ANIMALS[c.key].com.x,-ANIMALS[c.key].com.y); drawAnimal(c.key); g.restore(); }
     { const left=clamp(1-(S.aimT||0)/aimSec(),0,1), secs=Math.ceil(aimSec()-(S.aimT||0)), bx=S.px-90, by=AIM_Y+(c.statue?320:ANIMALS[c.key].h*c.s*.5+26), hot=secs<=2; g.fillStyle='rgba(10,16,40,.55)'; rr(bx,by,180,16,8); g.fill(); g.fillStyle=hot?'#ff3d3d':(secs<=3?'#ffb020':'#7cff4f'); rr(bx,by,Math.max(16,180*left),16,8); g.fill(); if(secs<=3) txt(String(secs),S.px+118,by+8,hot?54:42,hot?'#ff3d3d':'#ffb020','center','#000'); }
     const lh=c.statue?stH()/2+60-Math.max(0,stH()/2-300)+Math.max(0,stH()/2-300):ANIMALS[c.key].h*c.s*.5+60;
