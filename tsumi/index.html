@@ -408,14 +408,15 @@ function buildDragonSky(){ if(!dragonImg.complete||!dragonImg.naturalWidth) retu
 function startDragon(name){ if(S.seq){ S.seqQ.push(name); return; } S.seq={name,stage:'omen',t:0,fired:0,next:.2,shots:0}; setBg('dragon'); }
 function seqAlpha(){ const q=S.seq; if(!q) return 0; if(q.stage==='charge') return clamp(q.t/1.4,0,1); if(q.stage==='barrage'||q.stage==='final') return 1; if(q.stage==='fade') return clamp(1-q.t/2.6,0,1); return 0; }
 const CIRCLE={x:540,y:470};
+const circW=(dx,dy)=>({x:540+(OX(CIRCLE.x+(dx||0))-540)/camZ, y:AIM_Y+(OY(CIRCLE.y+(dy||0))-AY())/camZ});   // 画面に描いた魔法陣の位置を、ステージの中の座標に直す（カメラが引いていてもずれない）
 const seqLock = () => !!S.rb || (!!S.wg && !S.wg.done) || (!!S.seq && S.seq.stage!=='omen' && S.seq.stage!=='fade');   // この間は置けない・落ちても負けにならない
 function removeBody(b){ const i=S.bodies.indexOf(b); if(i<0) return; Composite.remove(engine.world,b); S.bodies.splice(i,1);
   burst(b.position.x,b.position.y,10,{k:'ember',c:'#ff8a1f',g:500,r:8}); S.parts.push({k:'smoke',x:b.position.x,y:b.position.y,vx:rand(-30,30),vy:rand(-120,-60),g:-20,t:rand(1.2,2),r:rand(60,110)});
   if(b===S.falling){ S.falling=null; S.cur=S.next; rollNext(); S.rot=0; S.phase='aim'; } }
 function fireMeteor(big,target){ const tx0=table.bounds.min.x+40, tx1=table.bounds.max.x-40; let tx=rand(tx0,tx1);
   let ty=TOP_Y; if(target && S.bodies.includes(target)){ tx=target.position.x; ty=target.position.y; } else if(big){ tx=540; ty=TOP_Y-40; }
-  const x=CIRCLE.x+rand(-150,150), y=CIRCLE.y, sp=big?600:860, dx=tx-x, dy=ty-y, d=Math.hypot(dx,dy);
-  S.meteors.push({x,y,vx:dx/d*sp,vy:dy/d*sp,r:big?74:32,trail:[],big,rot:rand(0,6),seed:rand(0,9)}); S.white=Math.max(S.white,big?.35:.1); play(big?'meteorbig':'meteor'); }
+  const c0=circW(rand(-150,150),0), x=c0.x, y=c0.y, sp=(big?600:860)/camZ, dx=tx-x, dy=ty-y, d=Math.max(1,Math.hypot(dx,dy));
+  S.meteors.push({x,y,vx:dx/d*sp,vy:dy/d*sp,r:(big?74:32)/Math.sqrt(camZ),life:0,trail:[],big,rot:rand(0,6),seed:rand(0,9)}); S.white=Math.max(S.white,big?.35:.1); play(big?'meteorbig':'meteor'); }
 function explode(x,y,big){ play('impact',big?1:.55); blastWalls(x,y,big); const R=big?DRAGON.bigRadius:DRAGON.radius, K=big?DRAGON.bigKick:DRAGON.kick, blobs=[]; for(let i=0;i<(big?16:9);i++) blobs.push({a:rand(0,6.28),d:rand(.1,.75),s:rand(.35,.75)});
   S.booms.push({x,y,t:0,big,R,blobs}); S.shake=Math.max(S.shake,big?.95:.38); S.white=Math.max(S.white,big?.75:.14); S.rings.push({x,y,t:0}); if(big) play('bigboom');
   for(let i=0;i<(big?46:18);i++) S.parts.push({k:'ember',x,y,vx:rand(-520,520)*(big?1.5:1),vy:rand(-720,-80)*(big?1.4:1),g:900,t:rand(.6,1.4),c:pick(['#ff5a1f','#ffb020','#ffe680']),r:rand(4,11)});
@@ -428,7 +429,7 @@ function explode(x,y,big){ play('impact',big?1:.55); blastWalls(x,y,big); const 
 function updateSeq(dt){
   for(const st of S.strikes) st.t+=dt; S.strikes=S.strikes.filter(st=>st.t<.28);
   for(const bm of S.booms) bm.t+=dt; S.booms=S.booms.filter(bm=>bm.t<(bm.big?1.5:1.0));
-  for(const m of S.meteors){ m.x+=m.vx*dt; m.y+=m.vy*dt; m.rot+=dt*5; m.trail.push({x:m.x,y:m.y}); if(m.trail.length>(m.big?30:22)) m.trail.shift();
+  for(const m of S.meteors){ m.x+=m.vx*dt; m.y+=m.vy*dt; m.rot+=dt*5; m.life=(m.life||0)+dt; if(m.life>6){ m.dead=true; explode(m.x,Math.min(m.y,1570),m.big); continue; } m.trail.push({x:m.x,y:m.y}); if(m.trail.length>(m.big?30:22)) m.trail.shift();
     if(Math.random()<dt*(m.big?40:22)) S.parts.push({k:'smoke',x:m.x+rand(-10,10),y:m.y+rand(-10,10),vx:rand(-30,30),vy:rand(-60,-10),g:-10,t:rand(.6,1.2),r:m.r*rand(.9,1.6)});
     const onTable = m.y>=TOP_Y-4 && m.x>table.bounds.min.x && m.x<table.bounds.max.x;
     if(onTable || m.y>1575 || (S.bodies.length && Matter.Query.point(S.bodies,{x:m.x,y:m.y}).length)){ m.dead=true; explode(m.x, Math.min(m.y,1570), m.big); } }
@@ -436,7 +437,7 @@ function updateSeq(dt){
   const q=S.seq; if(!q || S.mode!=='playing' || S.cut) return; q.t+=dt; if(q.stage!=='fade' && q.stage!=='omen') S.doom=Math.max(S.doom,2.6);
   if(q.stage==='omen'){ S.shake=Math.max(S.shake,.05+q.t*.08);
     if(q.t>DRAGON.omen){ q.stage='video'; logAdd(q.name+' がドラゴンを呼び出した','#ff5c5c'); startCut('doom','',q.name,()=>{ if(S.seq){ S.seq.stage='charge'; S.seq.t=0; S.white=.6; S.shake=.5; } }); } }
-  else if(q.stage==='charge'){ for(let i=0;i<2;i++){ const a=rand(0,6.28), R=rand(300,520); S.parts.push({k:'ember',x:CIRCLE.x+Math.cos(a)*R,y:CIRCLE.y+Math.sin(a)*R*.4,vx:-Math.cos(a)*R/.55,vy:-Math.sin(a)*R*.4/.55,g:0,t:.55,c:pick(['#ffb020','#ffe680','#ff5a1f']),r:rand(4,9)}); }
+  else if(q.stage==='charge'){ for(let i=0;i<2;i++){ const a=rand(0,6.28), R=rand(300,520); const cw=circW(Math.cos(a)*R,Math.sin(a)*R*.4), cc=circW(0,0); S.parts.push({k:'ember',x:cw.x,y:cw.y,vx:(cc.x-cw.x)/.55,vy:(cc.y-cw.y)/.55,g:0,t:.55,c:pick(['#ffb020','#ffe680','#ff5a1f']),r:rand(4,9)}); }
     S.shake=Math.max(S.shake,.05+q.t*.03); if(q.t>DRAGON.charge){ q.stage='barrage'; q.t=0; q.next=.15; q.shots=clamp(S.bodies.length,3,DRAGON.maxShots); } }
   else if(q.stage==='barrage'){ q.next-=dt; if(q.fired<q.shots && q.next<=0){ let top=null; for(const b of S.bodies){ if(!top||b.bounds.min.y<top.bounds.min.y) top=b; }
       fireMeteor(false,top); q.fired++; q.next=rand(DRAGON.gap[0],DRAGON.gap[1]); }
