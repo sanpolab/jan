@@ -885,7 +885,7 @@ function drawWinRoul1(side){ const r=wrCur[side]; if(!r || S.mode==='title') ret
   g.restore(); }
 /* 動物スロット（妨害小のギフト）：画面の中央右寄りにスロットマシンが出て、3つのリールが順に止まる。
    そろった動物（ふつうの10種＋デカい5種からランダム）がその場に落ちてくる。この動物は台から落ちても負けにならない。 */
-const SL={w:440,cx:742,cy:735, tin:.35, r:[1.15,1.8,3.0], show:1.15, out:.35, n:[10,15,24]};
+const SL={w:880,cx:540,cy:800, tin:.35, r:[1.15,1.8,3.0], show:1.15, out:.35, n:[10,15,24]};
 const SL_POOL=()=>KEYS.concat(BIGKEYS);
 function startRoulette(name){ const pool=SL_POOL(), key=pick(pool), o={name,key,t:0,stop:0,strips:SL.n.map(n=>Array.from({length:n},()=>pick(pool)).concat([key])),gara:0,rollOn:false}; if(S.roul || wrCur.m) S.roulQ.push(o); else S.roul=o; }
 const slPos=(r,i)=>{ const u=clamp(r.t/SL.r[i],0,1); return SL.n[i]*(1-Math.pow(1-u,i===2?3.4:2.2)); };
@@ -901,9 +901,9 @@ function updateRoulette(dt){ if(!S.roul && S.roulQ.length && !wrCur.m) S.roul=S.
     logAdd(r.name+' のスロットから'+ANIMALS[r.key].name+'が落ちてくる','#ff9aa8'); }
   if(r.t>=T[2]+SL.show+SL.out) S.roul=null; }
 function drawRoulette(){ const r=S.roul; if(!r || S.mode!=='playing' || !slotImg.naturalWidth) return; const T=SL.r, tEnd=T[2]+SL.show, hit=r.stop===3, sinceHit=hit?r.t-T[2]:0;
-  const slide=r.t<SL.tin?1-Math.pow(r.t/SL.tin,.5):(r.t>tEnd?Math.pow((r.t-tEnd)/SL.out,2):0), pk=1+(r.punch||0)*(hit?.5:.25), w=SL.w*pk, h=w*slotImg.naturalHeight/slotImg.naturalWidth, x=SL.cx-w/2+slide*700, y=SL.cy-h/2;
+  const slide=r.t<SL.tin?1-Math.pow(r.t/SL.tin,.5):(r.t>tEnd?Math.pow((r.t-tEnd)/SL.out,2):0), pk=1+(r.punch||0)*(hit?.5:.25), w=SL.w*pk, h=w*slotImg.naturalHeight/slotImg.naturalWidth, x=SL.cx-w/2+slide*1200, y=SL.cy-h/2;
   const wx=x+w*.1316, wy=y+h*.2653, ww=w*.6547, wh=h*.55;
-  if(hit){ g.save(); g.translate(SL.cx+slide*700,SL.cy); g.rotate(S.t*1.4); const a=clamp(1-sinceHit/SL.show*.7,0,1); for(let i=0;i<14;i++){ g.rotate(Math.PI/7); g.fillStyle=i%2?'rgba(255,212,0,'+(.55*a)+')':'rgba(255,255,255,'+(.4*a)+')'; g.beginPath(); g.moveTo(0,0); g.lineTo(-70,-620); g.lineTo(70,-620); g.fill(); } g.restore(); }
+  if(hit){ g.save(); g.translate(SL.cx+slide*1200,SL.cy); g.rotate(S.t*1.4); const a=clamp(1-sinceHit/SL.show*.7,0,1); for(let i=0;i<14;i++){ g.rotate(Math.PI/7); g.fillStyle=i%2?'rgba(255,212,0,'+(.55*a)+')':'rgba(255,255,255,'+(.4*a)+')'; g.beginPath(); g.moveTo(0,0); g.lineTo(-110,-900); g.lineTo(110,-900); g.fill(); } g.restore(); }
   const wg=g.createLinearGradient(0,wy,0,wy+wh); wg.addColorStop(0,'#0a1028'); wg.addColorStop(.5,hit?'#5a4a12':'#24356b'); wg.addColorStop(1,'#0a1028'); g.fillStyle=wg; g.fillRect(wx-4,wy-4,ww+8,wh+8);
   const icon=(key,cx,cy,mw,mh,al)=>{ const a=ANIMALS[key], k=Math.min(mw/a.w,mh/a.h); g.save(); g.globalAlpha=al; g.translate(cx-a.w*k/2,cy-a.h*k/2); g.scale(k,k); g.drawImage(a.img,0,0,a.w,a.h); g.restore(); };
   g.save(); g.beginPath(); g.rect(wx,wy,ww,wh); g.clip();
