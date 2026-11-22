@@ -601,7 +601,7 @@ function update(dt){
       for(let i=0;i<8;i++) S.parts.push({x:b.position.x+rand(-60,60),y:b.bounds.max.y,vx:rand(-160,160),vy:rand(-260,-60),t:rand(.3,.6),c:'#fff'});
       if(S.topY<=GOAL_Y){ S.phase='hold'; S.holdSaid=false; S.hold=CFG.holdSec; S.holdN=0; S.holdKeep=false; return; }
       S.cur=S.next; rollNext(); S.rot=0; S.phase='aim'; } }
-  if(S.phase==='losing'){ const c0=Math.ceil(S.loseT); S.loseT-=dt; if(Math.ceil(S.loseT)!==c0 && S.loseT>0) play('count'); if(S.loseT<=0){ S.loseT=0; S.phase='fall'; endRound(false,S.loseWhy); S.endT=LOSE.end; return; } return; }
+  if(S.phase==='losing'){ if(fxBusy()){ S.loseT=Math.max(S.loseT,1); return; } const c0=Math.ceil(S.loseT); S.loseT-=dt; if(Math.ceil(S.loseT)!==c0 && S.loseT>0) play('count'); if(S.loseT<=0){ S.loseT=0; S.phase='fall'; endRound(false,S.loseWhy); S.endT=LOSE.end; return; } return; }
   // ゴールの線を超えたら5カウント。数えきったら勝ち、途中で落ちたら負け、線より下がったら数え直し
   if(S.phase==='aim' && !S.falling && S.topY<=GOAL_Y && S.bodies.length){ S.phase='hold'; S.holdSaid=false; S.hold=CFG.holdSec; S.holdKeep=true; }   // 天使でゴールが下がって、もう超えていた場合
   if(S.phase==='hold'){ if(S.topY>GOAL_Y+14){ if(!S.holdKeep){ S.cur=S.next; rollNext(); } S.holdKeep=false; S.rot=0; S.phase='aim'; S.hold=0; }
@@ -830,10 +830,12 @@ function doRewind(name){ const sn=S.snap, wasLosing=S.phase==='losing'; if(!sn &
   S.falling=null; S.phase='aim'; S.aimT=0; S.hold=0; S.settle=0; S.loseT=0; S.snap=null; S.red=0; S.white=Math.max(S.white,.45); play('kira',.7);
   for(let i=0;i<40;i++) S.parts.push({k:'spark',x:540+rand(-420,420),y:AIM_Y+rand(-200,700),vx:rand(-60,60),vy:rand(-420,-120),g:-60,t:rand(.6,1.2),c:pick(['#9be9ff','#ffe680','#fff']),r:rand(7,14)});
   logAdd(name+' の砂時計が'+(wasLosing?'負けを食い止めた！':'1手巻き戻した'),'#9be9ff'); }
+/* 演出やギフトの効果が動いている間は、負けのカウントダウンを止めて待つ（演出と効果を最後まで見せてから数える） */
+function fxBusy(){ return !!(S.cut || S.cutQ.length || S.seq || S.seqQ.length || S.wg || S.rb || S.roul || S.roulQ.length || wrCur.p || wrCur.m || wrQ.p.length || wrQ.m.length || S.crow || S.fairy || rwCur || S.nz || S.ink || dblFlash>0); }
 function drawLosing(){ if(S.mode!=='playing' || S.phase!=='losing') return; const left=Math.max(0,S.loseT), n=Math.ceil(left), f=n-left, T=performance.now()/1000;
   g.save(); const gr=g.createRadialGradient(540,885,300,540,885,980); gr.addColorStop(0,'rgba(120,0,10,0)'); gr.addColorStop(1,'rgba(160,0,14,'+(.5+.18*Math.sin(T*9))+')'); g.fillStyle=gr; g.fillRect(-3000,200,7080,1370);
   g.fillStyle='rgba(20,0,4,.72)'; rr(150,470,780,96,48); g.fill(); g.strokeStyle='#ff5c5c'; g.lineWidth=4; rr(150,470,780,96,48); g.stroke(); txt(S.loseWhy+'！',540,519,46,'#fff','center',null,900);
-  const k=1+.9*Math.pow(clamp(1-f/.22,0,1),2); g.translate(540,760); g.scale(k,k); g.shadowColor='#ff0020'; g.shadowBlur=40; txtD(String(n),0,0,330,'#ff3344','center','#1a0006',36); g.shadowBlur=0; g.restore();
+  const k=fxBusy()?1:1+.9*Math.pow(clamp(1-f/.22,0,1),2); g.translate(540,760); if(fxBusy()) g.globalAlpha=.35; g.scale(k,k); g.shadowColor='#ff0020'; g.shadowBlur=40; txtD(String(n),0,0,330,'#ff3344','center','#1a0006',36); g.shadowBlur=0; g.restore();
   if(hgImg.naturalWidth){ const hw=74, hh=hw*hgImg.naturalHeight/hgImg.naturalWidth; g.save(); g.fillStyle='rgba(6,16,50,.82)'; rr(210,960,660,110,55); g.fill(); g.strokeStyle='#9be9ff'; g.lineWidth=4; rr(210,960,660,110,55); g.stroke(); g.drawImage(hgImg,246,1015-hh/2+Math.sin(T*5)*4,hw,hh); txt('砂時計で耐えられる！',590,1016,42,'#9be9ff','center',null,900); g.restore(); } }
 function updateRewind(dt){ const r=rwCur; if(!r) return; r.t+=dt; if(!r.done && r.t>=RW.spin){ r.done=true; doRewind(r.name); } if(r.t>=RW.spin+RW.show) rwCur=null; }
 function drawRewind(){ const r=rwCur; if(!r || !hgImg.naturalWidth) return; const u=clamp(r.t/RW.spin,0,1), a=clamp(r.t/.12,0,1)*clamp((RW.spin+RW.show-r.t)/.35,0,1), w=300*(1+.25*Math.sin(u*Math.PI)), h=w*hgImg.naturalHeight/hgImg.naturalWidth, e=u*u*(3-2*u);
