@@ -15,12 +15,12 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:none
 canvas{width:100%;height:100%;display:block}
 #rot{position:absolute;right:2%;bottom:4.2%;width:15%;aspect-ratio:1;border-radius:50%;border:3px solid #fff;background:rgba(61,111,209,.85);color:#fff;
   font:900 calc(var(--u)*4.2) inherit;font-family:inherit}
-#testBtn{position:absolute;top:.8%;right:2%;font:700 calc(var(--u)*2.4) inherit;font-family:inherit;padding:.3em .9em;border-radius:999px;border:1px solid rgba(255,255,255,.6);background:rgba(0,0,0,.55);color:#fff}
+#testBtn{position:absolute;top:.9%;right:1.2%;font-weight:900;font-size:calc(var(--u)*2.1);font-family:inherit;padding:.3em .8em;min-width:calc(var(--u)*14.5);box-sizing:border-box;border-radius:999px;border:1px solid rgba(255,255,255,.6);background:rgba(0,0,0,.55);color:#fff}
 #panel{position:absolute;left:0;right:0;top:10.8%;max-height:89.2%;box-sizing:border-box;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;display:grid;grid-template-columns:repeat(4,1fr);gap:calc(var(--u)*.9);padding:calc(var(--u)*1.2);align-content:start;background:rgba(10,10,20,.86)}
 #panel[hidden]{display:none}
 #panel button small{display:block;font-size:.8em;opacity:.8;margin-bottom:.15em}
 #panel button{font-weight:900;font-size:calc(var(--u)*2.7);font-family:inherit;line-height:1.22;padding:.75em .1em;touch-action:pan-y;border-radius:8px;border:0;color:#fff}
-#cfgBtn{position:absolute;top:5.6%;right:2%;font-weight:900;font-size:calc(var(--u)*2.1);font-family:inherit;padding:.25em .8em;border-radius:999px;border:1px solid rgba(255,255,255,.6);background:rgba(0,0,0,.55);color:#fff}
+#cfgBtn{position:absolute;top:5.3%;right:1.2%;font-weight:900;font-size:calc(var(--u)*2.1);font-family:inherit;padding:.3em .6em;min-width:calc(var(--u)*14.5);box-sizing:border-box;border-radius:999px;border:1px solid rgba(255,255,255,.6);background:rgba(0,0,0,.55);color:#fff}
 #cfgBtn .dot{display:inline-block;width:.7em;height:.7em;border-radius:50%;background:#888;margin-right:.35em;vertical-align:middle}
 #cfgBtn.on .dot{background:#3ddc6a;box-shadow:0 0 .5em #3ddc6a}
 #cfg{position:absolute;inset:0;background:rgba(8,12,30,.96);color:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;font-size:calc(var(--u)*2.6);padding:calc(var(--u)*3);box-sizing:border-box;z-index:5;-webkit-user-select:text;user-select:text}
@@ -45,7 +45,7 @@ canvas{width:100%;height:100%;display:block}
   <canvas id="cv" width="1080" height="1920"></canvas>
   <button id="rot" type="button">回転</button>
   <button id="testBtn" type="button">テスト</button>
-  <button id="cfgBtn" type="button"><span class="dot"></span>ギフト設定</button>
+  <button id="cfgBtn" type="button"><span class="dot"></span>ギフト</button>
   <div id="cfg" hidden>
     <div class="top"><h2>ギフト設定</h2><button id="cfgClose" type="button">とじる</button></div>
     <div id="tfSt" class="st">TikFinity：つながっていません</div>
@@ -648,7 +648,7 @@ function drawRobot(){ const r=S.rb; if(!r) return; const T=rbT(), w=660/Math.sqr
 const fairyImg=new Image(); fairyImg.src='./img/fairy.png'; const fairyDark=new Image(); fairyDark.src='./img/fairy_dark.png';
 const FY={fly:.55,loop:.6,out:.6,w:310,small:.62,big:1.55,small2:.45,big2:2.0};
 function startFairy(name,dark){ const o={name,dark:!!dark,m:DB(),t:0,side:Math.random()<.5?-1:1,done:false}; if(S.fairy) S.fairyQ.push(o); else S.fairy=o; }
-function fairyTarget(f){ if(!f.spec){ const useCur=S.phase==='aim' && !S.cur.statue && !seqLock(); f.spec=useCur?S.cur:S.next; f.onCur=useCur; } return (f.onCur && f.spec===S.cur && S.phase==='aim')?{x:sx(S.px),y:sy(AIM_Y)}:{x:865,y:140}; }
+function fairyTarget(f){ if(!f.spec){ const useCur=S.phase==='aim' && !S.cur.statue && !seqLock(); f.spec=useCur?S.cur:S.next; f.onCur=useCur; } return (f.onCur && f.spec===S.cur && S.phase==='aim')?{x:sx(S.px),y:sy(AIM_Y)}:{x:817,y:142}; }
 function fairyPos(f){ const tg=fairyTarget(f), sd=f.side, x0=sd<0?-220:W+220, y0=tg.y-260;
   if(f.t<FY.fly){ const u=f.t/FY.fly, e=1-Math.pow(1-u,2.2); return {x:x0+(tg.x-sd*165-x0)*e, y:y0+(tg.y-y0)*e+Math.sin(u*Math.PI)*-60, dir:-sd}; }
   if(f.t<FY.fly+FY.loop){ const u=(f.t-FY.fly)/FY.loop, an=(sd<0?Math.PI:0)+u*Math.PI*2*(-sd); return {x:tg.x+Math.cos(an)*165, y:tg.y+Math.sin(an)*105, dir:(Math.sin(an)*sd>0?1:-1)*(-1)}; }
@@ -937,7 +937,7 @@ function drawHUD(){
   const hm=heightM(); txtD(hm.toFixed(1)+'m',540,82,98,'#fff','center'); txt('目標 '+GOAL_M+'m　いま'+S.bodies.filter(b=>!b.plugin.rock && b.plugin.key!=='ari').length+'匹',540,160,30,'#b9c6e6','center',null,700);
   g.fillStyle='#2a3a5e'; g.fillRect(0,188,W,12); g.fillStyle='#ffd23f'; g.fillRect(0,188,W*clamp(hm/GOAL_M,0,1),12);
   // つぎの動物
-  if(S.next){ g.fillStyle='#22315a'; rr(790,60,150,124,18); g.fill(); txt('つぎ',865,82,24,'#b9c6e6','center',null,700); g.save(); const a=ANIMALS[S.next.key], k=Math.min(120/a.w,72/a.h)*Math.min(1,.75*S.next.s+.2); g.translate(865-a.w*k/2,140-a.h*k/2); g.scale(k,k); drawAnimal(S.next.key); g.restore();
+  if(S.next){ g.fillStyle='#22315a'; rr(742,62,150,124,18); g.fill(); txt('つぎ',817,84,24,'#b9c6e6','center',null,700); g.save(); const a=ANIMALS[S.next.key], k=Math.min(120/a.w,72/a.h)*Math.min(1,.75*S.next.s+.2); g.translate(817-a.w*k/2,142-a.h*k/2); g.scale(k,k); drawAnimal(S.next.key); g.restore();
     if(S.next.s>1.2 || ANIMALS[S.next.key].big) txt('巨大',920,170,22,'#ff9aa8','center'); if(S.next.s<.9) txt('ちび',920,170,22,'#9dffb8','center'); }
   // 下のパネル
   g.fillStyle='#17223b'; g.fillRect(0,1570,W,H-1570);
