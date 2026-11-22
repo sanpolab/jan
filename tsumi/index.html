@@ -56,7 +56,7 @@ canvas{width:100%;height:100%;display:block}
     <h3>ギフト以外</h3>
     <div class="row both"><div class="nm">いいね1000<small>ランダム動物が落ちてくる</small></div><button id="optLike" type="button"></button></div>
     <div class="row both"><div class="nm">フォロー<small>ランダム動物が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
-    <div class="row both"><div class="nm">コメント<small>名前つきの動物が順番に出る（いつもオン）</small></div></div>
+    <div class="row both"><div class="nm">コメント<small>5回ごとに、5回目の人の名前の動物が1体出る</small></div><button id="optChat" type="button"></button></div>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
     <h3>設定の持ち運び</h3>
@@ -66,7 +66,7 @@ canvas{width:100%;height:100%;display:block}
   </div>
   <div id="panel" hidden>
     <button class="b-n" data-a="dbl" style="background:#1c3c9a"><small>妨害もお助けも</small>2倍タイム<br>5分間 ぜんぶ2倍</button>
-    <button class="b-n" data-a="comment">コメント<br>名前つき動物</button>
+    <button class="b-n" data-a="comment">コメント5回分<br>名前つき動物</button>
     <button class="b-l" data-a="like">いいね+250<br>1000でランダム動物</button>
     <button class="b-l" data-a="follow">フォロー<br>ランダム動物</button>
     <button class="b-t" data-a="lose">わざと<br>落とす</button>
@@ -148,7 +148,7 @@ const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 let wins = 0, best = 0;
 /* 2倍タイム：5分間、ギフトの効果とWINの増減がぜんぶ2倍（演出の長さはそのまま） */
 const DBL={sec:300,max:1800,flash:2.0}; let dblT=0, dblFlash=0, dblHit=0; const DB=()=>dblT>0?2:1;
-const OPT={likeOn:true,followOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('tsumi_opts')||'{}')); }catch(e){}
+const OPT={likeOn:true,followOn:true,chatOn:true}; const CHAT_EVERY=5; let chatN=0; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('tsumi_opts')||'{}')); }catch(e){}
 function optSave(){ try{ localStorage.setItem('tsumi_opts',JSON.stringify(OPT)); }catch(e){} }
 const SPD_OPTS=[1,1.25,1.5,2]; let baseSpd=1; try{ const v=parseFloat(localStorage.getItem('tsumi_spd')); if(SPD_OPTS.includes(v)) baseSpd=v; }catch(e){}
 function setBaseSpd(v){ if(!SPD_OPTS.includes(v)) return; baseSpd=v; try{ localStorage.setItem('tsumi_spd',String(v)); }catch(e){} }
@@ -430,6 +430,7 @@ function drawMeteors(){
 /* ====== 外部から呼ぶ入口（あとでTikTok連携をここにつなぐ） ====== */
 function setGlue(sec){ S.glue=Math.max(S.glue,sec); for(const b of S.bodies) if(b!==S.falling && !b.isStatic){ Sleeping.set(b,false); Body.setStatic(b,true); b.plugin.glued=true; } }
 const Game = {
+  chat(name){ if(!OPT.chatOn || S.mode!=='playing') return; chatN++; if(chatN>=CHAT_EVERY){ chatN=0; Game.comment(name); } },
   comment(name){ if(S.mode!=='playing') return; if(S.names.length<20) S.names.push(name); if(!S.next.name && !S.next.by){ S.next.name=S.names.shift(); } logAdd(name+' さんの動物が順番待ち','#bfe3ff'); },
   randomAnimal(name,why){ if(S.mode!=='playing') return; startRoulette(name); if(DB()>1) startRoulette(name); logAdd(name+(why||'')+'：ランダム動物が落ちてくる','#ff9ac1'); },
   follow(name){ if(!OPT.followOn) return; Game.randomAnimal(name,' がフォロー'); },
@@ -1041,7 +1042,7 @@ function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.dat
   if(ev==='gift'){ const gd=d.giftDetails||d.extendedGiftInfo||d.gift||{}, id=d.giftId!=null?d.giftId:(gd.id!=null?gd.id:gd.giftId), gname=d.giftName||gd.giftName||gd.name||('ID'+id), coins=d.diamondCount!=null?d.diamondCount:(gd.diamondCount!=null?gd.diamondCount:gd.diamond_count), gtype=d.giftType!=null?d.giftType:gd.giftType, rc=Math.max(1,parseInt(d.repeatCount,10)||1), end=!!d.repeatEnd;
     let n=rc; if(gtype===1){ const k=(d.uniqueId||u.uniqueId||name)+'|'+id, last=TF.streak[k]||0; n=Math.max(0,rc-last); if(end) delete TF.streak[k]; else TF.streak[k]=rc; }
     if(n<=0) return; tfGift({id,name:gname,coins},name,Math.min(n,50)); }
-  else if(ev==='chat'){ tfLogAdd('コメント：'+name); Game.comment(name); }
+  else if(ev==='chat'){ Game.chat(name); tfLogAdd('コメント：'+name+(OPT.chatOn?'（'+(chatN===0?'この人の名前の動物が出る':'あと'+(CHAT_EVERY-chatN)+'回で動物')+'）':'（オフ）')); }
   else if(ev==='like'){ const c=parseInt(d.likeCount,10)||1; Game.like(c); }
   else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') Game.follow(name); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
 function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
@@ -1059,8 +1060,8 @@ function cfgBuild(){ const box=document.getElementById('cfgRows'); if(!box) retu
   document.getElementById('tfRe').addEventListener('click',()=>{ TF.wait=3000; tfConnect(); });
   document.getElementById('cfgExp').addEventListener('click',()=>{ const t=document.getElementById('cfgIO'); t.value=JSON.stringify(TF.map); t.select(); });
   document.getElementById('cfgImp').addEventListener('click',()=>{ try{ const o=JSON.parse(document.getElementById('cfgIO').value); if(o && typeof o==='object'){ TF.map=o; tfSave(); cfgBuild(); tfLogAdd('設定を読みこんだ'); } }catch(e){ tfLogAdd('読みこみ失敗：文字が正しくない'); } }); }
-function optUI(){ for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
-for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); }); optUI();
+function optUI(){ for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
+for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); }); optUI();
 window.TsumiTF={ TF, simulate:m=>tfEvent(m), connect:tfConnect };
 tfConnect();
 
