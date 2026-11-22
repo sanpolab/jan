@@ -30,6 +30,7 @@ canvas{width:100%;height:100%;display:block}
 #cfg .st{padding:.6em .8em;border-radius:.6em;background:#3a1420;border:2px solid #ff5c7a;font-weight:900}#cfg .st.on{background:#123a22;border-color:#3ddc6a}
 #cfg .row{display:flex;align-items:center;gap:.4em;padding:.35em 0;border-bottom:1px solid rgba(255,255,255,.12)}
 #cfg .row .nm{flex:0 0 38%;font-weight:900}#cfg .row .nm small{display:block;font-weight:700;opacity:.7;font-size:.72em}
+#cfg button.tc.on{background:#ffd23f;color:#201400}
 #cfg .row input{flex:1 1 auto;min-width:0;font:inherit;padding:.35em .5em;border-radius:.4em;border:1px solid #6677aa;background:#0c1436;color:#fff}
 #cfg button{font:inherit;font-weight:900;padding:.4em .8em;border-radius:.5em;border:0;background:#3d6fd1;color:#fff}
 #cfg .gsel{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:.5em;background:#0c1436;border:1px solid #6677aa;border-radius:.5em;padding:.25em .5em;color:#fff;font-weight:900;text-align:left}
@@ -72,7 +73,11 @@ canvas{width:100%;height:100%;display:block}
     <h3>どのギフトで何が起きるか</h3>
     <p>左のわくを押して一覧からギフトをえらびます。「受信で登録」は、押してからそのギフトを1個投げてもらうと確実に結びつきます。未設定の効果はギフトでは起きません。</p>
     <div id="cfgRows"></div>
-    <p><button id="cfgTable" type="button">ギフト表を開く（配信にのせる用）</button></p>
+    <h3>ギフト表（配信にのせる用）</h3>
+    <p>下のURLがギフト表です。ギフトを変えると、URLも表も自動で変わります。</p>
+    <div class="row"><input id="tblUrl" type="text" readonly></div>
+    <p>1段の数 <button class="tc" type="button" data-c="6">6</button> <button class="tc" type="button" data-c="7">7</button> <button class="tc" type="button" data-c="9">9</button>　<button id="tblCopy" type="button">URLをコピー</button> <button id="cfgTable" type="button">ひらく</button></p>
+    <p id="tblNote">このChromeで開いた表は、ギフトを変えると数秒で自動で変わります。配信ソフトにURLを貼る場合は、ギフトを変えたあとにもう一度コピーして貼り直してください。</p>
     <h3>ギフト以外</h3>
     <div class="row both"><div class="nm">いいね1000<small>ランダム動物が落ちてくる</small></div><button id="optLike" type="button"></button></div>
     <div class="row both"><div class="nm">フォロー<small>ランダム動物が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
@@ -1084,7 +1089,11 @@ function pickDraw(){ const tb=document.getElementById('pickTabs'); tb.innerHTML=
     const b=document.createElement('button'); b.type='button'; b.className='it'; const gi=document.createElement('div'); gi.className='gi'; catIcon(gi,i); const sp=document.createElement('span'); sp.textContent=e[0]; const em=document.createElement('em'); em.textContent=e[1];
     b.appendChild(gi); b.appendChild(sp); b.appendChild(em); b.addEventListener('click',()=>{ TF.map[pickFx[0]]={id:null,name:e[0],coins:e[1],ci:i,pic:null}; tfSave(); document.getElementById('pick').hidden=true; cfgBuild(); }); fr.appendChild(b); });
   g.appendChild(fr); if(!g.children.length){ const d=document.createElement('p'); d.textContent='見つかりませんでした'; g.appendChild(d); } }
-function cfgBuild(){ const box=document.getElementById('cfgRows'); if(!box) return; box.innerHTML='';
+let tblCols=7; try{ tblCols=parseInt(localStorage.getItem('tsumi_tblcols'),10)||7; }catch(e){}
+function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
+  const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+'&g='+parts.join(','); }
+function tblUI(){ const el=document.getElementById('tblUrl'); if(el) el.value=tblUrl(); document.querySelectorAll('#cfg button.tc').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.c,10)===tblCols)); }
+function cfgBuild(){ tblUI(); const box=document.getElementById('cfgRows'); if(!box) return; box.innerHTML='';
   for(const f of FX_LIST){ const b=TF.map[f[0]]||{}, row=document.createElement('div'); row.className='row '+f[1];
     const nm=document.createElement('div'); nm.className='nm'; nm.textContent=(f[1]==='jam'?'妨害｜':f[1]==='help'?'お助け｜':'')+f[2]; const sm=document.createElement('small'); sm.textContent=f[3]+(b.coins!=null?'　'+b.coins+'コイン':''); nm.appendChild(sm);
     const inp=document.createElement('button'); inp.type='button'; inp.className='gsel'; const gi=document.createElement('div'); gi.className='gi'; if(b.ci!=null) catIcon(gi,b.ci); else if(b.pic){ gi.style.backgroundImage='url('+b.pic+')'; gi.style.backgroundSize='contain'; gi.style.backgroundPosition='center'; }
@@ -1095,12 +1104,14 @@ function cfgBuild(){ const box=document.getElementById('cfgRows'); if(!box) retu
     row.appendChild(nm); row.appendChild(inp); row.appendChild(lr); if(b.name) row.appendChild(xb); box.appendChild(row); } }
 { const cfg=document.getElementById('cfg'); document.getElementById('cfgBtn').addEventListener('click',()=>{ catLoad(()=>{ cfgBuild(); }); cfgBuild(); tfUI(); cfg.hidden=false; panel.hidden=true; }); document.getElementById('cfgClose').addEventListener('click',()=>{ TF.learn=null; cfg.hidden=true; });
   document.getElementById('pickClose').addEventListener('click',()=>{ document.getElementById('pick').hidden=true; }); document.getElementById('pickQ').addEventListener('input',pickDraw);
-  document.getElementById('cfgTable').addEventListener('click',()=>{ window.open('./gifts.html','_blank'); });
+  document.getElementById('cfgTable').addEventListener('click',()=>{ window.open(tblUrl(),'_blank'); });
+  document.querySelectorAll('#cfg button.tc').forEach(b=>b.addEventListener('click',()=>{ tblCols=parseInt(b.dataset.c,10); try{ localStorage.setItem('tsumi_tblcols',String(tblCols)); }catch(e){} tblUI(); }));
+  document.getElementById('tblCopy').addEventListener('click',()=>{ const el=document.getElementById('tblUrl'), bt=document.getElementById('tblCopy'); el.select(); const done=()=>{ bt.textContent='コピーしました'; setTimeout(()=>{ bt.textContent='URLをコピー'; },1500); }; try{ navigator.clipboard.writeText(el.value).then(done,()=>{ document.execCommand('copy'); done(); }); }catch(e){ try{ document.execCommand('copy'); done(); }catch(_){} } });
   document.getElementById('tfRe').addEventListener('click',()=>{ TF.wait=3000; tfConnect(); });
   document.getElementById('cfgExp').addEventListener('click',()=>{ const t=document.getElementById('cfgIO'); t.value=JSON.stringify(TF.map); t.select(); });
   document.getElementById('cfgImp').addEventListener('click',()=>{ try{ const o=JSON.parse(document.getElementById('cfgIO').value); if(o && typeof o==='object'){ TF.map=o; tfSave(); cfgBuild(); tfLogAdd('設定を読みこんだ'); } }catch(e){ tfLogAdd('読みこみ失敗：文字が正しくない'); } }); }
 function optUI(){ for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
-for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); }); optUI();
+for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); tblUI(); }); optUI();
 catLoad(()=>{});
 window.TsumiTF={ TF, simulate:m=>tfEvent(m), connect:tfConnect };
 tfConnect();
