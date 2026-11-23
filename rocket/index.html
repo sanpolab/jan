@@ -28,7 +28,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <h3>無料（コメント・いいね）</h3>
     <button class="n" data-a="comment">コメント<br>少し加速</button><button class="n" data-a="like">いいね×50<br>少し加速</button><button class="n" data-a="follow">フォロー<br>大きく加速</button>
     <h3>お助け</h3>
-    <button class="h" data-a="fuel">エネルギー補給<br>耐久・パワー全回復</button><button class="h" data-a="boost">ブースター<br>10秒 3倍速</button><button class="h" data-a="shield">天使の加護<br>攻撃を1回防ぐ（3回分まで）</button><button class="h" data-a="heart">ハート<br>耐久 ＋1</button><button class="h" data-a="bomb">カミナリ<br>ドラゴンか魔法使いを1体消す</button><button class="h" data-a="buddy">おとも<br>20秒 弾を3発まで受ける</button><button class="h" data-a="phoenix">不死鳥<br>＋2000m 運ぶ間は無敵</button>
+    <button class="h" data-a="fuel">エネルギー補給<br>耐久・パワー全回復</button><button class="h" data-a="boost">ブースター<br>10秒 3倍速</button><button class="h" data-a="shield">天使の加護<br>攻撃を1回防ぐ（3回分まで）</button><button class="h" data-a="heart">ハート<br>耐久 ＋1</button><button class="h" data-a="bomb">カミナリ<br>ドラゴンか魔法使いを1体消す</button><button class="h" data-a="buddy">おとも<br>20秒 弾を3発まで受ける</button><button class="h" data-a="pad">加速板<br>ふれると1.5秒 加速</button><button class="h" data-a="phoenix">不死鳥<br>＋2000m 運ぶ間は無敵</button>
     <button class="h" data-a="save">セーブ<br>落ちてもここから</button><button class="h" data-a="warp">ワープ<br>＋500m</button><span></span>
     <h3>機体交換（落ちるまで続く）</h3>
     <button class="g" data-s="stealth">ステルス<br>妨害を2回よける</button><button class="g" data-s="gold">ゴールド<br>速さ1.5倍</button><button class="g" data-s="dragon">ドラゴン<br>3倍速＋隕石無効</button>
@@ -36,7 +36,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <h3>妨害</h3>
     <button class="j" data-a="leak">パワーダウン<br>応援パワー0</button><button class="j" data-a="meteor">隕石<br>耐久 −1</button><button class="j" data-a="stall">エンジン停止<br>6秒 落ちていく</button>
     <button class="j" data-a="hole">ブラックホール<br>−500m</button><button class="j" data-a="crash">撃墜<br>即ついらく</button><button class="j" data-a="dragonAtk">ドラゴン襲来<br>火球3発（当たれば耐久−1）</button>
-    <button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−1000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法1発（耐久−1）</button>
+    <button class="j" data-a="slowpad">減速板<br>ふむと1.5秒 おそくなる</button><button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−1000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法1発（耐久−1）</button>
     <h3>目標の高さ（変えると0からやり直し）</h3>
     <button class="g" data-g="1000">1,000m</button><button class="g" data-g="5000">5,000m</button><button class="g" data-g="10000">10,000m</button>
     <button class="g" data-g="50000">50,000m</button><button class="g" data-g="100000">100,000m</button><button class="n" data-a="reset">記録を消す</button>
@@ -118,6 +118,8 @@ const Game={
   stall(n){ if(jamBlocked(n,'エンジン停止')) return; S.stallT=CFG.stallSec; S.boostT=0; S.red=.5; banner('エンジン停止！','#ff3d5a',n,'logo_stall'); logAdd((n||'だれか')+' がエンジンを止めた','#ff9aa8'); },
   hole(n){ if(jamBlocked(n,'ブラックホール')) return; S.holeT=2.2; S.holeDrop+=Math.min(S.alt,CFG.hole); S.shake=.5; banner('−'+CFG.hole+'m','#c58bff',n,CFG.hole===500?'logo_m500':''); logAdd((n||'だれか')+' がブラックホールで引きずり下ろした','#ff9aa8'); },
   dragonAtk(n){ if(S.mode!=='fly' || S.drg) return; S.drg={t:0,by:n,shot:0,snd:false,id:++JID}; S.banner=null; S.flash=Math.max(S.flash,.12); logAdd((n||'だれか')+' がドラゴンを呼んだ（火球3発）','#ff9aa8'); },
+  pad(n){ if(S.mode!=='fly') return; S.items.push({k:'pad',up:true,x:clamp(RXw()+rand(-300,300),W/2-500,W/2+500),y:-120,t:0,by:n,got:0}); },
+  slowpad(n){ if(S.mode!=='fly') return; S.items.push({k:'pad',up:false,x:clamp(RXw()+rand(-110,110),W/2-500,W/2+500),y:-120,t:0,by:n,got:0}); },
   bird(n){ if(S.mode!=='fly') return; const x=clamp(RXw()+rand(-320,320),XL+140,XL+XW-140), y=-110, ax=RXw()-x, ay=RYw()-y, L=Math.hypot(ax,ay)||1; S.items.push({k:'bird',x,y,vx:ax/L*BIRD.spd,vy:ay/L*BIRD.spd,t:0,ph:rand(0,6),by:n,dz:0}); },
   ice(n){ if(S.mode!=='fly' || S.ice || S.cine) return; logAdd((n||'だれか')+' が氷の怪鳥を呼んだ','#9bd8ff'); const go=()=>{ if(S.mode!=='fly') return; S.ice={t:0,by:n,hit:false}; play('ibird',.8); S.flash=Math.max(S.flash,.7); }; startCine('icebird',go); },
   wizard(n){ if(S.mode!=='fly') return; const first=!S.wizs.length && !S.cutin; if(first) S.cutin={k:'wizard',t:0,by:n,done:true}; S.wizs.push({t:first?-.5:-rand(0,.3),x:clamp(RXw()+rand(-420,420),XL+260,XL+XW-260),y:rand(380,460),ph:rand(0,6),by:n,shot:false,snd:false,id:++JID}); logAdd((n||'だれか')+' が魔法使いを呼んだ','#d9a8ff'); },
@@ -186,6 +188,8 @@ const wizPos=w=>{ const a=clamp(w.t/WIZ.inT,0,1), b=clamp((w.t-(WIZ.life-WIZ.out
 function drawWizards(){ if(!wizSh.ok) return; for(const w of S.wizs){ if(w.t<0) continue; const sh=wizSh, f=clamp(Math.floor(w.t*sh.fps),0,sh.n-1), ww=WIZ.w, hh=ww*sh.fh/sh.fw, p=wizPos(w); g.save(); g.translate(p.x,p.y); g.rotate(Math.sin(w.t*1.7+w.ph)*.05); g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,-ww/2,-hh/2,ww,hh);
     const nx=WIZ.cast-w.t; if(nx>0 && nx<.5 && ok('morb')){ const z=(1-nx/.5)*110; g.globalCompositeOperation='lighter'; g.globalAlpha=.9; g.translate(ww*.42,hh*.38); g.rotate(T*6); g.drawImage(IMG.morb,-z/2,-z/2,z,z); } g.restore(); } }
 function drawMorb(it){ if(!ok('morb')) return; const z=118*(1+.08*Math.sin(T*18)); g.save(); g.translate(it.x,it.y); g.rotate(T*5); g.drawImage(IMG.morb,-z/2,-z/2,z,z); g.globalCompositeOperation='lighter'; g.globalAlpha=.5; g.rotate(-T*9); g.drawImage(IMG.morb,-z*.6,-z*.6,z*1.2,z*1.2); g.restore(); }
+for(const k of ['pad_up','pad_dn']) img(k,k+'.webp');
+const PAD={spd:430,up:{w:210,sec:1.5},dn:{w:190,sec:1.5,mul:.35}};   /* 加速板・減速板：流れてくる速さ、絵の横幅、効く秒数、減速の倍率 */
 const BIRD={spd:520,slow:.3,slowSec:.8,h:92};   // 小鳥：速さ、当たった時の速さの倍率と秒数、絵の高さ
 const ICE={drop:1000,fall:2.6,slowSec:30,slowMul:.5,dur:3.4,inT:.7,outT:.8,w:560,y:350,beam0:1.1,beam1:2.0,flapK:1.5};   // 氷の怪鳥：落とす高さ、落ちる秒数、速さ半分の秒数 など
 const ibY=t=>{ const a=clamp(t/ICE.inT,0,1), b=clamp((t-(ICE.dur-ICE.outT))/ICE.outT,0,1), ea=1-Math.pow(1-a,3); return lerp(-320,ICE.y,ea)-b*b*720+Math.sin(t*9)*6; };
@@ -206,6 +210,11 @@ function drawIceBird(){ const d=S.ice; if(!d || !ibSh.ok) return; const sh=ibSh,
         for(let q=0;q<2;q++){ const ph=((T*2.4+q/2)%1), ln=len*(1+.28*ph), bw=bw0*(1+.2*ph); g.globalAlpha=(1-ph)*.42*out*k; g.drawImage(bi,-bw/2,-len*.03,bw,ln); }   // 少しずつ伸びて消える重ね描きで、下へ吹きつける流れを出す
         g.globalCompositeOperation='lighter'; g.globalAlpha=.22*out*k*(.7+.3*Math.sin(T*30)); g.drawImage(bi,-bw0*.3,-len*.03,bw0*.6,len); g.restore(); }
     if(ui && k>.5){ const u=(k-.5)*2, pr=clamp((d.t-ICE.beam0)/(ICE.beam1-ICE.beam0),0,1), sz=(200+40*Math.sin(T*13)+200*pr)*u; g.save(); g.translate(tx,ty); for(let q=0;q<2;q++){ g.rotate(T*(q?-1.7:1.1)+q); g.globalAlpha=(q?.45:.8)*out; const z=sz*(q?.72:1); g.drawImage(ui,-z/2,-z/2,z,z); } g.restore(); }
+    g.restore(); } }
+function drawPads(){ for(const it of S.items){ if(it.k!=='pad') continue; const im=IMG[it.up?'pad_up':'pad_dn']; if(!im || !im.naturalWidth) continue; const P=it.up?PAD.up:PAD.dn, u=it.got>0?it.got/.35:0, w=P.w*(1+u*.5), h=w*im.naturalHeight/im.naturalWidth, pl=.5+.5*Math.sin(it.t*10);
+    g.save(); g.translate(it.x,it.y); g.globalAlpha=1-u; g.shadowColor=it.up?'rgba(90,220,255,.95)':'rgba(255,60,60,.95)'; g.shadowBlur=24+pl*22; g.drawImage(im,-w/2,-h/2,w,h); g.shadowBlur=0;
+    g.globalCompositeOperation='lighter'; g.globalAlpha=(1-u)*(.15+.3*pl+(u>0?.5:0)); g.drawImage(im,-w/2,-h/2,w,h);
+    g.globalAlpha=(1-u)*.5; g.strokeStyle=it.up?'#bff3ff':'#ffb0b0'; g.lineWidth=5; g.lineCap='round'; for(let q=0;q<5;q++){ const lx=(q-2)*w*.2, ph=(it.t*2.2+q*.37)%1, ly=it.up?lerp(h*.9,-h*1.5,ph):lerp(-h*.9,h*1.5,ph); g.globalAlpha=(1-u)*.55*Math.sin(ph*Math.PI); g.beginPath(); g.moveTo(lx,ly); g.lineTo(lx,ly+(it.up?46:-46)); g.stroke(); }
     g.restore(); } }
 function drawBird(it){ const fr=it.dz>0?3:[0,1,2,1][Math.floor(it.t*14)%4], im=IMG['bird'+fr]; if(!im || !im.naturalWidth) return; const h=BIRD.h, w=h*im.naturalWidth/im.naturalHeight; g.save(); g.translate(it.x,it.y); g.rotate(it.dz>0?it.dz*9:Math.atan2(it.vy,it.vx)-Math.PI/2); g.drawImage(im,-w/2,-h*.5,w,h); g.restore(); }
 const BLESS_MAX=3;   // 天使の加護をためておける回数
@@ -228,7 +237,7 @@ function update(dt){ if(S.cine){ const c=S.cine; c.t+=dt; if(c.t>=c.dur){ try{ c
   if(S.mode==='fly'){ const sp=SHIPS[S.ship]; S.pow=Math.max(0,S.pow-CFG.powDecay*sp.decay*dt); let v=CFG.speed*sp.spd*(1+S.pow);
     if(S.boostT>0){ S.boostT-=dt; v*=CFG.boostMul; } else if(S.stallT>0){ S.stallT-=dt; v=-CFG.stallFall; if(Math.random()<dt*14) S.parts.push({k:'smoke',x:W/2+rand(-30,30),y:RY+140,vx:rand(-80,80),vy:rand(-320,-120),g:0,t:rand(.6,1.1),r:rand(30,60),dark:1,rot:rand(0,6),v:Math.floor(rand(0,3))}); }
     if(S.holeT>0 && S.holeDrop>0) v=0;
-    if(S.birdSlow>0){ S.birdSlow-=dt; if(v>0) v*=BIRD.slow; } if(S.slowT>0 && !S.frz){ S.slowT-=dt; if(v>0) v*=ICE.slowMul; if(Math.random()<dt*5) S.parts.push({k:'snow',x:W/2+rand(-70,70),y:RY+rand(-150,150),vx:rand(-40,40),vy:rand(60,200),g:0,t:rand(.5,1),r:rand(5,10)}); }
+    if(S.birdSlow>0){ S.birdSlow-=dt; if(v>0) v*=BIRD.slow; } if(S.padSlow>0){ S.padSlow-=dt; if(v>0) v*=PAD.dn.mul; } if(S.slowT>0 && !S.frz){ S.slowT-=dt; if(v>0) v*=ICE.slowMul; if(Math.random()<dt*5) S.parts.push({k:'snow',x:W/2+rand(-70,70),y:RY+rand(-150,150),vx:rand(-40,40),vy:rand(60,200),g:0,t:rand(.5,1),r:rand(5,10)}); }
     if(S.frz){ const f=S.frz; f.t+=dt; const u0=clamp((f.t-dt)/ICE.fall,0,1), u1=clamp(f.t/ICE.fall,0,1), e=x=>x*x*(3-2*x); v=-(f.drop*(e(u1)-e(u0)))/dt; if(f.t>=ICE.fall){ S.frz=null; S.slowT=ICE.slowSec; S.shake=.5; S.flash=.25; ring(W/2,RY,'#cfeaff',true); shards(16,700); banner('速さ半分 '+ICE.slowSec+'秒','#9bd8ff','凍結がとけるまで'); } }
     S.alt=Math.max(0,S.alt+v*dt); if(S.alt>best){ best=S.alt; }
     if(S.stallT>0 && S.alt<=0){ S.stallT=0; }
@@ -266,6 +275,13 @@ function update(dt){ if(S.cine){ const c=S.cine; c.t+=dt; if(c.t>=c.dur){ try{ c
     if(!it.dead && S.mode==='fly' && Math.abs(it.x-RXw())<HITB.x+22 && Math.abs(it.y-(RYw()+HITB.oy))<HITB.y+14){ it.dead=true; if(!jamBlocked(it.by,'魔法')){ S.shake=.5; S.flash=.2; S.fx.push({k:'mburst',x:RXw(),y:RYw(),t:0,dur:.55,s:420,rot:rand(0,6)}); for(let i=0;i<8;i++) S.parts.push({k:'smoke',x:W/2+rand(-40,40),y:RY-20,vx:rand(-220,220),vy:rand(-220,100),g:0,t:rand(.5,1),r:rand(40,80),dark:1,rot:rand(0,6),v:i%3}); logAdd('魔法が当たった！（耐久−1）','#ff9aa8'); if(it.own) S.dmgBy[it.own]=(S.dmgBy[it.own]||0)+1; damage(); } }
     else if(it.t>7 || it.y>H/K+200 || it.y<-300 || it.x<XL-200 || it.x>XL+XW+200) it.dead=true; }
   // 小鳥：上から飛んできてロケットをねらう。当たると一瞬おそくなる（耐久は減らない）。鳥は目を回して飛び去る
+  // 加速板・減速板：上から流れてくる。ふれたら加速板は PAD.up.sec 秒ブースター、減速板は PAD.dn.sec 秒おそくなる（ゲームは止めない）
+  for(const it of S.items){ if(it.k!=='pad') continue; it.t+=dt; it.y+=PAD.spd*dt; const P=it.up?PAD.up:PAD.dn;
+    if(it.got>0){ it.got+=dt; if(it.got>.35) it.dead=true; continue; }
+    if(S.mode==='fly' && Math.abs(it.x-RXw())<P.w*.5+HITB.x*(it.up?1:.2) && Math.abs(it.y-(RYw()+HITB.oy))<HITB.y*(it.up?1:.7)+30){ it.got=.001;
+      if(it.up){ S.boostT=Math.min(30,Math.max(0,S.boostT||0)+P.sec); S.stallT=0; S.flash=Math.max(S.flash,.18); ring(W/2,RY+150,'#bff3ff'); if(T-(S.padLog||0)>1.2){ S.padLog=T; logAdd((it.by||'だれか')+' の加速板で加速！','#5dffb0'); } }
+      else if(!S.phx){ S.padSlow=Math.min(6,Math.max(0,S.padSlow||0)+P.sec); S.shake=Math.max(S.shake,.2); S.red=Math.max(S.red||0,.2); if(T-(S.padLog2||0)>1.2){ S.padLog2=T; logAdd((it.by||'だれか')+' の減速板をふんだ（おそくなる）','#ff9aa8'); } } }
+    if(it.y>H/K+200) it.dead=true; }
   for(const it of S.items){ if(it.k!=='bird') continue; it.t+=dt; if(it.dz>0){ it.dz+=dt; it.vy+=500*dt; } else { const px=-it.vy, py=it.vx, L=Math.hypot(px,py)||1, wob=Math.cos(it.t*7+it.ph)*90; it.x+=px/L*wob*dt; it.y+=py/L*wob*dt; }
     it.x+=it.vx*dt; it.y+=it.vy*dt;
     if(!it.dz && !it.dead && S.mode==='fly' && Math.abs(it.x-RXw())<HITB.x+34 && Math.abs(it.y-(RYw()+HITB.oy))<HITB.y+30){ it.dz=.001; const sd=it.x<RXw()?-1:1; it.vx=sd*rand(260,420); it.vy=-rand(200,360); S.birdSlow=BIRD.slowSec; S.shake=Math.max(S.shake,.2); for(let i=0;i<6;i++) S.parts.push({abs:1,k:'conf',x:it.x,y:it.y,vx:rand(-300,300),vy:rand(-360,60),g:700,t:rand(.4,.8),c:pick(['#ffd400','#fff','#ffe680']),r:rand(8,14),rot:rand(0,6),vr:rand(-12,12)}); if(T-(S.birdLog||0)>1.5){ S.birdLog=T; logAdd((it.by||'だれか')+' の小鳥がぶつかった（一瞬おそくなる）','#ff9aa8'); } }
@@ -354,7 +370,7 @@ function draw(){ if(S.cine){ drawCine(); return; }
   drawRings();
   for(const c of CLOUDS){ if(!c.front) continue; const y=y2s(c.f*CFG.goal); if(y>-300 && y<H+300) drawCloud(c,c.x+Math.sin(T*.12+c.f*50)*40,y,.55); }
   for(const f of S.fx){ if(f.k!=='warp') continue; const wi=keyed('warp'); if(!wi) continue; const u=f.t/f.dur, sz=lerp(500,2600,u*u*.6+u*.4); g.save(); g.globalCompositeOperation='lighter'; g.translate(f.x,f.y); for(let q=0;q<2;q++){ g.globalAlpha=clamp((1-u)*1.6,0,1)*(q?.6:1); g.rotate(f.rot+u*(q?-1.2:.8)); const z=sz*(q?.6:1); g.drawImage(wi,-z/2,-z/2,z,z); } g.restore(); }
-  drawPhoenix();
+  drawPads(); drawPhoenix();
   g.save(); g.translate(RXw(),RYw()); g.scale(RS,RS); g.translate(-W/2,-RY);   // ここから下はロケットとそのまわり（小さく、指で動かした場所に）
   { const hk=holeK(); if(hk>0){ g.save(); g.translate(W/2,RY+150); g.scale(1-.16*hk,1+.34*hk); g.translate(-W/2,-(RY+150)+150*hk+rand(-6,6)*hk); } }
   drawBless();
