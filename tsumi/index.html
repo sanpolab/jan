@@ -75,7 +75,7 @@ canvas{width:100%;height:100%;display:block}
     <div id="pickGrid"></div>
   </div>
   <div id="cfg" hidden>
-    <div class="top"><h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/23 19:11</small></h2>
+    <div class="top"><h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/23 19:29</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -101,6 +101,7 @@ canvas{width:100%;height:100%;display:block}
     <div class="row both"><div class="nm">いいね1000<small>ランダム動物が落ちてくる</small></div><button id="optLike" type="button"></button></div>
     <div class="row both"><div class="nm">フォロー<small>ランダム動物が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
     <div class="row both"><div class="nm">コメント<small>コメントした人の名前の動物が1体出る（1人につき1分に1回まで）</small></div><button id="optChat" type="button"></button></div>
+    <div class="row both"><div class="nm">ギフト表のコイン数<small>オフにすると、ギフト表のギフトの絵にコイン数を出さない</small></div><button id="optCoin" type="button"></button></div>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
     <h3>調査用：TikFinityから届いた生データ</h3>
@@ -184,7 +185,7 @@ function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
 // 全画面の映像が流れているあいだは、テスト・ギフト・一時停止のボタンと下のギフト表を消して、映像だけを画面のまん中に見せる
 // 自動更新：公開先に新しい版が出ていたら、古い画面を持ったままにならないよう自動で読みこみ直す（スマホは古い画面を10分ほど覚えているため）
-const VER='1123-191111'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
+const VER='1123-192910'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
   const chk=()=>{ if(S && S.mode==='playing') return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('tsumi_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('tsumi_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); };
   setTimeout(chk,800); setInterval(chk,60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 let cutUi=false; function syncCutUi(){ const on=!!(S.cut && S.cut.vid); if(on===cutUi) return; cutUi=on; for(const id of ['testBtn','cfgBtn','pauseBtn','rot','gtbl']){ const e=document.getElementById(id); if(e) e.style.visibility=on?'hidden':''; }
@@ -202,7 +203,7 @@ const CFG = { statueWin:5, vineSec:180,
   curseCount: 5,     // 呪い・加護が消えるまでの回数（5回勝つ or 5回負ける）
   wideW: 1240,       // お助けで広がった台の幅（画面より広いので、その間はカメラを少し引く）       // 台の幅
   likeGoal: 1000,     // いいね何回で「のり」が出るか
-  windSec: 6, windPre: 1.0, quakeSec: 4, quakeKick: 1.05, gripSec: 8, gripMax: 60, glueSec: 12, wallSec: 60, wallM: 3,
+  windSec: 6, windPre: 3.0, quakeSec: 4, quakeKick: 1.05, gripSec: 8, gripMax: 60, glueSec: 12, wallSec: 60, wallM: 3,
 };
 const TOP_Y = 1440;                       // 台の上面
 /* ゴールの高さは魔女（妨害）で +3m ずつ上がる。重ねがけ可。ラウンドが変わってもずっと続く（天使で下げるまで） */
@@ -226,7 +227,7 @@ const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 let wins = 0, best = 0;
 /* 2倍タイム：5分間、ギフトの効果とWINの増減がぜんぶ2倍（演出の長さはそのまま） */
 const DBL={sec:300,max:1800,flash:2.0}; let dblT=0, dblFlash=0, dblHit=0; const DB=()=>dblT>0?2:1;
-const OPT={likeOn:true,followOn:true,chatOn:true}; const CHAT_GAP=60, chatLast=new Map();   // コメントで動物が出るのは1人につき60秒に1回
+const OPT={likeOn:true,followOn:true,chatOn:true,coinOn:true}; const CHAT_GAP=60, chatLast=new Map();   // コメントで動物が出るのは1人につき60秒に1回
  try{ Object.assign(OPT,JSON.parse(localStorage.getItem('tsumi_opts')||'{}')); }catch(e){}
 function optSave(){ try{ localStorage.setItem('tsumi_opts',JSON.stringify(OPT)); }catch(e){} }
 const SPD_OPTS=[1,1.25,1.5,2]; let baseSpd=1; try{ const v=parseFloat(localStorage.getItem('tsumi_spd')); if(SPD_OPTS.includes(v)) baseSpd=v; }catch(e){}
@@ -553,7 +554,7 @@ const Game = {
       if(stGuard() && kind!=='ant'){ guarded(name,kind==='wind'?'突風':kind==='big'?'動物スロット':'ゆれ'); return; }
       if(kind==='quake'){ S.quake=CFG.quakeSec; S.qk=0; S.qkMul=DB(); play('quake'); startNamazu(); logAdd(name+' が地面をゆらした','#ff9aa8'); sfx.bad(); return; }
       if(kind==='ant'){ dropAnt(name); if(DB()>1) dropAnt(name); logAdd(name+' がアリを落とした','#ff9aa8'); sfx.bad(); return; }
-      if(kind==='wind'){ S.windMul=DB(); if(S.wind>0 || S.windPre>0){ S.wind=Math.max(S.wind,0)+CFG.windSec; } else { S.windPre=CFG.windPre; S.windDir=Math.random()<.5?-1:1; S.windY=clamp(S.topY+50,GOAL_Y-160,1290); } banner('突風！','#9be9ff',name+' のしわざ'); logAdd(name+' が突風を起こした','#ff9aa8'); }
+      if(kind==='wind'){ S.windMul=DB(); if(S.windPre>0){ S.windMore=(S.windMore||0)+CFG.windSec; logAdd(name+' も突風を重ねた（そのぶん長く吹く）','#ff9aa8'); } else if(S.wind>0){ S.wind+=CFG.windSec; logAdd(name+' も突風を重ねた（そのぶん長く吹く）','#ff9aa8'); } else { S.windPre=CFG.windPre; S.windMore=0; S.windDir=Math.random()<.5?-1:1; S.windY=clamp(S.topY+50,GOAL_Y-160,1290); banner('突風が来る！','#9be9ff','太陽で打ち消せ！'); logAdd(name+' が突風を起こした','#ff9aa8'); } }
       else { startRoulette(name); if(DB()>1) startRoulette(name); logAdd(name+' が動物スロットを回した','#ff9aa8'); } sfx.bad(); }
     else if(size===2){ logAdd(name+' がネクロマンサーを呼んだ','#c79bff');
       const apply=()=>{ if(S.mode!=='playing') return; S.ghost=CFG.ghostCount*DB(); S.purple=1.2; S.shake=.3; sfx.bad();
@@ -665,7 +666,7 @@ function update(dt){
   if(S.mode==='dead'||S.mode==='clear'){ S.endT-=dt; acc+=dt*1000; let n=0; while(acc>=STEP && n<3){ Engine.update(engine,STEP); acc-=STEP; n++; } if(S.endT<=0) newRound('playing'); return; }
   if(S.mode!=='playing') return;
   if(S.cut) return;   // 全画面カットイン中はゲームを止める
-  if(S.windPre>0){ S.windPre-=dt; if(S.windPre<=0){ S.windPre=0; play('wind'); S.wind=CFG.windSec; S.shake=Math.max(S.shake,.25); } }
+  if(S.windPre>0){ S.windPre-=dt; if(S.windPre<=0){ S.windPre=0; play('wind'); S.wind=CFG.windSec+(S.windMore||0); S.windMore=0; S.shake=Math.max(S.shake,.25); } }
   const gdt=dt*baseSpd;
   if(S.wind>0) S.wind-=gdt; if(S.quake>0){ S.quake-=gdt; }
   if(S.phase==='aim' && !seqLock() && !window.__noAim && !PAUSED){ const a0=S.aimT||0; S.aimT=a0+dt; if(S.aimT>=aimSec()){ S.aimT=0; drop(); } } else if(S.phase!=='aim') S.aimT=0;
@@ -1479,7 +1480,7 @@ function pickDraw(){ const tb=document.getElementById('pickTabs'); tb.innerHTML=
 const TBL_NAME={ant:'アリ',wind:'突風',ink:'イカスミ',quake:'地震',crow:'カラス',giant:'10秒 巨大化',slot:'動物スロット',biggacha:'巨大ガチャ',mangacha:'タイツガチャ',usagi:'早送り',eel:'タコ解除',necro:'見えない',witch:'ゴール+3m',wrm:'−ルーレット',coin:'−60 か −200',dragon:'全消し',robot:'全リセット',cerberus:'WIN −100',reaper:'WIN −1000',fairy:'10秒 ちび化',kame:'スロー',wave:'大波でまぜる',sun:'突風を消す',wingacha:'＋50 か ＋100',tako:'ずっと吸着',rewind:'負け取消',golem:'落ちない壁',angel:'ゴール−2m',wrp:'＋ルーレット',tree:'台が広がる',statue:'ガード＋勝ちで＋5',pegasus:'WIN ＋100',phoenix:'WIN ＋1000',double:'5分間 2倍'}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('tsumi_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('tsumi_lbl',JSON.stringify(LBL)); }catch(e){} }
 let tblCols=7; try{ tblCols=parseInt(localStorage.getItem('tsumi_tblcols'),10)||7; }catch(e){}
 function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name || b.off) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
-  const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+'&g='+parts.join(',')+(()=>{ const l=Object.keys(LBL).filter(k=>LBL[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LBL[k]))); return l.length?'&l='+l.join(','):''; })(); }
+  const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+(OPT.coinOn?1:0)+'&g='+parts.join(',')+(()=>{ const l=Object.keys(LBL).filter(k=>LBL[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LBL[k]))); return l.length?'&l='+l.join(','):''; })(); }
 function tblUI(){ const el=document.getElementById('tblUrl'); if(el) el.value=tblUrl(); document.querySelectorAll('#cfg button.tc').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.c,10)===tblCols)); }
 function cfgBuild(){ tblUI(); missBuild(); { const sb=document.getElementById('seqLearn'), sn=document.getElementById('seqNote'); if(sb){ sb.textContent=TF.seqLearn?'順番登録をやめる':'上から順に受信で登録'; sb.style.background=TF.seqLearn?'#d1457a':''; const f=TF.seqLearn&&FX_LIST.find(x=>x[0]===TF.learn); sn.textContent=f?'いま待っているのは「'+f[2]+'」（'+((TF.map[f[0]]||{}).name||'')+'）。このギフトを1個流してください':''; } } const box=document.getElementById('cfgRows'); if(!box) return; box.innerHTML='';
   for(const f of FX_LIST){ const b=TF.map[f[0]]||{}, row=document.createElement('div'); row.className='row '+f[1];
@@ -1510,8 +1511,8 @@ function cfgBuild(){ tblUI(); missBuild(); { const sb=document.getElementById('s
   { const m=/[#&]set=([A-Za-z0-9_-]+)/.exec(location.hash||''); if(m){ try{ const o=JSON.parse(b64d(m[1])), has=Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name && !/^(mangacha|coin|pegasus|cerberus|biggacha)$/.test(k)) ; if(o && Array.isArray(o.g) && o.g.length && (!has || window.confirm('受け取ったギフトの割り当てに入れかえますか？（今の割り当ては消えます）'))) shareApply(o); }catch(e){ tfLogAdd('受け取った設定を読みこめませんでした'); } try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} } }
   document.getElementById('cfgExp').addEventListener('click',()=>{ const t=document.getElementById('cfgIO'); t.value=JSON.stringify(Object.keys(LBL).length?Object.assign({},TF.map,{__lbl:LBL}):TF.map); t.select(); });
   document.getElementById('cfgImp').addEventListener('click',()=>{ try{ const o=JSON.parse(document.getElementById('cfgIO').value); if(o && typeof o==='object'){ if(o.__lbl && typeof o.__lbl==='object'){ LBL=o.__lbl; lblSave(); } delete o.__lbl; TF.map=o; tfSave(); cfgBuild(); tfLogAdd('設定を読みこんだ'); } }catch(e){ tfLogAdd('読みこみ失敗：文字が正しくない'); } }); }
-function optUI(){ for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
-for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); tblUI(); }); optUI();
+function optUI(){ for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn'],['optCoin','coinOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
+for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn'],['optCoin','coinOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); tblUI(); }); optUI();
 catLoad(()=>{});
 window.TsumiTF={ TF, simulate:m=>tfEvent(m), connect:tfConnect };
 tfConnect();
