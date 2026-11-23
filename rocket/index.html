@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ロケット ◯◯mまで終われません（試作）</title>
 <style>
@@ -35,7 +35,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <button class="g" data-s="crystal">クリスタル<br>パワーが減らない</button><button class="g" data-s="mega">メガロケット<br>耐久2倍</button><span></span>
     <h3>妨害</h3>
     <button class="j" data-a="leak">パワーダウン<br>応援パワー0</button><button class="j" data-a="meteor">隕石<br>耐久 −1</button><button class="j" data-a="stall">エンジン停止<br>6秒 落ちていく</button>
-    <button class="j" data-a="hole">ブラックホール<br>−500m</button><button class="j" data-a="crash">撃墜<br>即ついらく</button><span></span>
+    <button class="j" data-a="hole">ブラックホール<br>−500m</button><button class="j" data-a="crash">撃墜<br>即ついらく</button><button class="j" data-a="dragonAtk">ドラゴン襲来<br>火球3発（当たれば耐久−1）</button>
     <h3>目標の高さ（変えると0からやり直し）</h3>
     <button class="g" data-g="1000">1,000m</button><button class="g" data-g="5000">5,000m</button><button class="g" data-g="10000">10,000m</button>
     <button class="g" data-g="50000">50,000m</button><button class="g" data-g="100000">100,000m</button><button class="n" data-a="reset">記録を消す</button>
@@ -57,6 +57,14 @@ for(const k of ['d_balloon','d_plane','d_gull','d_blimp','d_sat','d_ufo','d_plan
 img('pad','pad.jpg'); img('flame','flame.jpg');
 for(const k of ['smoke_w','smoke_b','logo_crash','logo_boost','logo_goal','logo_stall','logo_dodge','logo_m500','logo_p500','panel','heart','heart_off','mega','gate','isle','marker','burnt','moonastro','earth','deb0','deb1','deb2','deb3','deb4','deb5']) img(k,k+'.webp');
 for(const k of ['boom','ring','bolt','warp','bflame','pillar','lines','stars']) img(k,k+'.jpg');
+/* 連番シート（色の絵 _c.jpg と 透明度の絵 _a.png を合わせて使う）。くりんぐの動画から作った動く絵用 */
+function mkSheet(name,meta){ const o=Object.assign({cv:null,ok:false},meta), c=new Image(), a=new Image(); let n=0;
+  const done=()=>{ if(++n<2 || !c.naturalWidth || !a.naturalWidth) return; const cv=document.createElement('canvas'); cv.width=c.naturalWidth; cv.height=c.naturalHeight; const x=cv.getContext('2d'); x.drawImage(c,0,0); x.globalCompositeOperation='destination-in'; x.drawImage(a,0,0,cv.width,cv.height); o.cv=cv; o.ok=true; };
+  c.onload=done; a.onload=done; c.src='./img/'+name+'_c.jpg'; a.src='./img/'+name+'_a.png'; return o; }
+const drgSh=mkSheet('drg',{n:48,cols:8,fw:480,fh:253,fps:12});   // 真上から見たドラゴン（羽ばたき→頭を突き出して吠える）
+img('drg_face','drg_face.jpg');                                   // カットイン用の顔（まだ無い間は出さない）
+/* 音：くりんぐの動画の音や効果音ラボの音を鳴らす */
+const SND={}; function play(k,v){ try{ let a=SND[k]; if(!a){ a=SND[k]=new Audio('./snd/'+k+'.mp3'); a.preload='auto'; } a.currentTime=0; a.volume=v==null?.85:v; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
 /* 黒い背景の光の絵を、明るさ→透明度に変えて使う */
 const KEYC={}; function keyed(k){ if(KEYC[k]) return KEYC[k]; if(!ok(k)) return null; const im=IMG[k], c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight; const x=c.getContext('2d'); x.drawImage(im,0,0); try{ const d=x.getImageData(0,0,c.width,c.height), q=d.data; for(let i=0;i<q.length;i+=4){ const m=Math.max(q[i],q[i+1],q[i+2]); if(m>0){ const kk=k==='boom'?Math.min(255/m,1.7):255/m; q[i]=Math.min(255,q[i]*kk); q[i+1]=Math.min(255,q[i+1]*kk); q[i+2]=Math.min(255,q[i+2]*kk); } q[i+3]=m<10?0:Math.min(255,(m-10)*(k==='boom'?2.4:1.4)); } x.putImageData(d,0,0); }catch(e){} KEYC[k]=c; return c; }
 const ok=k=>IMG[k] && IMG[k].naturalWidth>0;
@@ -95,11 +103,19 @@ const Game={
   meteor(n){ if(jamBlocked(n,'隕石')) return; S.items.push({k:'meteor',x:rand(160,920),y:-260,vx:0,vy:500,hit:false,by:n}); logAdd((n||'だれか')+' が隕石を落とした（耐久−1）','#ff9aa8'); },
   stall(n){ if(jamBlocked(n,'エンジン停止')) return; S.stallT=CFG.stallSec; S.boostT=0; S.red=.5; banner('エンジン停止！','#ff3d5a',n,'logo_stall'); logAdd((n||'だれか')+' がエンジンを止めた','#ff9aa8'); },
   hole(n){ if(jamBlocked(n,'ブラックホール')) return; S.holeT=2.2; S.holeDrop+=Math.min(S.alt,CFG.hole); S.shake=.5; banner('−'+CFG.hole+'m','#c58bff',n,CFG.hole===500?'logo_m500':''); logAdd((n||'だれか')+' がブラックホールで引きずり下ろした','#ff9aa8'); },
+  dragonAtk(n){ if(S.mode!=='fly' || S.drg) return; S.drg={t:0,by:n,shot:0}; play('dragon'); banner('ドラゴン襲来！','#ff5a3d',n); S.banner.t=1.25;   /* 文字は1秒ほどで消して、ドラゴンと火球を見せる */ logAdd((n||'だれか')+' がドラゴンを呼んだ（火球3発）','#ff9aa8'); },
   crash(n){ if(jamBlocked(n,'撃墜')) return; logAdd((n||'だれか')+' がロケットを撃ち落とした','#ff9aa8'); startFall(); },
   ship(k,n){ if(S.mode!=='fly' || !SHIPS[k]) return; const sp=SHIPS[k]; S.ship=k; S.shipT=0; S.dodge=sp.dodge||0; S.hp=sp.hp; S.flash=.5; S.shake=.3; ring(W/2,RY,'#ffe680',true); fx('pillar',W/2,RY+170,1.1,1); if(sp.boost){ S.boostT=CFG.boostSec; S.stallT=0; } banner(sp.name+'！','#ffd23f',(n?n+'　':'')+sp.perk); logAdd((n||'だれか')+' が機体を「'+sp.name+'」に交換した','#ffd23f'); for(let i=0;i<40;i++) S.parts.push({k:'conf',x:W/2+rand(-60,60),y:RY,vx:rand(-520,520),vy:rand(-620,220),g:500,t:rand(.8,1.6),c:pick(['#ffd400','#fff','#4cc3ff','#ff5c8a']),r:rand(8,16),rot:rand(0,6),vr:rand(-9,9)}); },
   setGoal(v){ CFG.goal=v; best=0; newRun(); save(); logAdd('目標を '+fmt(v)+'m にした','#ffd23f'); },
   reset(){ best=0; tries=1; wins=0; newRun(); save(); }
 };
+const DRG={dur:4.4,inT:.7,outT:.7,w:500,y:350,shots:[1.9,2.35,2.8],hitP:1/3};   // w=ドラゴンの横幅（小さめ） hitP=火球1発が当たる確率
+const drgY=t=>{ const a=clamp(t/DRG.inT,0,1), b=clamp((t-(DRG.dur-DRG.outT))/DRG.outT,0,1), ea=1-Math.pow(1-a,3); return lerp(-260,DRG.y,ea)-b*b*620+Math.sin(t*2.4)*8; };
+const drgMouth=t=>({x:W/2, y:drgY(t)+DRG.w*drgSh.fh/drgSh.fw*.42});
+function drawDragon(){ const d=S.drg; if(!d || !drgSh.ok) return; const sh=drgSh, f=Math.min(sh.n-1,Math.floor(d.t*sh.fps)), w=DRG.w, h=w*sh.fh/sh.fw, y=drgY(d.t);
+  g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,W/2-w/2,y-h/2,w,h);
+  if(d.shot<DRG.shots.length){ const nx=DRG.shots[d.shot]-d.t; if(nx<.3 && nx>0){ const m=drgMouth(d.t), r=60*(1-nx/.3)+14; g.save(); g.globalCompositeOperation='lighter'; const gr=g.createRadialGradient(m.x,m.y,0,m.x,m.y,r); gr.addColorStop(0,'rgba(255,240,190,.95)'); gr.addColorStop(.4,'rgba(255,150,40,.7)'); gr.addColorStop(1,'rgba(255,40,0,0)'); g.fillStyle=gr; g.fillRect(m.x-r,m.y-r,r*2,r*2); g.restore(); } } }
+function drawFball(it){ const r=58; g.save(); g.globalCompositeOperation='lighter'; for(const [k,a] of [[1.7,.35],[1,.9]]){ const gr=g.createRadialGradient(it.x,it.y,0,it.x,it.y,r*k); gr.addColorStop(0,'rgba(255,250,215,'+a+')'); gr.addColorStop(.3,'rgba(255,170,50,'+(a*.85)+')'); gr.addColorStop(1,'rgba(255,40,0,0)'); g.fillStyle=gr; g.fillRect(it.x-r*k,it.y-r*k,r*k*2,r*k*2); } g.restore(); }
 function addPow(v){ if(S.mode!=='fly') return; S.pow=Math.min(1,S.pow+v); }
 function ring(x,y,c,big){ S.rings.push({x,y,c,t:0,big:!!big}); }
 function damage(n){ S.hp-=1; S.red=.5; if(S.hp<=0){ S.hp=0; logAdd('耐久が0になった！','#ff5c5c'); startFall(); } }
@@ -121,6 +137,13 @@ function update(dt){ T+=dt; S.shake=Math.max(0,S.shake-dt); S.flash=Math.max(0,S
     if(Math.random()<dt*60) S.parts.push({k:'smoke',x:W/2+rand(-36,36),y:RY-60,vx:rand(-70,70),vy:rand(-900,-400),g:0,t:rand(.6,1.2),r:rand(40,90),dark:1,rot:rand(0,6),v:Math.floor(rand(0,3))}); if(Math.random()<dt*50) S.parts.push({k:'fire',x:W/2+rand(-30,30),y:RY-80,vx:rand(-60,60),vy:rand(-700,-300),g:0,t:rand(.25,.5),r:rand(24,50)});
     if(S.alt<=floor && S.fallT>1.2){ const keep=S.saveAlt; tries++; save(); const lg=S.log; newRun(true); S.log=lg; if(keep>0){ S.alt=keep; logAdd('セーブ地点 '+fmt(keep)+'m から再出発（'+tries+'回目）','#9be9ff'); } else { S.shake=1; S.flash=.5; ring(W/2,RY+140,'#ffd9a0',true); for(let i=0;i<46;i++) S.parts.push({k:'smoke',x:W/2+rand(-200,200),y:RY+150,vx:rand(-420,420),vy:rand(-520,-40),g:160,t:rand(.9,1.9),r:rand(60,130),dark:i%2,rot:rand(0,6),v:i%3}); for(let i=0;i<40;i++) S.parts.push({k:'fire',x:W/2+rand(-120,120),y:RY+120,vx:rand(-620,620),vy:rand(-720,-60),g:500,t:rand(.4,.9),r:rand(24,60)}); fx('boom',W/2,RY+40,.75,1150); debris(W/2,RY+80,14,820); logAdd('0m からやり直し（'+tries+'回目の挑戦）','#ff9aa8'); } } }
   else if(S.mode==='clear'){ S.clearT+=dt; if(Math.random()<dt*14) S.parts.push({k:'conf',x:rand(0,W),y:-20,vx:rand(-120,120),vy:rand(60,260),g:300,t:rand(3,5),c:pick(['#ff3d7f','#ffd400','#22d3ee','#7cff4f','#fff']),r:rand(10,20),rot:rand(0,6),vr:rand(-8,8)}); }
+  // ドラゴン襲来：上から降りてきて、吠えながら火球を3発吐く。1発ごとに当たるかどうかはランダム。ゲームは止めない
+  if(S.drg){ const d=S.drg; d.t+=dt; while(d.shot<DRG.shots.length && d.t>=DRG.shots[d.shot]){ d.shot++; if(S.mode!=='fly') continue; const hit=Math.random()<DRG.hitP, side=Math.random()<.5?-1:1, tx=hit?W/2:W/2+side*rand(230,520), m=drgMouth(d.t); S.items.push({k:'fball',x:m.x,y:m.y,x0:m.x,y0:m.y,tx,ty:hit?RY-70:H+500,t:0,dur:hit?.5:.95,hit,by:d.by}); S.shake=Math.max(S.shake,.18); for(let i=0;i<10;i++) S.parts.push({k:'fire',x:m.x+rand(-20,20),y:m.y,vx:rand(-200,200),vy:rand(40,360),g:0,t:rand(.2,.45),r:rand(20,44)}); }
+    if(d.t>=DRG.dur) S.drg=null; }
+  for(const it of S.items){ if(it.k!=='fball') continue; it.t+=dt; const u=Math.min(1,it.t/it.dur), e=u*u*(1.6-.6*u); it.x=lerp(it.x0,it.tx,u); it.y=lerp(it.y0,it.ty,e);
+    for(let q=0;q<2;q++) if(Math.random()<dt*90) S.parts.push({k:'fire',x:it.x+rand(-14,14),y:it.y-20,vx:rand(-50,50),vy:rand(-260,-60),g:0,t:rand(.2,.42),r:rand(18,38)});
+    if(u>=1){ it.dead=true; if(it.hit && S.mode==='fly'){ if(SHIPS[S.ship].fireproof){ banner('効かない！','#ffb020','ドラゴンの機体に火は効かない'); S.flash=.15; }
+        else if(!jamBlocked(it.by,'火球')){ S.shake=.6; S.flash=.2; ring(W/2,RY-60,'#ffcf8a'); fx('boom',W/2,RY-70,.5,380); for(let i=0;i<22;i++) S.parts.push({k:'fire',x:W/2+rand(-40,40),y:RY-60,vx:rand(-520,520),vy:rand(-520,260),g:300,t:rand(.3,.7),r:rand(18,40)}); for(let i=0;i<6;i++) S.parts.push({k:'smoke',x:W/2+rand(-40,40),y:RY-60,vx:rand(-220,220),vy:rand(-220,100),g:0,t:rand(.5,1),r:rand(40,80),dark:1,rot:rand(0,6),v:i%3}); debris(W/2,RY-50,2,460); logAdd('火球が当たった！（耐久−1）','#ff9aa8'); damage(); } } } }
   // 隕石：上から落ちてきてロケットに当たる
   for(const it of S.items){ if(it.k==='meteor'){ it.vy+=3200*dt; it.y+=it.vy*dt; it.x+=(W/2-it.x)*Math.min(1,dt*3.2); for(let q=0;q<2;q++) if(Math.random()<dt*70) S.parts.push({k:'fire',x:it.x+rand(-30,30),y:it.y-60,vx:rand(-50,50),vy:rand(-300,-80),g:0,t:rand(.25,.55),r:rand(30,64)}); if(Math.random()<dt*30) S.parts.push({k:'smoke',x:it.x+rand(-20,20),y:it.y-90,vx:rand(-40,40),vy:rand(-200,-60),g:0,t:rand(.5,.9),r:rand(36,70),dark:1,rot:rand(0,6),v:0});
       if(!it.hit && it.y>RY-90){ it.hit=true; it.dead=true; if(S.mode==='fly'){ S.shake=.9; S.flash=.3; ring(W/2,RY-70,'#ffcf8a',true); fx('boom',W/2,RY-80,.6,560); if(!SHIPS[S.ship].fireproof) debris(W/2,RY-60,4,560); for(let i=0;i<34;i++) S.parts.push({k:'fire',x:W/2+rand(-60,60),y:RY-70,vx:rand(-640,640),vy:rand(-640,320),g:300,t:rand(.3,.8),r:rand(20,48)}); for(let i=0;i<14;i++) S.parts.push({k:'conf',x:W/2+rand(-40,40),y:RY-70,vx:rand(-700,700),vy:rand(-700,200),g:1200,t:rand(.6,1.2),c:pick(['#3a2a22','#5a4030','#ff7a1f']),r:rand(10,22),rot:rand(0,6),vr:rand(-14,14)}); for(let i=0;i<10;i++) S.parts.push({k:'smoke',x:W/2+rand(-60,60),y:RY-70,vx:rand(-260,260),vy:rand(-260,120),g:0,t:rand(.6,1.2),r:rand(50,100),dark:1,rot:rand(0,6),v:i%3}); if(SHIPS[S.ship].fireproof){ banner('効かない！','#ffb020','ドラゴンは隕石に強い'); } else damage(); } } } }
@@ -191,6 +214,7 @@ function draw(){ const p=clamp(S.alt/CFG.goal,0,1), sx=S.shake>0?rand(-1,1)*S.sh
   if(S.stallT>0 && !keyed('bolt')){ g.save(); g.globalCompositeOperation='lighter'; g.strokeStyle='rgba(255,240,150,.9)'; g.lineWidth=5; g.shadowColor='#ffb020'; g.shadowBlur=20; for(let i=0;i<4;i++){ let x=W/2+rand(-50,50), y=RY+150; g.beginPath(); g.moveTo(x,y); for(let q=0;q<4;q++){ x+=rand(-34,34); y+=rand(14,40); g.lineTo(x,y); } g.stroke(); } g.restore(); }
   if(S.shield && ok('fx_shield')){ const w=SHIPS[S.ship].h*1.5*(1+.03*Math.sin(T*6)); g.save(); g.globalAlpha=.6+.15*Math.sin(T*5); g.drawImage(IMG.fx_shield,W/2-w/2,RY-30-w*.36,w,w*.72); g.restore(); }
   if(S.tankT!==undefined && S.tankT<.7 && ok('fx_tank')){ const u=S.tankT/.7, w=260*(1-u*.6); g.save(); g.globalAlpha=clamp((1-u)*3,0,1); g.drawImage(IMG.fx_tank,lerp(160,W/2,u)-w/2,lerp(RY-420,RY,u*u)-w*.35,w,w*.7); g.restore(); }
+  drawDragon(); for(const it of S.items) if(it.k==='fball') drawFball(it);
   for(const it of S.items){ if(it.k==='meteor' && ok('fx_meteor')){ g.save(); g.translate(it.x,it.y); g.rotate(Math.PI/4+.08); const w=330; g.drawImage(IMG.fx_meteor,-w*.62,-w*.4,w,w*.631); g.restore(); } }
   for(const pt of S.parts){ if(pt.k==='conf'){ g.save(); g.globalAlpha=clamp(pt.t,0,1); g.translate(pt.x,pt.y); g.rotate(pt.rot); g.fillStyle=pt.c; g.fillRect(-pt.r/2,-pt.r/3,pt.r,pt.r*.66); g.restore(); } }
   for(const pt of S.parts){ if(pt.k==='deb'){ const di=IMG['deb'+pt.i]; if(!di || !di.naturalWidth) continue; const dw=pt.r*2, dh=dw*di.naturalHeight/di.naturalWidth; g.save(); g.globalAlpha=clamp(pt.t*2.5,0,1); g.translate(pt.x,pt.y); g.rotate(pt.rot); g.drawImage(di,-dw/2,-dh/2,dw,dh); g.restore(); } }
@@ -232,7 +256,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ update(dt); draw(); } requestAnimationFrame(loop); }
-window.RocketGame=Game; window.__dbg={ get S(){ return S; }, CFG, update, draw, get tries(){ return tries; }, get best(){ return best; }, get wins(){ return wins; } };
+window.RocketGame=Game; window.__dbg={ DRG, Game, get S(){ return S; }, CFG, update, draw, get tries(){ return tries; }, get best(){ return best; }, get wins(){ return wins; } };
 Promise.all([document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()].concat(Object.values(IMG).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.onload=r; im.onerror=r; } })))).then(()=>{ window.__ready=true; requestAnimationFrame(loop); });
 </script>
 </body>
