@@ -75,7 +75,7 @@ canvas{width:100%;height:100%;display:block}
     <div id="pickGrid"></div>
   </div>
   <div id="cfg" hidden>
-    <div class="top"><h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/23 18:35</small></h2>
+    <div class="top"><h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/23 18:55</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -107,6 +107,8 @@ canvas{width:100%;height:100%;display:block}
     <p>ギフトが反応しない時は、ここをスクショして送ってください。</p>
     <div id="tfRaw" style="font-size:.7em;line-height:1.4;background:#060a20;border-radius:.5em;padding:.6em;min-height:3em;max-height:22em;overflow:auto;white-space:pre-wrap;word-break:break-all;color:#9ab">まだ何も届いていません</div>
     <h3>設定の持ち運び</h3>
+    <p><b>人に配る時：</b>下のボタンでリンクを作って送ると、相手はそのリンクを開くだけで、あなたと同じギフトの割り当てになります（APIキーとユーザー名は入りません）。</p>
+    <p><button id="shareMk" type="button" style="background:#1f8f3c">配る用のリンクを作る</button> <span id="shareSt" style="font-size:.85em;color:#9dffb8"></span></p>
     <p>下の文字をコピーして別の端末のここに貼り、「読みこむ」を押すと同じ設定になります。</p>
     <textarea id="cfgIO"></textarea>
     <p><button id="cfgExp" type="button">書き出す</button> <button id="cfgImp" type="button">読みこむ</button></p>
@@ -182,7 +184,7 @@ function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
 // 全画面の映像が流れているあいだは、テスト・ギフト・一時停止のボタンと下のギフト表を消して、映像だけを画面のまん中に見せる
 // 自動更新：公開先に新しい版が出ていたら、古い画面を持ったままにならないよう自動で読みこみ直す（スマホは古い画面を10分ほど覚えているため）
-const VER='1123-183535'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
+const VER='1123-185524'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
   const chk=()=>{ if(S && S.mode==='playing') return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('tsumi_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('tsumi_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); };
   setTimeout(chk,800); setInterval(chk,60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 let cutUi=false; function syncCutUi(){ const on=!!(S.cut && S.cut.vid); if(on===cutUi) return; cutUi=on; for(const id of ['testBtn','cfgBtn','pauseBtn','rot','gtbl']){ const e=document.getElementById(id); if(e) e.style.visibility=on?'hidden':''; }
@@ -1498,6 +1500,14 @@ function cfgBuild(){ tblUI(); missBuild(); { const sb=document.getElementById('s
   document.getElementById('tblCopy').addEventListener('click',()=>{ const el=document.getElementById('tblUrl'), bt=document.getElementById('tblCopy'); el.select(); const done=()=>{ bt.textContent='コピーしました'; setTimeout(()=>{ bt.textContent='URLをコピー'; },1500); }; try{ navigator.clipboard.writeText(el.value).then(done,()=>{ document.execCommand('copy'); done(); }); }catch(e){ try{ document.execCommand('copy'); done(); }catch(_){} } });
   document.getElementById('seqLearn').addEventListener('click',()=>{ if(TF.seqLearn){ TF.seqLearn=false; TF.learn=null; } else { const f=FX_LIST.find(x=>TF.map[x[0]] && TF.map[x[0]].name); if(f){ TF.seqLearn=true; TF.learn=f[0]; } else tfLogAdd('先にギフトをえらんでください'); } cfgBuild(); });
   document.getElementById('tfRe').addEventListener('click',()=>{ TF.wait=3000; tfConnect(); });
+  // 配る用のリンク：ギフトの割り当て（名前・コイン・届いた名前とID・ON/OFF・表の名前）を短くまとめてアドレスの後ろに付ける。キーは入れない
+  const b64e=t=>btoa(unescape(encodeURIComponent(t))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''), b64d=t=>decodeURIComponent(escape(atob(t.replace(/-/g,'+').replace(/_/g,'/'))));
+  const sharePack=()=>{ const g=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name) continue; g.push([f[0],b.name,b.coins!=null?b.coins:null,b.ci!=null?b.ci:null,b.id!=null?b.id:null,b.rx||null,b.off?1:0,b.alt||null]); } return b64e(JSON.stringify({g,l:LBL})); };
+  const shareApply=o=>{ const m={}; for(const a of (o.g||[])){ if(!FX_LIST.some(f=>f[0]===a[0])) continue; const e={id:a[4]!=null?a[4]:null,name:String(a[1]||''),coins:a[2]!=null?a[2]:null,pic:null,ci:a[3]!=null?a[3]:null}; if(a[5]) e.rx=String(a[5]); if(a[6]) e.off=true; if(Array.isArray(a[7])) e.alt=a[7].map(String); m[a[0]]=e; } TF.map=m; tfSave(); if(o.l && typeof o.l==='object'){ LBL=o.l; lblSave(); } try{ cfgBuild(); }catch(e){} tfLogAdd('受け取ったギフトの割り当てを読みこんだ（'+Object.keys(m).length+'個）'); };
+  document.getElementById('shareMk').addEventListener('click',()=>{ const url=location.origin+location.pathname+'#set='+sharePack(), st=document.getElementById('shareSt'), io=document.getElementById('cfgIO'); io.value=url; const copied=()=>{ st.textContent='リンクをコピーしました。LINEなどに貼って送ってください'; };
+    if(navigator.share){ navigator.share({title:'つみつみアニマル',url}).then(()=>{ st.textContent='送りました'; }).catch(()=>{ if(navigator.clipboard) navigator.clipboard.writeText(url).then(copied).catch(()=>{ st.textContent='下の箱の文字をコピーして送ってください'; io.select(); }); }); }
+    else if(navigator.clipboard) navigator.clipboard.writeText(url).then(copied).catch(()=>{ st.textContent='下の箱の文字をコピーして送ってください'; io.select(); }); else { st.textContent='下の箱の文字をコピーして送ってください'; io.select(); } });
+  { const m=/[#&]set=([A-Za-z0-9_-]+)/.exec(location.hash||''); if(m){ try{ const o=JSON.parse(b64d(m[1])), has=Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name && !/^(mangacha|coin|pegasus|cerberus|biggacha)$/.test(k)) ; if(o && Array.isArray(o.g) && o.g.length && (!has || window.confirm('受け取ったギフトの割り当てに入れかえますか？（今の割り当ては消えます）'))) shareApply(o); }catch(e){ tfLogAdd('受け取った設定を読みこめませんでした'); } try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} } }
   document.getElementById('cfgExp').addEventListener('click',()=>{ const t=document.getElementById('cfgIO'); t.value=JSON.stringify(Object.keys(LBL).length?Object.assign({},TF.map,{__lbl:LBL}):TF.map); t.select(); });
   document.getElementById('cfgImp').addEventListener('click',()=>{ try{ const o=JSON.parse(document.getElementById('cfgIO').value); if(o && typeof o==='object'){ if(o.__lbl && typeof o.__lbl==='object'){ LBL=o.__lbl; lblSave(); } delete o.__lbl; TF.map=o; tfSave(); cfgBuild(); tfLogAdd('設定を読みこんだ'); } }catch(e){ tfLogAdd('読みこみ失敗：文字が正しくない'); } }); }
 function optUI(){ for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
