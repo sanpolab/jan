@@ -21,6 +21,13 @@ html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku G
 .g .coin{position:absolute;right:0;bottom:0;font-weight:900;font-size:calc(10.5vw / var(--cols));background:rgba(0,0,0,.78);border-radius:.6vw;padding:0 .35vw;color:#ffd23f}
 .nm{font-weight:900;font-size:calc(13.5vw / var(--cols));line-height:1.15;text-align:center;margin-top:.25vw;text-shadow:0 .15vw 0 #000;white-space:nowrap;overflow:hidden;max-width:100%}
 .g .sp{width:92%;height:92%;border-radius:12%;background-image:url('./img/giftcat.jpg');background-repeat:no-repeat}
+.split{display:flex!important;gap:.8vw;align-items:stretch}
+.sec{min-width:0;border-radius:1.6vw;padding:0 .5vw .5vw;box-sizing:border-box}
+.sec.jam{background:rgba(224,38,46,.20);outline:.3vw solid rgba(224,38,46,.75)}
+.sec.help{background:rgba(47,191,79,.18);outline:.3vw solid rgba(47,191,79,.75)}
+.sec .hd{font-weight:900;font-size:3vw;line-height:1.35;text-align:center;letter-spacing:.3vw;text-shadow:0 .2vw 0 #000}
+.sec.jam .hd{color:#ff8a90}.sec.help .hd{color:#8dffa6}
+.sec .gr{display:grid;gap:.5vw}
 .g.txt{flex-direction:column;gap:.15vw}.g.txt .coin{position:static}
 </style>
 </head>
@@ -56,7 +63,15 @@ function build(){ const m=load(); if(CATL) for(const k in m){ const b=m[k]; if(b
     const fx=document.createElement('div'); const fi=document.createElement('img'); fi.src='./img/fx/'+f[0]+'.png'; fi.alt=f[2]; fx.appendChild(fi);
     pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; { const lab=LB[f[0]]||f[2]; nm.textContent=lab; if(LB[f[0]] && lab.length>8) nm.style.fontSize='calc('+(13.5*8/lab.length).toFixed(2)+'vw / var(--cols))'; } c.appendChild(pair); c.appendChild(nm); g.appendChild(c); } autoFit(); }
 // fit=1：窓の高さに全部おさまる中で、いちばん大きく見える列の数を自動でえらぶ（ゲームの下に出す時用）
-function autoFit(){ if(q.get('fit')!=='1') return; const gr=document.getElementById('grid'); for(let c=4;c<=13;c++){ document.documentElement.style.setProperty('--cols',c); if(gr.offsetHeight<=window.innerHeight) return; } }
+let SEC=null;
+function split(){ const gr=document.getElementById('grid'), cs=[...gr.children]; gr.classList.add('split'); SEC={};
+  for(const [k,t] of [['jam','▼ 妨害（じゃま）'],['help','▼ お助け']]){ const s=document.createElement('div'); s.className='sec '+k; const h=document.createElement('div'); h.className='hd'; h.textContent=t; const r=document.createElement('div'); r.className='gr'; s.appendChild(h); s.appendChild(r); SEC[k]={s,r,n:0}; }
+  for(const c of cs){ const k=(c.classList.contains('help')||c.classList.contains('free')||c.classList.contains('both'))?'help':'jam'; SEC[k].r.appendChild(c); SEC[k].n++; }
+  for(const k of ['jam','help']) if(SEC[k].n) gr.appendChild(SEC[k].s); }
+function autoFit(){ if(q.get('fit')!=='1') return; const gr=document.getElementById('grid'); if(!gr.classList.contains('split')||!gr.querySelector('.sec')) split(); const nj=SEC.jam.n, nh=SEC.help.n;
+  for(let c=4;c<=18;c++){ let cj=nj&&nh?Math.max(1,Math.min(c-1,Math.round(c*nj/(nj+nh)))):(nj?c:0), ch=c-cj; document.documentElement.style.setProperty('--cols',c);
+    SEC.jam.s.style.flex=cj+' 1 0'; SEC.help.s.style.flex=ch+' 1 0'; SEC.jam.r.style.gridTemplateColumns='repeat('+Math.max(1,cj)+',1fr)'; SEC.help.r.style.gridTemplateColumns='repeat('+Math.max(1,ch)+',1fr)';
+    if(gr.offsetHeight<=window.innerHeight) return; } }
 window.addEventListener('resize',autoFit);
 build(); window.addEventListener('storage',build); window.addEventListener('hashchange',build); setInterval(build,2000);
 </script>
