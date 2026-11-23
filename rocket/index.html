@@ -36,7 +36,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <h3>妨害</h3>
     <button class="j" data-a="leak">パワーダウン<br>応援パワー0</button><button class="j" data-a="meteor">隕石<br>耐久 −1</button><button class="j" data-a="stall">エンジン停止<br>6秒 落ちていく</button>
     <button class="j" data-a="hole">ブラックホール<br>−500m</button><button class="j" data-a="crash">撃墜（機械クジラ）<br>飲みこまれて即ついらく</button><button class="j" data-a="dragonAtk">ドラゴン襲来<br>火球3発（当たれば耐久−1）</button>
-    <!-- 減速板はいったんお休み（絵 img/pad_dn.webp と Game.slowpad は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="garg">ガーゴイル<br>しがみついて速さ半分（振り落とせる）</button><button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−1000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法1発（耐久−1）</button>
+    <!-- 減速板はいったんお休み（絵 img/pad_dn.webp と Game.slowpad は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="garg">ガーゴイル<br>しがみつかれると落ちていく（振り落とせる）</button><button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−1000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法1発（耐久−1）</button>
     <h3>目標の高さ（変えると0からやり直し）</h3>
     <button class="g" data-g="1000">1,000m</button><button class="g" data-g="5000">5,000m</button><button class="g" data-g="10000">10,000m</button>
     <button class="g" data-g="50000">50,000m</button><button class="g" data-g="100000">100,000m</button><button class="n" data-a="reset">記録を消す</button>
@@ -72,7 +72,8 @@ const ibSh=mkSheet('ibird',{n:24,cols:8,fw:480,fh:253,fps:12});   // 真上か�
 function mkVid(name){ const v=document.createElement('video'); v.preload='auto'; v.playsInline=true; v.setAttribute('playsinline',''); for(const [ext,type] of [['webm','video/webm'],['mp4','video/mp4']]){ const sc=document.createElement('source'); sc.src='./vid/'+name+'.'+ext; sc.type=type; v.appendChild(sc); } try{ v.load(); }catch(e){} return v; }
 const VID={icebird:{v:mkVid('icebird'),dur:5.8},phoenix:{v:mkVid('phoenix'),dur:4.3},hole:{v:mkVid('hole'),dur:4.9},whale:{v:mkVid('whale'),dur:5.5},astro:{v:mkVid('astro'),dur:8.9}};
 const asSh=mkSheet('astro',{n:21,cols:8,fw:240,fh:405,fps:12});   /* ロープを引く宇宙飛行士（つながる21コマ） */
-const AST={inT:.9,pull:4.2,h:300,up:300,hand:.33};   /* 宇宙飛行士：来る秒数、ゴールまで引っぱる秒数、絵の高さ、ロケットより上にいる距離、手の高さの位置 */
+img('rescue','rescue.webp');
+const AST={inT:2.1,pull:4.2,h:250,up:290,sw:215,win:{x:.5,y:.378,r:.226}};   /* 宇宙飛行士：乗りこむまでの秒数、ゴールまで引っぱる秒数、宇宙飛行士の絵の高さ、救助ロケットがいる高さ（自機より上）、救助ロケットの横幅、窓の位置と大きさ */   /* 宇宙飛行士：来る秒数、ゴールまで引っぱる秒数、絵の高さ、ロケットより上にいる距離、手の高さの位置 */
 const inv=()=>!!(S.phx || S.astro);   /* 不死鳥か宇宙飛行士に運ばれている間は攻撃が効かない */
 const whSh=mkSheet('whale',{n:48,cols:8,fw:480,fh:312,fps:12});   /* 正面向きの機械クジラ（コマ0〜24＝口を開ける、24〜30＝開ききり、33〜42＝閉じる） */
 const WH={grow:1.5,hold:.35,snap:.2,stay:.55,out:.6,w0:240,w1:2100,my:.54};   /* 撃墜のクジラ：迫ってくる秒数、口を開けたまま止まる秒数、閉じる秒数、いすわる秒数、消える秒数、最初と最後の横幅、口の高さの位置 */
@@ -127,7 +128,7 @@ const Game={
   crow(n){ if(S.mode!=='fly') return; if(S.crow && S.crow.t<CROW.inT+CROW.lift*.7){ S.crow.more=(S.crow.more||0)+1; } else if(S.crow){ S.crowQ=(S.crowQ||0)+1; } else S.crow={t:0,by:n,more:0,sx:Math.random()<.5?-1:1}; logAdd((n||'だれか')+' のカラスが＋'+CROW.gain+'m 運んでくれる','#5dffb0'); },
   pad(n){ if(S.mode!=='fly') return; S.items.push({k:'pad',up:true,x:clamp(RXw()+rand(-300,300),W/2-500,W/2+500),y:-120,t:0,by:n,got:0}); },
   slowpad(n){ if(S.mode!=='fly') return; S.items.push({k:'pad',up:false,x:clamp(RXw()+rand(-110,110),W/2-500,W/2+500),y:-120,t:0,by:n,got:0}); },
-  garg(n){ if(S.mode!=='fly') return; logAdd((n||'だれか')+' がガーゴイルを呼んだ（しがみついて速さ半分）','#d9a8ff'); if(S.garg && S.garg.st!=='off'){ S.garg.cnt=0; if(S.garg.st==='on') S.garg.t=0; S.garg.by=n; return; } if(!S.cutin) S.cutin={k:'garg',t:0,by:n,done:true}; S.garg={t:-GARG.wait,st:'in',x:clamp(RXw()+rand(-300,300),W/2-480,W/2+480),y:-220,by:n,cnt:0,dir:0,ex:0,rot:0}; },
+  garg(n){ if(S.mode!=='fly') return; logAdd((n||'だれか')+' がガーゴイルを呼んだ（しがみつかれると落ちていく）','#d9a8ff'); if(S.garg && S.garg.st!=='off'){ S.garg.cnt=0; if(S.garg.st==='on') S.garg.t=0; S.garg.by=n; return; } if(!S.cutin) S.cutin={k:'garg',t:0,by:n,done:true}; S.garg={t:-GARG.wait,st:'in',x:clamp(RXw()+rand(-300,300),W/2-480,W/2+480),y:-220,by:n,cnt:0,dir:0,ex:0,rot:0}; },
   bird(n){ if(S.mode!=='fly') return; const x=clamp(RXw()+rand(-320,320),XL+140,XL+XW-140), y=-110, ax=RXw()-x, ay=RYw()-y, L=Math.hypot(ax,ay)||1; S.items.push({k:'bird',x,y,vx:ax/L*BIRD.spd,vy:ay/L*BIRD.spd,t:0,ph:rand(0,6),by:n,dz:0}); },
   ice(n){ if(S.mode!=='fly' || S.ice || S.cine) return; if(inv()){ jamBlocked(n,'氷の怪鳥'); return; } logAdd((n||'だれか')+' が氷の怪鳥を呼んだ','#9bd8ff'); const go=()=>{ if(S.mode!=='fly') return; S.ice={t:0,by:n,hit:false}; play('ibird',.8); S.flash=Math.max(S.flash,.7); }; startCine('icebird',go); },
   wizard(n){ if(S.mode!=='fly') return; const first=!S.wizs.length && !S.cutin; if(first) S.cutin={k:'wizard',t:0,by:n,done:true}; S.wizs.push({t:first?-.5:-rand(0,.3),x:clamp(RXw()+rand(-420,420),XL+260,XL+XW-260),y:rand(380,460),ph:rand(0,6),by:n,shot:false,snd:false,id:++JID}); logAdd((n||'だれか')+' が魔法使いを呼んだ','#d9a8ff'); },
@@ -200,8 +201,8 @@ function drawMorb(it){ if(!ok('morb')) return; const z=118*(1+.08*Math.sin(T*18)
 for(const k of ['pad_up','pad_dn']) img(k,k+'.webp');
 for(const k of ['crow0','crow1','crow2']) img(k,k+'.webp');
 const CROW={gain:200,inT:.45,lift:1.0,outT:.6,w:290,oy:-150};   /* カラス：運ぶ高さ、来る秒数、運ぶ秒数、去る秒数、絵の横幅、ロケットからの上下のずれ */
-for(const k of ['garg0','garg1','garg2']) img(k,k+'.webp'); img('garg_face','garg_face.jpg');
-const GARG={wait:.55,inT:1.1,life:10,need:6,swing:70,mul:.5,w:300,oy:-30};   /* ガーゴイル：カットイン後の待ち、飛んでくる秒数、居すわる秒数、振り落とすのに要る切り返しの回数、1回と数える横の動き、速さの倍率、絵の横幅 */
+for(const k of ['gargF','gargC']) img(k,k+'.webp'); img('garg_face','garg_face.jpg');
+const GARG={wait:.55,inT:1.1,life:10,need:8,swing:70,fall:25,wF:235,wC:150,oy:-20};   /* ガーゴイル：カットイン後の待ち、飛んでくる秒数、居すわる秒数、振り落とすのに要る切り返しの回数、1回と数える横の動き、速さの倍率、絵の横幅 */
 const PAD={spd:430,up:{w:210,sec:1.5},dn:{w:190,sec:1.5,mul:.35}};   /* 加速板・減速板：流れてくる速さ、絵の横幅、効く秒数、減速の倍率 */
 const BIRD={spd:520,slow:.3,slowSec:.8,h:92};   // 小鳥：速さ、当たった時の速さの倍率と秒数、絵の高さ
 const ICE={drop:1000,fall:2.6,slowSec:30,slowMul:.5,dur:3.4,inT:.7,outT:.8,w:560,y:350,beam0:1.1,beam1:2.0,flapK:1.5};   // 氷の怪鳥：落とす高さ、落ちる秒数、速さ半分の秒数 など
@@ -210,14 +211,34 @@ const ibMouth=t=>({x:W/2, y:ibY(t)+ICE.w*ibSh.fh/ibSh.fw*.44});
 function shards(n,pw){ for(let i=0;i<n;i++) S.parts.push({k:'shard',i:Math.floor(rand(0,6)),x:W/2+rand(-70,70),y:RY+rand(-120,120),vx:rand(-1,1)*pw,vy:rand(-1.1,.5)*pw,g:1500,t:rand(.7,1.3),r:rand(46,84),rot:rand(0,6),vr:rand(-10,10)}); }
 function startCine(k,cb){ const V=VID[k]; if(!V || !(V.v.readyState>=2) || window.__noCine){ cb(); return; } S.cine={k,t:0,dur:V.dur,v:V.v,cb}; try{ V.v.currentTime=0; V.v.muted=false; V.v.volume=.9; const p=V.v.play(); if(p&&p.catch) p.catch(()=>{ V.v.muted=true; const q=V.v.play(); if(q&&q.catch) q.catch(()=>{}); }); }catch(e){} }
 function drawCine(){ const c=S.cine; g.setTransform(1,0,0,1,0,0); g.fillStyle='#000'; g.fillRect(0,0,W,H); if(c.v.readyState>=2){ const vw=c.v.videoWidth||1, vh=c.v.videoHeight||1, k=Math.max(W/vw,H/vh); g.drawImage(c.v,(W-vw*k)/2,(H-vh*k)/2,vw*k,vh*k); } const a=clamp(c.t/.15,0,1); if(a<1){ g.fillStyle='rgba(0,0,0,'+(1-a)+')'; g.fillRect(0,0,W,H); } }
-function drawAstro(){ const d=S.astro; if(!d || !asSh.ok) return; const sh=asSh, e=x=>x*x*(3-2*x), h=AST.h, w=h*sh.fw/sh.fh, u=clamp(d.t/AST.inT,0,1), rx=RXw(), ry=RYw(), end=d.end||0;
-  const x=rx+Math.sin(d.t*2.2)*14*(u>=1?1:0), y=lerp(H/K+260,ry-AST.up,e(u))+Math.sin(d.t*3)*8-end*end*260, f=Math.floor(d.t*sh.fps)%sh.n, hy=y-h/2+h*AST.hand;
-  g.save(); if(u>.55 && end<.4){ const a=clamp((u-.55)/.3,0,1), nx=rx, ny=ry-95; g.globalAlpha=a; g.lineCap='round'; g.strokeStyle='#5a3a12'; g.lineWidth=9; g.beginPath(); g.moveTo(x,hy); g.quadraticCurveTo((x+nx)/2+Math.sin(d.t*9)*6,(hy+ny)/2,nx,ny); g.stroke(); g.strokeStyle='#ffd98a'; g.lineWidth=5; g.setLineDash([14,10]); g.lineDashOffset=-d.t*120; g.stroke(); g.setLineDash([]); g.globalAlpha=1; }
-  g.globalCompositeOperation='lighter'; const gr=g.createRadialGradient(x,y,0,x,y,h*.8); gr.addColorStop(0,'rgba(255,240,190,.4)'); gr.addColorStop(1,'rgba(255,220,120,0)'); g.fillStyle=gr; g.fillRect(x-h,y-h,h*2,h*2); g.globalCompositeOperation='source-over';
-  g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,x-w/2,y-h/2,w,h); g.restore(); }
-function drawGarg(){ const d=S.garg; if(!d || (d.st==='in' && d.t<=0)) return; const im=IMG[d.st==='in'?(Math.floor(T*9)%2?'garg0':'garg1'):'garg2']; if(!im || !im.naturalWidth) return; const w=GARG.w, h=w*im.naturalHeight/im.naturalWidth, wob=d.st==='on'?Math.sin(T*11)*.06:0;
-  g.save(); g.translate(d.x,d.y); g.rotate((d.rot||0)+wob); g.shadowColor='rgba(150,70,255,.8)'; g.shadowBlur=20; g.drawImage(im,-w/2,-h*.6,w,h); g.restore();
-  if(d.st==='on' && S.mode==='fly'){ const left=Math.max(0,GARG.need-d.cnt), py=RYw()+215, a=.75+.25*Math.sin(T*10); g.save(); g.globalAlpha=a; txt('◀ 左右にふれ！ ▶',RXw(),py,40,'#ecd9ff','center','#2a0050'); g.globalAlpha=1; for(let i=0;i<GARG.need;i++){ g.fillStyle=i<d.cnt?'#5dffb0':'rgba(40,0,70,.8)'; g.strokeStyle='#ecd9ff'; g.lineWidth=3; g.beginPath(); g.arc(RXw()+(i-(GARG.need-1)/2)*30,py+38,10,0,7); g.fill(); g.stroke(); } g.restore(); } }
+// 宇宙飛行士：下から飛んでくる → あとから来た救助ロケットに乗りこむ → フックのロープで自機をゴールまで引っぱる
+function drawAstro(){ const d=S.astro; if(!d || !asSh.ok) return; const sh=asSh, e=x=>x*x*(3-2*x), rx=RXw(), ry=RYw(), end=d.end||0, t=d.t, rim=IMG.rescue, hasR=rim && rim.naturalWidth;
+  const sw=AST.sw, shh=hasR?sw*rim.naturalHeight/rim.naturalWidth:sw*1.6, su=e(clamp((t-.55)/1.0,0,1)), sx=rx+Math.sin(t*2.2)*10*(t>AST.inT?1:0), sy=lerp(H/K+320,ry-AST.up,su)+Math.sin(t*3)*6-end*end*420, wx=sx+(AST.win.x-.5)*sw, wy=sy-shh/2+AST.win.y*shh, wr=AST.win.r*sw;
+  const bu=clamp((t-1.45)/.55,0,1), aboard=bu>=1, f=Math.floor(t*sh.fps)%sh.n, fsx=(f%sh.cols)*sh.fw, fsy=Math.floor(f/sh.cols)*sh.fh;
+  g.save();
+  if(t>AST.inT-.25 && end<.5){ const a=clamp((t-(AST.inT-.25))/.25,0,1), hx=sx, hy=sy+shh/2-8, nx=rx, ny=ry-92; g.globalAlpha=a; g.lineCap='round'; g.strokeStyle='#5a3a12'; g.lineWidth=9; g.beginPath(); g.moveTo(hx,hy); g.quadraticCurveTo((hx+nx)/2+Math.sin(t*9)*5,(hy+ny)/2,nx,ny); g.stroke(); g.strokeStyle='#ffd98a'; g.lineWidth=5; g.setLineDash([14,10]); g.lineDashOffset=-t*120; g.stroke(); g.setLineDash([]); g.globalAlpha=1; }
+  if(hasR){ g.globalCompositeOperation='lighter'; for(const q of [-1,1]){ const fx2=sx+q*sw*.33, fy=sy+shh*.3, fl=(t>AST.inT?150:90)*(.8+.2*Math.sin(t*40+q)); const gr=g.createLinearGradient(0,fy,0,fy+fl); gr.addColorStop(0,'rgba(255,240,200,.95)'); gr.addColorStop(.4,'rgba(255,160,40,.7)'); gr.addColorStop(1,'rgba(255,60,0,0)'); g.fillStyle=gr; g.beginPath(); g.moveTo(fx2-17,fy); g.lineTo(fx2+17,fy); g.lineTo(fx2,fy+fl); g.closePath(); g.fill(); } g.globalCompositeOperation='source-over';
+    g.drawImage(rim,sx-sw/2,sy-shh/2,sw,shh);
+    if(aboard){ g.save(); g.beginPath(); g.arc(wx,wy,wr,0,7); g.clip(); const ah=wr*5.2, aw=ah*sh.fw/sh.fh; g.drawImage(sh.cv,fsx,fsy,sh.fw,sh.fh,wx-aw/2,wy-ah*.27+Math.sin(t*6)*1.5,aw,ah); const gl=g.createLinearGradient(wx-wr,wy-wr,wx+wr,wy+wr); gl.addColorStop(0,'rgba(255,255,255,.28)'); gl.addColorStop(.35,'rgba(255,255,255,0)'); gl.addColorStop(1,'rgba(120,200,255,.12)'); g.fillStyle=gl; g.fillRect(wx-wr,wy-wr,wr*2,wr*2); g.restore(); } }
+  if(!aboard){ const u=clamp(t/.9,0,1), fx0=rx+170, fy0=lerp(H/K+260,ry-150,e(u))+Math.sin(t*3)*8, x=lerp(fx0,wx,e(bu)), y=lerp(fy0,wy+AST.h*.2*(1-bu),e(bu)), sc=lerp(1,.3,e(bu)), h=AST.h*sc, w=h*sh.fw/sh.fh; g.globalAlpha=clamp((1-bu)/.25,0,1);
+    g.globalCompositeOperation='lighter'; const gr=g.createRadialGradient(x,y,0,x,y,h*.8); gr.addColorStop(0,'rgba(255,240,190,.35)'); gr.addColorStop(1,'rgba(255,220,120,0)'); g.fillStyle=gr; g.fillRect(x-h,y-h,h*2,h*2); g.globalCompositeOperation='source-over'; g.drawImage(sh.cv,fsx,fsy,sh.fw,sh.fh,x-w/2,y-h/2,w,h); g.globalAlpha=1; }
+  g.restore(); }
+function gPiece(im,w,h,ox,oy,x0,y0,x1,y1){ const iw=im.naturalWidth, ih=im.naturalHeight; g.drawImage(im,x0*iw,y0*ih,(x1-x0)*iw,(y1-y0)*ih,ox+x0*w,oy+y0*h,(x1-x0)*w+.7,(y1-y0)*h+.7); }
+function gPivot(px,py,rot,sx,sy,fn){ g.save(); g.translate(px,py); if(rot) g.rotate(rot); g.scale(sx,sy); g.translate(-px,-py); fn(); g.restore(); }
+// ガーゴイルは1枚の絵を「しっぽ・左右の翼・胴体・うで」に切り分けて、別々に動かしている
+function drawGarg(){ const d=S.garg; if(!d || (d.st==='in' && d.t<=0)) return; const fly=d.st==='in', im=IMG[fly?'gargF':'gargC']; if(!im || !im.naturalWidth) return; const w=fly?GARG.wF:GARG.wC, h=w*im.naturalHeight/im.naturalWidth;
+  g.save(); g.translate(d.x,d.y); g.shadowColor='rgba(150,70,255,.75)'; g.shadowBlur=16;
+  if(fly){ const ox=-w/2, oy=-h*.55, fl=.5+.5*Math.cos(T*15), f=.5+.5*fl, bob=(1-fl)*10, dive=clamp(d.t/GARG.inT,0,1); g.translate(0,bob); g.rotate(Math.sin(T*3)*.08+clamp((RXw()-d.x)*-.0012,-.3,.3)); g.scale(1+.04*dive,1+.04*dive);
+    gPivot(ox+.5*w,oy+.22*h,Math.sin(T*7)*.2,1,1,()=>gPiece(im,w,h,ox,oy,.38,0,.62,.24)); g.shadowBlur=0;
+    gPivot(ox+.31*w,0,-.12*(1-fl),f,1,()=>gPiece(im,w,h,ox,oy,0,.25,.31,.78)); gPivot(ox+.69*w,0,.12*(1-fl),f,1,()=>gPiece(im,w,h,ox,oy,.69,.25,1,.78));
+    gPiece(im,w,h,ox,oy,.31,.2,.69,1); gPiece(im,w,h,ox,oy,0,.2,.31,.25); gPiece(im,w,h,ox,oy,.69,.2,1,.25); gPivot(0,oy+.78*h,0,1,1+.05*fl,()=>{ gPiece(im,w,h,ox,oy,0,.78,.31,1); gPiece(im,w,h,ox,oy,.69,.78,1,1); }); }
+  else { const ox=-w/2, oy=-h*.5, on=d.st==='on', lag=on?clamp((S.px-S.tx)*.22,-34,34):0, pop=d.pop>0?1+.35*Math.sin(d.pop/.3*Math.PI):1, br=1+.03*Math.sin(T*8), fl=.5+.5*Math.sin(T*17), grip=1+.05*Math.sin(T*13);
+    g.translate(lag,on?Math.sin(T*12)*3:0); g.rotate((d.rot||0)+(on?Math.sin(T*10)*.07+lag*.006:0)); g.scale(pop,pop*br);
+    gPivot(ox+.5*w,oy+.32*h,Math.sin(T*9)*.26-(d.rot||0)*.8,1,1,()=>gPiece(im,w,h,ox,oy,.36,0,.64,.34)); g.shadowBlur=0;
+    gPivot(ox+.22*w,oy+.4*h,-.25*fl,.7+.3*fl,1,()=>gPiece(im,w,h,ox,oy,0,.2,.22,.54)); gPivot(ox+.78*w,oy+.4*h,.25*fl,.7+.3*fl,1,()=>gPiece(im,w,h,ox,oy,.78,.2,1,.54));
+    gPiece(im,w,h,ox,oy,.22,.2,.78,.62); gPiece(im,w,h,ox,oy,0,.54,.22,.62); gPiece(im,w,h,ox,oy,.78,.54,1,.62); gPivot(0,oy+.62*h,0,grip,1+.03*Math.sin(T*13+1),()=>gPiece(im,w,h,ox,oy,0,.62,1,1)); }
+  g.restore();
+  if(d.st==='on' && S.mode==='fly'){ const py=RYw()+205, a=.75+.25*Math.sin(T*10), n=GARG.need; g.save(); g.globalAlpha=a; txt('◀ 左右にふれ！ ▶',RXw(),py,40,'#ecd9ff','center','#2a0050'); g.globalAlpha=1; txt('重くて落ちていく…',RXw(),py+74,26,'#ffb0c0','center','#2a0050'); for(let i=0;i<n;i++){ g.fillStyle=i<d.cnt?'#5dffb0':'rgba(40,0,70,.8)'; g.strokeStyle='#ecd9ff'; g.lineWidth=3; g.beginPath(); g.arc(RXw()+(i-(n-1)/2)*28,py+36,9,0,7); g.fill(); g.stroke(); } g.restore(); } }
 function drawCrow(){ const d=S.crow; if(!d) return; const L=CROW.lift*(1+d.more), e=x=>x*x*(3-2*x), bx=RXw(), by=RYw()+CROW.oy; let x=bx, y=by, rot=0;
   if(d.t<CROW.inT){ const u=e(d.t/CROW.inT); x=bx+d.sx*lerp(360,0,u); y=lerp(H/K+200,by,u); rot=-d.sx*.5*(1-u); } else if(d.t>CROW.inT+L){ const u=(d.t-CROW.inT-L)/CROW.outT; x=bx+d.sx*u*u*520; y=by-u*u*(by+260); rot=d.sx*.5*u; } else y=by+Math.sin(d.t*14)*5;
   const im=IMG['crow'+[0,1,2,1][Math.floor(d.t*13)%4]]; if(!im || !im.naturalWidth) return; const w=CROW.w, h=w*im.naturalHeight/im.naturalWidth; g.save(); g.translate(x,y); g.rotate(rot); g.shadowColor='rgba(120,90,255,.7)'; g.shadowBlur=18; g.drawImage(im,-w/2,-h*.59,w,h); g.restore(); }
@@ -267,7 +288,7 @@ function update(dt){ if(S.cine){ const c=S.cine; c.t+=dt; if(c.t>=c.dur){ try{ c
   if(S.mode==='fly'){ const sp=SHIPS[S.ship]; S.pow=Math.max(0,S.pow-CFG.powDecay*sp.decay*dt); let v=CFG.speed*sp.spd*(1+S.pow);
     if(S.boostT>0){ S.boostT-=dt; v*=CFG.boostMul; } else if(S.stallT>0){ S.stallT-=dt; v=-CFG.stallFall; if(Math.random()<dt*14) S.parts.push({k:'smoke',x:W/2+rand(-30,30),y:RY+140,vx:rand(-80,80),vy:rand(-320,-120),g:0,t:rand(.6,1.1),r:rand(30,60),dark:1,rot:rand(0,6),v:Math.floor(rand(0,3))}); }
     if(S.holeT>0 && S.holeDrop>0) v=0;
-    if(S.garg && S.garg.st==='on' && v>0) v*=GARG.mul; if(S.birdSlow>0){ S.birdSlow-=dt; if(v>0) v*=BIRD.slow; } if(S.padSlow>0){ S.padSlow-=dt; if(v>0) v*=PAD.dn.mul; } if(S.slowT>0 && !S.frz){ S.slowT-=dt; if(v>0) v*=ICE.slowMul; if(Math.random()<dt*5) S.parts.push({k:'snow',x:W/2+rand(-70,70),y:RY+rand(-150,150),vx:rand(-40,40),vy:rand(60,200),g:0,t:rand(.5,1),r:rand(5,10)}); }
+    if(S.garg && S.garg.st==='on') v=-GARG.fall; if(S.birdSlow>0){ S.birdSlow-=dt; if(v>0) v*=BIRD.slow; } if(S.padSlow>0){ S.padSlow-=dt; if(v>0) v*=PAD.dn.mul; } if(S.slowT>0 && !S.frz){ S.slowT-=dt; if(v>0) v*=ICE.slowMul; if(Math.random()<dt*5) S.parts.push({k:'snow',x:W/2+rand(-70,70),y:RY+rand(-150,150),vx:rand(-40,40),vy:rand(60,200),g:0,t:rand(.5,1),r:rand(5,10)}); }
     if(S.frz){ const f=S.frz; f.t+=dt; const u0=clamp((f.t-dt)/ICE.fall,0,1), u1=clamp(f.t/ICE.fall,0,1), e=x=>x*x*(3-2*x); v=-(f.drop*(e(u1)-e(u0)))/dt; if(f.t>=ICE.fall){ S.frz=null; S.slowT=ICE.slowSec; S.shake=.5; S.flash=.25; ring(W/2,RY,'#cfeaff',true); shards(16,700); banner('速さ半分 '+ICE.slowSec+'秒','#9bd8ff','凍結がとけるまで'); } }
     S.alt=Math.max(0,S.alt+v*dt); if(S.alt>best){ best=S.alt; }
     if(S.stallT>0 && S.alt<=0){ S.stallT=0; }
@@ -321,8 +342,8 @@ function update(dt){ if(S.cine){ const c=S.cine; c.t+=dt; if(c.t>=c.dur){ try{ c
     else { d.end=(d.end||0)+dt; if(S.mode!=='clear' || d.end>2.6) S.astro=null; } }
   // ガーゴイル：上から飛んできてロケットにしがみつく。その間は速さ半分。ロケットを左右に GARG.need 回切り返すと振り落とせる（振らなければ GARG.life 秒で離れる）
   if(S.garg){ const d=S.garg; d.t+=dt; const tx=RXw(), ty=RYw()+GARG.oy;
-    if(d.st==='in'){ if(d.t>0){ const u=clamp(d.t/GARG.inT,0,1), q=Math.min(1,dt*(2+u*10)); d.x+=(tx-d.x)*q; d.y+=(ty-d.y)*q; if(u>=1 || S.mode!=='fly'){ if(S.mode!=='fly' || jamBlocked(d.by,'ガーゴイル')){ d.st='off'; d.t=0; d.vx=rand(-1,1)<0?-520:520; d.vy=-300; } else { d.st='on'; d.t=0; d.cnt=0; d.dir=0; d.ex=S.px; S.shake=Math.max(S.shake,.35); S.red=Math.max(S.red||0,.3); ring(W/2,RY,'#c9a0ff'); logAdd((d.by||'だれか')+' のガーゴイルがしがみついた！左右にふって振り落とせ','#d9a8ff'); } } } }
-    else if(d.st==='on'){ d.x=tx; d.y=ty; if(d.dir===0){ d.dir=1; d.ex=S.px; } if(d.dir>0){ if(S.px>d.ex) d.ex=S.px; else if(d.ex-S.px>GARG.swing){ d.cnt++; d.dir=-1; d.ex=S.px; d.rot=.5; } } else { if(S.px<d.ex) d.ex=S.px; else if(S.px-d.ex>GARG.swing){ d.cnt++; d.dir=1; d.ex=S.px; d.rot=-.5; } } d.rot*=Math.pow(.02,dt);
+    if(d.st==='in'){ if(d.t>0){ const u=clamp(d.t/GARG.inT,0,1), q=Math.min(1,dt*(2+u*10)); d.x+=(tx-d.x)*q; d.y+=(ty-d.y)*q; if(u>=1 || S.mode!=='fly'){ if(S.mode!=='fly' || jamBlocked(d.by,'ガーゴイル')){ d.st='off'; d.t=0; d.vx=rand(-1,1)<0?-520:520; d.vy=-300; } else { d.st='on'; d.t=0; d.cnt=0; d.dir=0; d.ex=S.px; d.pop=.3; S.shake=Math.max(S.shake,.35); S.red=Math.max(S.red||0,.3); ring(W/2,RY,'#c9a0ff'); logAdd((d.by||'だれか')+' のガーゴイルがしがみついた！左右にふって振り落とせ','#d9a8ff'); } } } }
+    else if(d.st==='on'){ d.x=tx; d.y=ty; if(d.dir===0){ d.dir=1; d.ex=S.px; } if(d.dir>0){ if(S.px>d.ex) d.ex=S.px; else if(d.ex-S.px>GARG.swing){ d.cnt++; d.dir=-1; d.ex=S.px; d.rot=.55; d.hit=1; } } else { if(S.px<d.ex) d.ex=S.px; else if(S.px-d.ex>GARG.swing){ d.cnt++; d.dir=1; d.ex=S.px; d.rot=-.55; d.hit=1; } } d.rot*=Math.pow(.02,dt); if(d.pop>0) d.pop-=dt; if(d.hit){ d.hit=0; S.shake=Math.max(S.shake,.12); for(let i=0;i<5;i++) S.parts.push({abs:1,k:'conf',x:d.x+rand(-60,60),y:d.y+rand(-60,60),vx:rand(-320,320),vy:rand(-300,120),g:900,t:rand(.35,.7),c:pick(['#8d86a0','#6a6480','#b9a8e0']),r:rand(6,11),rot:rand(0,6),vr:rand(-12,12)}); }
       const off=d.cnt>=GARG.need, quit=d.t>=GARG.life || S.mode!=='fly' || inv(); if(off || quit){ d.st='off'; d.t=0; d.vx=(d.dir||1)*-620; d.vy=off?-420:-200; if(off && S.mode==='fly'){ S.flash=Math.max(S.flash,.2); ring(W/2,RY,'#fff'); logAdd('ガーゴイルを振り落とした！','#5dffb0'); } } }
     else { d.vy+=1500*dt; d.x+=d.vx*dt; d.y+=d.vy*dt; d.rot+=dt*9*Math.sign(d.vx||1); if(d.t>1.6 || d.y>H/K+300) S.garg=null; } }
   // カラス：ゲームは止めない。下から飛んできてロケットをつかみ、CROW.gain m 運んで飛び去る（重ねて呼ぶと運ぶ時間と高さがのびる）
