@@ -28,7 +28,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <h3>無料（コメント・いいね）</h3>
     <button class="n" data-a="comment">コメント<br>少し加速</button><button class="n" data-a="like">いいね×50<br>少し加速</button><button class="n" data-a="follow">フォロー<br>大きく加速</button>
     <h3>お助け</h3>
-    <button class="h" data-a="fuel">エネルギー補給<br>耐久・パワー全回復</button><button class="h" data-a="boost">ブースター<br>10秒 3倍速</button><button class="h" data-a="shield">バリア<br>妨害を1回防ぐ</button>
+    <button class="h" data-a="fuel">エネルギー補給<br>耐久・パワー全回復</button><button class="h" data-a="boost">ブースター<br>10秒 3倍速</button><button class="h" data-a="shield">天使の加護<br>攻撃を1回防ぐ（3回分まで）</button>
     <button class="h" data-a="save">セーブ<br>落ちてもここから</button><button class="h" data-a="warp">ワープ<br>＋500m</button><span></span>
     <h3>機体交換（落ちるまで続く）</h3>
     <button class="g" data-s="stealth">ステルス<br>妨害を2回よける</button><button class="g" data-s="gold">ゴールド<br>速さ1.5倍</button><button class="g" data-s="dragon">ドラゴン<br>3倍速＋隕石無効</button>
@@ -62,7 +62,7 @@ function mkSheet(name,meta){ const o=Object.assign({cv:null,ok:false},meta), c=n
   const done=()=>{ if(++n<2 || !c.naturalWidth || !a.naturalWidth) return; const cv=document.createElement('canvas'); cv.width=c.naturalWidth; cv.height=c.naturalHeight; const x=cv.getContext('2d'); x.drawImage(c,0,0); x.globalCompositeOperation='destination-in'; x.drawImage(a,0,0,cv.width,cv.height); o.cv=cv; o.ok=true; };
   c.onload=done; a.onload=done; c.src='./img/'+name+'_c.jpg'; a.src='./img/'+name+'_a.png'; return o; }
 const drgSh=mkSheet('drg',{n:54,cols:8,fw:480,fh:253,fps:12});   // 真上から見たドラゴン。コマ0〜20＝羽ばたき1回ぶん、20〜53＝翼を広げて頭を突き出し吠える
-img('drg_face','drg_face.jpg');                                   // カットイン用の顔（まだ無い間は出さない）
+img('drg_face','drg_face.jpg'); img('angel_face','angel_face.jpg'); for(const k of ['wingL','wingR','halo','fea0','fea1','fea2','fea3','fea4']) img(k,k+'.webp');   // 天使の加護：翼・輪っか・羽根                                   // カットイン用の顔（まだ無い間は出さない）
 /* 音：くりんぐの動画の音や効果音ラボの音を鳴らす */
 const SND={}; function play(k,v){ try{ let a=SND[k]; if(!a){ a=SND[k]=new Audio('./snd/'+k+'.mp3'); a.preload='auto'; } a.currentTime=0; a.volume=v==null?.85:v; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
 /* 黒い背景の光の絵を、明るさ→透明度に変えて使う */
@@ -86,7 +86,7 @@ const RXw=()=>W/2+(S.px||0), RYw=()=>RY+(S.py||0);   // いまのロケットの
 let S, best=0, tries=1, wins=0, T=0;
 try{ const o=JSON.parse(localStorage.getItem('rocket_save')||'{}'); best=o.best||0; tries=o.tries||1; wins=o.wins||0; if(o.goal) CFG.goal=o.goal; }catch(e){}
 function save(){ try{ localStorage.setItem('rocket_save',JSON.stringify({best,tries,wins,goal:CFG.goal})); }catch(e){} }
-function newRun(keepTries){ drag=null; S={ px:0, py:0, tx:0, ty:0, mode:'fly', alt:0, pow:.2, hp:CFG.hp, holeT:0, holeDrop:0, rings:[], boostT:0, stallT:0, shield:false, ship:'std', dodge:0, shipT:9, saveAlt:0, fallV:0, fallT:0, clearT:0, shake:0, flash:0, red:0, log:(S&&S.log)||[], parts:[], fx:[], zapT:0, banner:null, items:[], nextItem:0, warn:0 }; if(!keepTries) tries=1; }
+function newRun(keepTries){ drag=null; S={ px:0, py:0, tx:0, ty:0, mode:'fly', alt:0, pow:.2, hp:CFG.hp, holeT:0, holeDrop:0, rings:[], boostT:0, stallT:0, shield:0, blessT:9, blessPop:0, cutin:null, ship:'std', dodge:0, shipT:9, saveAlt:0, fallV:0, fallT:0, clearT:0, shake:0, flash:0, red:0, log:(S&&S.log)||[], parts:[], fx:[], zapT:0, banner:null, items:[], nextItem:0, warn:0 }; if(!keepTries) tries=1; }
 function logAdd(text,color){ S.log.push({text,color:color||'#fff'}); if(S.log.length>3) S.log.shift(); }
 function banner(text,color,sub,logo){ S.banner={text,color,sub:sub||'',t:0,logo:logo||''}; }
 function fx(k,x,y,dur,s){ S.fx.push({k,x:RXw()+(x-W/2)*RS,y:RYw()+(y-RY)*RS,t:0,dur,s:k==='boom'?s*Math.max(RS,.7):s,rot:rand(0,6)}); }   // ロケットを基準にした場所で出す
@@ -98,7 +98,7 @@ const Game={
   follow(n){ addPow(CFG.follow); logAdd((n||'だれか')+' がフォロー！一気にスピードアップ','#b9ffb0'); },
   fuel(n){ if(S.mode!=='fly') return; S.pow=1; S.hp=SHIPS[S.ship].hp; S.tankT=0; S.flash=.3; logAdd((n||'だれか')+' がエネルギー補給（耐久とパワー全回復）','#5dffb0'); },
   boost(n){ if(S.mode!=='fly') return; S.boostT=CFG.boostSec; S.stallT=0; ring(W/2,RY+150,'#bff3ff'); banner('ブースター！','#5dffb0',n,'logo_boost'); logAdd((n||'だれか')+' がブースターに点火','#5dffb0'); },
-  shield(n){ S.shield=true; logAdd((n||'だれか')+' がバリアを張った','#5dffb0'); },
+  shield(n){ if(S.mode!=='fly') return; if(S.cutin && S.cutin.k==='angel'){ S.cutin.more=(S.cutin.more||0)+1; return; } S.cutin={k:'angel',t:0,by:n,done:false,more:0}; S.flash=Math.max(S.flash,.1); logAdd((n||'だれか')+' が天使の加護をさずけた（攻撃を1回防ぐ）','#5dffb0'); },
   save(n){ if(S.mode!=='fly') return; S.saveAlt=S.alt; banner('セーブ！','#5dffb0',fmt(S.alt)+'m'); logAdd((n||'だれか')+' が '+fmt(S.alt)+'m でセーブした','#5dffb0'); },
   warp(n){ if(S.mode!=='fly') return; S.alt=Math.min(CFG.goal,S.alt+CFG.warp); S.flash=.35; fx('warp',W/2,RY,.9,1); banner('＋'+CFG.warp+'m','#5dffb0',n,CFG.warp===500?'logo_p500':''); logAdd((n||'だれか')+' がワープさせた','#5dffb0'); },
   leak(n){ if(jamBlocked(n,'パワーダウン')) return; S.pow=0; S.red=.4; S.shake=.4; S.zapT=.8; banner('パワーダウン','#ff3d5a',n); logAdd((n||'だれか')+' が応援パワーを0にした','#ff9aa8'); },
@@ -121,22 +121,32 @@ const drgMouth=t=>({x:W/2, y:drgY(t)+DRG.w*drgSh.fh/drgSh.fw*.42});
 function drawDragon(){ const d=S.drg; if(!d || !drgSh.ok || d.t<DRG.cut) return; const sh=drgSh, f=clamp(drgFrame(d.t),0,sh.n-1), w=DRG.w, h=w*sh.fh/sh.fw, y=drgY(d.t);
   g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,W/2-w/2,y-h/2,w,h);
   if(d.shot<DRG.shots.length){ const nx=DRG.shots[d.shot]-d.t; if(nx<.3 && nx>0){ const m=drgMouth(d.t), r=60*(1-nx/.3)+14; g.save(); g.globalCompositeOperation='lighter'; const gr=g.createRadialGradient(m.x,m.y,0,m.x,m.y,r); gr.addColorStop(0,'rgba(255,240,190,.95)'); gr.addColorStop(.4,'rgba(255,150,40,.7)'); gr.addColorStop(1,'rgba(255,40,0,0)'); g.fillStyle=gr; g.fillRect(m.x-r,m.y-r,r*2,r*2); g.restore(); } } }
-/* カットイン：ナナメの帯がサッと横から入り、ドラゴンの顔と「ドラゴン襲来！」を見せて抜ける。ゲームは止めない */
-function drawDragonCut(){ const d=S.drg; if(!d || d.t>=DRG.cutLen) return; const t=d.t, L=DRG.cutLen, a=clamp(t/.16,0,1), b=clamp((t-(L-.2))/.2,0,1), ox=(1-(1-Math.pow(1-a,3)))*1250-b*b*1350-(t/L)*46, cy=470, bh=330, sk=70;
+/* カットイン：ナナメの帯がサッと横から入り、顔のアップと名前を見せて抜ける。ゲームは止めない。妨害は右から（文字は左）、お助けは左から（文字は右） */
+const CUT={len:1.05, dragon:{img:'drg_face',text:'ドラゴン襲来！',dir:1,sy:.3,dark:'10,0,2',base:'#1a0204',line:'#ffd23f',glow:'#ff5a00',col:'#ffd23f',st:'#3a0500',sub:' のしわざ'}, angel:{img:'angel_face',text:'天使の加護！',dir:-1,sy:.03,dark:'70,45,0',base:'#fff3cf',line:'#fff3b0',glow:'#ffd23f',col:'#fff',st:'#7a4a00',sub:' から'}};
+function drawCutBand(kind,t,by){ const C=CUT[kind], L=CUT.len; if(!C || t>=L) return; const a=clamp(t/.16,0,1), b=clamp((t-(L-.2))/.2,0,1), ox=C.dir*((1-(1-Math.pow(1-a,3)))*1250-b*b*1350-(t/L)*46), cy=470, bh=330, sk=70*C.dir;
   g.save(); g.translate(ox,0); g.beginPath(); g.moveTo(-40+sk,cy-bh/2); g.lineTo(W+40+sk,cy-bh/2); g.lineTo(W+40-sk,cy+bh/2); g.lineTo(-40-sk,cy+bh/2); g.closePath();
-  g.save(); g.clip(); g.fillStyle='#1a0204'; g.fillRect(-200,cy-bh/2,W+400,bh);
-  if(ok('drg_face')){ const fi=IMG.drg_face, sw=fi.naturalWidth, sh2=sw*bh/(W+240), z=1+.06*(t/L); g.drawImage(fi,0,fi.naturalHeight*.3,sw,sh2,-120-(z-1)*600,cy-bh/2-(z-1)*170,(W+240)*z,bh*z); }
-  { const gr=g.createLinearGradient(-100,0,640,0); gr.addColorStop(0,'rgba(10,0,2,.92)'); gr.addColorStop(1,'rgba(10,0,2,0)'); g.fillStyle=gr; g.fillRect(-200,cy-bh/2,900,bh); }
-  g.globalCompositeOperation='lighter'; g.strokeStyle='rgba(255,190,90,.5)'; g.lineWidth=3; for(let i=0;i<9;i++){ const yy=cy-bh/2+((i*53+t*900)%bh), xx=((i*347-t*2600)%1500+1500)%1500-200; g.beginPath(); g.moveTo(xx,yy); g.lineTo(xx+220,yy); g.stroke(); }
+  g.save(); g.clip(); g.fillStyle=C.base; g.fillRect(-200,cy-bh/2,W+400,bh);
+  if(ok(C.img)){ const fi=IMG[C.img], sw=fi.naturalWidth, sh2=sw*bh/(W+240), z=1+.06*(t/L); g.drawImage(fi,0,fi.naturalHeight*C.sy,sw,sh2,-120-(z-1)*600,cy-bh/2-(z-1)*170,(W+240)*z,bh*z); }
+  { const gr=C.dir>0?g.createLinearGradient(-100,0,640,0):g.createLinearGradient(W+100,0,W-560,0); gr.addColorStop(0,'rgba('+C.dark+',.9)'); gr.addColorStop(1,'rgba('+C.dark+',0)'); g.fillStyle=gr; g.fillRect(C.dir>0?-200:W-700,cy-bh/2,900,bh); }
+  g.globalCompositeOperation='lighter'; g.strokeStyle='rgba(255,220,140,.5)'; g.lineWidth=3; for(let i=0;i<9;i++){ const yy=cy-bh/2+((i*53+t*900)%bh), xx=((i*347-C.dir*t*2600)%1500+1500)%1500-200; g.beginPath(); g.moveTo(xx,yy); g.lineTo(xx+220,yy); g.stroke(); }
   g.restore();
-  g.lineWidth=10; g.strokeStyle='#ffd23f'; g.shadowColor='#ff5a00'; g.shadowBlur=24; g.beginPath(); g.moveTo(-40+sk,cy-bh/2); g.lineTo(W+40+sk,cy-bh/2); g.moveTo(W+40-sk,cy+bh/2); g.lineTo(-40-sk,cy+bh/2); g.stroke(); g.shadowBlur=0;
-  const pk=1+.5*Math.pow(clamp(1-(t-.1)/.18,0,1),2); g.translate(64,cy-18); g.scale(pk,pk); g.shadowColor='rgba(0,0,0,.7)'; g.shadowBlur=18; txt('ドラゴン襲来！',0,0,80,'#ffd23f','left','#3a0500',FONTD); g.shadowBlur=0; if(d.by) txt(d.by+' のしわざ',6,78,34,'#fff','left','#3a0500');
+  g.lineWidth=10; g.strokeStyle=C.line; g.shadowColor=C.glow; g.shadowBlur=24; g.beginPath(); g.moveTo(-40+sk,cy-bh/2); g.lineTo(W+40+sk,cy-bh/2); g.moveTo(W+40-sk,cy+bh/2); g.lineTo(-40-sk,cy+bh/2); g.stroke(); g.shadowBlur=0;
+  const pk=1+.5*Math.pow(clamp(1-(t-.1)/.18,0,1),2), al=C.dir>0?'left':'right'; g.translate(C.dir>0?64:W-64,cy-18); g.scale(pk,pk); g.shadowColor='rgba(0,0,0,.7)'; g.shadowBlur=18; txt(C.text,0,0,80,C.col,al,C.st,FONTD); g.shadowBlur=0; if(by) txt(by+C.sub,C.dir>0?6:-6,78,34,'#fff',al,C.st);
   g.restore(); }
+function drawDragonCut(){ if(S.drg) drawCutBand('dragon',S.drg.t,S.drg.by); if(S.cutin) drawCutBand(S.cutin.k,S.cutin.t,S.cutin.by); }
 function drawFball(it){ const r=FB_R; g.save(); { const gr=g.createRadialGradient(it.x,it.y,0,it.x,it.y,r); gr.addColorStop(0,'rgba(255,246,190,1)'); gr.addColorStop(.28,'rgba(255,170,40,1)'); gr.addColorStop(.6,'rgba(232,60,10,.85)'); gr.addColorStop(1,'rgba(160,20,0,0)'); g.fillStyle=gr; g.beginPath(); g.arc(it.x,it.y,r,0,7); g.fill(); } g.globalCompositeOperation='lighter'; { const gr=g.createRadialGradient(it.x,it.y,0,it.x,it.y,r*1.6); gr.addColorStop(0,'rgba(255,200,90,.5)'); gr.addColorStop(1,'rgba(255,60,0,0)'); g.fillStyle=gr; g.fillRect(it.x-r*1.6,it.y-r*1.6,r*3.2,r*3.2); } g.restore(); }
+const BLESS_MAX=3;   // 天使の加護をためておける回数
+function feathers(n,pw){ for(let i=0;i<n;i++) S.parts.push({k:'fea',i:Math.floor(rand(0,5)),x:W/2+rand(-1,1)*(n>1?200:260),y:RY+rand(-130,90),vx:rand(-1,1)*pw,vy:rand(-1,.25)*pw,g:150,drag:2.2,t:rand(1.3,2.4),r:rand(20,36),rot:rand(0,6),vr:rand(-3,3),sw:rand(0,6)}); }
+/* 天使の加護：ロケットの後ろに白い翼（ゆっくり羽ばたく）、上に金の輪っか（残り回数ぶん）。防いだ瞬間は翼が大きく広がって光る */
+function drawBless(){ const on=S.shield>0, pop=clamp(S.blessPop/.7,0,1); if(!on && pop<=0) return; if(!ok('wingL') || !ok('wingR')) return; const sp=SHIPS[S.ship], a0=on?clamp(S.blessT/.45,0,1):pop, grow=on?(1-Math.pow(1-clamp(S.blessT/.45,0,1),3)):1, ww=330*(.55+.45*grow)*(1+.5*Math.sin(pop*Math.PI)), flap=Math.sin(T*4.2)*.16+pop*.5, wy=RY-10;
+  g.save(); g.globalAlpha=a0; g.shadowColor='rgba(255,240,170,.9)'; g.shadowBlur=30+40*pop;
+  for(const sd of [-1,1]){ const im=IMG[sd<0?'wingL':'wingR'], wh=ww*im.naturalHeight/im.naturalWidth; g.save(); g.translate(W/2+sd*18,wy); g.rotate(sd*(-.12-flap)); g.scale(1-.1*Math.abs(Math.sin(T*4.2)),1); if(sd<0) g.drawImage(im,-ww*.97,-wh*.5,ww,wh); else g.drawImage(im,-ww*.03,-wh*.5,ww,wh); g.restore(); }
+  g.restore();
+  if(on && ok('halo')){ const hw=170, hh=hw*IMG.halo.naturalHeight/IMG.halo.naturalWidth; for(let i=0;i<S.shield;i++){ const hy=RY-sp.h/2-46-i*30+Math.sin(T*2.6+i)*5; g.save(); g.globalAlpha=a0; g.drawImage(IMG.halo,W/2-hw/2,hy-hh/2,hw,hh); g.globalCompositeOperation='lighter'; g.globalAlpha=a0*(.35+.2*Math.sin(T*5+i)); g.drawImage(IMG.halo,W/2-hw/2,hy-hh/2,hw,hh); g.restore(); } } }
 function addPow(v){ if(S.mode!=='fly') return; S.pow=Math.min(1,S.pow+v); }
 function ring(x,y,c,big){ S.rings.push({x:RXw()+(x-W/2)*RS,y:RYw()+(y-RY)*RS,c,t:0,big:!!big}); }
 function damage(n){ S.hp-=1; S.red=.5; if(S.hp<=0){ S.hp=0; logAdd('耐久が0になった！','#ff5c5c'); startFall(); } }
-function jamBlocked(n,what){ if(S.mode!=='fly') return true; if(S.shield){ S.shield=false; S.flash=.3; banner('バリアで防いだ！','#9be9ff',what); logAdd('バリアが '+(n||'だれか')+' の'+what+'を防いだ','#9be9ff'); return true; } if(S.dodge>0){ S.dodge--; S.dodgeT=.5; banner('よけた！','#c9d3e2',what+'（あと'+S.dodge+'回）','logo_dodge'); logAdd('ステルスが '+(n||'だれか')+' の'+what+'をよけた','#c9d3e2'); return true; } return false; }
+function jamBlocked(n,what){ if(S.mode!=='fly') return true; if(S.shield>0){ S.shield--; S.blessPop=.7; S.flash=.35; ring(W/2,RY-40,'#fff3b0',true); feathers(18,760); banner('天使の加護で防いだ！','#ffe9a0',what+(S.shield>0?'（あと'+S.shield+'回）':'')); logAdd('天使の加護が '+(n||'だれか')+' の'+what+'を防いだ','#ffe9a0'); return true; } if(S.dodge>0){ S.dodge--; S.dodgeT=.5; banner('よけた！','#c9d3e2',what+'（あと'+S.dodge+'回）','logo_dodge'); logAdd('ステルスが '+(n||'だれか')+' の'+what+'をよけた','#c9d3e2'); return true; } return false; }
 function startFall(){ if(S.mode!=='fly') return; S.mode='fall'; S.fallV=0; S.fallT=0; S.boostT=0; S.stallT=0; S.red=.6; S.shake=.6; banner('ついらく…','#ff3d5a',S.saveAlt>0?'セーブ地点 '+fmt(S.saveAlt)+'m からやり直し':'0m からやり直し','logo_crash'); }
 let drag=null; const KEYS={};
 function update(dt){ T+=dt; if(S.mode==='fly'){ const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.ArrowLeft||KEYS.a?1:0), ky=(KEYS.ArrowDown||KEYS.s?1:0)-(KEYS.ArrowUp||KEYS.w?1:0); if(kx||ky){ S.tx=clamp(S.tx+kx*820*dt,-MOVE.x,MOVE.x); S.ty=clamp(S.ty+ky*820*dt,MOVE.up,MOVE.dn); } const q=Math.min(1,dt*16); S.px+=(S.tx-S.px)*q; S.py+=(S.ty-S.py)*q; } S.shake=Math.max(0,S.shake-dt); S.flash=Math.max(0,S.flash-dt); S.red=Math.max(0,S.red-dt); if(S.banner){ S.banner.t+=dt; if(S.banner.t>2.4) S.banner=null; }
@@ -155,6 +165,9 @@ function update(dt){ T+=dt; if(S.mode==='fly'){ const kx=(KEYS.ArrowRight||KEYS.
     if(Math.random()<dt*60) S.parts.push({k:'smoke',x:W/2+rand(-36,36),y:RY-60,vx:rand(-70,70),vy:rand(-900,-400),g:0,t:rand(.6,1.2),r:rand(40,90),dark:1,rot:rand(0,6),v:Math.floor(rand(0,3))}); if(Math.random()<dt*50) S.parts.push({k:'fire',x:W/2+rand(-30,30),y:RY-80,vx:rand(-60,60),vy:rand(-700,-300),g:0,t:rand(.25,.5),r:rand(24,50)});
     if(S.alt<=floor && S.fallT>1.2){ const keep=S.saveAlt; tries++; save(); const lg=S.log; newRun(true); S.log=lg; if(keep>0){ S.alt=keep; logAdd('セーブ地点 '+fmt(keep)+'m から再出発（'+tries+'回目）','#9be9ff'); } else { S.shake=1; S.flash=.5; ring(W/2,RY+140,'#ffd9a0',true); for(let i=0;i<46;i++) S.parts.push({k:'smoke',x:W/2+rand(-200,200),y:RY+150,vx:rand(-420,420),vy:rand(-520,-40),g:160,t:rand(.9,1.9),r:rand(60,130),dark:i%2,rot:rand(0,6),v:i%3}); for(let i=0;i<40;i++) S.parts.push({k:'fire',x:W/2+rand(-120,120),y:RY+120,vx:rand(-620,620),vy:rand(-720,-60),g:500,t:rand(.4,.9),r:rand(24,60)}); fx('boom',W/2,RY+40,.75,1150); debris(W/2,RY+80,14,820); logAdd('0m からやり直し（'+tries+'回目の挑戦）','#ff9aa8'); } } }
   else if(S.mode==='clear'){ S.clearT+=dt; if(Math.random()<dt*14) S.parts.push({abs:1,k:'conf',x:rand(0,W),y:-20,vx:rand(-120,120),vy:rand(60,260),g:300,t:rand(3,5),c:pick(['#ff3d7f','#ffd400','#22d3ee','#7cff4f','#fff']),r:rand(10,20),rot:rand(0,6),vr:rand(-8,8)}); }
+  S.blessT+=dt; if(S.blessPop>0) S.blessPop-=dt;
+  if(S.cutin){ const c=S.cutin; c.t+=dt; if(!c.done && c.t>=.55){ c.done=true; if(c.k==='angel' && S.mode==='fly'){ S.shield=Math.min(BLESS_MAX,S.shield+1+(c.more||0)); S.blessT=0; S.flash=Math.max(S.flash,.3); ring(W/2,RY-20,'#fff3b0',true); fx('pillar',W/2,RY+170,1.1,1); feathers(10,520); } } if(c.t>=CUT.len) S.cutin=null; }
+  if(S.shield>0 && S.mode==='fly' && Math.random()<dt*1.1) feathers(1,90);
   // ドラゴン襲来：上から降りてきて、吠えながら火球を3発吐く。1発ごとに当たるかどうかはランダム。ゲームは止めない
   if(S.drg){ const d=S.drg; d.t+=dt; if(!d.snd && d.t>=DRG.cut){ d.snd=true; play('dragon'); } while(d.shot<DRG.shots.length && d.t>=DRG.shots[d.shot]){ d.shot++; if(S.mode!=='fly') continue; const m=drgMouth(d.t), ax=RXw()+rand(-1,1)*DRG.aim-m.x, ay=RYw()-m.y, L=Math.hypot(ax,ay)||1; S.items.push({k:'fball',x:m.x,y:m.y,vx:ax/L*DRG.spd,vy:ay/L*DRG.spd,by:d.by}); S.shake=Math.max(S.shake,.18); for(let i=0;i<10;i++) S.parts.push({abs:1,k:'fire',x:m.x+rand(-20,20),y:m.y,vx:rand(-200,200),vy:rand(40,360),g:0,t:rand(.2,.45),r:rand(20,44)}); }
     if(d.t>=DRG.dur) S.drg=null; }
@@ -168,6 +181,7 @@ function update(dt){ T+=dt; if(S.mode==='fly'){ const kx=(KEYS.ArrowRight||KEYS.
       if(!it.hit && S.mode==='fly' && Math.abs(it.x-RXw())<HITB.x+62 && Math.abs(it.y-(RYw()+HITB.oy))<HITB.y+62){ it.hit=true; it.dead=true; if(S.mode==='fly'){ S.shake=.9; S.flash=.3; ring(W/2,RY-70,'#ffcf8a',true); fx('boom',W/2,RY-80,.6,560); if(!SHIPS[S.ship].fireproof) debris(W/2,RY-60,4,560); for(let i=0;i<34;i++) S.parts.push({k:'fire',x:W/2+rand(-60,60),y:RY-70,vx:rand(-640,640),vy:rand(-640,320),g:300,t:rand(.3,.8),r:rand(20,48)}); for(let i=0;i<14;i++) S.parts.push({k:'conf',x:W/2+rand(-40,40),y:RY-70,vx:rand(-700,700),vy:rand(-700,200),g:1200,t:rand(.6,1.2),c:pick(['#3a2a22','#5a4030','#ff7a1f']),r:rand(10,22),rot:rand(0,6),vr:rand(-14,14)}); for(let i=0;i<10;i++) S.parts.push({k:'smoke',x:W/2+rand(-60,60),y:RY-70,vx:rand(-260,260),vy:rand(-260,120),g:0,t:rand(.6,1.2),r:rand(50,100),dark:1,rot:rand(0,6),v:i%3}); if(SHIPS[S.ship].fireproof){ banner('効かない！','#ffb020','ドラゴンは隕石に強い'); } else damage(); } } } }
   S.items=S.items.filter(it=>!it.dead && it.y<H+300);
   for(const p of S.parts){ if(p._c) continue; p._c=1; if(p.abs) continue; p.x=RXw()+(p.x-W/2)*RS; p.y=RYw()+(p.y-RY)*RS; p.vx*=RS; p.vy*=RS; if(p.r) p.r*=(p.k==='deb'?.8:RS); }
+  for(const p of S.parts){ if(p.drag){ const q=Math.exp(-p.drag*dt); p.vx*=q; p.vy=p.vy*q; p.x+=Math.sin(T*3+p.sw)*40*dt; } }
   for(const p of S.parts){ p.t-=dt; p.vy+=(p.g||0)*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; if(p.rot!==undefined) p.rot+=p.vr*dt; } S.parts=S.parts.filter(p=>p.t>0); if(S.parts.length>700) S.parts.splice(0,S.parts.length-700); }
 
 /* ====== 絵（いまは全部コードで描いた仮の絵） ====== */
@@ -229,15 +243,16 @@ function draw(){ const p=clamp(S.alt/CFG.goal,0,1), sx=S.shake>0?rand(-1,1)*S.sh
   for(const f of S.fx){ if(f.k!=='warp') continue; const wi=keyed('warp'); if(!wi) continue; const u=f.t/f.dur, sz=lerp(500,2600,u*u*.6+u*.4); g.save(); g.globalCompositeOperation='lighter'; g.translate(f.x,f.y); for(let q=0;q<2;q++){ g.globalAlpha=clamp((1-u)*1.6,0,1)*(q?.6:1); g.rotate(f.rot+u*(q?-1.2:.8)); const z=sz*(q?.6:1); g.drawImage(wi,-z/2,-z/2,z,z); } g.restore(); }
   g.save(); g.translate(RXw(),RYw()); g.scale(RS,RS); g.translate(-W/2,-RY);   // ここから下はロケットとそのまわり（小さく、指で動かした場所に）
   { const hk=holeK(); if(hk>0){ g.save(); g.translate(W/2,RY+150); g.scale(1-.16*hk,1+.34*hk); g.translate(-W/2,-(RY+150)+150*hk+rand(-6,6)*hk); } }
+  drawBless();
   drawRocket(W/2+(S.dodgeT>0?Math.sin(S.dodgeT/.5*Math.PI)*190:0),RY+bob,(S.mode==='fly'?clamp((S.tx-S.px)*.004,-.32,.32):0)+rot+(S.dodgeT>0?Math.sin(S.dodgeT/.5*Math.PI)*.35:0),S.mode==='clear'?.6:(S.mode==='fall'||S.stallT>0?0:(S.boostT>0?1.9:1+S.pow*.45)));
   if(holeK()>0) g.restore();
   { const bi=keyed('bolt'), zap=S.zapT>0; if(bi && (S.stallT>0 || zap)){ const sd=Math.floor(T*16), rn=i=>{ const v=Math.sin(sd*12.9898+i*78.233)*43758.5453; return v-Math.floor(v); }; g.save(); g.globalCompositeOperation='lighter'; const n=zap?4:2; for(let i=0;i<n;i++){ const bh=(zap?520:300)*(.7+rn(i)*.6), bw=bh*bi.width/bi.height; g.save(); g.translate(W/2+(rn(i+9)-.5)*(zap?240:120),zap?RY-260+rn(i+5)*180:RY+110+rn(i+5)*40); g.rotate((rn(i+3)-.5)*(zap?1.4:.9)); g.scale(rn(i+7)<.5?-1:1,1); g.globalAlpha=.6+rn(i+2)*.4; g.drawImage(bi,-bw/2,0,bw,bh); g.restore(); } g.restore(); } }
   if(S.stallT>0 && !keyed('bolt')){ g.save(); g.globalCompositeOperation='lighter'; g.strokeStyle='rgba(255,240,150,.9)'; g.lineWidth=5; g.shadowColor='#ffb020'; g.shadowBlur=20; for(let i=0;i<4;i++){ let x=W/2+rand(-50,50), y=RY+150; g.beginPath(); g.moveTo(x,y); for(let q=0;q<4;q++){ x+=rand(-34,34); y+=rand(14,40); g.lineTo(x,y); } g.stroke(); } g.restore(); }
-  if(S.shield && ok('fx_shield')){ const w=SHIPS[S.ship].h*1.5*(1+.03*Math.sin(T*6)); g.save(); g.globalAlpha=.6+.15*Math.sin(T*5); g.drawImage(IMG.fx_shield,W/2-w/2,RY-30-w*.36,w,w*.72); g.restore(); }
   if(S.tankT!==undefined && S.tankT<.7 && ok('fx_tank')){ const u=S.tankT/.7, w=260*(1-u*.6); g.save(); g.globalAlpha=clamp((1-u)*3,0,1); g.drawImage(IMG.fx_tank,lerp(160,W/2,u)-w/2,lerp(RY-420,RY,u*u)-w*.35,w,w*.7); g.restore(); }
   g.restore();
   drawDragon(); for(const it of S.items) if(it.k==='fball') drawFball(it);
   for(const it of S.items){ if(it.k==='meteor' && ok('fx_meteor')){ g.save(); g.translate(it.x,it.y); g.rotate(Math.PI/4+.08); const w=250; g.drawImage(IMG.fx_meteor,-w*.62,-w*.4,w,w*.631); g.restore(); } }
+  for(const pt of S.parts){ if(pt.k==='fea'){ const fi=IMG['fea'+pt.i]; if(!fi || !fi.naturalWidth) continue; const fw=pt.r*2*fi.naturalWidth/Math.max(fi.naturalWidth,fi.naturalHeight), fh=pt.r*2*fi.naturalHeight/Math.max(fi.naturalWidth,fi.naturalHeight); g.save(); g.globalAlpha=clamp(pt.t*1.6,0,1); g.translate(pt.x,pt.y); g.rotate(pt.rot+Math.sin(T*3+pt.sw)*.5); g.drawImage(fi,-fw/2,-fh/2,fw,fh); g.restore(); } }
   for(const pt of S.parts){ if(pt.k==='conf'){ g.save(); g.globalAlpha=clamp(pt.t,0,1); g.translate(pt.x,pt.y); g.rotate(pt.rot); g.fillStyle=pt.c; g.fillRect(-pt.r/2,-pt.r/3,pt.r,pt.r*.66); g.restore(); } }
   for(const pt of S.parts){ if(pt.k==='deb'){ const di=IMG['deb'+pt.i]; if(!di || !di.naturalWidth) continue; const dw=pt.r*2, dh=dw*di.naturalHeight/di.naturalWidth; g.save(); g.globalAlpha=clamp(pt.t*2.5,0,1); g.translate(pt.x,pt.y); g.rotate(pt.rot); g.drawImage(di,-dw/2,-dh/2,dw,dh); g.restore(); } }
   for(const f of S.fx){ const u=f.t/f.dur; if(f.k==='boom'){ const bi=keyed('boom'); if(!bi) continue; const e=1-Math.pow(1-u,3), sz=f.s*(.3+.8*e); g.save(); g.translate(f.x,f.y); g.rotate(f.rot); g.globalAlpha=clamp((1-u)*2.2,0,1)*clamp((1-u)*2.2,0,1); g.drawImage(bi,-sz/2,-sz/2,sz,sz); g.globalCompositeOperation='lighter'; g.globalAlpha*=.5; g.drawImage(bi,-sz*.4,-sz*.4,sz*.8,sz*.8); g.restore(); } else if(f.k==='pillar'){ const pi=keyed('pillar'); if(!pi) continue; const al=clamp(u/.12,0,1)*clamp((1-u)/.4,0,1), pw=300*(1+.5*al), ph=1500; g.save(); g.globalCompositeOperation='lighter'; g.globalAlpha=al; g.drawImage(pi,f.x-pw/2,f.y+40-ph,pw,ph); g.globalAlpha=al*.6; g.drawImage(pi,f.x-pw*.9,f.y+40-ph,pw*1.8,ph); g.restore(); } }
