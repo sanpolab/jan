@@ -54,7 +54,10 @@ function build(){ const m=load(); if(CATL) for(const k in m){ const b=m[k]; if(b
     else { const t=document.createElement('div'); t.className='q'; t.textContent='？'; gd.appendChild(t); }
     if(b&&b.coins!=null){ const cn=document.createElement('div'); cn.className='coin'; cn.textContent=b.coins; gd.appendChild(cn); }
     const fx=document.createElement('div'); const fi=document.createElement('img'); fi.src='./img/fx/'+f[0]+'.png'; fi.alt=f[2]; fx.appendChild(fi);
-    pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; { const lab=LB[f[0]]||f[2]; nm.textContent=lab; if(LB[f[0]] && lab.length>8) nm.style.fontSize='calc('+(13.5*8/lab.length).toFixed(2)+'vw / var(--cols))'; } c.appendChild(pair); c.appendChild(nm); g.appendChild(c); } }
+    pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; { const lab=LB[f[0]]||f[2]; nm.textContent=lab; if(LB[f[0]] && lab.length>8) nm.style.fontSize='calc('+(13.5*8/lab.length).toFixed(2)+'vw / var(--cols))'; } c.appendChild(pair); c.appendChild(nm); g.appendChild(c); } autoFit(); }
+// fit=1：窓の高さに全部おさまる中で、いちばん大きく見える列の数を自動でえらぶ（ゲームの下に出す時用）
+function autoFit(){ if(q.get('fit')!=='1') return; const gr=document.getElementById('grid'); for(let c=4;c<=13;c++){ document.documentElement.style.setProperty('--cols',c); if(gr.offsetHeight<=window.innerHeight) return; } }
+window.addEventListener('resize',autoFit);
 build(); window.addEventListener('storage',build); window.addEventListener('hashchange',build); setInterval(build,2000);
 </script>
 </body>
