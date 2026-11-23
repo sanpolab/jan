@@ -70,7 +70,7 @@ for(const k of ['bird0','bird1','bird2','bird3','ice','shard0','shard1','shard2'
 const ibSh=mkSheet('ibird',{n:24,cols:8,fw:480,fh:253,fps:12});   // 真上から見た氷の怪鳥（羽ばたき2回ぶん）
 /* 全画面の映像（くりんぐ）。高い妨害の最初に流す。流している間はゲームを止める */
 function mkVid(name){ const v=document.createElement('video'); v.preload='auto'; v.playsInline=true; v.setAttribute('playsinline',''); for(const [ext,type] of [['webm','video/webm'],['mp4','video/mp4']]){ const sc=document.createElement('source'); sc.src='./vid/'+name+'.'+ext; sc.type=type; v.appendChild(sc); } try{ v.load(); }catch(e){} return v; }
-const VID={icebird:{v:mkVid('icebird'),dur:5.8},phoenix:{v:mkVid('phoenix'),dur:4.3},hole:{v:mkVid('hole'),dur:4.9},whale:{v:mkVid('whale'),dur:5.5},astro:{v:mkVid('astro'),dur:5.9}};
+const VID={icebird:{v:mkVid('icebird'),dur:5.8},phoenix:{v:mkVid('phoenix'),dur:4.3},hole:{v:mkVid('hole'),dur:4.9},whale:{v:mkVid('whale'),dur:5.5},astro:{v:mkVid('astro'),dur:8.9}};
 const asSh=mkSheet('astro',{n:21,cols:8,fw:240,fh:405,fps:12});   /* ロープを引く宇宙飛行士（つながる21コマ） */
 const AST={inT:.9,pull:4.2,h:300,up:300,hand:.33};   /* 宇宙飛行士：来る秒数、ゴールまで引っぱる秒数、絵の高さ、ロケットより上にいる距離、手の高さの位置 */
 const inv=()=>!!(S.phx || S.astro);   /* 不死鳥か宇宙飛行士に運ばれている間は攻撃が効かない */
