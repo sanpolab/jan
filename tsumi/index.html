@@ -156,7 +156,7 @@ canvas{width:100%;height:100%;display:block}
     <button class="b-h" data-a="help3"><small>お助け 大</small>世界樹<br>台が広がる</button>
   </div>
 </div>
-<iframe id="gtbl" title="ギフト表" hidden style="flex:0 0 auto;border:0;background:#000;pointer-events:none;display:block"></iframe>
+<iframe id="gtbl" title="ギフト表" hidden style="flex:0 0 auto;border:0;background:#000;pointer-events:none;display:none"></iframe>
 </div>
 <script src="./lib/decomp.min.js"></script>
 <script src="./lib/matter.min.js"></script>
@@ -224,8 +224,8 @@ function saveWins(){ try { localStorage.setItem('tsumi_wins', String(wins)); } c
 /* ====== 効果音（音声ファイル方式） ======
    snd フォルダに音を入れて、下の表にファイル名を書くと鳴る。空のあいだは無音 */
 /* 効果音（効果音ラボの音）。Web Audio で読み込んで鳴らす。最初のタップで音が出るようになる */
-const SND_NAMES=['drop','land','heavy','rot','bad','good','win','lose','impact','jean','fall','count','quake','wind','witch','angel','break','ant','shakin','bomb','bigboom','missile','laser','beam','charge','robo','alert','gara','jakon','coins','roll','kira','flee','slash','slash2','flame','wv_wash','wv_whale','knell','splat','doon','rumble','crow','tentacle','dv_in','dv_pop','dv_flick','dv_stop','dv_thunder','dv_laugh','dv_bored','dv_out'];
-const SND_VOL={drop:.35,land:.55,heavy:.8,rot:.4,bad:.6,good:.55,win:.75,lose:.7,impact:.8,jean:.7,fall:.5,count:.7,quake:.8,wind:.65,witch:.6,angel:.6,break:.7,ant:.6,shakin:.5,bomb:.6,bigboom:.95,missile:.45,laser:.6,beam:.75,charge:.7,robo:.7,alert:.55,gara:.5,jakon:.7,coins:.7,roll:.6,kira:.6,flee:.55,slash:.9,slash2:.8,flame:.7,wv_wash:.8,wv_whale:1,knell:.7,splat:.7,doon:.9,rumble:.9,crow:.8,tentacle:.9,dv_in:.8,dv_pop:.75,dv_flick:.9,dv_stop:.7,dv_thunder:.7,dv_laugh:1,dv_bored:.9,dv_out:.7};
+const SND_NAMES=['chest','drop','land','heavy','rot','bad','good','win','lose','impact','jean','fall','count','quake','wind','witch','angel','break','ant','shakin','bomb','bigboom','missile','laser','beam','charge','robo','alert','gara','jakon','coins','roll','kira','flee','slash','slash2','flame','wv_wash','wv_whale','knell','splat','doon','rumble','crow','tentacle','dv_in','dv_pop','dv_flick','dv_stop','dv_thunder','dv_laugh','dv_bored','dv_out'];
+const SND_VOL={chest:.9,drop:.35,land:.55,heavy:.8,rot:.4,bad:.6,good:.55,win:.75,lose:.7,impact:.8,jean:.7,fall:.5,count:.7,quake:.8,wind:.65,witch:.6,angel:.6,break:.7,ant:.6,shakin:.5,bomb:.6,bigboom:.95,missile:.45,laser:.6,beam:.75,charge:.7,robo:.7,alert:.55,gara:.5,jakon:.7,coins:.7,roll:.6,kira:.6,flee:.55,slash:.9,slash2:.8,flame:.7,wv_wash:.8,wv_whale:1,knell:.7,splat:.7,doon:.9,rumble:.9,crow:.8,tentacle:.9,dv_in:.8,dv_pop:.75,dv_flick:.9,dv_stop:.7,dv_thunder:.7,dv_laugh:1,dv_bored:.9,dv_out:.7};
 const SND={}; let actx=null;
 function sndInit(){ if(actx) return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; try{ actx=new AC(); }catch(e){ return; }
   for(const k of SND_NAMES){ fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,ng)=>actx.decodeAudioData(b,ok,ng))).then(buf=>{ SND[k]=buf; }).catch(()=>{}); } }
@@ -1134,14 +1134,28 @@ function startBigGacha(name,pool,label,col){ pool=pool||BIGKEYS; const key=pick(
 function startWinGacha(name){ const val=Math.random()<.5?100:50, oth=val===100?50:100, strip=[]; for(let i=0;i<BX.n;i++) strip.push((BX.n-1-i)%2===0?oth:val); strip.push(val); const o={box:1,win:1,name,key:val,val,t:0,stop:0,strip,gara:0,label:'WINガチャ',col:['#3a2600','#b07a12','#e0a21a','#5a3a00']}; if(S.roul || wrCur.m) S.roulQ.push(o); else S.roul=o; }
 const bxPos=r=>BX.n*(1-Math.pow(1-clamp((r.t-BX.tin)/BX.spin,0,1),3));
 const bxWorld=()=>({x:540+(OX(BX.cx)-540)/camZ, y:AIM_Y+(OY(BX.cy)-AY())/camZ});
-function updateBox(r,dt){ const T=BX.tin+BX.spin;
-  if(r.t>BX.tin && r.t<T-.5){ r.gara-=dt; if(r.gara<=0){ r.gara=.9; play('gara',.9); } }
-  if(!r.stop && r.t>=T){ r.stop=3; r.punch=.5; if(r.win){ r.m=DB(); const from=wins, v=r.val*r.m; wins+=v; saveWins(); S.winRoll={from,to:wins,t:0,dur:1.0}; logAdd(r.name+' のWINガチャ：WIN ＋'+v,'#ffe680'); } play('jakon',1.2); play('jean'); S.shake=Math.max(S.shake,.45); S.white=Math.max(S.white,.25); const w=bxWorld();
-    for(let i=0;i<60;i++) S.parts.push({k:i%3?'spark':'conf',x:w.x+rand(-110,110)/camZ,y:w.y+rand(-110,110)/camZ,vx:rand(-520,520),vy:rand(-760,-80),g:900,t:rand(.8,1.7),c:pick(['#ffd400','#ffe680','#fff','#ff5c8a','#b78bff']),r:rand(8,16),rot:rand(0,6),vr:rand(-9,9)}); }
+function updateBox(r,dt){ const T=r.win?CH.hit:BX.tin+BX.spin, SHOW=r.win?CH.show:BX.show; if(r.win && !r.snd){ r.snd=true; play('chest'); }
+  if(!r.win && r.t>BX.tin && r.t<T-.5){ r.gara-=dt; if(r.gara<=0){ r.gara=.9; play('gara',.9); } }
+  if(!r.stop && r.t>=T){ r.stop=3; r.punch=.5; if(r.win){ r.m=DB(); const from=wins, v=r.val*r.m; wins+=v; saveWins(); S.winRoll={from,to:wins,t:0,dur:1.0}; logAdd(r.name+' のWINガチャ：WIN ＋'+v,'#ffe680'); } const big=r.win&&r.val>=100; if(r.win){ play('coins'); if(big) play('jean'); } else { play('jakon',1.2); play('jean'); } S.shake=Math.max(S.shake,big?.6:.45); S.white=Math.max(S.white,big?.4:.25); const w=bxWorld();
+    for(let i=0;i<(big?150:60);i++) S.parts.push({k:i%3?'spark':'conf',x:w.x+rand(-110,110)/camZ,y:w.y+rand(-110,110)/camZ,vx:rand(-520,520),vy:rand(-760,-80),g:900,t:rand(.8,1.7),c:pick(['#ffd400','#ffe680','#fff','#ff5c8a','#b78bff']),r:rand(8,16),rot:rand(0,6),vr:rand(-9,9)}); }
   r.punch=Math.max(0,(r.punch||0)-dt);
-  if(r.stop===3 && !r.spawned && r.t>=T+BX.show){ r.spawned=true; if(!r.win) slSpawn(r,bxWorld(),r.label); }
-  if(r.t>=T+BX.show+BX.out) S.roul=null; }
-function drawBox(r){ if(S.mode!=='playing') return; const T=BX.tin+BX.spin, hit=r.stop===3, since=hit?r.t-T:0, tEnd=T+BX.show;
+  if(r.stop===3 && !r.spawned && r.t>=T+SHOW){ r.spawned=true; if(!r.win) slSpawn(r,bxWorld(),r.label); }
+  if(r.t>=T+SHOW+BX.out) S.roul=null; }
+/* WINガチャ：くりんぐの宝箱。ガタガタ揺れる→一瞬止まる→フタが開いて光があふれ、中から ＋50 か ＋100 が飛び出す。＋100 は虹色の光で大当たり */
+const CH={hit:3.3,show:1.95,w:640}; let chestSh=null; setTimeout(()=>{ if(!chestSh) chestSh=mkSheet('chest',{n:68,cols:8,fw:448,fh:298,fps:12}); },0);
+function drawChest(r){ const sh=chestSh; if(!sh || !sh.ok) return; const T=CH.hit, hit=r.stop===3, since=hit?r.t-T:0, tEnd=T+CH.show, big=r.val>=100, cx=BX.cx, cy=BX.cy+40;
+  const pin=clamp(r.t/.4,0,1), c1=1.70158, c3=c1+1, e=1+c3*Math.pow(pin-1,3)+c1*Math.pow(pin-1,2), al=clamp(r.t/.2,0,1)*clamp(1-(r.t-tEnd)/BX.out,0,1); if(al<=0) return;
+  const sc=(.55+.45*e)*(1+(r.punch||0)*.12), w=CH.w*sc, h=w*sh.fh/sh.fw, f=Math.min(sh.n-1,Math.floor(r.t*12)), open=clamp((r.t-3.05)/.4,0,1);
+  g.save(); g.globalAlpha=al*.3*clamp(r.t/.4,0,1); g.fillStyle='#050a20'; g.fillRect(-3000,-3000,7080,8000); g.restore();          // まわりを少し暗くして箱を目立たせる
+  if(open>0){ g.save(); g.translate(cx,cy-h*.12); g.globalCompositeOperation='lighter'; const rot=S.t*(big?1.1:.7), fa=al*open*clamp(1-since/CH.show*.5,0,1);
+    for(let i=0;i<16;i++){ const a0=rot+i*Math.PI/8; g.fillStyle=(big&&hit)?'hsla('+((i*45+S.t*120)%360)+',100%,62%,'+(.34*fa)+')':(i%2?'rgba(255,200,40,'+(.30*fa)+')':'rgba(255,245,190,'+(.22*fa)+')'); g.beginPath(); g.moveTo(0,0); g.lineTo(Math.cos(a0-.09)*900,Math.sin(a0-.09)*900); g.lineTo(Math.cos(a0+.09)*900,Math.sin(a0+.09)*900); g.fill(); }
+    const gr=g.createRadialGradient(0,0,10,0,0,430); gr.addColorStop(0,'rgba(255,240,170,'+(.85*fa)+')'); gr.addColorStop(.4,'rgba(255,190,40,'+(.4*fa)+')'); gr.addColorStop(1,'rgba(255,160,0,0)'); g.fillStyle=gr; g.beginPath(); g.arc(0,0,430,0,7); g.fill(); g.restore(); }
+  g.save(); g.globalAlpha=al; g.translate(cx,cy); g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,-w/2,-h/2,w,h); g.restore();
+  if(hit){ const u=clamp(since/.45,0,1), eo=1-Math.pow(1-u,3), ov=1+.35*Math.sin(Math.min(1,since/.5)*Math.PI), ny=cy-h*.1-eo*290, nw=(big?470:400)*(.25+.75*eo)*ov;                      // 数字：箱の中から飛び出す
+    g.save(); g.globalAlpha=al*clamp(since/.12,0,1); g.translate(cx,ny+Math.sin(S.t*3)*6*eo); g.rotate(Math.sin(S.t*2.2)*.03); drawNum('p'+r.val,r.m||1,nw,()=>txtD('＋'+r.val,0,0,150,'#ffe680','center','#3a1d00',16)); g.restore();
+    if(since>.5) txt('WIN ＋'+r.val*(r.m||1),cx,cy+h/2+26,56,big?'#fff':'#ffd400','center',big?'#c0007a':'#5a1500',900); }
+  g.save(); g.globalAlpha=al; txt(r.name+' のWINガチャ',cx,cy+h/2+(hit&&since>.5?88:30),34,'#fff','center','#7a0010',900); g.restore(); }
+function drawBox(r){ if(S.mode!=='playing') return; if(r.win){ drawChest(r); return; } const T=BX.tin+BX.spin, hit=r.stop===3, since=hit?r.t-T:0, tEnd=T+BX.show;
   let dy=0; if(r.t<BX.tin){ const u=r.t/BX.tin, c1=1.70158, c3=c1+1, e=1+c3*Math.pow(u-1,3)+c1*Math.pow(u-1,2); dy=-(1-e)*760; } else if(r.t>tEnd) dy=-Math.pow((r.t-tEnd)/BX.out,2)*900;
   const pk=1+(r.punch||0)*.45, sz=BX.sz*pk, cx=BX.cx, cy=BX.cy+dy, spd=hit?0:clamp(1-(r.t-BX.tin)/BX.spin,0,1), tilt=hit?0:Math.sin(S.t*11)*.045*spd, iw=sz-64;
   if(hit){ g.save(); g.translate(cx,cy); g.rotate(S.t*1.4); const a=clamp(1-since/BX.show*.7,0,1); for(let i=0;i<14;i++){ g.rotate(Math.PI/7); g.fillStyle=i%2?'rgba(255,212,0,'+(.5*a)+')':'rgba(255,255,255,'+(.36*a)+')'; g.beginPath(); g.moveTo(0,0); g.lineTo(-100,-820); g.lineTo(100,-820); g.fill(); } g.restore(); }
@@ -1464,7 +1478,7 @@ panel.addEventListener('click',ev=>{ const b=ev.target.closest('button'); if(!b)
 
 function fit(){ const vh=VH(), k=Math.min(window.innerWidth/1080, window.innerHeight/vh), w=Math.floor(1080*k), h=Math.floor(vh*k); stage.style.width=w+'px'; stage.style.height=h+'px';
   { const wr=document.getElementById('wrap'), tb=document.getElementById('gtbl'), left=window.innerHeight-h; if(tb){ const on=left>=70;   // スマホのように縦に長い画面では、ゲームを上につめて、下の空きにギフト表を出す
-      wr.style.flexDirection=on?'column':''; wr.style.justifyContent=on?'flex-start':''; tb.hidden=!on; if(on){ tb.style.width=w+'px'; tb.style.height=left+'px'; if(!tb.getAttribute('src')) tb.setAttribute('src','./gifts.html?fit=1&cols=7'); } } } stage.style.setProperty('--u',(w/100)+'px'); if(cv.height!==vh) cv.height=vh;
+      wr.style.flexDirection=on?'column':''; wr.style.justifyContent=on?'flex-start':''; tb.hidden=!on; tb.style.display=on?'block':'none'; if(on){ tb.style.width=w+'px'; tb.style.height=left+'px'; if(!tb.getAttribute('src')) tb.setAttribute('src','./gifts.html?fit=1&cols=7'); } } } stage.style.setProperty('--u',(w/100)+'px'); if(cv.height!==vh) cv.height=vh;
   const pc=v=>(v/vh*100)+'%', E=id=>document.getElementById(id); E('testBtn').style.top=pc(17); E('cfgBtn').style.top=pc(102); E('panel').style.top=pc(207); E('panel').style.maxHeight=(100-207/vh*100)+'%'; const rb=E('rot'); rb.style.width=SHORT?'10.5%':'15%'; rb.style.bottom=SHORT?pc(12):'4.2%'; const pb=E('pauseBtn'); pb.style.width=rb.style.width; pb.style.bottom=rb.style.bottom; pb.style.right='2%'; pb.style.fontSize=SHORT?'calc(var(--u)*2.2)':''; }
 function setShort(v){ if(!SHORT_OPTS.includes(v)) return; SHORT=v; try{ localStorage.setItem('tsumi_short',String(v)); }catch(e){} fit(); }
 window.addEventListener('resize',fit); fit();
