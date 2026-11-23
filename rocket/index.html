@@ -61,7 +61,7 @@ for(const k of ['boom','ring','bolt','warp','bflame','pillar','lines','stars']) 
 function mkSheet(name,meta){ const o=Object.assign({cv:null,ok:false},meta), c=new Image(), a=new Image(); let n=0;
   const done=()=>{ if(++n<2 || !c.naturalWidth || !a.naturalWidth) return; const cv=document.createElement('canvas'); cv.width=c.naturalWidth; cv.height=c.naturalHeight; const x=cv.getContext('2d'); x.drawImage(c,0,0); x.globalCompositeOperation='destination-in'; x.drawImage(a,0,0,cv.width,cv.height); o.cv=cv; o.ok=true; };
   c.onload=done; a.onload=done; c.src='./img/'+name+'_c.jpg'; a.src='./img/'+name+'_a.png'; return o; }
-const drgSh=mkSheet('drg',{n:48,cols:8,fw:480,fh:253,fps:12});   // 真上から見たドラゴン（羽ばたき→頭を突き出して吠える）
+const drgSh=mkSheet('drg',{n:54,cols:8,fw:480,fh:253,fps:12});   // 真上から見たドラゴン。コマ0〜20＝羽ばたき1回ぶん、20〜53＝翼を広げて頭を突き出し吠える
 img('drg_face','drg_face.jpg');                                   // カットイン用の顔（まだ無い間は出さない）
 /* 音：くりんぐの動画の音や効果音ラボの音を鳴らす */
 const SND={}; function play(k,v){ try{ let a=SND[k]; if(!a){ a=SND[k]=new Audio('./snd/'+k+'.mp3'); a.preload='auto'; } a.currentTime=0; a.volume=v==null?.85:v; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} }
@@ -103,19 +103,33 @@ const Game={
   meteor(n){ if(jamBlocked(n,'隕石')) return; S.items.push({k:'meteor',x:rand(160,920),y:-260,vx:0,vy:500,hit:false,by:n}); logAdd((n||'だれか')+' が隕石を落とした（耐久−1）','#ff9aa8'); },
   stall(n){ if(jamBlocked(n,'エンジン停止')) return; S.stallT=CFG.stallSec; S.boostT=0; S.red=.5; banner('エンジン停止！','#ff3d5a',n,'logo_stall'); logAdd((n||'だれか')+' がエンジンを止めた','#ff9aa8'); },
   hole(n){ if(jamBlocked(n,'ブラックホール')) return; S.holeT=2.2; S.holeDrop+=Math.min(S.alt,CFG.hole); S.shake=.5; banner('−'+CFG.hole+'m','#c58bff',n,CFG.hole===500?'logo_m500':''); logAdd((n||'だれか')+' がブラックホールで引きずり下ろした','#ff9aa8'); },
-  dragonAtk(n){ if(S.mode!=='fly' || S.drg) return; S.drg={t:0,by:n,shot:0}; play('dragon'); banner('ドラゴン襲来！','#ff5a3d',n); S.banner.t=1.25;   /* 文字は1秒ほどで消して、ドラゴンと火球を見せる */ logAdd((n||'だれか')+' がドラゴンを呼んだ（火球3発）','#ff9aa8'); },
+  dragonAtk(n){ if(S.mode!=='fly' || S.drg) return; S.drg={t:0,by:n,shot:0,snd:false}; S.banner=null; S.flash=Math.max(S.flash,.12); logAdd((n||'だれか')+' がドラゴンを呼んだ（火球3発）','#ff9aa8'); },
   crash(n){ if(jamBlocked(n,'撃墜')) return; logAdd((n||'だれか')+' がロケットを撃ち落とした','#ff9aa8'); startFall(); },
   ship(k,n){ if(S.mode!=='fly' || !SHIPS[k]) return; const sp=SHIPS[k]; S.ship=k; S.shipT=0; S.dodge=sp.dodge||0; S.hp=sp.hp; S.flash=.5; S.shake=.3; ring(W/2,RY,'#ffe680',true); fx('pillar',W/2,RY+170,1.1,1); if(sp.boost){ S.boostT=CFG.boostSec; S.stallT=0; } banner(sp.name+'！','#ffd23f',(n?n+'　':'')+sp.perk); logAdd((n||'だれか')+' が機体を「'+sp.name+'」に交換した','#ffd23f'); for(let i=0;i<40;i++) S.parts.push({k:'conf',x:W/2+rand(-60,60),y:RY,vx:rand(-520,520),vy:rand(-620,220),g:500,t:rand(.8,1.6),c:pick(['#ffd400','#fff','#4cc3ff','#ff5c8a']),r:rand(8,16),rot:rand(0,6),vr:rand(-9,9)}); },
   setGoal(v){ CFG.goal=v; best=0; newRun(); save(); logAdd('目標を '+fmt(v)+'m にした','#ffd23f'); },
   reset(){ best=0; tries=1; wins=0; newRun(); save(); }
 };
-const DRG={dur:4.4,inT:.7,outT:.7,w:500,y:350,shots:[1.9,2.35,2.8],hitP:1/3};   // w=ドラゴンの横幅（小さめ） hitP=火球1発が当たる確率
-const drgY=t=>{ const a=clamp(t/DRG.inT,0,1), b=clamp((t-(DRG.dur-DRG.outT))/DRG.outT,0,1), ea=1-Math.pow(1-a,3); return lerp(-260,DRG.y,ea)-b*b*620+Math.sin(t*2.4)*8; };
+// ドラゴン襲来の時間割：顔のカットイン(cutLen秒) → cut秒後からドラゴンが降りてくる → ばさばさ羽ばたく(1回 flap秒) → atk から吠えて火球3発 → 羽ばたきながら飛び去る
+const DRG={cut:.55,cutLen:1.05,life:4.5,inT:.7,outT:.7,w:500,y:350,flap:.42,atk:1.26,atkLen:1.8,shots:[1.9,2.3,2.7],hitP:1/3};   // w=ドラゴンの横幅（小さめ） hitP=火球1発が当たる確率
+DRG.dur=DRG.cut+DRG.life; DRG.shots=DRG.shots.map(v=>v+DRG.cut);
+const drgY=t=>{ const tt=t-DRG.cut, a=clamp(tt/DRG.inT,0,1), b=clamp((tt-(DRG.life-DRG.outT))/DRG.outT,0,1), ea=1-Math.pow(1-a,3); return lerp(-300,DRG.y,ea)-b*b*680+Math.sin(tt*15)*5; };
+const drgFrame=t=>{ const tt=t-DRG.cut; if(tt>=DRG.atk && tt<DRG.atk+DRG.atkLen) return 20+Math.min(33,Math.floor((tt-DRG.atk)/DRG.atkLen*33)); const ph=(((tt%DRG.flap)+DRG.flap)%DRG.flap)/DRG.flap; return Math.floor(ph*20); };
 const drgMouth=t=>({x:W/2, y:drgY(t)+DRG.w*drgSh.fh/drgSh.fw*.42});
-function drawDragon(){ const d=S.drg; if(!d || !drgSh.ok) return; const sh=drgSh, f=Math.min(sh.n-1,Math.floor(d.t*sh.fps)), w=DRG.w, h=w*sh.fh/sh.fw, y=drgY(d.t);
+function drawDragon(){ const d=S.drg; if(!d || !drgSh.ok || d.t<DRG.cut) return; const sh=drgSh, f=clamp(drgFrame(d.t),0,sh.n-1), w=DRG.w, h=w*sh.fh/sh.fw, y=drgY(d.t);
   g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,W/2-w/2,y-h/2,w,h);
   if(d.shot<DRG.shots.length){ const nx=DRG.shots[d.shot]-d.t; if(nx<.3 && nx>0){ const m=drgMouth(d.t), r=60*(1-nx/.3)+14; g.save(); g.globalCompositeOperation='lighter'; const gr=g.createRadialGradient(m.x,m.y,0,m.x,m.y,r); gr.addColorStop(0,'rgba(255,240,190,.95)'); gr.addColorStop(.4,'rgba(255,150,40,.7)'); gr.addColorStop(1,'rgba(255,40,0,0)'); g.fillStyle=gr; g.fillRect(m.x-r,m.y-r,r*2,r*2); g.restore(); } } }
-function drawFball(it){ const r=58; g.save(); g.globalCompositeOperation='lighter'; for(const [k,a] of [[1.7,.35],[1,.9]]){ const gr=g.createRadialGradient(it.x,it.y,0,it.x,it.y,r*k); gr.addColorStop(0,'rgba(255,250,215,'+a+')'); gr.addColorStop(.3,'rgba(255,170,50,'+(a*.85)+')'); gr.addColorStop(1,'rgba(255,40,0,0)'); g.fillStyle=gr; g.fillRect(it.x-r*k,it.y-r*k,r*k*2,r*k*2); } g.restore(); }
+/* カットイン：ナナメの帯がサッと横から入り、ドラゴンの顔と「ドラゴン襲来！」を見せて抜ける。ゲームは止めない */
+function drawDragonCut(){ const d=S.drg; if(!d || d.t>=DRG.cutLen) return; const t=d.t, L=DRG.cutLen, a=clamp(t/.16,0,1), b=clamp((t-(L-.2))/.2,0,1), ox=(1-(1-Math.pow(1-a,3)))*1250-b*b*1350-(t/L)*46, cy=470, bh=330, sk=70;
+  g.save(); g.translate(ox,0); g.beginPath(); g.moveTo(-40+sk,cy-bh/2); g.lineTo(W+40+sk,cy-bh/2); g.lineTo(W+40-sk,cy+bh/2); g.lineTo(-40-sk,cy+bh/2); g.closePath();
+  g.save(); g.clip(); g.fillStyle='#1a0204'; g.fillRect(-200,cy-bh/2,W+400,bh);
+  if(ok('drg_face')){ const fi=IMG.drg_face, sw=fi.naturalWidth, sh2=sw*bh/(W+240), z=1+.06*(t/L); g.drawImage(fi,0,fi.naturalHeight*.3,sw,sh2,-120-(z-1)*600,cy-bh/2-(z-1)*170,(W+240)*z,bh*z); }
+  { const gr=g.createLinearGradient(-100,0,640,0); gr.addColorStop(0,'rgba(10,0,2,.92)'); gr.addColorStop(1,'rgba(10,0,2,0)'); g.fillStyle=gr; g.fillRect(-200,cy-bh/2,900,bh); }
+  g.globalCompositeOperation='lighter'; g.strokeStyle='rgba(255,190,90,.5)'; g.lineWidth=3; for(let i=0;i<9;i++){ const yy=cy-bh/2+((i*53+t*900)%bh), xx=((i*347-t*2600)%1500+1500)%1500-200; g.beginPath(); g.moveTo(xx,yy); g.lineTo(xx+220,yy); g.stroke(); }
+  g.restore();
+  g.lineWidth=10; g.strokeStyle='#ffd23f'; g.shadowColor='#ff5a00'; g.shadowBlur=24; g.beginPath(); g.moveTo(-40+sk,cy-bh/2); g.lineTo(W+40+sk,cy-bh/2); g.moveTo(W+40-sk,cy+bh/2); g.lineTo(-40-sk,cy+bh/2); g.stroke(); g.shadowBlur=0;
+  const pk=1+.5*Math.pow(clamp(1-(t-.1)/.18,0,1),2); g.translate(64,cy-18); g.scale(pk,pk); g.shadowColor='rgba(0,0,0,.7)'; g.shadowBlur=18; txt('ドラゴン襲来！',0,0,80,'#ffd23f','left','#3a0500',FONTD); g.shadowBlur=0; if(d.by) txt(d.by+' のしわざ',6,78,34,'#fff','left','#3a0500');
+  g.restore(); }
+function drawFball(it){ const r=64; g.save(); { const gr=g.createRadialGradient(it.x,it.y,0,it.x,it.y,r); gr.addColorStop(0,'rgba(255,246,190,1)'); gr.addColorStop(.28,'rgba(255,170,40,1)'); gr.addColorStop(.6,'rgba(232,60,10,.85)'); gr.addColorStop(1,'rgba(160,20,0,0)'); g.fillStyle=gr; g.beginPath(); g.arc(it.x,it.y,r,0,7); g.fill(); } g.globalCompositeOperation='lighter'; { const gr=g.createRadialGradient(it.x,it.y,0,it.x,it.y,r*1.6); gr.addColorStop(0,'rgba(255,200,90,.5)'); gr.addColorStop(1,'rgba(255,60,0,0)'); g.fillStyle=gr; g.fillRect(it.x-r*1.6,it.y-r*1.6,r*3.2,r*3.2); } g.restore(); }
 function addPow(v){ if(S.mode!=='fly') return; S.pow=Math.min(1,S.pow+v); }
 function ring(x,y,c,big){ S.rings.push({x,y,c,t:0,big:!!big}); }
 function damage(n){ S.hp-=1; S.red=.5; if(S.hp<=0){ S.hp=0; logAdd('耐久が0になった！','#ff5c5c'); startFall(); } }
@@ -138,10 +152,10 @@ function update(dt){ T+=dt; S.shake=Math.max(0,S.shake-dt); S.flash=Math.max(0,S
     if(S.alt<=floor && S.fallT>1.2){ const keep=S.saveAlt; tries++; save(); const lg=S.log; newRun(true); S.log=lg; if(keep>0){ S.alt=keep; logAdd('セーブ地点 '+fmt(keep)+'m から再出発（'+tries+'回目）','#9be9ff'); } else { S.shake=1; S.flash=.5; ring(W/2,RY+140,'#ffd9a0',true); for(let i=0;i<46;i++) S.parts.push({k:'smoke',x:W/2+rand(-200,200),y:RY+150,vx:rand(-420,420),vy:rand(-520,-40),g:160,t:rand(.9,1.9),r:rand(60,130),dark:i%2,rot:rand(0,6),v:i%3}); for(let i=0;i<40;i++) S.parts.push({k:'fire',x:W/2+rand(-120,120),y:RY+120,vx:rand(-620,620),vy:rand(-720,-60),g:500,t:rand(.4,.9),r:rand(24,60)}); fx('boom',W/2,RY+40,.75,1150); debris(W/2,RY+80,14,820); logAdd('0m からやり直し（'+tries+'回目の挑戦）','#ff9aa8'); } } }
   else if(S.mode==='clear'){ S.clearT+=dt; if(Math.random()<dt*14) S.parts.push({k:'conf',x:rand(0,W),y:-20,vx:rand(-120,120),vy:rand(60,260),g:300,t:rand(3,5),c:pick(['#ff3d7f','#ffd400','#22d3ee','#7cff4f','#fff']),r:rand(10,20),rot:rand(0,6),vr:rand(-8,8)}); }
   // ドラゴン襲来：上から降りてきて、吠えながら火球を3発吐く。1発ごとに当たるかどうかはランダム。ゲームは止めない
-  if(S.drg){ const d=S.drg; d.t+=dt; while(d.shot<DRG.shots.length && d.t>=DRG.shots[d.shot]){ d.shot++; if(S.mode!=='fly') continue; const hit=Math.random()<DRG.hitP, side=Math.random()<.5?-1:1, tx=hit?W/2:W/2+side*rand(230,520), m=drgMouth(d.t); S.items.push({k:'fball',x:m.x,y:m.y,x0:m.x,y0:m.y,tx,ty:hit?RY-70:H+500,t:0,dur:hit?.5:.95,hit,by:d.by}); S.shake=Math.max(S.shake,.18); for(let i=0;i<10;i++) S.parts.push({k:'fire',x:m.x+rand(-20,20),y:m.y,vx:rand(-200,200),vy:rand(40,360),g:0,t:rand(.2,.45),r:rand(20,44)}); }
+  if(S.drg){ const d=S.drg; d.t+=dt; if(!d.snd && d.t>=DRG.cut){ d.snd=true; play('dragon'); } while(d.shot<DRG.shots.length && d.t>=DRG.shots[d.shot]){ d.shot++; if(S.mode!=='fly') continue; const hit=Math.random()<DRG.hitP, side=Math.random()<.5?-1:1, tx=hit?W/2:W/2+side*rand(230,520), m=drgMouth(d.t); S.items.push({k:'fball',x:m.x,y:m.y,x0:m.x,y0:m.y,tx,ty:hit?RY-70:H+500,t:0,dur:hit?.5:.95,hit,by:d.by}); S.shake=Math.max(S.shake,.18); for(let i=0;i<10;i++) S.parts.push({k:'fire',x:m.x+rand(-20,20),y:m.y,vx:rand(-200,200),vy:rand(40,360),g:0,t:rand(.2,.45),r:rand(20,44)}); }
     if(d.t>=DRG.dur) S.drg=null; }
   for(const it of S.items){ if(it.k!=='fball') continue; it.t+=dt; const u=Math.min(1,it.t/it.dur), e=u*u*(1.6-.6*u); it.x=lerp(it.x0,it.tx,u); it.y=lerp(it.y0,it.ty,e);
-    for(let q=0;q<2;q++) if(Math.random()<dt*90) S.parts.push({k:'fire',x:it.x+rand(-14,14),y:it.y-20,vx:rand(-50,50),vy:rand(-260,-60),g:0,t:rand(.2,.42),r:rand(18,38)});
+    for(let q=0;q<2;q++) if(Math.random()<dt*90) S.parts.push({k:'fire',x:it.x+rand(-14,14),y:it.y-20,vx:rand(-50,50),vy:rand(-260,-60),g:0,t:rand(.2,.42),r:rand(18,38)}); if(Math.random()<dt*40) S.parts.push({k:'smoke',x:it.x+rand(-10,10),y:it.y-30,vx:rand(-30,30),vy:rand(-160,-40),g:0,t:rand(.35,.6),r:rand(22,40),dark:1,rot:rand(0,6),v:0});
     if(u>=1){ it.dead=true; if(it.hit && S.mode==='fly'){ if(SHIPS[S.ship].fireproof){ banner('効かない！','#ffb020','ドラゴンの機体に火は効かない'); S.flash=.15; }
         else if(!jamBlocked(it.by,'火球')){ S.shake=.6; S.flash=.2; ring(W/2,RY-60,'#ffcf8a'); fx('boom',W/2,RY-70,.5,380); for(let i=0;i<22;i++) S.parts.push({k:'fire',x:W/2+rand(-40,40),y:RY-60,vx:rand(-520,520),vy:rand(-520,260),g:300,t:rand(.3,.7),r:rand(18,40)}); for(let i=0;i<6;i++) S.parts.push({k:'smoke',x:W/2+rand(-40,40),y:RY-60,vx:rand(-220,220),vy:rand(-220,100),g:0,t:rand(.5,1),r:rand(40,80),dark:1,rot:rand(0,6),v:i%3}); debris(W/2,RY-50,2,460); logAdd('火球が当たった！（耐久−1）','#ff9aa8'); damage(); } } } }
   // 隕石：上から落ちてきてロケットに当たる
@@ -240,6 +254,7 @@ function draw(){ const p=clamp(S.alt/CFG.goal,0,1), sx=S.shake>0?rand(-1,1)*S.sh
     if(ok('mega')){ const mi=IMG.mega, mw=74, mh=mw*mi.naturalHeight/mi.naturalWidth, pu=1+.12*Math.max(0,Math.sin(T*6))*S.pow; g.save(); g.translate(x+12,y0-58); g.scale(pu,pu); g.drawImage(mi,-mw/2,-mh/2,mw,mh); g.restore(); } else txt('応援',x+8,y0-52,26,'#fff','center','#0a1730'); txt('×'+(1+S.pow).toFixed(1),x+8,y1+52,30,'#ffe14d','center','#0a1730'); }
   if(S.boostT>0) txt('ブースター 残り '+Math.ceil(S.boostT)+'秒',W/2,892,36,'#4cc3ff','center','#04203a');
   if(S.stallT>0) txt('エンジン停止 残り '+Math.ceil(S.stallT)+'秒',W/2,892,36,'#ff5c5c','center','#2a0008');
+  drawDragonCut();
   if(S.banner){ const b=S.banner, k=1+1.6*Math.pow(clamp(1-b.t/.2,0,1),2), a=clamp((2.4-b.t)/.4,0,1); g.save(); g.globalAlpha=a; g.translate(W/2,330); g.scale(k,k); const lg=b.logo&&ok(b.logo)?IMG[b.logo]:null; if(lg){ const lw=b.logo==='logo_p500'?560:(b.logo==='logo_stall'?820:720), lh=lw*lg.naturalHeight/lg.naturalWidth; g.shadowColor='rgba(0,0,0,.55)'; g.shadowBlur=26; g.drawImage(lg,-lw/2,40-lh/2,lw,lh); g.shadowBlur=0; if(b.sub) txt(b.sub,0,40+lh/2+34,36,'#fff','center','#0a0f20'); } else { g.shadowColor='rgba(0,0,0,.6)'; g.shadowBlur=30; txt(b.text,0,0,b.text.length>7?92:124,b.color,'center','#0a0f20',FONTD); g.shadowBlur=0; if(b.sub) txt(b.sub,0,92,36,'#fff','center','#0a0f20'); } g.restore(); }
   if(S.mode==='clear' && S.clearT>2.2){ g.save(); g.globalAlpha=clamp((S.clearT-2.2)/.5,0,1); g.fillStyle='rgba(8,14,34,.82)'; rr(160,400,760,270,36); g.fill(); g.strokeStyle='#ffd23f'; g.lineWidth=8; g.stroke(); txt('おつかれさま！',W/2,474,72,'#ffd23f','center','#3a1d00',FONTD); txt(tries+'回目の挑戦で '+fmt(CFG.goal)+'m に到達',W/2,560,38,'#fff','center'); txt('画面をタップでもう一度',W/2,622,30,'#9fb6e6','center'); g.restore(); }
   /* ====== 下のログ ====== */
