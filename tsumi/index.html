@@ -213,8 +213,8 @@ function saveWins(){ try { localStorage.setItem('tsumi_wins', String(wins)); } c
 /* ====== 効果音（音声ファイル方式） ======
    snd フォルダに音を入れて、下の表にファイル名を書くと鳴る。空のあいだは無音 */
 /* 効果音（効果音ラボの音）。Web Audio で読み込んで鳴らす。最初のタップで音が出るようになる */
-const SND_NAMES=['drop','land','heavy','rot','bad','good','win','lose','impact','jean','fall','count','quake','wind','witch','angel','break','ant','shakin','bomb','bigboom','missile','laser','beam','charge','robo','alert','gara','jakon','coins','roll','kira','flee','slash','slash2','flame','knell','splat','doon','rumble','crow','tentacle','dv_in','dv_pop','dv_flick','dv_stop','dv_thunder','dv_laugh','dv_bored','dv_out'];
-const SND_VOL={drop:.35,land:.55,heavy:.8,rot:.4,bad:.6,good:.55,win:.75,lose:.7,impact:.8,jean:.7,fall:.5,count:.7,quake:.8,wind:.65,witch:.6,angel:.6,break:.7,ant:.6,shakin:.5,bomb:.6,bigboom:.95,missile:.45,laser:.6,beam:.75,charge:.7,robo:.7,alert:.55,gara:.5,jakon:.7,coins:.7,roll:.6,kira:.6,flee:.55,slash:.9,slash2:.8,flame:.7,wv_wash:.5,wv_splash:.9,wv_whale:1,knell:.7,splat:.7,doon:.9,rumble:.9,crow:.8,tentacle:.9,dv_in:.8,dv_pop:.75,dv_flick:.9,dv_stop:.7,dv_thunder:.7,dv_laugh:1,dv_bored:.9,dv_out:.7};
+const SND_NAMES=['drop','land','heavy','rot','bad','good','win','lose','impact','jean','fall','count','quake','wind','witch','angel','break','ant','shakin','bomb','bigboom','missile','laser','beam','charge','robo','alert','gara','jakon','coins','roll','kira','flee','slash','slash2','flame','wv_wash','wv_whale','knell','splat','doon','rumble','crow','tentacle','dv_in','dv_pop','dv_flick','dv_stop','dv_thunder','dv_laugh','dv_bored','dv_out'];
+const SND_VOL={drop:.35,land:.55,heavy:.8,rot:.4,bad:.6,good:.55,win:.75,lose:.7,impact:.8,jean:.7,fall:.5,count:.7,quake:.8,wind:.65,witch:.6,angel:.6,break:.7,ant:.6,shakin:.5,bomb:.6,bigboom:.95,missile:.45,laser:.6,beam:.75,charge:.7,robo:.7,alert:.55,gara:.5,jakon:.7,coins:.7,roll:.6,kira:.6,flee:.55,slash:.9,slash2:.8,flame:.7,wv_wash:.8,wv_whale:1,knell:.7,splat:.7,doon:.9,rumble:.9,crow:.8,tentacle:.9,dv_in:.8,dv_pop:.75,dv_flick:.9,dv_stop:.7,dv_thunder:.7,dv_laugh:1,dv_bored:.9,dv_out:.7};
 const SND={}; let actx=null;
 function sndInit(){ if(actx) return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; try{ actx=new AC(); }catch(e){ return; }
   for(const k of SND_NAMES){ fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,ng)=>actx.decodeAudioData(b,ok,ng))).then(buf=>{ SND[k]=buf; }).catch(()=>{}); } }
@@ -718,7 +718,10 @@ function wvLevel(w){ const H=clamp(TOP_Y-w.top0+200,330,Math.max(340,TOP_Y-viewT
 function updateWave(dt){ const w=S.wv; if(!w) return; w.t+=dt; const tS=WV.tin+WV.sweep, tP=wvTP(), tR=wvTR();
   if(!w.slam && w.t>=WV.tin){ w.slam=true; play('wv_wash'); S.shake=Math.max(S.shake,.4); }
   if(!w.whaleOn && w.t>=WV.whale){ w.whaleOn=true; play('wv_whale'); }
-  if(w.t>=WV.tin && w.t<tS+.05){ const xf=wvFront(w), ys=wvLevel(w); if(Math.random()<dt*40) S.parts.push({k:'spark',x:xf+rand(-30,30),y:ys-rand(40,140),vx:w.dir*rand(100,420),vy:rand(-520,-160),g:1100,t:rand(.5,1),c:pick(['#ffffff','#d6f3ff','#9fdcff']),r:rand(5,11)});
+  w.sp=w.sp||[]; for(const q of w.sp){ q.vy+=1500*dt; q.x+=q.vx*dt; q.y+=q.vy*dt; q.t-=dt; } w.sp=w.sp.filter(q=>q.t>0);
+  if(w.t>=WV.tin && w.t<tS){ const G=wvGeom(w), d=w.dir, n=Math.min(12,Math.round(dt*340)); S.shake=Math.max(S.shake,.2);   // 波がしら・波の足もとから、しぶきと泡を飛ばし続ける
+    for(let i=0;i<n;i++){ const big=Math.random()<.28, t0=rand(.45,1); w.sp.push(Math.random()<.65?{x:G.xf-d*G.iw*rand(.02,.5),y:G.base-G.ih*rand(.74,1),vx:d*rand(150,760),vy:rand(-560,-80),r:big?rand(13,26):rand(3,9),a:big?.42:.9,t:t0,t0}:{x:G.xf+d*rand(-40,150),y:G.base-rand(10,110),vx:d*rand(300,980),vy:rand(-430,-40),r:big?rand(12,22):rand(3,8),a:big?.4:.85,t:t0,t0}); } }
+  if(w.t>=WV.tin && w.t<tS+.05){ const xf=wvFront(w);
     for(const b of S.bodies){ const p=b.plugin; if(p.wv || p.statue || p.rock || p.meteor || !ANIMALS[p.key]) continue; if((w.dir>0?b.position.x<xf:b.position.x>xf) && b.position.y<TOP_Y+130){
         if(b===S.falling){ S.falling=null; S.cur=S.next; rollNext(); S.rot=0; S.phase='aim'; } Sleeping.set(b,false); Body.setStatic(b,true); p.glued=false; p.air=true; p.airT=-999; p.wv={x0:b.position.x,y0:b.position.y,a0:b.angle,t0:w.t,ph:rand(0,6)}; w.list.push(b); } } }
   w.list=w.list.filter(b=>S.bodies.includes(b));
@@ -727,31 +730,30 @@ function updateWave(dt){ const w=S.wv; if(!w) return; w.t+=dt; const tS=WV.tin+W
     const cols=Math.max(2,Math.min(L.length,Math.floor(tw/190))), grp=[]; for(let c=0;c<cols;c++) grp.push([]); L.forEach((b,i)=>grp[i%cols].push(b));
     grp.forEach((G2,c)=>{ let bot=TOP_Y-8; G2.sort((a,b)=>(b.bounds.max.x-b.bounds.min.x)-(a.bounds.max.x-a.bounds.min.x)); for(const b of G2){ const p=b.plugin.wv, a=b.angle; Body.setAngle(b,0); const hb=b.bounds.max.y-b.position.y, ht=b.position.y-b.bounds.min.y, bl=b.position.x-b.bounds.min.x, br=b.bounds.max.x-b.position.x; Body.setAngle(b,a);
         let x=tx0+tw*(c+.5)/cols+rand(-18,18); x=(bl+br+12<tw)?clamp(x,tx0+bl+6,tx0+tw-br-6):tx0+tw/2+(bl-br)/2; p.tx=x; p.ty=bot-hb; p.px=b.position.x; p.py=b.position.y; p.pa=b.angle; bot-=hb+ht+10; } }); }
-  if(!w.released){ for(const b of w.list){ const p=b.plugin.wv, e1=wvSm((w.t-p.t0)/.45), bob=Math.sin(S.t*3+p.ph)*10; let x=p.x0+w.dir*46*e1, y=p.y0-WV.lift*e1+bob*e1, a=p.a0+Math.sin(S.t*2.1+p.ph)*.13*e1;
+  if(!w.released){ for(const b of w.list){ const p=b.plugin.wv, e1=wvSm((w.t-p.t0)/.45), bob=Math.sin(S.t*3+p.ph)*10; const tau=Math.max(0,w.t-p.t0), kn=Math.exp(-1.7*tau); let x=p.x0+w.dir*(46*e1+90*(1-Math.exp(-3*tau))), y=p.y0-WV.lift*e1-70*Math.sin(Math.min(tau,.5)*Math.PI/.5)*kn+bob*e1, a=p.a0+Math.sin(S.t*2.1+p.ph)*.13*e1+w.dir*.6*Math.sin(tau*6)*kn;   // 波に当たった瞬間は、はね上げられて回る
       if(w.planned && p.tx!=null){ const u=wvSm((w.t-tP)/(WV.glide-.15)), da=Math.atan2(Math.sin(-p.pa),Math.cos(-p.pa)); x=p.px+(p.tx-p.px)*u; y=p.py+(p.ty-p.py)*u+bob*(1-u); a=p.pa+da*u+Math.sin(S.t*2.1+p.ph)*.1*(1-u); }
       Body.setPosition(b,{x,y}); Body.setAngle(b,a); } }
   if(!w.released && w.t>=tR){ w.released=true; for(const b of w.list){ const p=b.plugin; if(p.wv.tx!=null){ Body.setPosition(b,{x:p.wv.tx,y:p.wv.ty}); Body.setAngle(b,0); } Body.setStatic(b,false); Body.setVelocity(b,{x:0,y:0}); Body.setAngularVelocity(b,0); Sleeping.set(b,false); p.air=false; p.airT=0; p.wv=null; } if(w.list.length){ play('heavy'); S.shake=Math.max(S.shake,.35); logAdd('大波で台の上がまざった','#ff9aa8'); } }
   if(w.t>=w.lockEnd){ S.wv=null; if(S.wvQ && S.wvQ.length) startWave(S.wvQ.shift()); } }
-function wvGeom(w){ const tP=WV.tin+WV.sweep, d=w.dir, xl=viewL()-80, xr=viewR()+80, ys=wvLevel(w), bot=viewBot()+80, xf=wvFront(w), full=w.t>=tP, hasI=waveImg.naturalWidth>64, D=TOP_Y+190-ys, ih=D/(1-WV.wallTop), iw=hasI?ih*waveImg.naturalWidth/waveImg.naturalHeight:0, xb=hasI?xf-d*iw*.72:xf;
-  return {d,xl,xr,ys,bot,xf,full,hasI,ih,iw,x0:full?xl:(d>0?xl:Math.min(xr,xb)),x1:full?xr:(d>0?Math.max(xl,xb):xr)}; }
+function wvGeom(w){ const tS=WV.tin+WV.sweep, d=w.dir, xl=viewL()-80, xr=viewR()+80, base=TOP_Y+190, ysF=wvLevel(w), bot=viewBot()+80, xf=wvFront(w), full=w.t>=tS, e=clamp((w.t-WV.tin)/WV.sweep,0,1), grow=full?1:.42+.58*wvSm(e/.5), ys=base-(base-ysF)*grow, hasI=waveImg.naturalWidth>64, D=base-ys, ih=D/(1-WV.wallTop), iw=hasI?ih*waveImg.naturalWidth/waveImg.naturalHeight:0, xb=hasI?xf-d*iw*.7:xf, chop=full?clamp(1-(w.t-tS)/1.3,0,1):1;   // grow＝波が近づくほど盛り上がる／chop＝通った直後ほど水面が荒れる
+  return {d,xl,xr,base,ys,bot,xf,full,e,hasI,ih,iw,chop,x0:full?xl:(d>0?xl:Math.min(xr,xb)),x1:full?xr:(d>0?Math.max(xl,xb):xr)}; }
 /* 水の帯を x0〜x1 に敷く。細いたんざくに分けて上下にゆらすので、水面がうねって見える */
 function wvWater(x0,x1,ys,bot,al,off,amp){ const im=waterImg; if(!im.naturalWidth || x1-x0<2) return false; const tw=WATER.tw, th=tw*im.naturalHeight/im.naturalWidth, N=20, sl=tw/N, sw=im.naturalWidth/N, o=((off%tw)+tw)%tw;
   g.save(); g.beginPath(); g.rect(x0,-9000,x1-x0,18000); g.clip(); g.globalAlpha=al; g.fillStyle=WATER.deep; g.fillRect(x0,ys+th*.4,x1-x0,Math.max(0,bot-ys-th*.4));
   for(let X=Math.floor((x0-o)/tw)*tw+o; X<x1; X+=tw) for(let k=0;k<N;k++){ const x=X+k*sl; if(x+sl<x0 || x>x1) continue; const yy=ys-th*WATER.surf+Math.sin(x*.011+S.t*2.4+off*.02)*amp+Math.sin(x*.029-S.t*1.6)*amp*.5; g.drawImage(im,k*sw,0,sw,im.naturalHeight,x,yy,sl+1,th); }
   g.restore(); return true; }
-function drawWaveBack(){ const w=S.wv; if(!w || w.t<WV.tin) return; const G=wvGeom(w); if(G.ys>G.bot) return; wvWater(G.x0,G.x1,G.ys-16,G.bot,1,-S.t*46*G.d+230,8); }   // 奥の水（動物の後ろ）
-function drawWave(){ const w=S.wv; if(!w) return; drawWhale(); const tP=WV.tin+WV.sweep, tR=tP+WV.float, d=w.dir, xl=viewL()-80, xr=viewR()+80, ys=wvLevel(w), bot=viewBot()+80;
-  if(w.t<WV.tin || ys>bot) return; const xf=wvFront(w), full=w.t>=tP, hasI=waveImg.naturalWidth>64, D=TOP_Y+190-ys, ih=D/(1-WV.wallTop), iw=hasI?ih*waveImg.naturalWidth/waveImg.naturalHeight:0, xb=hasI?xf-d*iw*.72:xf, x0=full?xl:(d>0?xl:Math.min(xr,xb)), x1=full?xr:(d>0?Math.max(xl,xb):xr), top=[], N=44; if(!full && (d>0?x1<=x0+4:x0>=x1-4) && !hasI) return;
-  for(let i=0;i<=N;i++){ const x=x0+(x1-x0)*i/N, dist=(full||hasI)?9999:Math.abs(xf-x), cr=clamp(1-dist/300,0,1); top.push([x, ys+Math.sin(x*.021+S.t*5)*10+Math.sin(x*.008-S.t*3.1)*9-150*cr*cr*(3-2*cr)+(dist<40?(40-dist)*2.2:0)]); }
-  if(waterImg.naturalWidth){ wvWater(x0,x1,ys,bot,.5,S.t*70*d,11); g.save(); g.beginPath(); g.rect(x0,ys+20,x1-x0,bot-ys); g.clip(); g.globalCompositeOperation='lighter'; for(let i=0;i<22;i++){ const sd=i*37.7, hh=Math.max(60,TOP_Y+150-ys), bx=xl+((sd*53.3+S.t*(20+i%5*9))%(xr-xl)), by=ys+40+(((sd*91.7-S.t*(60+i%4*30))%hh)+hh)%hh; g.fillStyle='rgba(255,255,255,.2)'; g.beginPath(); g.arc(bx,by,3+(i%4)*2.5,0,7); g.fill(); } g.restore(); if(!full && hasI){ g.save(); g.translate(xf,TOP_Y+190); if(d<0) g.scale(-1,1); g.drawImage(waveImg,-iw,-ih,iw,ih); g.restore(); } return; }
-  g.save(); const gr=g.createLinearGradient(0,ys-160,0,TOP_Y+200); gr.addColorStop(0,'rgba(120,225,250,.62)'); gr.addColorStop(.25,'rgba(40,165,230,.62)'); gr.addColorStop(1,'rgba(12,100,200,.76)'); g.fillStyle=gr;
-  g.beginPath(); g.moveTo(top[0][0],bot); for(const q of top) g.lineTo(q[0],q[1]); g.lineTo(top[N][0],bot); g.closePath(); g.fill();
-  g.save(); g.clip(); g.globalCompositeOperation='lighter'; for(let i=0;i<26;i++){ const sd=i*37.7, bx=xl+((sd*53.3+S.t*(20+i%5*9))%(xr-xl)), by=ys+40+((sd*91.7-S.t*(60+i%4*30))%Math.max(60,TOP_Y+150-ys)+Math.max(60,TOP_Y+150-ys))%Math.max(60,TOP_Y+150-ys); g.fillStyle='rgba(255,255,255,.22)'; g.beginPath(); g.arc(bx,by,4+(i%4)*3,0,7); g.fill(); }
-  for(let i=0;i<5;i++){ g.strokeStyle='rgba(255,255,255,.10)'; g.lineWidth=16; g.beginPath(); const yy=ys+70+i*90; for(let x=xl;x<=xr;x+=60){ const y2=yy+Math.sin(x*.012+S.t*2+i)*14; x===xl?g.moveTo(x,y2):g.lineTo(x,y2); } g.stroke(); } g.restore();
-  g.lineJoin='round'; g.lineCap='round'; g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=12; g.beginPath(); top.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1])); g.stroke(); g.strokeStyle='rgba(255,255,255,.35)'; g.lineWidth=7; g.beginPath(); top.forEach((q,i)=>i?g.lineTo(q[0],q[1]+24):g.moveTo(q[0],q[1]+24)); g.stroke();
-  if(!full && hasI){ g.save(); g.globalAlpha=.9; g.translate(xf,TOP_Y+190); if(d<0) g.scale(-1,1); g.drawImage(waveImg,-iw,-ih,iw,ih); g.restore(); }
-  if(!full && !hasI){ g.fillStyle='rgba(255,255,255,.85)'; for(let i=0;i<9;i++){ const a=S.t*7+i*1.3; g.beginPath(); g.arc(xf+d*(10+Math.sin(a)*26),ys-90-i*14+Math.cos(a*1.3)*18,16-i,0,7); g.fill(); } }
-  g.restore(); }
+/* 波の絵を、前のめり・のびちぢみ付きで描く（k=大きさ, lean=前への倒れ, al=こさ, back=後ろへのずれ, sq=たてののび） */
+function wvCrest(G,k,lean,al,back,sq){ g.save(); g.globalAlpha=al; g.translate(G.xf-G.d*back,G.base); if(G.d<0) g.scale(-1,1); g.transform(1,0,-lean,1,0,0); g.scale(k,k*sq); g.drawImage(waveImg,-G.iw,-G.ih,G.iw,G.ih); g.restore(); }
+function drawWaveBack(){ const w=S.wv; if(!w || w.t<WV.tin) return; const G=wvGeom(w); if(G.ys>G.bot) return;
+  if(!G.full && G.hasI){   // 波の足もとを先に走る水と、奥でひとまわり大きく盛り上がる波（動物をはさんで手前の波と重なる）
+    const run=G.xf+G.d*(170+70*Math.sin(S.t*9)), lo=Math.min(G.xf-G.d*30,run), hi=Math.max(G.xf-G.d*30,run); wvWater(lo,hi,G.base-74-12*Math.sin(S.t*11),G.bot,.9,-S.t*560*G.d,6);
+    wvCrest(G,1.17,.08+.05*Math.sin(S.t*6+1),.82,G.iw*.2,1+.035*Math.sin(S.t*8+2)); }
+  wvWater(G.x0,G.x1,G.ys-16,G.bot,1,-S.t*(46+220*G.chop)*G.d+230,8+17*G.chop); }
+function drawWave(){ const w=S.wv; if(!w) return; drawWhale(); if(w.t<WV.tin) return; const G=wvGeom(w); if(G.ys>G.bot) return; const d=G.d;
+  wvWater(G.x0,G.x1,G.ys,G.bot,.5,S.t*(70+280*G.chop)*d,11+21*G.chop);
+  g.save(); g.beginPath(); g.rect(G.x0,G.ys+20,G.x1-G.x0,G.bot-G.ys); g.clip(); g.globalCompositeOperation='lighter'; for(let i=0;i<22;i++){ const sd=i*37.7, hh=Math.max(60,TOP_Y+150-G.ys), bx=G.xl+((sd*53.3+S.t*(20+i%5*9))%(G.xr-G.xl)), by=G.ys+40+(((sd*91.7-S.t*(60+i%4*30))%hh)+hh)%hh; g.fillStyle='rgba(255,255,255,.2)'; g.beginPath(); g.arc(bx,by,3+(i%4)*2.5,0,7); g.fill(); } g.restore();
+  if(!G.full && G.hasI) wvCrest(G,1,.02+.17*G.e+.035*Math.sin(S.t*7),1,0,1+.035*Math.sin(S.t*10));   // 手前の波：進むほど前へ倒れこみ、細かくのびちぢみする
+  for(const q of (w.sp||[])){ g.fillStyle='rgba(255,255,255,'+(clamp(q.t/q.t0*1.7,0,1)*q.a)+')'; g.beginPath(); g.arc(q.x,q.y,q.r,0,7); g.fill(); } }
 const stGuard=()=>S.stRound && S.mode==='playing';
 /* 天使像のストック：使っている間に届いた分は、画面の右にためておく（10体まで）。今の5ラウンドが終わると次の1体が出てくる */
 function drawStock(){ if(stStock<=0 || S.mode==='title' || !tenshiImg.naturalWidth) return; const cw=50, ch=92, cols=2, rows=Math.ceil(ST_MAX/cols), pw=cols*cw+22, ph=rows*ch+62, x0=W-pw-12, y0=STOCK_Y; g.save();
