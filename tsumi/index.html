@@ -76,7 +76,7 @@ canvas{width:100%;height:100%;display:block}
     <div id="tfDiag" style="white-space:pre-wrap;line-height:1.6;background:#060a20;border:1px solid #6677aa;border-radius:.5em;padding:.6em;margin-top:.5em;font-size:.9em"></div>
     <p>このPCでTikFinity（デスクトップ版）を開いて配信につなぐと、自動でつながります。つながらない時は <button id="tfRe" type="button">つなぎ直す</button></p>
     <h3>どのギフトで何が起きるか</h3>
-    <p>効果の名前の下のらんに文字を入れると、ギフト表に出る名前を変えられます（空にすると元の名前に戻ります）。</p> <p>左のわくを押して一覧からギフトをえらびます。「受信で登録」は、押してからそのギフトを1個投げてもらうと確実に結びつきます。未設定の効果はギフトでは起きません。</p>
+    <p>緑の「ON」を押すと「OFF」になり、そのギフトは来ても何も起きず、ギフト表からも消えます（割り当ては残るので、もう一度押せば元に戻ります）。</p> <p>効果の名前の下のらんに文字を入れると、ギフト表に出る名前を変えられます（空にすると元の名前に戻ります）。</p> <p>左のわくを押して一覧からギフトをえらびます。「受信で登録」は、押してからそのギフトを1個投げてもらうと確実に結びつきます。未設定の効果はギフトでは起きません。</p>
     <p><button id="seqLearn" type="button">上から順に受信で登録</button> <span id="seqNote"></span></p>
     <div id="cfgRows"></div>
     <h3>ギフト表（配信にのせる用）</h3>
@@ -1391,8 +1391,8 @@ function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.dat
   else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') runFx(()=>Game.follow(name)); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
 function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
   if(TF.learn){ const id=TF.learn; TF.learn=null; if(TF.seqLearn){ const k=FX_LIST.findIndex(f=>f[0]===id); let nx=null; for(let q=k+1;q<FX_LIST.length;q++){ if(TF.map[FX_LIST[q][0]] && TF.map[FX_LIST[q][0]].name){ nx=FX_LIST[q][0]; break; } } if(nx) TF.learn=nx; else { TF.seqLearn=false; tfLogAdd('順番に受信登録：ぜんぶ終わりました'); } } { const old=TF.map[id]||{}; TF.map[id]={id:gf.id,name:old.name||gf.name,rx:gf.name,coins:gf.coins!=null?gf.coins:old.coins,pic:gf.pic||null,ci:old.ci!=null?old.ci:null}; } tfSave(); cfgBuild(); tfLogAdd('登録：'+gf.name+coin+' → '+(FX_LIST.find(f=>f[0]===id)||[])[2]); return; }
-  let hit=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && ((b.id!=null && gf.id!=null && String(b.id)===String(gf.id)) || (b.name && tfNorm(b.name)===tfNorm(gf.name)) || (b.rx && tfNorm(b.rx)===tfNorm(gf.name)) || (b.alt && b.alt.some(t=>tfNorm(t)===tfNorm(gf.name)))); }), byCoin=false;
-  if(!hit.length && gf.coins!=null){ const same=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && b.id==null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(same.length===1){ hit=same; byCoin=true; } }
+  let hit=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && ((b.id!=null && gf.id!=null && String(b.id)===String(gf.id)) || (b.name && tfNorm(b.name)===tfNorm(gf.name)) || (b.rx && tfNorm(b.rx)===tfNorm(gf.name)) || (b.alt && b.alt.some(t=>tfNorm(t)===tfNorm(gf.name)))); }), byCoin=false;
+  if(!hit.length && gf.coins!=null){ const same=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(same.length===1){ hit=same; byCoin=true; } }
   { let ch=false; for(const f of hit){ const b=TF.map[f[0]]; if(byCoin) continue; if(b.id==null && gf.id!=null){ b.id=gf.id; ch=true; } if(b.coins==null && gf.coins!=null){ b.coins=gf.coins; ch=true; } if(!b.pic && gf.pic){ b.pic=gf.pic; ch=true; } } if(ch) tfSave(); }
   tfLogAdd('ギフト：'+name+' が '+gf.name+coin+' ×'+n+(hit.length?' → '+hit.map(f=>f[2]).join('・')+(byCoin?'（コイン数で判定）':''):' → 割り当てなし'));
   for(let i=0;i<n;i++) for(const f of hit) setTimeout(()=>{ try{ runFx(()=>f[4](name)); }catch(e){} },i*350); }
@@ -1411,7 +1411,7 @@ function pickDraw(){ const tb=document.getElementById('pickTabs'); tb.innerHTML=
 /* ギフト表に出す名前（自分で変えた分だけ入る）。TBL_NAME=元の名前 */
 const TBL_NAME={ant:'アリ',wind:'突風',ink:'イカスミ',quake:'地震',crow:'カラス',giant:'10秒 巨大化',slot:'動物スロット',biggacha:'巨大ガチャ',mangacha:'タイツガチャ',usagi:'早送り',eel:'タコ解除',necro:'見えない',witch:'ゴール+3m',wrm:'−ルーレット',coin:'−60 か −200',dragon:'全消し',robot:'全リセット',cerberus:'WIN −100',reaper:'WIN −1000',fairy:'10秒 ちび化',kame:'スロー',wave:'大波でまぜる',sun:'突風を消す',wingacha:'＋50 か ＋100',tako:'ずっと吸着',rewind:'負け取消',golem:'落ちない壁',angel:'ゴール−2m',wrp:'＋ルーレット',tree:'台が広がる',statue:'＋5 と 1回ガード',pegasus:'WIN ＋100',phoenix:'WIN ＋1000',double:'5分間 2倍'}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('tsumi_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('tsumi_lbl',JSON.stringify(LBL)); }catch(e){} }
 let tblCols=7; try{ tblCols=parseInt(localStorage.getItem('tsumi_tblcols'),10)||7; }catch(e){}
-function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
+function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name || b.off) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
   const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+'&g='+parts.join(',')+(()=>{ const l=Object.keys(LBL).filter(k=>LBL[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LBL[k]))); return l.length?'&l='+l.join(','):''; })(); }
 function tblUI(){ const el=document.getElementById('tblUrl'); if(el) el.value=tblUrl(); document.querySelectorAll('#cfg button.tc').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.c,10)===tblCols)); }
 function cfgBuild(){ tblUI(); { const sb=document.getElementById('seqLearn'), sn=document.getElementById('seqNote'); if(sb){ sb.textContent=TF.seqLearn?'順番登録をやめる':'上から順に受信で登録'; sb.style.background=TF.seqLearn?'#d1457a':''; const f=TF.seqLearn&&FX_LIST.find(x=>x[0]===TF.learn); sn.textContent=f?'いま待っているのは「'+f[2]+'」（'+((TF.map[f[0]]||{}).name||'')+'）。このギフトを1個流してください':''; } } const box=document.getElementById('cfgRows'); if(!box) return; box.innerHTML='';
@@ -1422,7 +1422,9 @@ function cfgBuild(){ tblUI(); { const sb=document.getElementById('seqLearn'), sn
     inp.appendChild(gi); inp.appendChild(gt); inp.addEventListener('click',()=>pickOpen(f));
     const lr=document.createElement('button'); lr.type='button'; lr.className='lr'+(TF.learn===f[0]?' wait':''); lr.textContent=TF.learn===f[0]?'ギフト待ち…':'受信で登録'; lr.addEventListener('click',()=>{ TF.learn=TF.learn===f[0]?null:f[0]; cfgBuild(); });
     const xb=document.createElement('button'); xb.type='button'; xb.className='x'; xb.textContent='×'; xb.addEventListener('click',()=>{ delete TF.map[f[0]]; tfSave(); cfgBuild(); });
-    row.appendChild(nm); row.appendChild(inp); row.appendChild(lr); if(b.name) row.appendChild(xb); box.appendChild(row); } }
+    const sw=document.createElement('button'); sw.type='button'; sw.className='lr'; sw.textContent=b.off?'OFF':'ON'; sw.style.cssText='flex:0 0 auto;min-width:3.6em;font-weight:900;color:#fff;background:'+(b.off?'#5b6478':'#1fa45a'); sw.addEventListener('click',()=>{ const e=TF.map[f[0]]; if(!e) return; if(e.off) delete e.off; else e.off=true; tfSave(); cfgBuild(); });   // ON/OFF：OFFの間は、このギフトが来ても何も起きず、ギフト表にも出ない（割り当ては残る）
+    if(b.off){ inp.style.opacity='.45'; nm.style.opacity='.6'; }
+    row.appendChild(nm); row.appendChild(inp); if(b.name) row.appendChild(sw); row.appendChild(lr); if(b.name) row.appendChild(xb); box.appendChild(row); } }
 { const cfg=document.getElementById('cfg'); document.getElementById('cfgBtn').addEventListener('click',()=>{ catLoad(()=>{ cfgBuild(); }); cfgBuild(); tfUI(); cfg.hidden=false; panel.hidden=true; }); document.getElementById('cfgClose').addEventListener('click',()=>{ TF.learn=null; TF.seqLearn=false; cfg.hidden=true; });
   document.getElementById('pickClose').addEventListener('click',()=>{ document.getElementById('pick').hidden=true; }); document.getElementById('pickQ').addEventListener('input',pickDraw);
   document.getElementById('cfgTable').addEventListener('click',()=>{ window.open(tblUrl(),'_blank'); });
