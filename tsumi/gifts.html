@@ -40,7 +40,7 @@ html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku G
 const FX=[['ant','jam','アリ'],['wind','jam','突風'],['ink','jam','イカスミ'],['quake','jam','地震'],['wave','jam','大波でまぜる'],['crow','jam','カラス'],['giant','jam','10秒 巨大化'],['slot','jam','動物スロット'],['biggacha','jam','巨大ガチャ'],['mangacha','jam','タイツガチャ'],['usagi','jam','早送り'],['eel','jam','タコ解除'],
  ['necro','jam','見えない'],['witch','jam','ゴール+3m'],['wrm','jam','−ルーレット'],['coin','jam','−60 か −200'],['dragon','jam','全消し'],['robot','jam','全リセット'],['cerberus','jam','WIN −100'],['reaper','jam','WIN −1000'],
  ['fairy','help','10秒 ちび化'],['sun','help','突風を消す'],['kame','help','スロー'],['tako','help','ずっと吸着'],['rewind','help','負け取消'],['golem','help','落ちない壁'],['angel','help','ゴール−2m'],['wrp','help','＋ルーレット'],['wingacha','help','＋50 か ＋100'],['tree','help','台が広がる'],
- ['statue','help','＋5 と 1回ガード'],['pegasus','help','WIN ＋100'],['phoenix','help','WIN ＋1000'],['double','both','5分間 2倍']];
+ ['statue','help','ガード＋勝ちで＋5'],['pegasus','help','WIN ＋100'],['phoenix','help','WIN ＋1000'],['double','both','5分間 2倍']];
 const q=new URLSearchParams(location.search), cols=Math.max(3,Math.min(13,parseInt(q.get('cols'),10)||9)), showAll=q.get('all')==='1';
 document.documentElement.style.setProperty('--cols',cols);
 let last='', CATN=0, CATL=null; const nrm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.'); fetch('./gifts_cat.json').then(r=>r.json()).then(j=>{ CATL=j; CATN=j.length; last=''; build(); }).catch(()=>{});
