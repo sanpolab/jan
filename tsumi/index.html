@@ -75,7 +75,7 @@ canvas{width:100%;height:100%;display:block}
     <div id="pickGrid"></div>
   </div>
   <div id="cfg" hidden>
-    <div class="top"><h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/23 19:08</small></h2>
+    <div class="top"><h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/23 19:11</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -184,7 +184,7 @@ function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
 // 全画面の映像が流れているあいだは、テスト・ギフト・一時停止のボタンと下のギフト表を消して、映像だけを画面のまん中に見せる
 // 自動更新：公開先に新しい版が出ていたら、古い画面を持ったままにならないよう自動で読みこみ直す（スマホは古い画面を10分ほど覚えているため）
-const VER='1123-190850'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
+const VER='1123-191111'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
   const chk=()=>{ if(S && S.mode==='playing') return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('tsumi_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('tsumi_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); };
   setTimeout(chk,800); setInterval(chk,60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 let cutUi=false; function syncCutUi(){ const on=!!(S.cut && S.cut.vid); if(on===cutUi) return; cutUi=on; for(const id of ['testBtn','cfgBtn','pauseBtn','rot','gtbl']){ const e=document.getElementById(id); if(e) e.style.visibility=on?'hidden':''; }
@@ -574,7 +574,7 @@ window.TsumiGame = Game;
 function endRound(win, why){ if(S.mode!=='playing') return; S.preEnd=win?null:{wins,statue,curse:curse&&Object.assign({},curse),bless:bless&&Object.assign({},bless)}; if(win) S.snap=null; if(S.cut&&S.cut.vid) S.cut.list.forEach(vStop); S.cut=null; S.cutQ.length=0;
   for(const k of ['c','b']){ const o=k==='c'?curse:bless; if(!o) continue; if(win) o.w++; else o.d++; /* 台の広さは回数では戻らない（逆のギフトか黒い機体が来るまで続く） */ }
   if(S.stRound || statue>0){ statue=0; S.curseEnded='天使像の加護が終わった'; }   // 加護は置いたラウンドだけ。ストックは残る（リセットが来るまで）
-  if(win){ const stB=CFG.statueWin*stStock*DB(); wins+=DB()+stB; S.stBonus=stB; S.winGain=DB()+stB; if(stB>0) logAdd('天使像ストック'+stStock+'体：WIN ＋'+stB,'#ffe680'); S.mode='clear'; S.endT=4.5; sfx.win(); confetti(); S.white=.45; } else { wins-=DB(); S.mode='dead'; S.endT=4.5; S.why=why||''; sfx.lose(); S.shake=.5; S.red=.5; } saveWins(); best=Math.max(best,heightM()); }
+  if(win){ const stB=CFG.statueWin*stStock*DB(); wins+=DB()+stB; S.stBonus=stB; S.winGain=DB()+stB; if(stB>0){ logAdd('天使像ストック'+stStock+'体をWINに：＋'+stB,'#ffe680'); stStock=0; } /* ストックは1体につき1回だけ＋5（10体で通算＋50）。ゴール成功で受け取ると空になる */ S.mode='clear'; S.endT=4.5; sfx.win(); confetti(); S.white=.45; } else { wins-=DB(); S.mode='dead'; S.endT=4.5; S.why=why||''; sfx.lose(); S.shake=.5; S.red=.5; } saveWins(); best=Math.max(best,heightM()); }
 
 const stAimY=h=>Math.max(AIM_Y-Math.max(0,h/2-300), viewTop()+h/2+24);
 let PAUSED=false;   // 一時停止：動物は落ちない（5秒の強制落下も止まる）。ギフトの効果はそのまま起きる
@@ -1401,7 +1401,7 @@ const FX_LIST=[
  ['dragon','jam','ドラゴン','全消し＋台がずっと縮む',n=>Game.jam(3,n)],['robot','jam','黒い機体','WIN以外ぜんぶリセット',n=>Game.robot(n)],['cerberus','jam','ケルベロス','WIN −100',n=>Game.cerberus(n)],['reaper','jam','死神','WIN −1000',n=>Game.reaper(n)],
  ['fairy','help','妖精','動物を小さく',n=>Game.help(1,n)],['sun','help','太陽','吹いている突風を相殺する',n=>Game.sun(n)],['kame','help','カメ','スロー',n=>Game.speed(-1,n)],['tako','help','タコ','吸着MAX',n=>Game.grip(n)],['rewind','help','砂時計','1手戻す・負けを耐える',n=>Game.rewind(n)],
  ['golem','help','ゴーレム','横に落ちない壁',n=>Game.help(2,n)],['angel','help','天使','ゴールが下がる',n=>Game.angel(n)],['wrp','help','＋WINルーレット','WINが増える',n=>Game.winRoulette(1,n)],['wingacha','help','WINガチャ','WIN ＋50 か ＋100',n=>Game.winGacha(n)],['tree','help','世界樹','台がずっと広がる＋3分ツルの壁',n=>Game.help(3,n)],
- ['statue','help','天使像','このラウンドを守る＋ストック（10体まで）。ゴール成功のたび 1体につきWIN＋5',n=>Game.statue(n)],['pegasus','help','ペガサス','WIN ＋100',n=>Game.pegasus(n)],['phoenix','help','不死鳥','WIN ＋1000',n=>Game.phoenix(n)],['double','both','2倍タイム','5分間ぜんぶ2倍',n=>Game.double(n)]];
+ ['statue','help','天使像','このラウンドを守る＋ストック（10体まで）。次のゴール成功で 1体につきWIN＋5（1回だけ）',n=>Game.statue(n)],['pegasus','help','ペガサス','WIN ＋100',n=>Game.pegasus(n)],['phoenix','help','不死鳥','WIN ＋1000',n=>Game.phoenix(n)],['double','both','2倍タイム','5分間ぜんぶ2倍',n=>Game.double(n)]];
 const PEND=[]; let PEND_T=0;   // 勝ち・負けの画面の間に届いたギフトは、次のラウンドの頭で順番に反映する
 function runFx(fn){ if(S.mode==='clear'||S.mode==='dead') PEND.push(fn); else fn(); }
 /* スマホ用のつなぎ先（tik.tools）。オンの間はTikFinityのかわりに、ネット経由で同じ形の知らせを受け取る。キーはこの端末にだけ保存 */
