@@ -703,38 +703,40 @@ function updateStatue(dt){ const b=S.stBody; if(!b) return; const th=stH(); if(b
 const STOCK_Y=470, SUN_X=990, SUN_Y=330;
 /* 大波（妨害）：クジラが横から現れて体を打ちつけ、青い大波が台をさらう。波にのまれた動物は浮かび、
    水が引くと「いくつかの低い山」にまぜ直されて台に戻る。波のあいだ〜落ち着くまでは、落ちても負けにならない。天使像がいるラウンドは防ぐ。 */
-const WV={tin:2.0,sweep:1.7,float:1.6,drain:.9,settle:2.4,lift:110,imgW:1000,wallTop:.26}; const waveImg=new Image(); waveImg.src='./img/wave.png'; let whaleSh=null;   // tin＝クジラが体を打ちつける瞬間（動画の音がいちばん大きい所）
-const waterImg=new Image(); waterImg.src='./img/water.png'; const WATER={surf:46/476,tw:770,deep:'#0e89c0'};   // 波が通ったあとを満たす水（泡の水面つきの帯。横につながる）
+/* 順番：波が来る(tin)→水が満ちる→クジラが出る(whale)→体を打ちつけた瞬間にまざる(whale+slam)→水が引く */
+const WV={tin:.35,sweep:1.7,whale:1.5,slam:2.0,glide:1.0,drain:.9,settle:2.4,lift:110,imgW:1000,wallTop:.26}; const wvTP=()=>WV.whale+WV.slam, wvTR=()=>wvTP()+WV.glide;
+ const waveImg=new Image(); waveImg.src='./img/wave.png'; let whaleSh=null;   
+const waterImg=new Image(); waterImg.src='./img/water.png'; const WATER={surf:.302,tw:1100,deep:'#0990c3'};   // 波が通ったあとを満たす水（泡の水面つきの帯。横につながる）
 setTimeout(()=>{ if(!whaleSh) whaleSh=mkSheet('whale',{n:47,cols:8,fw:640,fh:245,fps:12}); },0);   // 先に読みこんでおく
 const wvSm=u=>{ u=clamp(u,0,1); return u*u*(3-2*u); };
-function startWave(name){ if(S.wv || S.rb || S.seq){ (S.wvQ=S.wvQ||[]).push(name); return; } S.snap=null; play('wv_whale'); S.wv={t:0,name,dir:Math.random()<.5?-1:1,list:[],planned:false,released:false,slam:false,top0:S.topY,lockEnd:WV.tin+WV.sweep+WV.float+WV.settle}; banner('大波！','#7fd4ff',name+' のしわざ'); }
+function startWave(name){ if(S.wv || S.rb || S.seq){ (S.wvQ=S.wvQ||[]).push(name); return; } S.snap=null; S.wv={t:0,name,dir:Math.random()<.5?-1:1,list:[],planned:false,released:false,slam:false,whaleOn:false,top0:S.topY,lockEnd:wvTR()+WV.settle}; banner('大波！','#7fd4ff',name+' のしわざ'); }
 function wvFront(w){ const xl=viewL()-80, xr=viewR()+80+WV.imgW*.75, e=wvSm((w.t-WV.tin)/WV.sweep); return w.dir>0?xl+(xr-xl)*e:(viewR()+80)-(xr-xl)*e; }   // 波の絵が画面の外へ抜けきるところまで進む
-/* クジラ：くりんぐの動画から作った連番。画面の下から体を持ち上げて、打ちつける。動物の手前に大きく描き、打ちつけたあとは波にまぎれて消える */
-function drawWhale(){ const w=S.wv; if(!w) return; if(!whaleSh) whaleSh=mkSheet('whale',{n:47,cols:8,fw:640,fh:245,fps:12}); const sh=whaleSh, tR=WV.tin+WV.sweep+WV.float, d=w.dir;
-  if(sh.ok){ const f=Math.min(sh.n-1,Math.floor(w.t*12)), vw=viewR()-viewL(), ww=vw*1.4, wh=ww*sh.fh/sh.fw, al=clamp(w.t/.25,0,1)*clamp(1-(w.t-(WV.tin+.8))/.8,0,1), x=d>0?viewL()+ww*.4:viewR()-ww*.4, yb=Math.min(viewBot()+30,TOP_Y+190)+ (w.t>WV.tin+.5?Math.sin(S.t*2.2)*6:0); if(al<=0) return;
-    g.save(); g.globalAlpha=al; g.translate(x,yb-wh/2); if(d<0) g.scale(-1,1); g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,-ww/2,-wh/2,ww,wh); g.restore(); return; }
-  const a=ANIMALS.kujira, im=a&&a.img; if(im && im.naturalWidth){ const ww=640, wh=ww*im.naturalHeight/im.naturalWidth, inn=1-Math.pow(1-clamp(w.t/.8,0,1),3), sink=clamp((w.t-tR)/WV.drain,0,1); g.save(); g.translate((d>0?viewL()+190:viewR()-190)-d*(1-inn)*700,TOP_Y-40+Math.sin(S.t*2.4)*12+sink*sink*500); if(d>0) g.scale(-1,1); g.drawImage(im,-ww/2,-wh/2,ww,wh); g.restore(); } }
-function wvLevel(w){ const H=clamp(TOP_Y-w.top0+200,330,Math.max(340,TOP_Y-viewTop()-140)), tR=WV.tin+WV.sweep+WV.float, dr=clamp((w.t-tR)/WV.drain,0,1); return TOP_Y-H+(H+260)*dr*dr; }
-function updateWave(dt){ const w=S.wv; if(!w) return; w.t+=dt; const tP=WV.tin+WV.sweep, tR=tP+WV.float;
-  if(!w.slam && w.t>=WV.tin){ w.slam=true; play('wv_wash'); S.shake=Math.max(S.shake,.5); }
-  if(w.t>=WV.tin && w.t<tP+.05){ const xf=wvFront(w), ys=wvLevel(w); if(Math.random()<dt*40) S.parts.push({k:'spark',x:xf+rand(-30,30),y:ys-rand(40,140),vx:w.dir*rand(100,420),vy:rand(-520,-160),g:1100,t:rand(.5,1),c:pick(['#ffffff','#d6f3ff','#9fdcff']),r:rand(5,11)});
+/* クジラ：くりんぐの動画から作った連番。水が満ちたあと、水面から体を持ち上げて打ちつける（動画の水面を、ゲームの水面に合わせる）。音は動画の音をそのまま使う */
+function drawWhale(){ const w=S.wv; if(!w) return; const sh=whaleSh, tt=w.t-WV.whale; if(!sh || !sh.ok || tt<0) return; const f=Math.min(sh.n-1,Math.floor(tt*12)), vw=viewR()-viewL(), ww=vw*1.25, wh=ww*sh.fh/sh.fw, al=clamp(tt/.3,0,1)*clamp(1-(tt-(WV.slam+1.1))/.6,0,1), wl=(sh.fh-31.7)/sh.fh; if(al<=0) return;
+  g.save(); g.globalAlpha=al; g.translate(540,wvLevel(w)-6-wh*wl+wh/2+Math.sin(S.t*2.2)*5); if(w.dir<0) g.scale(-1,1); g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,-ww/2,-wh/2,ww,wh); g.restore(); }
+function wvLevel(w){ const H=clamp(TOP_Y-w.top0+200,330,Math.max(340,TOP_Y-viewTop()-140)), tR=wvTR(), dr=clamp((w.t-tR)/WV.drain,0,1); return TOP_Y-H+(H+260)*dr*dr; }
+function updateWave(dt){ const w=S.wv; if(!w) return; w.t+=dt; const tS=WV.tin+WV.sweep, tP=wvTP(), tR=wvTR();
+  if(!w.slam && w.t>=WV.tin){ w.slam=true; play('wv_wash'); S.shake=Math.max(S.shake,.4); }
+  if(!w.whaleOn && w.t>=WV.whale){ w.whaleOn=true; play('wv_whale'); }
+  if(w.t>=WV.tin && w.t<tS+.05){ const xf=wvFront(w), ys=wvLevel(w); if(Math.random()<dt*40) S.parts.push({k:'spark',x:xf+rand(-30,30),y:ys-rand(40,140),vx:w.dir*rand(100,420),vy:rand(-520,-160),g:1100,t:rand(.5,1),c:pick(['#ffffff','#d6f3ff','#9fdcff']),r:rand(5,11)});
     for(const b of S.bodies){ const p=b.plugin; if(p.wv || p.statue || p.rock || p.meteor || !ANIMALS[p.key]) continue; if((w.dir>0?b.position.x<xf:b.position.x>xf) && b.position.y<TOP_Y+130){
         if(b===S.falling){ S.falling=null; S.cur=S.next; rollNext(); S.rot=0; S.phase='aim'; } Sleeping.set(b,false); Body.setStatic(b,true); p.glued=false; p.air=true; p.airT=-999; p.wv={x0:b.position.x,y0:b.position.y,a0:b.angle,t0:w.t,ph:rand(0,6)}; w.list.push(b); } } }
   w.list=w.list.filter(b=>S.bodies.includes(b));
-  if(!w.planned && w.t>=tP){ w.planned=true; const tx0=table.bounds.min.x, tw=table.bounds.max.x-tx0, L=w.list.slice(); for(let i=L.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [L[i],L[j]]=[L[j],L[i]]; }
+  if(!w.planned && w.t>=tP){ w.planned=true; S.shake=Math.max(S.shake,.8); S.white=Math.max(S.white,.16); { const ys=wvLevel(w); for(let i=0;i<70;i++) S.parts.push({k:'spark',x:540+rand(-420,420),y:ys+rand(-20,30),vx:rand(-380,380),vy:rand(-900,-260),g:1300,t:rand(.6,1.3),c:pick(['#ffffff','#d6f3ff','#9fdcff']),r:rand(6,14)}); }   // クジラが体を打ちつけた瞬間：しぶきが上がって、動物がまざり始める
+    const tx0=table.bounds.min.x, tw=table.bounds.max.x-tx0, L=w.list.slice(); for(let i=L.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [L[i],L[j]]=[L[j],L[i]]; }
     const cols=Math.max(2,Math.min(L.length,Math.floor(tw/190))), grp=[]; for(let c=0;c<cols;c++) grp.push([]); L.forEach((b,i)=>grp[i%cols].push(b));
     grp.forEach((G2,c)=>{ let bot=TOP_Y-8; G2.sort((a,b)=>(b.bounds.max.x-b.bounds.min.x)-(a.bounds.max.x-a.bounds.min.x)); for(const b of G2){ const p=b.plugin.wv, a=b.angle; Body.setAngle(b,0); const hb=b.bounds.max.y-b.position.y, ht=b.position.y-b.bounds.min.y, bl=b.position.x-b.bounds.min.x, br=b.bounds.max.x-b.position.x; Body.setAngle(b,a);
         let x=tx0+tw*(c+.5)/cols+rand(-18,18); x=(bl+br+12<tw)?clamp(x,tx0+bl+6,tx0+tw-br-6):tx0+tw/2+(bl-br)/2; p.tx=x; p.ty=bot-hb; p.px=b.position.x; p.py=b.position.y; p.pa=b.angle; bot-=hb+ht+10; } }); }
   if(!w.released){ for(const b of w.list){ const p=b.plugin.wv, e1=wvSm((w.t-p.t0)/.45), bob=Math.sin(S.t*3+p.ph)*10; let x=p.x0+w.dir*46*e1, y=p.y0-WV.lift*e1+bob*e1, a=p.a0+Math.sin(S.t*2.1+p.ph)*.13*e1;
-      if(w.planned && p.tx!=null){ const u=wvSm((w.t-tP)/(WV.float-.2)), da=Math.atan2(Math.sin(-p.pa),Math.cos(-p.pa)); x=p.px+(p.tx-p.px)*u; y=p.py+(p.ty-p.py)*u+bob*(1-u); a=p.pa+da*u+Math.sin(S.t*2.1+p.ph)*.1*(1-u); }
+      if(w.planned && p.tx!=null){ const u=wvSm((w.t-tP)/(WV.glide-.15)), da=Math.atan2(Math.sin(-p.pa),Math.cos(-p.pa)); x=p.px+(p.tx-p.px)*u; y=p.py+(p.ty-p.py)*u+bob*(1-u); a=p.pa+da*u+Math.sin(S.t*2.1+p.ph)*.1*(1-u); }
       Body.setPosition(b,{x,y}); Body.setAngle(b,a); } }
   if(!w.released && w.t>=tR){ w.released=true; for(const b of w.list){ const p=b.plugin; if(p.wv.tx!=null){ Body.setPosition(b,{x:p.wv.tx,y:p.wv.ty}); Body.setAngle(b,0); } Body.setStatic(b,false); Body.setVelocity(b,{x:0,y:0}); Body.setAngularVelocity(b,0); Sleeping.set(b,false); p.air=false; p.airT=0; p.wv=null; } if(w.list.length){ play('heavy'); S.shake=Math.max(S.shake,.35); logAdd('大波で台の上がまざった','#ff9aa8'); } }
   if(w.t>=w.lockEnd){ S.wv=null; if(S.wvQ && S.wvQ.length) startWave(S.wvQ.shift()); } }
 function wvGeom(w){ const tP=WV.tin+WV.sweep, d=w.dir, xl=viewL()-80, xr=viewR()+80, ys=wvLevel(w), bot=viewBot()+80, xf=wvFront(w), full=w.t>=tP, hasI=waveImg.naturalWidth>64, D=TOP_Y+190-ys, ih=D/(1-WV.wallTop), iw=hasI?ih*waveImg.naturalWidth/waveImg.naturalHeight:0, xb=hasI?xf-d*iw*.72:xf;
   return {d,xl,xr,ys,bot,xf,full,hasI,ih,iw,x0:full?xl:(d>0?xl:Math.min(xr,xb)),x1:full?xr:(d>0?Math.max(xl,xb):xr)}; }
 /* 水の帯を x0〜x1 に敷く。細いたんざくに分けて上下にゆらすので、水面がうねって見える */
-function wvWater(x0,x1,ys,bot,al,off,amp){ const im=waterImg; if(!im.naturalWidth || x1-x0<2) return false; const tw=WATER.tw, th=tw*im.naturalHeight/im.naturalWidth, N=14, sl=tw/N, sw=im.naturalWidth/N, o=((off%tw)+tw)%tw;
-  g.save(); g.beginPath(); g.rect(x0,-9000,x1-x0,18000); g.clip(); g.globalAlpha=al; g.fillStyle=WATER.deep; g.fillRect(x0,ys+th*.55,x1-x0,Math.max(0,bot-ys-th*.55));
+function wvWater(x0,x1,ys,bot,al,off,amp){ const im=waterImg; if(!im.naturalWidth || x1-x0<2) return false; const tw=WATER.tw, th=tw*im.naturalHeight/im.naturalWidth, N=20, sl=tw/N, sw=im.naturalWidth/N, o=((off%tw)+tw)%tw;
+  g.save(); g.beginPath(); g.rect(x0,-9000,x1-x0,18000); g.clip(); g.globalAlpha=al; g.fillStyle=WATER.deep; g.fillRect(x0,ys+th*.4,x1-x0,Math.max(0,bot-ys-th*.4));
   for(let X=Math.floor((x0-o)/tw)*tw+o; X<x1; X+=tw) for(let k=0;k<N;k++){ const x=X+k*sl; if(x+sl<x0 || x>x1) continue; const yy=ys-th*WATER.surf+Math.sin(x*.011+S.t*2.4+off*.02)*amp+Math.sin(x*.029-S.t*1.6)*amp*.5; g.drawImage(im,k*sw,0,sw,im.naturalHeight,x,yy,sl+1,th); }
   g.restore(); return true; }
 function drawWaveBack(){ const w=S.wv; if(!w || w.t<WV.tin) return; const G=wvGeom(w); if(G.ys>G.bot) return; wvWater(G.x0,G.x1,G.ys-16,G.bot,1,-S.t*46*G.d+230,8); }   // 奥の水（動物の後ろ）
