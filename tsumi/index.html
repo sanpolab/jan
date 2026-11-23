@@ -508,7 +508,9 @@ const Game = {
   cerberus(name){ if(S.mode!=='playing') return; startWinFly(-1,name); },
   robot(name){ if(S.mode!=='playing') return; startRobot(name); },
   statue(name){ if(S.mode!=='playing') return; startStatue(name); },
-  sun(name){ if(S.mode!=='playing') return; const m=DB(); let left=m; if(S.wind>0 || S.windPre>0){ S.wind=0; S.windPre=0; left--; logAdd(name+' の太陽が突風を消した','#ffe680'); banner('太陽！','#ffd23f',name+' が突風を消した'); } sunStock=Math.min(SUN_MAX,sunStock+left); if(left>0) logAdd(name+' の太陽：次の突風を防ぐ（'+sunStock+'回分）','#ffe680'); if(left===m) banner('太陽！','#ffd23f','次の突風を'+sunStock+'回ふせぐ'); sunAt=performance.now()/1000; S.holy=Math.max(S.holy,1.2); sfx.good(); },
+  sun(name){ if(S.mode!=='playing') return; const now=performance.now()/1000; if(sunC && !sunC.miss && now-sunC.at<1.4){ logAdd(name+' の太陽：もう消している最中','#ffe680'); return; }
+    if(S.wind>0 || S.windPre>0){ sunC={at:now,dir:S.windDir,y:S.windY,miss:false}; S.windPre=0; S.wind=1.3; S.windMul=1e-6; banner('相殺！','#ffd23f',name+' の太陽が突風を消した'); logAdd(name+' の太陽が突風を相殺した','#ffe680'); S.holy=Math.max(S.holy,1.4); sfx.good(); }
+    else { sunC={at:now,dir:Math.random()<.5?-1:1,y:clamp(S.topY-120,GOAL_Y-160,1290),miss:true}; logAdd(name+' の太陽：いまは風が吹いていない','#ffe680'); } },
   winGacha(name){ if(S.mode!=='playing') return; startWinGacha(name); logAdd(name+' がWINガチャを回した','#ffe680'); sfx.good(); },
   manGacha(name){ if(S.mode!=='playing') return; if(stGuard()){ guarded(name,'タイツガチャ'); return; } const go=()=>startBigGacha(name,MANKEYS,'タイツガチャ',['#0c2a3a','#1f7a8c','#1f7a8c','#06303a']); go(); if(DB()>1) go(); logAdd(name+' がタイツガチャを回した','#ff9aa8'); sfx.bad(); },
   bigGacha(name){ if(S.mode!=='playing') return; if(stGuard()){ guarded(name,'巨大ガチャ'); return; } startBigGacha(name); if(DB()>1) startBigGacha(name); logAdd(name+' が巨大ガチャを回した','#ff9aa8'); sfx.bad(); },
@@ -521,7 +523,7 @@ const Game = {
       if(stGuard() && kind!=='ant'){ guarded(name,kind==='wind'?'突風':kind==='big'?'動物スロット':'ゆれ'); return; }
       if(kind==='quake'){ S.quake=CFG.quakeSec; S.qk=0; S.qkMul=DB(); play('quake'); startNamazu(); logAdd(name+' が地面をゆらした','#ff9aa8'); sfx.bad(); return; }
       if(kind==='ant'){ dropAnt(name); if(DB()>1) dropAnt(name); logAdd(name+' がアリを落とした','#ff9aa8'); sfx.bad(); return; }
-      if(kind==='wind'){ if(sunStock>0){ sunStock--; sunAt=performance.now()/1000; logAdd('太陽が '+name+' の突風を消した（残り'+sunStock+'回）','#ffe680'); banner('太陽が突風を消した！','#ffd23f',name+' の突風'); sfx.good(); return; } S.windMul=DB(); if(S.wind>0 || S.windPre>0){ S.wind=Math.max(S.wind,0)+CFG.windSec; } else { S.windPre=CFG.windPre; S.windDir=Math.random()<.5?-1:1; S.windY=clamp(S.topY+50,GOAL_Y-160,1290); } banner('突風！','#9be9ff',name+' のしわざ'); logAdd(name+' が突風を起こした','#ff9aa8'); }
+      if(kind==='wind'){ S.windMul=DB(); if(S.wind>0 || S.windPre>0){ S.wind=Math.max(S.wind,0)+CFG.windSec; } else { S.windPre=CFG.windPre; S.windDir=Math.random()<.5?-1:1; S.windY=clamp(S.topY+50,GOAL_Y-160,1290); } banner('突風！','#9be9ff',name+' のしわざ'); logAdd(name+' が突風を起こした','#ff9aa8'); }
       else { startRoulette(name); if(DB()>1) startRoulette(name); logAdd(name+' が動物スロットを回した','#ff9aa8'); } sfx.bad(); }
     else if(size===2){ logAdd(name+' がネクロマンサーを呼んだ','#c79bff');
       const apply=()=>{ if(S.mode!=='playing') return; S.ghost=CFG.ghostCount*DB(); S.purple=1.2; S.shake=.3; sfx.bad();
@@ -701,10 +703,18 @@ const stGuard=()=>S.stRound && S.mode==='playing';
 function drawStock(){ if(stStock<=0 || S.mode==='title' || !tenshiImg.naturalWidth) return; const cw=50, ch=92, cols=2, rows=Math.ceil(ST_MAX/cols), pw=cols*cw+22, ph=rows*ch+62, x0=W-pw-12, y0=STOCK_Y; g.save();
   g.fillStyle='rgba(20,14,40,.78)'; rr(x0,y0,pw,ph,18); g.fill(); g.lineWidth=4; g.strokeStyle='#ffe680'; g.stroke(); txt('ストック',x0+pw/2,y0+24,22,'#ffe680','center'); txt(stStock+' / '+ST_MAX,x0+pw/2,y0+ph-18,22,'#fff','center');
   for(let i=0;i<ST_MAX;i++){ const cx=x0+11+(i%cols)*cw+cw/2, cy=y0+42+Math.floor(i/cols)*ch, on=i<stStock; g.globalAlpha=on?1:.16; const iw=tenshiImg.naturalWidth, ih=tenshiImg.naturalHeight, sh=ih*.5, dw=40, dh=dw*sh/iw; if(on){ g.shadowColor='#ffe680'; g.shadowBlur=10+4*Math.sin(S.t*3+i); } g.drawImage(tenshiImg,0,0,iw,sh,cx-dw/2,cy+(ch-8-dh)/2,dw,dh); g.shadowBlur=0; } g.restore(); }
-/* 太陽：突風を消す。風が吹いていない時は「次の突風を1回ふせぐ」分としてためる */
-function drawSun(){ if(S.mode==='title' || !sunImg.naturalWidth) return; const el=performance.now()/1000-sunAt;
-  if(el>=0 && el<2.4){ const u=el/2.4, e=1-Math.pow(1-u,3), sz=260+620*e; g.save(); g.fillStyle='rgba(255,196,70,'+(.3*(1-u))+')'; g.fillRect(0,0,W,1920); g.globalAlpha=clamp((1-u)*1.6,0,1); g.translate(540,620); g.rotate(el*.8); g.shadowColor='#ffb020'; g.shadowBlur=60; g.drawImage(sunImg,-sz/2,-sz/2,sz,sz); g.restore(); }
-  if(sunStock>0){ const sz=104; g.save(); g.translate(SUN_X,SUN_Y); g.save(); g.rotate(S.t*.5); g.shadowColor='#ffb020'; g.shadowBlur=24; g.drawImage(sunImg,-sz/2,-sz/2,sz,sz); g.restore(); if(sunStock>1) txt('×'+sunStock,34,38,34,'#fff','center','#7a3a00'); g.restore(); } }
+/* 太陽（北風と太陽）：突風が来ている間に出すと、風の精霊の反対側から現れて光で押し返し、突風を相殺する。風がない時は顔を出して帰るだけ */
+let sunC=null;
+function drawSunClash(){ const c=sunC; if(!c || !sunImg.naturalWidth || S.mode==='title') return; const el=performance.now()/1000-c.at, D=c.miss?1.5:2.3; if(el>D || el<0){ sunC=null; return; }
+  const d=c.dir, inn=1-Math.pow(1-clamp(el/.3,0,1),3), out=clamp((el-(D-.35))/.35,0,1), off=(1-inn)*460+out*out*460, sz=340, sx0=d>0?viewR()-210+off:viewL()+210-off, y=c.y+Math.sin(el*5)*8;
+  g.save();
+  if(!c.miss){ const mx=spiritMouth(), u0=clamp((el-.25)/.95,0,1), u=u0*u0*(3-2*u0), meet=(sx0+mx)/2+(mx-(sx0+mx)/2)*u, fl=.8+.2*Math.sin(el*60);
+    if(el>.2 && el<1.5){ g.save(); g.globalCompositeOperation='lighter'; const a=clamp((el-.2)/.15,0,1)*clamp((1.5-el)/.25,0,1); const gr=g.createLinearGradient(sx0,0,meet,0); gr.addColorStop(0,'rgba(255,214,90,'+(.75*a)+')'); gr.addColorStop(1,'rgba(255,170,40,'+(.35*a)+')'); g.fillStyle=gr; g.beginPath(); g.moveTo(sx0,y-70); g.lineTo(meet,y-130*fl); g.lineTo(meet,y+130*fl); g.lineTo(sx0,y+70); g.fill();
+      const R=(120+60*u)*fl, rg=g.createRadialGradient(meet,y,0,meet,y,R); rg.addColorStop(0,'rgba(255,255,255,'+a+')'); rg.addColorStop(.4,'rgba(255,230,120,'+(.8*a)+')'); rg.addColorStop(1,'rgba(255,160,40,0)'); g.fillStyle=rg; g.beginPath(); g.arc(meet,y,R,0,7); g.fill();
+      g.strokeStyle='rgba(255,255,255,'+(.9*a)+')'; g.lineWidth=5; g.lineCap='round'; for(let i=0;i<9;i++){ const an=i*.7+el*9, r0=R*.5, r1=R*(1.1+.5*Math.sin(el*23+i*2)); g.beginPath(); g.moveTo(meet+Math.cos(an)*r0,y+Math.sin(an)*r0); g.lineTo(meet+Math.cos(an)*r1,y+Math.sin(an)*r1); g.stroke(); } g.restore(); }
+    if(el>1.2 && el<1.75){ const k=(el-1.2)/.55, R=120+k*760; g.save(); g.globalCompositeOperation='lighter'; const rg=g.createRadialGradient(mx,y,R*.2,mx,y,R); rg.addColorStop(0,'rgba(255,255,255,'+(.9*(1-k))+')'); rg.addColorStop(.6,'rgba(255,220,110,'+(.6*(1-k))+')'); rg.addColorStop(1,'rgba(255,180,60,0)'); g.fillStyle=rg; g.beginPath(); g.arc(mx,y,R,0,7); g.fill(); g.restore(); } }
+  g.translate(sx0,y); if(d<0) g.scale(-1,1); const pu=1+.05*Math.sin(el*14)*(c.miss?0:1); g.scale(pu,pu); g.shadowColor='#ffb020'; g.shadowBlur=50; g.drawImage(sunImg,-sz/2,-sz/2,sz,sz); g.restore(); }
+function drawSun(){}
 function guarded(name,what){ logAdd('天使像が '+name+' の'+what+'をはね返した','#fff3b0'); S.holy=Math.max(S.holy,1.2); const b=S.stBody; if(b) S.rings.push({x:b.position.x,y:b.position.y,t:0}); sfx.good(); }
 function startStatue(name){ const apply=()=>{ { const from=wins, add=CFG.statueWin*DB(); wins+=add; saveWins(); S.winRoll={from,to:wins,t:0,dur:1.0}; logAdd(name+' の天使像：WIN ＋'+add,'#ffe680'); } setBg('statue'); { const m=DB(); if(statue>0){ const ad=Math.min(m,ST_MAX-stStock); stStock+=ad; logAdd(ad>0?'天使像をストック（'+stStock+'体）':'天使像のストックは'+ST_MAX+'体まで','#fff3b0'); } else { statue=CFG.statueRounds; stStock=Math.min(ST_MAX,stStock+m-1); } } statueBy=name; witch=0; setGoal(); S.wind=0; S.windPre=0; S.quake=0; S.roul=null; S.roulQ.length=0; S.white=Math.max(S.white,.6); S.holy=6;
     if(S.mode==='playing' && S.phase==='aim' && !S.stRound){ S.cur={key:'tenshi',s:1,statue:true,name:null,by:null}; S.stRound=true; S.rot=0; } };
@@ -1175,9 +1185,9 @@ function drawHUD(){
   g.fillStyle='#17223b'; g.fillRect(0,1570,W,H-1570);
   txt('いいねで動物',40,1612,30,OPT.likeOn?'#ff9ac1':'#6b7699'); const LW=SHORT?640:770; g.fillStyle='#2a3a5e'; rr(270,1594,LW,36,18); g.fill(); if(!OPT.likeOn){ txt('オフ',270+LW/2,1613,24,'#8b96b8','center'); } else {
   const lw=LW*clamp(S.like/CFG.likeGoal,0,1); if(lw>4){ g.fillStyle='#ff4f93'; rr(270,1594,Math.max(36,lw),36,18); g.fill(); } txt(Math.floor(S.like)+' / '+CFG.likeGoal,270+LW/2,1613,24,'#fff','center'); }
-  drawStock(); drawSun();
+  drawStock();
   let sx=40; const tag=(t,c)=>{ g.font='900 28px '+FONT; const w=g.measureText(t).width+30; g.fillStyle=c; rr(sx,1650,w,44,22); g.fill(); txt(t,sx+w/2,1673,28,'#101828','center'); sx+=w+12; };
-  if(gripT>0) tag('タコ吸着中','#9dffb8'); if(miniT>0) tag('ちび化　'+Math.ceil(miniT)+'秒','#c9ffb0'); if(bigT>0) tag('巨大化　'+Math.ceil(bigT)+'秒','#ff9aa8'); if(baseSpd!==1) tag('ゲーム速度 ×'+baseSpd,'#ffe680'); if(spLv>0) tag('ウサギ：早送り ×'+CFG.fastMult+'　'+Math.ceil(spT)+'秒','#ffb38a'); if(spLv<0) tag('カメ：スロー ×'+CFG.slowMult+'　'+Math.ceil(spT)+'秒','#9bd0ff'); if(statue>0) tag('天使像：残り'+statue+'ラウンド'+(stStock?'　ストック'+stStock+'体':''),'#fff3b0'); if(sunStock>0) tag('太陽：突風を'+sunStock+'回ふせぐ','#ffd23f'); if(witch>0) tag('魔女：ゴール'+GOAL_M+'m','#d9b3ff'); if(witch<0) tag('天使：ゴール'+GOAL_M+'m','#fff3b0'); if(S.windPre>0) tag('風の精霊が息を吸ってる…','#9be9ff'); if(S.wind>0) tag('突風 '+Math.ceil(S.wind)+'秒','#9be9ff'); if(S.quake>0) tag('ゆれ '+Math.ceil(S.quake)+'秒','#ffb020'); if(walls) tag((wallSkin==='vine'?'ツルの壁 ':'ゴーレムの壁 ')+Math.ceil(wallT)+'秒',wallSkin==='vine'?'#9dffb8':'#e0c98a'); if(S.glue>0) tag('のり '+Math.ceil(S.glue)+'秒','#ffd400'); if(bless) tag('世界樹：台が広い（ずっと）','#ffe680'); if(S.seq) tag('ドラゴン襲来中','#ff5c5c'); if(S.ghost>0) tag('見えない　あと'+S.ghost+'匹置くと戻る','#c79bff'); if(curse) tag('ドラゴン：台が小さい（ずっと）','#c79bff');
+  if(gripT>0) tag('タコ吸着中','#9dffb8'); if(miniT>0) tag('ちび化　'+Math.ceil(miniT)+'秒','#c9ffb0'); if(bigT>0) tag('巨大化　'+Math.ceil(bigT)+'秒','#ff9aa8'); if(baseSpd!==1) tag('ゲーム速度 ×'+baseSpd,'#ffe680'); if(spLv>0) tag('ウサギ：早送り ×'+CFG.fastMult+'　'+Math.ceil(spT)+'秒','#ffb38a'); if(spLv<0) tag('カメ：スロー ×'+CFG.slowMult+'　'+Math.ceil(spT)+'秒','#9bd0ff'); if(statue>0) tag('天使像：残り'+statue+'ラウンド'+(stStock?'　ストック'+stStock+'体':''),'#fff3b0'); if(witch>0) tag('魔女：ゴール'+GOAL_M+'m','#d9b3ff'); if(witch<0) tag('天使：ゴール'+GOAL_M+'m','#fff3b0'); if(S.windPre>0) tag('風の精霊が息を吸ってる…','#9be9ff'); if(S.wind>0) tag('突風 '+Math.ceil(S.wind)+'秒','#9be9ff'); if(S.quake>0) tag('ゆれ '+Math.ceil(S.quake)+'秒','#ffb020'); if(walls) tag((wallSkin==='vine'?'ツルの壁 ':'ゴーレムの壁 ')+Math.ceil(wallT)+'秒',wallSkin==='vine'?'#9dffb8':'#e0c98a'); if(S.glue>0) tag('のり '+Math.ceil(S.glue)+'秒','#ffd400'); if(bless) tag('世界樹：台が広い（ずっと）','#ffe680'); if(S.seq) tag('ドラゴン襲来中','#ff5c5c'); if(S.ghost>0) tag('見えない　あと'+S.ghost+'匹置くと戻る','#c79bff'); if(curse) tag('ドラゴン：台が小さい（ずっと）','#c79bff');
   if(sx===40){ if(SHORT && S.log.length){ const L=S.log[S.log.length-1]; txt(L.text,40,1673,28,L.color,'left',null,700); } else txt('順番待ち '+S.names.length+'人',40,1673,28,'#b9c6e6','left',null,700); }
   for(let i=0;i<S.log.length;i++){ const L=S.log[i]; txt(L.text,40,1730+i*44,30,L.color,'left',null,700); }
   g.fillStyle='#101a30'; g.fillRect(0,1862,W,58); txt('ゴールを超えて5秒キープで WIN+1　1匹でも落としたら WIN−1',540,1892,28,'#ffd23f','center');
@@ -1211,7 +1221,7 @@ function draw(){
   drawField(); drawSpirit();
   drawWalls(); drawTako();
   for(const b of S.bodies) drawBody(b);
-  drawTen(); drawEel(); drawCrow(); drawGust(); drawParts(); drawFlyers(); drawMeteors(); drawRobot();
+  drawTen(); drawEel(); drawCrow(); drawGust(); drawSunClash(); drawParts(); drawFlyers(); drawMeteors(); drawRobot();
   if(S.mode==='playing' && S.phase==='aim' && !seqLock()){ const c=S.cur; g.setLineDash([10,16]); g.strokeStyle='rgba(30,60,110,.45)'; g.lineWidth=5; g.beginPath(); g.moveTo(S.px,AIM_Y+60); g.lineTo(S.px,TOP_Y); g.stroke(); g.setLineDash([]);
     if(c.statue){ const h=stH(), hw=stW(h)*.4; g.save(); g.translate(clamp(S.px,table.bounds.min.x+hw,table.bounds.max.x-hw),stAimY(h)+Math.sin(S.t*4)*6); drawStatue(stW(h),h); g.restore(); } else {
     g.save(); g.translate(S.px,AIM_Y+Math.sin(S.t*4)*6); g.rotate(S.rot); g.scale(c.s,c.s); g.translate(-ANIMALS[c.key].com.x,-ANIMALS[c.key].com.y); drawAnimal(c.key); g.restore(); }
@@ -1248,7 +1258,7 @@ const FX_LIST=[
  ['crow','jam','カラス','一番上を1匹さらう',n=>Game.crow(n)],['giant','jam','黒い妖精','次の動物を巨大に',n=>Game.jam(1,n,'giant')],['slot','jam','動物スロット','動物が落ちてくる',n=>Game.jam(1,n,'big')],['biggacha','jam','巨大ガチャ','デカい生き物だけ出る',n=>Game.bigGacha(n)],['mangacha','jam','タイツガチャ','全身タイツの男が降ってくる',n=>Game.manGacha(n)],['usagi','jam','ウサギ','早送り',n=>Game.speed(1,n)],
  ['eel','jam','ウツボ','タコとのりを消す',n=>Game.ungrip(n)],['necro','jam','ネクロマンサー','動物が見えなくなる',n=>Game.jam(2,n)],['witch','jam','魔女','ゴールが上がる',n=>Game.witch(n)],['wrm','jam','−WINルーレット','WINが減る',n=>Game.winRoulette(-1,n)],['coin','jam','悪魔のコイントス','WIN −60 か −200',n=>Game.coin(n)],
  ['dragon','jam','ドラゴン','全消し＋台がずっと縮む',n=>Game.jam(3,n)],['robot','jam','黒い機体','WIN以外ぜんぶリセット',n=>Game.robot(n)],['cerberus','jam','ケルベロス','WIN −100',n=>Game.cerberus(n)],['reaper','jam','死神','WIN −1000',n=>Game.reaper(n)],
- ['fairy','help','妖精','動物を小さく',n=>Game.help(1,n)],['sun','help','太陽','突風を消す・次の突風を防ぐ',n=>Game.sun(n)],['kame','help','カメ','スロー',n=>Game.speed(-1,n)],['tako','help','タコ','吸着MAX',n=>Game.grip(n)],['rewind','help','砂時計','1手戻す・負けを耐える',n=>Game.rewind(n)],
+ ['fairy','help','妖精','動物を小さく',n=>Game.help(1,n)],['sun','help','太陽','吹いている突風を相殺する',n=>Game.sun(n)],['kame','help','カメ','スロー',n=>Game.speed(-1,n)],['tako','help','タコ','吸着MAX',n=>Game.grip(n)],['rewind','help','砂時計','1手戻す・負けを耐える',n=>Game.rewind(n)],
  ['golem','help','ゴーレム','横に落ちない壁',n=>Game.help(2,n)],['angel','help','天使','ゴールが下がる',n=>Game.angel(n)],['wrp','help','＋WINルーレット','WINが増える',n=>Game.winRoulette(1,n)],['wingacha','help','WINガチャ','WIN ＋50 か ＋100',n=>Game.winGacha(n)],['tree','help','世界樹','台がずっと広がる＋3分ツルの壁',n=>Game.help(3,n)],
  ['statue','help','天使像','WIN ＋5 と 5ラウンド守る（10体ストック）',n=>Game.statue(n)],['pegasus','help','ペガサス','WIN ＋100',n=>Game.pegasus(n)],['phoenix','help','不死鳥','WIN ＋1000',n=>Game.phoenix(n)],['double','both','2倍タイム','5分間ぜんぶ2倍',n=>Game.double(n)]];
 const PEND=[]; let PEND_T=0;   // 勝ち・負けの画面の間に届いたギフトは、次のラウンドの頭で順番に反映する
