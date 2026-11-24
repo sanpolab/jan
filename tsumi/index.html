@@ -76,7 +76,7 @@ canvas{width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/tsumi/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/tsumi/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/23 20:42</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 09:20</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -186,7 +186,7 @@ function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
 // 全画面の映像が流れているあいだは、テスト・ギフト・一時停止のボタンと下のギフト表を消して、映像だけを画面のまん中に見せる
 // 自動更新：公開先に新しい版が出ていたら、古い画面を持ったままにならないよう自動で読みこみ直す（スマホは古い画面を10分ほど覚えているため）
-const VER='1123-204221'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
+const VER='1124-092005'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
   const chk=()=>{ if(S && S.mode==='playing') return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('tsumi_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('tsumi_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); };
   setTimeout(chk,800); setInterval(chk,60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 let cutUi=false; function syncCutUi(){ const on=!!(S.cut && S.cut.vid); if(on===cutUi) return; cutUi=on; for(const id of ['testBtn','cfgBtn','pauseBtn','rot','gtbl']){ const e=document.getElementById(id); if(e) e.style.visibility=on?'hidden':''; }
@@ -196,7 +196,7 @@ const FONT = "'MPR','Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP','
 try{ document.fonts.load("900 40px 'MPR'",'つみ'); document.fonts.load("400 40px 'DELA'",'つみ'); }catch(e){}
 
 /* ====== 調整しやすい設定 ====== */
-const CFG = { statueWin:5, vineSec:180,
+const CFG = { tableSec:300, /* 世界樹・ドラゴンで台の広さが変わっている秒数（5分） */ statueWin:5, vineSec:180,
   goalM: 5.0,        // 目標の高さ（メートル。100px = 1m）
   tableW: 780,       // 台の幅
   smallW: 460,       // ドラゴンの呪いで小さくなった台の幅
@@ -272,6 +272,7 @@ for(const k of ALLKEYS){ const b=makeBody(k,1); ANIMALS[k].com={x:b.plugin.cx,y:
 /* ====== 状態 ====== */
 let engine, table, S;
 let curse = null;   // ドラゴンの呪い中は {w:勝った回数, d:負けた回数}。ラウンドをまたいで続く
+let tableT = 0;      // 世界樹・ドラゴンで台の広さが変わっている残り秒数（CFG.tableSec 秒で元の広さにもどる）
 let bless = null;   // お助けで台が広い間も同じ形。あとから来たほうが前のを打ち消す
 function logAdd(text,color){ S.log.push({text,color:color||'#fff'}); if(S.log.length>3) S.log.shift(); }
 function banner(text,color,sub){ S.banner={text,color:color||'#fff',sub:sub||'',t:2.2}; }
@@ -464,7 +465,7 @@ function explode(x,y,big){ play('impact',big?1:.55); blastWalls(x,y,big); const 
   for(let i=0;i<(big?10:4);i++) S.parts.push({k:'smoke',x:x+rand(-60,60),y:y+rand(-30,10),vx:rand(-50,50),vy:rand(-150,-60),g:-20,t:rand(1.4,2.6),r:rand(50,110)*(big?1.6:1)});
   // 当たった動物は消し飛ぶ。特大はぜんぶ消す
   for(const b of S.bodies.slice()){ if(big || Math.hypot(b.position.x-x,b.position.y-y)<DRAGON.wipe || Matter.Query.point([b],{x,y}).length) removeBody(b); }
-  if(big){ curse={w:0,d:0}; bless=null; Body.scale(table, CFG.smallW/(table.bounds.max.x-table.bounds.min.x), 1); logAdd('ドラゴンの呪い！台が小さくなった','#ff5c5c'); }
+  if(big){ curse={w:0,d:0}; bless=null; tableT=CFG.tableSec; Body.scale(table, CFG.smallW/(table.bounds.max.x-table.bounds.min.x), 1); logAdd('ドラゴンの呪い！台が小さくなった','#ff5c5c'); }
   for(const b of S.bodies){ if(b.isStatic) continue; const dx=b.position.x-x, dy=b.position.y-y, d=Math.hypot(dx,dy); if(d>R) continue; const f=1-d/R, nx=d>1?dx/d:0, ny=(d>1?dy/d:-1)-.55, nl=Math.hypot(nx,ny)||1;
     Sleeping.set(b,false); Body.setVelocity(b,{x:b.velocity.x+nx/nl*K*f,y:b.velocity.y+ny/nl*K*f}); Body.setAngularVelocity(b,b.angularVelocity+rand(-.06,.06)*f); } }
 function updateSeq(dt){
@@ -568,7 +569,7 @@ const Game = {
       const apply=(vid)=>{ if(S.mode!=='playing') return; wallSkin='hand'; wallT=Math.max(wallT,CFG.wallSec*DB()); makeWalls(true); S.shake=.4; for(const b of walls) for(let i=0;i<24;i++) S.parts.push({x:b.position.x+rand(-50,50),y:TOP_Y+rand(-10,60),vx:rand(-180,180),vy:rand(-420,-120),t:rand(.5,1),c:pick(['#8b8577','#b7a98a','#6c675c']),r:rand(6,16)}); if(!vid) showBand('ゴーレム',name+' のお助け '+CFG.wallSec*DB()+'秒 横に落ちない','#8a6a2a'); };
       if(vOK(golemVid)) startCut('golem','',name,()=>apply(true)); else apply(false); }
     else { logAdd(name+' が世界樹を呼んだ','#9dffb8');
-      startCut('heaven','',name,()=>{ if(S.mode!=='playing') return; curse=null; bless={w:0,d:0}; treeA=1; setBg('tree'); Body.scale(table, CFG.wideW/(table.bounds.max.x-table.bounds.min.x), 1); wallSkin='vine'; wallT=Math.max(wallT,CFG.vineSec*DB()); makeWalls(true); setGlue(6); S.holy=6; S.leafT=7; S.white=.7; S.rings.push({x:540,y:TOP_Y+10,t:0}); }); }
+      startCut('heaven','',name,()=>{ if(S.mode!=='playing') return; curse=null; bless={w:0,d:0}; tableT=CFG.tableSec; treeA=1; setBg('tree'); Body.scale(table, CFG.wideW/(table.bounds.max.x-table.bounds.min.x), 1); wallSkin='vine'; wallT=Math.max(wallT,CFG.vineSec*DB()); makeWalls(true); setGlue(6); S.holy=6; S.leafT=7; S.white=.7; S.rings.push({x:540,y:TOP_Y+10,t:0}); }); }
     sfx.good(); },
 };
 window.TsumiGame = Game;
@@ -812,7 +813,7 @@ const RB={enter:1.0,lock:.7,laser:3.0,misFrom:2.0,misN:22,misGap:.13,charge:1.0,
 const rbT=()=>({l0:RB.enter+RB.lock, l1:RB.enter+RB.lock+RB.laser, m0:RB.enter+RB.lock+RB.misFrom, c0:RB.enter+RB.lock+RB.laser+.9, b0:RB.enter+RB.lock+RB.laser+.9+RB.charge, e0:RB.enter+RB.lock+RB.laser+.9+RB.charge+RB.beam});
 function rbBoom(x,y,big){ const blobs=[]; for(let i=0;i<(big?16:9);i++) blobs.push({a:rand(0,6.28),d:rand(.1,.75),s:rand(.35,.75)}); S.booms.push({x,y,t:0,big,R:big?DRAGON.bigRadius:DRAGON.radius*.8,blobs}); S.shake=Math.max(S.shake,big?1:.3); S.rings.push({x,y,t:0}); }
 function rbVapor(b){ const x=b.position.x,y=b.position.y; for(let i=0;i<14;i++) S.parts.push({k:'ember',x:x+rand(-40,40),y:y+rand(-40,40),vx:rand(-220,220),vy:rand(-320,40),g:200,t:rand(.4,1),c:pick(['#ff3b2f','#ffb020','#fff']),r:rand(4,10)}); for(let i=0;i<4;i++) S.parts.push({k:'smoke',x:x+rand(-30,30),y:y+rand(-30,30),vx:rand(-40,40),vy:rand(-90,-30),g:-10,t:rand(.8,1.5),r:rand(40,90)}); removeBody(b); }
-function resetAll(){ gripOn=false; miniT=0; bigT=0; BGX.key=null; BGX.t=0; if(S.phase==='losing'){ S.phase='aim'; S.loseT=0; } for(const b of S.bodies.slice()) removeBody(b); S.falling=null; S.stBody=null; S.stRound=false; statue=0; stStock=0; sunStock=0; gUp=0; gUpT=0; gDn=0; gDnT=0; setGoal(); curse=null; bless=null;
+function resetAll(){ gripOn=false; miniT=0; bigT=0; BGX.key=null; BGX.t=0; if(S.phase==='losing'){ S.phase='aim'; S.loseT=0; } for(const b of S.bodies.slice()) removeBody(b); S.falling=null; S.stBody=null; S.stRound=false; statue=0; stStock=0; sunStock=0; gUp=0; gUpT=0; gDn=0; gDnT=0; setGoal(); curse=null; bless=null; tableT=0;
   Body.scale(table, CFG.tableW/(table.bounds.max.x-table.bounds.min.x), 1); if(walls){ for(const b of walls.slice()){ Composite.remove(engine.world,b); } walls=null; } wallT=0;
   dblT=0; dblFlash=0; dblHit=0; spSec=0; spSync(); gripT=0; S.ghost=0; S.glue=0; S.wind=0; S.windPre=0; S.quake=0; S.roul=null; S.roulQ.length=0; S.seq=null; S.seqQ.length=0; S.meteors=[]; S.doom=0; S.hold=0; S.cur=nextSpec(); rollNext(); S.rot=0; S.phase='aim'; S.topY=TOP_Y; }
 function startRobot(name){ if(S.rb) return; logAdd(name+' が黒い機体を呼んだ','#ff5c5c');
@@ -865,6 +866,7 @@ function updateFairy(dt){ const f=S.fairy; if(!f) return; f.t+=dt; const p=fairy
   if(!f.done && f.t>=FY.fly+FY.loop){ f.done=true; if(f.dark) bigT+=FY.sec*f.m; else miniT+=FY.sec*f.m; if(f.dark){ play('bad'); play('heavy',.8); S.shake=Math.max(S.shake,.3); } else { play('kira'); play('good',.7); } const tg=fairyTarget(f), wx=540+(OX(tg.x)-540)/camZ, wy=AIM_Y+(OY(tg.y)-AY())/camZ; for(let i=0;i<26;i++) S.parts.push({k:'spark',x:wx+rand(-50,50),y:wy+rand(-50,50),vx:rand(-240,240),vy:rand(-260,120),g:200,t:rand(.4,.9),c:pick(f.dark?['#8a8a8a','#ff3344','#2a2a2a']:['#c9ffb0','#ffe680','#fff']),r:rand(7,14)}); }
   if(f.t>=FY.fly+FY.loop+FY.out){ S.fairy=S.fairyQ.shift()||null; } }
 function updateScaleFx(dt){ if(S.mode==='playing' && !S.cut){ miniT=Math.max(0,miniT-dt); bigT=Math.max(0,bigT-dt);
+    if(tableT>0 && (curse||bless)){ tableT-=dt; if(tableT<=0){ tableT=0; const was=curse?'ドラゴンの呪い':'世界樹の加護'; curse=null; bless=null; Body.scale(table, CFG.tableW/(table.bounds.max.x-table.bounds.min.x), 1); if(BGX.key==='tree'){ BGX.key=null; BGX.t=0; } S.white=Math.max(S.white||0,.3); logAdd(was+'の時間切れ：台が元の広さにもどった','#ffe680'); } }
     if(gUpT>0){ gUpT-=dt; if(gUpT<=0){ gUpT=0; gUp=0; setGoal(); logAdd('魔女の時間切れ：ゴールが '+GOAL_M+'m にもどった','#d9b3ff'); } }
     if(gDnT>0){ gDnT-=dt; if(gDnT<=0){ gDnT=0; gDn=0; setGoal(); logAdd('天使の時間切れ：ゴールが '+GOAL_M+'m にもどった','#fff3b0'); } } } const tg=(miniT>0?FY.small:1)*(bigT>0?FY.big:1); fyScale+=(tg-fyScale)*Math.min(1,dt*8); if(Math.abs(tg-fyScale)<.004) fyScale=tg; for(const sp of [S.cur,S.next]) if(sp && !sp.statue) sp.s=fyScale; }
 function drawFairy(){ const f=S.fairy; if(!f || !fairyImg.naturalWidth || S.mode!=='playing') return; const fim=f.dark&&fairyDark.naturalWidth?fairyDark:fairyImg; const p=fairyPos(f), w=FY.w, h=w*fairyImg.naturalHeight/fairyImg.naturalWidth;
@@ -1324,6 +1326,7 @@ function drawHUD(){
     const lw=LW*clamp(S.like/CFG.likeGoal,0,1); if(lw>4){ g.fillStyle='#ff4f93'; rr(LX,LY,Math.max(LH,lw),LH,LH/2); g.fill(); } txt(Math.floor(S.like)+' / '+CFG.likeGoal,LX+LW/2,LY+LH/2+1,CPT?20:24,'#fff','center'); } }
   drawStock();
   let sx=40, ty=410; const tag=(t,c)=>{ if(CPT){ g.font='900 22px '+FONT; const w=g.measureText(t).width+24; g.fillStyle=c; rr(14,ty,w,34,17); g.fill(); txt(t,14+w/2,ty+18,22,'#101828','center'); ty+=40; return; } g.font='900 28px '+FONT; const w=g.measureText(t).width+30; g.fillStyle=c; rr(sx,1650,w,44,22); g.fill(); txt(t,sx+w/2,1673,28,'#101828','center'); sx+=w+12; };
+  if(tableT>0 && curse) tag('ドラゴンの呪い　'+(tableT>=60?Math.ceil(tableT/60)+'分':Math.ceil(tableT)+'秒'),'#ff9aa8'); if(tableT>0 && bless) tag('世界樹の加護　'+(tableT>=60?Math.ceil(tableT/60)+'分':Math.ceil(tableT)+'秒'),'#9dffb8');
   if(gripT>0) tag('タコ吸着中','#9dffb8'); if(gUpT>0) tag('魔女：ゴール ＋'+gUp+'m　'+Math.ceil(gUpT)+'秒','#d9b3ff'); if(gDnT>0) tag('天使：ゴール −'+gDn+'m　'+Math.ceil(gDnT)+'秒','#fff3b0'); if(miniT>0) tag('ちび化　'+Math.ceil(miniT)+'秒','#c9ffb0'); if(bigT>0) tag('巨大化　'+Math.ceil(bigT)+'秒','#ff9aa8'); if(baseSpd!==1) tag('ゲーム速度 ×'+baseSpd,'#ffe680'); if(spLv>0) tag('ウサギ：早送り ×'+CFG.fastMult+'　'+Math.ceil(spT)+'秒','#ffb38a'); if(spLv<0) tag('カメ：スロー ×'+CFG.slowMult+'　'+Math.ceil(spT)+'秒','#9bd0ff'); if(statue>0) tag('天使像：このラウンドを守る','#fff3b0'); if(S.windPre>0) tag('風の精霊が息を吸ってる…','#9be9ff'); if(S.wind>0) tag('突風 '+Math.ceil(S.wind)+'秒','#9be9ff'); if(S.quake>0) tag('ゆれ '+Math.ceil(S.quake)+'秒','#ffb020'); if(walls) tag((wallSkin==='vine'?'ツルの壁 ':'ゴーレムの壁 ')+Math.ceil(wallT)+'秒',wallSkin==='vine'?'#9dffb8':'#e0c98a'); if(S.glue>0) tag('のり '+Math.ceil(S.glue)+'秒','#ffd400'); if(bless) tag('世界樹：台が広い（ずっと）','#ffe680'); if(S.seq) tag('ドラゴン襲来中','#ff5c5c'); if(S.ghost>0) tag('見えない　あと'+S.ghost+'匹置くと戻る','#c79bff'); if(curse) tag('ドラゴン：台が小さい（ずっと）','#c79bff');
   if(CPT){ txt('順番待ち '+S.names.length+'人',22,274,22,'#fff','left','#0b1226',900);                      // 左上：順番待ち／一時停止ボタンの右にお知らせ（新しい3つ）
     for(let i=0;i<S.log.length;i++){ const L=S.log[i]; txt(L.text,138,312+i*32,23,L.color,'left','#0b1226',900); }
@@ -1544,7 +1547,7 @@ Promise.all(ALLKEYS.map(k=>ANIMALS[k].img)
   .concat([tenshiImg,missileImg,slotImg,fairyImg,usagiRun,nzImg,nzFace]).concat(roboI.imgs).concat(roboA.imgs).concat([FXW.scar,FXW.arc,FXW.flame]).concat(reapSh.imgs).concat(phxSh.imgs).concat([bgReaper,bgPhoenix,bgFox,dblPlate,dblX2,hgImg]).concat(crowSh.imgs).concat(dvImg).concat(coinImg).concat([vortexImg,smokeImg,numImg.p100,numImg.m100,numImg.m60,numImg.m200]).concat(dvSh.a.imgs).concat(dvSh.b.imgs).concat(dvSh.c.imgs).concat(pegSh.imgs).concat(cerSh.imgs).concat(kameSh.imgs).concat(witchSh.imgs).concat(angelSh.imgs).concat([bgStatue,bgTree,bgImg,dragonImg,spiritImg,windImg,handImg,FX.circle,FX.metA,FX.metC,FX.boomA,FX.boomC]).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.addEventListener('load',r); im.addEventListener('error',r); } }))).then(()=>{ window.__ready=true; });
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ update(dt); draw(); } requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
-window.__dbg = { endRound, CFG, ANIMALS, HIT, MANKEYS, get dblT(){return dblT;}, set dblT(v){dblT=v;}, get gripT(){return gripT;}, get spLv(){return spLv;}, get spT(){return spT;}, get statue(){return statue;}, get stStock(){return stStock;}, set stStock(v){stStock=v;}, get sunStock(){return sunStock;}, set sunStock(v){sunStock=v;}, get wallSkin(){return wallSkin;}, get wins(){return wins;}, TF, WT, AN, get witch(){return witch;}, get gT(){return [gUp,gUpT,gDn,gDnT];}, get GOAL_M(){return GOAL_M;}, get camZ(){return camZ;}, BIGKEYS, get wallT(){return wallT;}, set wallT(v){wallT=v;}, get walls(){return walls;}, get S(){ return S; }, get curse(){ return curse; }, get bless(){ return bless; }, get tableW(){ return table.bounds.max.x-table.bounds.min.x; }, get wins(){ return wins; }, Game, update, draw, drop, rotate, newRound, KEYS, setCur(k,s){ S.cur={key:k,s:s||1,name:null,by:null}; } };
+window.__dbg = { endRound, CFG, ANIMALS, HIT, MANKEYS, get dblT(){return dblT;}, get tableT(){return tableT;}, set tableT(v){tableT=v;}, get curse(){return curse;}, get bless(){return bless;}, get tableW(){return table.bounds.max.x-table.bounds.min.x;}, set dblT(v){dblT=v;}, get gripT(){return gripT;}, get spLv(){return spLv;}, get spT(){return spT;}, get statue(){return statue;}, get stStock(){return stStock;}, set stStock(v){stStock=v;}, get sunStock(){return sunStock;}, set sunStock(v){sunStock=v;}, get wallSkin(){return wallSkin;}, get wins(){return wins;}, TF, WT, AN, get witch(){return witch;}, get gT(){return [gUp,gUpT,gDn,gDnT];}, get GOAL_M(){return GOAL_M;}, get camZ(){return camZ;}, BIGKEYS, get wallT(){return wallT;}, set wallT(v){wallT=v;}, get walls(){return walls;}, get S(){ return S; }, get curse(){ return curse; }, get bless(){ return bless; }, get tableW(){ return table.bounds.max.x-table.bounds.min.x; }, get wins(){ return wins; }, Game, update, draw, drop, rotate, newRound, KEYS, setCur(k,s){ S.cur={key:k,s:s||1,name:null,by:null}; } };
 })();
 </script>
 </body>
