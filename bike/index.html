@@ -62,9 +62,9 @@ const FALLS_PER=5;
 /* 岩：画面の奥（道の向こう）から、はねながらだんだん大きくなって転がってくる。ねらった場所（赤いしるし）に落ちるので、前後に動いてよける。ジャンプではよけられない */
 const ROCK={T:2.6,out:.55,hit:158,max:5,w:280};
 /* 鳥：頭より少し高いところを3羽つづけて飛んでくる。ジャンプするとぶつかる（飛ばずにくぐる）
-   坂道：急な上り坂。決まった回数（taps回）こぐまで終わらない。こがないとほとんど進まない。何個も投げられたら、その分こぐ回数が増える（この間はタップがジャンプではなく「こぐ」になる）
+   坂道：急な上り坂。決まった回数（taps回）こぐまで終わらない。こがないとほとんど進まない。何個も投げられたら、その分こぐ回数が増える（タップ1回で、ひとこぎ＋ジャンプ。回数に上限はない）
    カミナリ雲：頭の上についてきて、止まってから落ちる。前後に動いてよける（ジャンプではよけられない） */
-const BIRD={n:3,gap:1.1,h:392,v:420,hit:70}, HILL={taps:20,max:200,base:.1,tap:.34,decay:1.5,tilt:.2}, CLOUD={follow:2.2,warn:.9,after:.7,h:400,hit:86,max:6,offs:[0,-200,200,-400,400,-600]};   /* 連打された分だけ雲が同時に出る（max個まで）。2つ目からは自転車の前後にずれた場所をねらう */
+const BIRD={n:3,gap:1.1,h:392,v:420,hit:70}, HILL={taps:20,base:.1,tap:.34,decay:1.5,tilt:.2}, CLOUD={follow:2.2,warn:.9,after:.7,h:400,hit:86,max:6,offs:[0,-200,200,-400,400,-600]};   /* 連打された分だけ雲が同時に出る（max個まで）。2つ目からは自転車の前後にずれた場所をねらう */
 /* 巨人：画面の奥に出てきて、ハンマーで地面を3回たたく。たたくたびに地面を振動（波）が走ってくるので、ジャンプでよける。よけそこなうとこける */
 const GIANT={n:3,inT:2.2,outT:1.6,sink:58,x:810,waveV:1150,h:540,fw:298,fh:325,cols:8,nf:48,fps:12,rate:1.3,hitF:8.6,hx:-.22};   /* 絵のコマ（横298×たて325が48コマ、1秒12コマ）、再生の速さ、ハンマーが地面に当たるコマ、当たる場所（巨人の中心から、横幅の何倍ぶん左か） */
 const T_={wind:10,windMul:2,assist:15,assistMul:1.5,rocket:5,rocketMul:3,headwind:5,headMul:.4,puddle:3,puddleMul:.5,punk:6,punkMul:.5,crash:1.7,inv:2,back:1.6,dog:2.6,big:10,bigK:2.1,helmetMax:3,rampGain:200};
@@ -88,7 +88,7 @@ function bikePose(){ const cx=camX()+BXX(), yr=gy0(cx-WB/2), yf=gy0(cx+WB/2), an
 /* ===== できごと（ギフトで起きること） ===== */
 const ahead=()=>camX()+W+rand(1500,1900);   /* 速いので、物は画面のずっと先に置く（見えてからよける時間を残す） */
 const Game={
-  jump(){ if(S.mode==='ride' && S.hillNeed>0 && S.rocketT<=0){ S.tapPow=Math.min(1.25,S.tapPow+HILL.tap); dust(2); S.hillNeed--; if(S.hillNeed<=0){ S.hillNeed=0; S.hillAll=0; play('levelup',.6); logAdd('坂道をのぼりきった！','#5dffb0'); } return; }   /* 坂道の間は、タップ＝ひとこぎ */
+  jump(){ if(S.mode==='ride' && S.hillNeed>0 && S.rocketT<=0){ S.tapPow=Math.min(1.25,S.tapPow+HILL.tap); dust(2); S.hillNeed--; if(S.hillNeed<=0){ S.hillNeed=0; S.hillAll=0; play('levelup',.6); logAdd('坂道をのぼりきった！','#5dffb0'); } }   /* 坂道の間は、タップ＝ひとこぎ。ジャンプもふつうにできる（空中で押しても、こいだ数に入る） */
     if(S.mode!=='ride' || S.air || S.rocketT>0) return; S.air=true; S.vy=CFG.jumpV; dust(8); },
   wind(n){ if(S.mode!=='ride') return; S.windT=Math.min(30,S.windT+T_.wind); S.headT=0; play('gust',.6); play('speed',.6); logAdd((n||'だれか')+' が追い風を吹かせた（'+T_.wind+'秒 2倍速）','#5dffb0'); },
   assist(n){ if(S.mode!=='ride') return; S.assistT=Math.min(45,S.assistT+T_.assist); S.punkT=0; play('boost',.6); logAdd((n||'だれか')+' が電動アシストをつけた（'+T_.assist+'秒 1.5倍速）','#5dffb0'); },
@@ -104,7 +104,7 @@ const Game={
   pit(n){ if(S.mode!=='ride') return; S.pits.push({x:ahead()+60,w:560,by:n}); logAdd((n||'だれか')+' が落とし穴をほった','#ff9aa8'); },
   big(n){ if(S.mode!=='ride') return; S.bigT=Math.min(30,S.bigT+T_.big); S.punkT=0; play('levelup',.7); S.flash=.2; banner('でかタイヤ！','#111',n); logAdd((n||'だれか')+' がタイヤをでっかくした（'+T_.big+'秒 落とし穴・岩・振動・バナナが効かない）','#5dffb0'); },
   bird(n){ if(S.mode!=='ride') return; S.birdQ+=BIRD.n; play('gust',.4); logAdd((n||'だれか')+' が鳥を飛ばした（'+BIRD.n+'羽・ジャンプするとぶつかる）','#ff9aa8'); S.birdBy=n; },
-  hill(n){ if(S.mode!=='ride' || S.rocketT>0) return; const add=Math.min(HILL.taps,HILL.max-S.hillNeed); if(add<=0) return; S.hillNeed+=add; S.hillAll=Math.max(S.hillAll,0)+add; S.windT=0; S.assistT=0; play('bad',.5); banner('坂道！ 連打でこげ！','#e23a3a',n); logAdd((n||'だれか')+' が急な坂道にした（あと'+S.hillNeed+'回こぐまで終わらない）','#ff9aa8'); },
+  hill(n){ if(S.mode!=='ride' || S.rocketT>0) return; const add=HILL.taps; S.hillNeed+=add; S.hillAll=Math.max(S.hillAll,0)+add; S.windT=0; S.assistT=0; play('bad',.5); banner('坂道！ 連打でこげ！','#e23a3a',n); logAdd((n||'だれか')+' が急な坂道にした（あと'+S.hillNeed+'回こぐまで終わらない）','#ff9aa8'); },
   cloud(n){ if(S.mode!=='ride') return; if(S.clouds.length>=CLOUD.max) return; { let sl=0; while(S.clouds.some(c=>c.sl===sl)) sl++; S.clouds.push({t:0,x:W+200,by:n,st:'follow',sl,off:CLOUD.offs[sl%CLOUD.offs.length]}); } play('don',.4); logAdd((n||'だれか')+' がカミナリ雲を呼んだ（前後に動いてよけろ）','#ff9aa8'); },
   giant(n){ if(S.mode!=='ride') return; if(S.giant){ S.giant.left+=GIANT.n; logAdd((n||'だれか')+' が巨人をもっとあばれさせた（あと'+S.giant.left+'回）','#ff9aa8'); return; } S.giant={t:0,st:'in',left:GIANT.n,by:n,tc:0,hit:false,hitFx:0}; play('don',.6); banner('巨人が出た！','#111',n); logAdd((n||'だれか')+' が巨人を呼んだ（ハンマー'+GIANT.n+'回・ジャンプでよけろ）','#ff9aa8'); },
   punk(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.punkT=Math.min(18,S.punkT+T_.punk); S.assistT=0; play('hit',.5); logAdd((n||'だれか')+' がタイヤをパンクさせた（'+T_.punk+'秒 おそくなる）','#ff9aa8'); },
