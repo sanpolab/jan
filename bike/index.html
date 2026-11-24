@@ -68,7 +68,9 @@ function logAdd(t,c){ S.log.push({t,c:c||'#fff',at:T}); if(S.log.length>3) S.log
 function banner(t,c,sub){ S.banner={t,c,sub:sub||'',at:0}; }
 
 /* ===== 地面：ゆるい坂。落とし穴の中は地面が無い ===== */
-function gy0(wx){ const k=clamp(wx/1200,0,1); return 742+k*(46*Math.sin(wx/830)+26*Math.sin(wx/310+2)+12*Math.sin(wx/127+5)); }
+const SEG=380, GH=[0,0,-46,-46,0,34,34,0,0,-60,-60,-20,-20,26,0,0,-34,-34,30,30,0,-52,-52,0,22,22,-28,0];   /* 地面は直線だけ：SEG ドットごとの高さを直線でつなぐ（平らな所と、まっすぐな坂） */
+function gh(i){ return i<3?0:GH[(i*7+Math.floor(i/GH.length)*3)%GH.length]; }
+function gy0(wx){ const f=Math.max(0,wx)/SEG, i=Math.floor(f), u=f-i; return 742+gh(i)+(gh(i+1)-gh(i))*u; }
 function pitAt(wx){ for(const p of S.pits) if(wx>p.x && wx<p.x+p.w) return p; return null; }
 const camX=()=>S.x*PPM-BX;
 function bikePose(){ const cx=camX()+BX, yr=gy0(cx-WB/2), yf=gy0(cx+WB/2), ang=Math.atan2(yf-yr,WB); return {cx,y:(yr+yf)/2-WR+S.jy,ang}; }
@@ -162,8 +164,8 @@ function drawGround(cx){
   { const x=CFG.goal*PPM-cx; if(x<W+200){ const y=gy0(CFG.goal*PPM); line([[x,y],[x,y-330]],LW); for(let r=0;r<4;r++) for(let c=0;c<5;c++){ if((r+c)%2){ g.fillStyle=INK; g.fillRect(x+4+c*30,y-330+r*30,30,30); } } g.lineWidth=5; g.strokeStyle=INK; g.strokeRect(x+4,y-330,150,120); txt('ゴール',x+80,y-366,44,INK,'center',null,FONTD); } }
 }
 function drawEnts(cx){ for(const e of S.ents){ const x=e.x-cx, y=gy0(e.x);
-    if(e.k==='banana'){ g.save(); g.translate(x,y-8); for(const a of [-1.15,0,1.15]){ g.save(); g.rotate(a); g.beginPath(); g.ellipse(0,-22,10,26,0,0,7); g.fillStyle='#fff'; g.fill(); g.lineWidth=5; g.strokeStyle=INK; g.stroke(); g.restore(); } g.restore(); }
-    else if(e.k==='puddle'){ g.beginPath(); g.ellipse(x,y+4,96,13,0,0,7); g.fillStyle='#fff'; g.fill(); g.lineWidth=5; g.strokeStyle=INK; g.stroke(); line([[x-50,y+2],[x-14,y+2]],4); line([[x+10,y+7],[x+40,y+7]],4); }
+    if(e.k==='banana'){ g.save(); g.translate(x,y-8); line([[-44,0],[-16,-12],[0,-44],[16,-12],[44,0]],LW); line([[-16,-12],[0,-4],[16,-12]],5); line([[0,-44],[0,-58]],LW); g.restore(); }
+    else if(e.k==='puddle'){ { const y0=gy0(e.x-90), y1=gy0(e.x+90); g.fillStyle='#fff'; g.fillRect(x-86,Math.min(y0,y1)-6,172,14); line([[x-90,y0],[x-74,y0+20],[x+74,y1+20],[x+90,y1]],LW); line([[x-52,y0+8],[x-22,y0+8]],4); line([[x-4,y1+8],[x+50,y1+8]],4); line([[x-30,y0-2],[x+12,y0-2]],4); } }
     else if(e.k==='rock'){ g.save(); g.translate(x,y-70); g.rotate(e.rot); g.beginPath(); for(let i=0;i<9;i++){ const a=i/9*6.283, r=70+((i*37)%17)-8; g.lineTo(Math.cos(a)*r,Math.sin(a)*r); } g.closePath(); g.fillStyle='#fff'; g.fill(); g.lineWidth=LW; g.strokeStyle=INK; g.lineJoin='round'; g.stroke(); line([[-30,-20],[0,4],[26,-10]],5); line([[-10,30],[14,22]],5); g.restore(); }
     else if(e.k==='ramp'){ g.save(); g.translate(x,y); g.beginPath(); g.moveTo(-90,0); g.lineTo(80,-78); g.lineTo(80,0); g.closePath(); g.fillStyle='#fff'; g.fill(); g.lineWidth=LW; g.strokeStyle=INK; g.lineJoin='round'; g.stroke(); line([[20,-120],[40,-150],[60,-120]],6); g.restore(); } } }
 /* 棒人間と自転車。ペダルはタイヤの回転に合わせてこぐ */
@@ -171,17 +173,17 @@ function drawBikeOnly(wheel,flat){
   for(const wx of [-WB/2,WB/2]){ g.save(); g.translate(wx,0); if(flat && wx<0) g.scale(1,.84); ring(0,0,WR-4,LW,'#fff'); for(let i=0;i<3;i++){ const a=wheel+i*Math.PI/3; line([[Math.cos(a)*(WR-8),Math.sin(a)*(WR-8)],[-Math.cos(a)*(WR-8),-Math.sin(a)*(WR-8)]],2.5); } g.restore(); }
   const seat=[-34,-78], bb=[-6,-6], head=[52,-80], hb=[60,-104];
   line([[-WB/2,0],bb,seat,[-WB/2,0]],6); line([bb,head,seat],6); line([head,[WB/2,0]],6); line([head,hb],6); line([[hb[0]-12,hb[1]-2],[hb[0]+14,hb[1]-6]],7); line([[seat[0]-18,seat[1]-8],[seat[0]+16,seat[1]-8]],8); }
-function drawRider(wheel,lean,scared){ const seat=[-34,-86], bb=[-6,-6], hb=[62,-108], cr=20, pa=wheel*.5;
-  const hip=[seat[0]+2,seat[1]-4], sh=[hip[0]+34+lean*18,hip[1]-74+Math.abs(lean)*8], hd=[sh[0]+12+lean*10,sh[1]-36];
-  const leg=ph=>{ const px=bb[0]+Math.cos(pa+ph)*cr, py=bb[1]+Math.sin(pa+ph)*cr, dx=px-hip[0], dy=py-hip[1], d=Math.min(Math.hypot(dx,dy),91), L=46, a=Math.atan2(dy,dx), b=Math.acos(clamp(d/(2*L),0,1)), kx=hip[0]+Math.cos(a-b)*L, ky=hip[1]+Math.sin(a-b)*L; line([hip,[kx,ky],[px,py]],LW); line([[px-12,py],[px+14,py]],6); };
-  leg(Math.PI); leg(0); line([hip,sh],LW); line([sh,[(sh[0]+hb[0])/2+2,(sh[1]+hb[1])/2+20],hb],LW);
-  ring(hd[0],hd[1],27,LW,'#fff');
-  if(S.helmet>0){ g.beginPath(); g.arc(hd[0],hd[1]-2,32,Math.PI*1.02,Math.PI*1.98); g.closePath(); g.fillStyle=INK; g.fill(); }
-  g.fillStyle=INK; g.beginPath(); g.arc(hd[0]+12,hd[1]-2,scared?6:4,0,7); g.fill(); }
-function drawStickFly(o){ g.save(); g.translate(o.x,o.y); g.rotate(o.rot); line([[0,-30],[0,30]]); line([[0,-18],[-34,-44]]); line([[0,-18],[36,-36]]); line([[0,30],[-30,62]]); line([[0,30],[32,58]]); ring(0,-56,27,LW,'#fff'); for(const sx of [-9,11]){ line([[sx-6,-62],[sx+6,-50]],4); line([[sx+6,-62],[sx-6,-50]],4); } g.restore(); }
+function drawRider(wheel,lean,scared){ const bb=[-6,-6], hb=[60,-104], cr=20, pa=wheel*.5, HR=24;
+  /* 腰→肩→頭を1本の線でつなぎ、頭の丸は線の先にくっつける（首がはなれない）。顔は描かない */
+  const hip=[-32,-90], sh=[hip[0]+44+lean*14,hip[1]-64+Math.abs(lean)*6], dx0=sh[0]-hip[0], dy0=sh[1]-hip[1], dl=Math.hypot(dx0,dy0), ux=dx0/dl, uy=dy0/dl, nk=[sh[0]+ux*10,sh[1]+uy*10], hd=[nk[0]+ux*HR,nk[1]+uy*HR];
+  const leg=ph=>{ const px=bb[0]+Math.cos(pa+ph)*cr, py=bb[1]+Math.sin(pa+ph)*cr, dx=px-hip[0], dy=py-hip[1], d=Math.min(Math.hypot(dx,dy),95), L=48, a=Math.atan2(dy,dx), b=Math.acos(clamp(d/(2*L),0,1)), kx=hip[0]+Math.cos(a-b)*L, ky=hip[1]+Math.sin(a-b)*L; line([hip,[kx,ky],[px,py]],LW); line([[px-12,py],[px+12,py]],LW); };
+  leg(Math.PI); leg(0); line([hip,nk],LW); line([sh,hb],LW);
+  ring(hd[0],hd[1],HR,LW,'#fff');
+  if(S.helmet>0){ line([[hd[0]-HR-6,hd[1]-4],[hd[0]-HR+4,hd[1]-HR-8],[hd[0]+HR-4,hd[1]-HR-8],[hd[0]+HR+10,hd[1]-4],[hd[0]-HR-6,hd[1]-4]],LW); } }
+function drawStickFly(o){ g.save(); g.translate(o.x,o.y); g.rotate(o.rot); line([[0,-30],[0,30]]); line([[0,-18],[-34,-44]]); line([[0,-18],[36,-36]]); line([[0,30],[-30,62]]); line([[0,30],[32,58]]); ring(0,-54,24,LW,'#fff'); g.restore(); }
 function drawDog(d){ const y=gy0(camX()+d.x)-4, run=Math.sin(T*22); g.save(); g.translate(d.x,y); if(d.st==='out') g.scale(-1,1);
   line([[-50,-52],[40,-56]]); line([[-46,-50],[-52+run*22,0]],6); line([[-34,-50],[-22-run*22,0]],6); line([[26,-54],[18+run*22,0]],6); line([[36,-54],[48-run*22,0]],6); line([[-50,-52],[-78,-84+run*8]],6);
-  ring(62,-74,24,LW,'#fff'); line([[82,-70],[104,-64],[84,-58]],6); line([[48,-92],[40,-112],[58,-98]],6); g.fillStyle=INK; g.beginPath(); g.arc(68,-80,4,0,7); g.fill();
+  line([[40,-56],[52,-92],[84,-92],[112,-74],[84,-62],[40,-56]],LW); line([[52,-92],[46,-116],[66,-92]],6);
   if(d.st==='run' && d.t>T_.dog-.7) txt('ガウ！',40,-140,36,INK,'center'); g.restore(); }
 function draw(){ const cx=camX(); g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.save(); if(S.shake>0) g.translate(rand(-1,1)*S.shake*16,rand(-1,1)*S.shake*16);
   drawGround(cx); drawEnts(cx);
