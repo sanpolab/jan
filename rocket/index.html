@@ -131,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 16:02</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 16:18</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -167,6 +167,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <p>大きくして、わくからはみ出した分は切れます。</p>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
+    <p id="viewDbg" style="font-size:.7em;color:#6f7fa8"></p>
     <h3>調査用：TikFinityから届いた生データ</h3>
     <p>ギフトが反応しない時は、ここをスクショして送ってください。</p>
     <div id="tfRaw" style="font-size:.7em;line-height:1.4;background:#060a20;border-radius:.5em;padding:.6em;min-height:3em;max-height:22em;overflow:auto;white-space:pre-wrap;word-break:break-all;color:#9ab">まだ何も届いていません</div>
@@ -1079,9 +1080,14 @@ function draw(){ if(S.cine){ drawCine(); return; }
   g.fillStyle='rgba(8,14,34,.9)'; g.fillRect(0,930,W,150); g.fillStyle='#2c4a86'; g.fillRect(0,930,W,5);
   S.log.slice(-2).forEach((l,i)=>{ g.font='900 30px '+FONT; let s2=l.text; while(g.measureText(s2).width>W-60 && s2.length>4) s2=s2.slice(0,-2); txt(s2,30,966+i*44,30,l.color,'left'); });
   txt('コメントで隕石　いいねで魔法使い　ハートミーでドラゴン',W/2,1058,24,'#ffd23f','center'); }
-let TALL=false; function fit(){ const iw=window.innerWidth, ih=window.innerHeight, w=Math.min(iw,ih), left=ih-w; TALL=iw<=ih && left>=200; stage.style.width=w+'px'; stage.style.height=w+'px'; stage.style.top=(TALL?0:(ih-w)/2)+'px'; stage.style.fontSize=(w/108)+'px'; stage.style.setProperty('--u',(w/150)+'px');
+let TALL=false; /* 本当に見えている高さ。ホーム画面から開いたiPhoneは、時計の段のぶん画面が下にずれるのに高さは画面いっぱいで返ってくることがあり、そのままだと下がはみ出して切れる。下のホームバーのぶんも空ける */
+let SAFE=null; function safeIn(){ if(!SAFE){ SAFE=document.createElement('div'); SAFE.style.cssText='position:fixed;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)'; document.body.appendChild(SAFE); } const cs=getComputedStyle(SAFE); return {t:parseFloat(cs.paddingTop)||0,b:parseFloat(cs.paddingBottom)||0}; }
+function viewH(){ const vv=window.visualViewport, de=document.documentElement; let h=Math.min(window.innerHeight,(de&&de.clientHeight)||1e9,(vv&&vv.height)||1e9); const sf=safeIn(), alone=window.navigator.standalone===true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  if(alone && sf.t<1 && screen.height>=700 && h>=screen.height-1) h-=(screen.height>=850?59:47);   /* 時計の段のぶん（画面が下にずれているのに高さに入っている時だけ引く） */
+  window.__viewH={inner:window.innerHeight,client:de&&de.clientHeight,vv:vv&&vv.height,screen:screen.height,safeT:sf.t,safeB:sf.b,alone,use:h-sf.b}; return h-sf.b; }
+function fit(){ const iw=window.innerWidth, ih=viewH(), w=Math.min(iw,ih), left=ih-w; TALL=iw<=ih && left>=200; stage.style.width=w+'px'; stage.style.height=w+'px'; stage.style.top=(TALL?0:(ih-w)/2)+'px'; stage.style.fontSize=(w/108)+'px'; stage.style.setProperty('--u',(w/150)+'px');
   const bl=document.getElementById('below'), tb=document.getElementById('gtbl'); if(bl){ bl.style.display=TALL?'flex':'none'; if(TALL){ bl.style.left=((iw-w)/2)+'px'; bl.style.top=w+'px'; bl.style.width=w+'px'; bl.style.height=left+'px'; bl.style.setProperty('--u',(w/100)+'px'); try{ if(tb && !tb.getAttribute('src')) tb.setAttribute('src','./gifts.html?fit=1&pg=2&cols=7&v='+VER); }catch(e){} } } try{ memoUI(); photoFit(); }catch(e){} }
-fit(); window.addEventListener('resize',fit); setTimeout(fit,0);
+fit(); window.addEventListener('resize',fit); setTimeout(fit,0); setTimeout(fit,600); if(window.visualViewport) window.visualViewport.addEventListener('resize',fit);
 const tp=document.getElementById('tp'), NAMES=['たぬ吉','ぽんた','みけ','そら','りく','はな','こてつ','もも','ゆず','まる'];
 function goalUI(){ tp.querySelectorAll('button[data-g]').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.g,10)===CFG.goal)); }
 document.getElementById('testBtn').onclick=()=>{ tp.hidden=!tp.hidden; goalUI(); };
@@ -1096,7 +1102,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ if(S.cine || SPD===1) update(dt); else { const n=Math.ceil(SPD); for(let i=0;i<n && !S.cine;i++) update(dt*SPD/n); } } draw(); } requestAnimationFrame(loop); }
-const VER='1124-160227'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1124-161810'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1252,7 +1258,7 @@ function cfgBuild(){ tblUI(); missBuild(); { const en=document.getElementById('e
     const sw=document.createElement('button'); sw.type='button'; sw.className='lr'; sw.textContent=b.off?'OFF':'ON'; sw.style.cssText='flex:0 0 auto;min-width:3.6em;font-weight:900;color:#fff;background:'+(b.off?'#5b6478':'#1fa45a'); sw.addEventListener('click',()=>{ const e=TF.map[f[0]]; if(!e) return; if(e.off) delete e.off; else e.off=true; tfSave(); cfgBuild(); });   // ON/OFF：OFFの間は、このギフトが来ても何も起きず、ギフト表にも出ない（割り当ては残る）
     if(b.off){ inp.style.opacity='.45'; nm.style.opacity='.6'; }
     row.appendChild(nm); row.appendChild(inp); if(b.name) row.appendChild(sw); row.appendChild(lr); if(b.name) row.appendChild(xb); box.appendChild(row); } }
-{ const cfg=document.getElementById('cfg'); document.getElementById('cfgBtn').addEventListener('click',()=>{ catLoad(()=>{ cfgBuild(); }); cfgBuild(); tfUI(); cfg.hidden=false; tp.hidden=true; }); document.getElementById('cfgClose').addEventListener('click',()=>{ TF.learn=null; TF.seqLearn=false; cfg.hidden=true; }); for(const id of ['clUser','clKey']) document.getElementById(id).addEventListener('input',e=>{ e.target.dataset.d='1'; CLOUD.user=document.getElementById('clUser').value.trim().replace(/^@/,''); CLOUD.key=document.getElementById('clKey').value.trim(); try{ localStorage.setItem('rocket_cloud',JSON.stringify(CLOUD)); }catch(err){} });   /* 打ったその場で保存する（「つなぐ」を押す前に読みこみ直しても消えないように）。キーはこの端末の中だけ */
+{ const cfg=document.getElementById('cfg'); document.getElementById('cfgBtn').addEventListener('click',()=>{ catLoad(()=>{ cfgBuild(); }); cfgBuild(); tfUI(); cfg.hidden=false; tp.hidden=true; try{ const v=window.__viewH||{}; document.getElementById('viewDbg').textContent='画面の高さ（調査用）：'+[v.inner,v.client,Math.round(v.vv||0),v.screen,v.safeT,v.safeB,v.alone?'ホーム':'ブラウザ',Math.round(v.use||0)].join(' / '); }catch(e){} }); document.getElementById('cfgClose').addEventListener('click',()=>{ TF.learn=null; TF.seqLearn=false; cfg.hidden=true; }); for(const id of ['clUser','clKey']) document.getElementById(id).addEventListener('input',e=>{ e.target.dataset.d='1'; CLOUD.user=document.getElementById('clUser').value.trim().replace(/^@/,''); CLOUD.key=document.getElementById('clKey').value.trim(); try{ localStorage.setItem('rocket_cloud',JSON.stringify(CLOUD)); }catch(err){} });   /* 打ったその場で保存する（「つなぐ」を押す前に読みこみ直しても消えないように）。キーはこの端末の中だけ */
   document.getElementById('clOn').addEventListener('click',()=>{ const u=document.getElementById('clUser').value.trim().replace(/^@/,''), k=document.getElementById('clKey').value.trim(); if(!CLOUD.on && (!u || !k)){ document.getElementById('clSt').textContent='ユーザー名とキーの両方を入れてください'; return; } CLOUD={on:!CLOUD.on,user:u,key:k}; delete document.getElementById('clUser').dataset.d; delete document.getElementById('clKey').dataset.d; try{ localStorage.setItem('rocket_cloud',JSON.stringify(CLOUD)); }catch(e){} TF.tries=0; TF.wait=3000; TF.ok=false; tfConnect(); tfUI(); });
   document.getElementById('pickClose').addEventListener('click',()=>{ document.getElementById('pick').hidden=true; }); document.getElementById('pickQ').addEventListener('input',pickDraw);
   document.getElementById('cfgTable').addEventListener('click',()=>{ window.open(tblUrl(),'_blank'); });
