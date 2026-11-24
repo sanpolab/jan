@@ -31,7 +31,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     <button class="h" data-a="big">でかタイヤ<br>10秒 穴・岩・振動・バナナが効かない</button><button class="h" data-a="rocket">ロケット自転車<br>5秒 ぶっ飛ばす</button>
     <h3>妨害</h3>
     <button class="j" data-a="banana">バナナの皮<br>ふむとこける</button><button class="j" data-a="puddle">水たまり<br>3秒 おそくなる</button>
-    <button class="j" data-a="dog">犬<br>追いつかれるとこける</button><button class="j" data-a="rock">転がる岩<br>当たるとこける</button><button class="j" data-a="pit">落とし穴<br>落ちるとこける</button>
+    <button class="j" data-a="dog">犬<br>追いつかれるとこける</button><button class="j" data-a="rock">奥から岩<br>前後に動いてよける</button><button class="j" data-a="pit">落とし穴<br>落ちるとこける</button>
     <button class="j" data-a="bird">鳥<br>3羽（ジャンプするとぶつかる）</button><button class="j" data-a="hill">坂道<br>6秒 連打でこがないと進まない</button><button class="j" data-a="cloud">カミナリ雲<br>前後に動いてよける</button><button class="j" data-a="giant">巨人<br>ハンマー3回（ジャンプでよける）</button><button class="j" data-a="punk">パンク<br>6秒 おそくなる</button>
     <h3>その他</h3>
     <button class="g" data-a="g5000">目標 5,000m</button><button class="g" data-a="g20000">目標 20,000m</button><button class="g" data-a="g50000">目標 50,000m</button>
@@ -59,6 +59,8 @@ const PPM=40;                       /* 1m＝画面の40ドット */
 const CFG={goal:20000, speed:28, hp:5, jumpV:-930, grav:2500};
 const BX=340, WR=46, WB=150;        /* 自転車の画面上の位置、タイヤの半径、前後のタイヤの間隔 */
 const FALLS_PER=5;
+/* 岩：画面の奥（道の向こう）から、はねながらだんだん大きくなって転がってくる。ねらった場所（赤いしるし）に落ちるので、前後に動いてよける。ジャンプではよけられない */
+const ROCK={T:2.6,out:.55,hit:104,max:5};
 /* 鳥：頭より少し高いところを3羽つづけて飛んでくる。ジャンプするとぶつかる（飛ばずにくぐる）
    坂道：急な上り坂。連打でこがないとほとんど進まない（この間はタップがジャンプではなく「こぐ」になる）
    カミナリ雲：頭の上についてきて、止まってから落ちる。前後に動いてよける（ジャンプではよけられない） */
@@ -69,7 +71,7 @@ const T_={wind:10,windMul:2,assist:15,assistMul:1.5,rocket:5,rocketMul:3,headwin
 let S, best=0, tries=1, wins=0, falls=0, T=0;
 try{ const o=JSON.parse(localStorage.getItem('bike_save')||'{}'); best=o.best||0; tries=o.tries||1; wins=o.wins||0; falls=o.falls||0; if(o.g3) CFG.goal=o.g3; }catch(e){}
 function save(){ try{ localStorage.setItem('bike_save',JSON.stringify({best,tries,wins,falls,g3:CFG.goal})); }catch(e){} }
-function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, bigT:0, bigK:1, birds:[], birdQ:0, birdT:0, hillT:0, tapPow:0, tilt:0, clouds:[], bolts:[], ox:(S?S.ox:0), tx:(S?S.tx:0), mileI:0, mileFx:null, giant:null, waves:[], bursts:[] }; }
+function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, bigT:0, bigK:1, birds:[], birdQ:0, birdT:0, hillT:0, tapPow:0, tilt:0, clouds:[], bolts:[], rocks:[], ox:(S?S.ox:0), tx:(S?S.tx:0), mileI:0, mileFx:null, giant:null, waves:[], bursts:[] }; }
 function logAdd(t,c){ S.log.push({t,c:c||'#fff',at:T}); if(S.log.length>3) S.log.shift(); }
 function banner(t,c,sub){ S.banner={t,c,sub:sub||'',at:0}; }
 
@@ -98,7 +100,7 @@ const Game={
   banana(n){ if(S.mode!=='ride') return; S.ents.push({k:'banana',x:ahead(),by:n}); logAdd((n||'だれか')+' がバナナの皮を置いた','#ff9aa8'); },
   puddle(n){ if(S.mode!=='ride') return; S.ents.push({k:'puddle',x:ahead(),by:n}); logAdd((n||'だれか')+' が水たまりを作った','#ff9aa8'); },
   dog(n){ if(S.mode!=='ride' || S.dog || S.rocketT>0) return; S.dog={t:0,by:n,x:-180,st:'run'}; play('bite',.5); logAdd((n||'だれか')+' の犬が追いかけてきた！','#ff9aa8'); },
-  rock(n){ if(S.mode!=='ride') return; S.ents.push({k:'rock',x:ahead()+200,by:n,rot:0}); play('don',.5); logAdd((n||'だれか')+' が岩を転がした','#ff9aa8'); },
+  rock(n){ if(S.mode!=='ride' || S.rocks.length>=ROCK.max) return; const tx=clamp(BXX()+(S.rocks.length?rand(-190,190):0),110,W-150); S.rocks.push({t:0,tx,x0:clamp(tx+rand(-260,260)+180,200,W-80),by:n,rot:0,hit:false}); play('don',.5); logAdd((n||'だれか')+' が奥から岩を転がした（前後に動いてよけろ）','#ff9aa8'); },
   pit(n){ if(S.mode!=='ride') return; S.pits.push({x:ahead()+60,w:560,by:n}); logAdd((n||'だれか')+' が落とし穴をほった','#ff9aa8'); },
   big(n){ if(S.mode!=='ride') return; S.bigT=Math.min(30,S.bigT+T_.big); S.punkT=0; play('levelup',.7); S.flash=.2; banner('でかタイヤ！','#111',n); logAdd((n||'だれか')+' がタイヤをでっかくした（'+T_.big+'秒 落とし穴・岩・振動・バナナが効かない）','#5dffb0'); },
   bird(n){ if(S.mode!=='ride') return; S.birdQ+=BIRD.n; play('gust',.4); logAdd((n||'だれか')+' が鳥を飛ばした（'+BIRD.n+'羽・ジャンプするとぶつかる）','#ff9aa8'); S.birdBy=n; },
@@ -156,6 +158,10 @@ function update(dt){ T+=dt; { const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.Arrow
       else if(c.st==='warn'){ if(c.t>=CLOUD.warn){ c.st='after'; c.t=0; S.bolts.push({x:c.x,t:0}); S.flash=.35; S.shake=Math.max(S.shake,.5); play('boom',.8); if(Math.abs(c.x-BXX())<CLOUD.hit && !(S.rocketT>0)) crash('カミナリ',c.by); else if(S.mode==='ride') logAdd('カミナリをよけた！','#5dffb0'); } }
       else if(c.t>=CLOUD.after) c.gone=true; }
     S.clouds=S.clouds.filter(c=>!c.gone); for(const b of S.bolts) b.t+=dt; S.bolts=S.bolts.filter(b=>b.t<.35);
+    /* 奥から転がってくる岩 */
+    for(const r of S.rocks){ r.t+=dt; r.rot-=dt*(3+r.t*3); if(!r.hit && r.t>=ROCK.T){ r.hit=true; S.shake=Math.max(S.shake,.5); play('don',.8); play('boom',.5); for(let i=0;i<10;i++) S.parts.push({x:r.tx+rand(-70,70),y:gy0(camX()+r.tx)-rand(0,20),vx:rand(-380,380),vy:rand(-520,-140),g:1400,t:rand(.3,.7),r:rand(10,20),c:'#111'});
+        if(Math.abs(r.tx-BXX())<ROCK.hit && !(S.rocketT>0)){ if(S.bigT>0){ r.smash=true; logAdd('でかタイヤが岩をくだいた','#5dffb0'); } else crash('岩',r.by); } else if(S.mode==='ride') logAdd('岩をよけた！','#5dffb0'); } }
+    S.rocks=S.rocks.filter(r=>r.t<ROCK.T+ROCK.out && !r.smash);
     /* 巨人と振動 */
     if(S.giant){ const d=S.giant; d.t+=dt; if(d.hitFx>0) d.hitFx-=dt; const cyc=GIANT.nf/GIANT.fps, gw=GIANT.h*GIANT.fw/GIANT.fh, hx=GIANT.x+GIANT.hx*gw;
       if(d.st==='in'){ if(d.t>=GIANT.inT){ d.st='act'; d.tc=0; d.hit=false; } }
@@ -223,6 +229,13 @@ function drawGiant(cx){ const d=S.giant; if(!d || !ok('giant')) return; const gy
 function drawWaves(cx){ for(const b of S.bursts){ if(!ok('burst')) break; const im=IMG.burst, u=b.t/.55, k=.55+.75*Math.min(1,u*3), w=420*k, h=w*im.naturalHeight/im.naturalWidth, y=gy0(cx+b.x); g.globalAlpha=clamp((1-u)*2.2,0,1); g.drawImage(im,b.x-w/2,y-h+8,w,h); g.globalAlpha=1; }
   for(const w of S.waves){ const y=gy0(cx+w.x); if(ok('wave')){ const im=IMG.wave, fw=320, fh=212, f=Math.floor(T*12)%40, dw=380, dh=dw*fh/fw; g.save(); g.translate(w.x,y); if(w.dir>0) g.scale(-1,1); g.drawImage(im,(f%8)*fw,Math.floor(f/8)*fh,fw,fh,-70,-dh+14,dw,dh); g.restore(); }
     else line([[w.x-70,y],[w.x-10,y-96],[w.x+26,y-40],[w.x+60,y-70],[w.x+110,y]],LW+2,'#e23a3a'); } }
+/* 奥から来る岩。front=false は道より向こうにいる間（道の線にかくれる）、true は道に乗ってから。落ちる場所には赤いしるしと影を出す */
+function rockPos(r,cx){ const u=clamp(r.t/ROCK.T,0,1), gy=gy0(cx+r.tx), sc=.1+1.05*Math.pow(u,1.7), x=lerp(r.x0,r.tx,u*u*(3-2*u)), base=lerp(gy-250,gy-78*sc,Math.pow(u,1.5)), hop=Math.abs(Math.sin(u*Math.PI*3))*150*(1-u)*(.3+u); if(r.t<=ROCK.T) return {x,y:base-hop,sc,u}; const o=(r.t-ROCK.T)/ROCK.out; return {x:x-o*60,y:gy-78*sc+o*o*520,sc:sc*(1+o*1.1),u:1}; }
+function drawRocks(cx,front){ for(const r of S.rocks){ const p=rockPos(r,cx), isFront=p.u>.62; if(isFront!==front) continue; const gy=gy0(cx+r.tx);
+    if(front && r.t<ROCK.T){ const bl=Math.floor(T*10)%2, a=clamp((p.u-.62)/.3,0,1); g.globalAlpha=.25+.3*a; g.fillStyle='#111'; g.beginPath(); g.ellipse(r.tx,gy+6,ROCK.hit*(.5+.5*a),12,0,0,7); g.fill(); g.globalAlpha=1; }
+    g.save(); g.translate(p.x,p.y); g.rotate(r.rot); const w=164*p.sc; if(ok('rock')) g.drawImage(IMG.rock,-w/2,-w/2,w,w); else { g.fillStyle='#8a7060'; g.strokeStyle=INK; g.lineWidth=6; g.beginPath(); g.arc(0,0,w/2,0,7); g.fill(); g.stroke(); } g.restore(); }
+  if(front){ for(const r of S.rocks){ if(r.t>=ROCK.T) continue; const gy=gy0(cx+r.tx), bl=Math.floor(T*10)%2; line([[r.tx-ROCK.hit,gy-4],[r.tx+ROCK.hit,gy-4]],9,bl?'#e23a3a':'#111'); line([[r.tx,gy-150],[r.tx,gy-40]],7,'#e23a3a'); line([[r.tx-26,gy-70],[r.tx,gy-36],[r.tx+26,gy-70]],7,'#e23a3a'); }
+    if(S.rocks.some(r=>r.t<ROCK.T)){ const bl=Math.floor(T*8)%2; txt('岩が来る！ 前後によけろ',W/2,262,38,bl?'#e23a3a':INK,'center','#fff'); } } }
 /* 鳥とカミナリ雲（絵が img/ にあればそれを使う。無ければ色つきの図形で描く） */
 function drawSky(cx){
   for(const b of S.birds){ const y=gy0(cx+b.x)-BIRD.h+Math.sin(T*6+b.ph)*10, fl=Math.sin(T*18+b.ph);
@@ -262,7 +275,7 @@ function drawDog(d){ const y=gy0(camX()+d.x)-4, run=Math.sin(T*22); g.save(); g.
   if(d.st==='run' && d.t>T_.dog-.7) txt('ガウ！',40,-140,36,INK,'center'); g.restore(); }
 function draw(){ const cx=camX(); g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.save(); if(S.shake>0) g.translate(rand(-1,1)*S.shake*16,rand(-1,1)*S.shake*16);
   if(S.tilt>.002){ g.translate(BXX(),gy0(cx+BXX())); g.rotate(-S.tilt); g.translate(-BXX(),-gy0(cx+BXX())); }   /* 坂道：画面ごとかたむける */
-  drawFar(cx); drawGiant(cx); drawGround(cx); drawWaves(cx); drawEnts(cx); drawSpeed(); drawWarn(cx);
+  drawFar(cx); drawGiant(cx); drawRocks(cx,false); drawGround(cx); drawWaves(cx); drawRocks(cx,true); drawEnts(cx); drawSpeed(); drawWarn(cx);
   /* 風のすじ */
   if(S.windT>0 || S.headT>0 || S.rocketT>0){ const back=S.headT>0 && !(S.rocketT>0); for(let i=0;i<10;i++){ const sp=back?900:-1500, x=(((i*197+T*sp)%1300)+1300)%1300-110, y=330+i*38, L=back?90:150; line([[x,y],[x+L,y]],4); } }
   if(S.dog) drawDog(S.dog); drawSky(cx);
