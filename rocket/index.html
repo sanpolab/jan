@@ -131,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 16:24</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 18:10</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -207,7 +207,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 const W=1080, H=1700, cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, pick=a=>a[Math.floor(Math.random()*a.length)];
 const FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
-const CFG={ goal:10000, speed:25, powDecay:.05, comment:.12, like:.006, follow:.5, hp:3, boostSec:10, boostMul:3, stallSec:3, stallFall:30, hole:1000, warp:500, ppm:20 };
+const CFG={ goal:10000, speed:25, powDecay:.05, comment:.12, like:.006, follow:.5, hp:5, boostSec:10, boostMul:3, stallSec:3, stallFall:30, hole:1000, warp:500, ppm:20 };
 /* 絵（チャッピー製）。読めていない間は何も描かない */
 const IMG={}; function img(k,src){ const im=new Image(); im.src='./img/'+src; IMG[k]=im; return im; }
 for(const k of ['std','stealth','gold','dragon','crystal','mega']) img('ship_'+k,'ship_'+k+'.png');
@@ -345,12 +345,12 @@ const KEYC={}; function keyed(k){ if(KEYC[k]) return KEYC[k]; if(!ok(k)) return 
 const ok=k=>IMG[k] && IMG[k].naturalWidth>0;
 /* 機体：h=画面での高さ fw=炎の太さ hue=炎の色あい（度） と性能 */
 const SHIPS={
-  std:    {name:'ノーマル',   h:330, cx:.551, fw:120, hue:0,   spd:1,   decay:1, hp:3, perk:''},
-  stealth:{name:'ステルス',   h:430, fw:96,  hue:-28, spd:1,   decay:1, hp:3, dodge:2, perk:'妨害を2回よける'},
-  gold:   {name:'ゴールド',   h:370, fw:118, hue:14,  spd:2, decay:1, hp:3, perk:'速度2倍'},
-  dragon: {cx:.518, name:'ドラゴン',   h:430, fw:120, hue:-14, spd:1,   decay:1, hp:3, fireproof:true, perk:'障害物無効'},
-  crystal:{name:'クリスタル', h:400, fw:120, hue:170, spd:1,   decay:0, hp:3, perk:'応援パワーが減らない'},
-  mega:   {name:'メガロケット',h:420, fw:150, hue:0,   spd:1,   decay:1, hp:6, multi:true, perk:'体力2倍'}
+  std:    {name:'ノーマル',   h:330, cx:.551, fw:120, hue:0,   spd:1,   decay:1, hp:5, perk:''},
+  stealth:{name:'ステルス',   h:430, fw:96,  hue:-28, spd:1,   decay:1, hp:10, dodge:2, perk:'妨害を2回よける'},
+  gold:   {name:'ゴールド',   h:370, fw:118, hue:14,  spd:2, decay:1, hp:10, perk:'速度2倍'},
+  dragon: {cx:.518, name:'ドラゴン',   h:430, fw:120, hue:-14, spd:1,   decay:1, hp:10, fireproof:true, perk:'障害物無効'},
+  crystal:{name:'クリスタル', h:400, fw:120, hue:170, spd:1,   decay:0, hp:10, perk:'応援パワーが減らない'},
+  mega:   {name:'メガロケット',h:420, fw:150, hue:0,   spd:1,   decay:1, hp:10, multi:true, perk:'体力2倍'}
 };
 const flameC={}; function flameFor(hue){ if(!ok('flame')) return null; if(flameC[hue]) return flameC[hue]; const c=document.createElement('canvas'); c.width=IMG.flame.naturalWidth; c.height=IMG.flame.naturalHeight; const x=c.getContext('2d'); if(hue) x.filter='hue-rotate('+hue+'deg) saturate(1.25)'; x.drawImage(IMG.flame,0,0); x.filter='none'; try{ const d=x.getImageData(0,0,c.width,c.height), q=d.data; for(let i=0;i<q.length;i+=4){ const m=Math.max(q[i],q[i+1],q[i+2]); if(m>0){ const k=255/m; q[i]=Math.min(255,q[i]*k); q[i+1]=Math.min(255,q[i+1]*k); q[i+2]=Math.min(255,q[i+2]*k); } q[i+3]=Math.min(255,m*1.35); } x.putImageData(d,0,0); }catch(e){} flameC[hue]=c; return c; }
 let padC=null; function padCanvas(){ if(padC || !ok('pad')) return padC; const im=IMG.pad, c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight; const x=c.getContext('2d'); x.drawImage(im,0,0); x.globalCompositeOperation='destination-in'; const gr=x.createLinearGradient(0,0,0,430); gr.addColorStop(0,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(0,0,0,1)'); x.fillStyle=gr; x.fillRect(0,0,c.width,c.height); padC=c; return c; }
@@ -1058,8 +1058,8 @@ function draw(){ if(S.cine){ drawCine(); return; }
     const ff=S.fallFx>0, fk=ff?1+.4*clamp(S.fallFx/1.2,0,1):1;
     for(let i=0;i<FALLS_PER;i++){ const on=i<falls, cx=cx0+(i-(FALLS_PER-1)/2)*28, cy=by+124; g.beginPath(); g.arc(cx,cy,(on?10:8)*(on&&i===falls-1?fk:1),0,7); g.fillStyle=on?'#ff5c5c':'rgba(255,255,255,.22)'; g.fill(); g.strokeStyle='#0a1730'; g.lineWidth=2.5; g.stroke(); } }
   // 耐久（ハート）
-  { const n=SHIPS[S.ship].hp, sz=n>3?34:44; for(let i=0;i<n;i++){ const hx=34+i*(sz+6)+sz/2, hy=204, on=i<S.hp, hi=IMG[on?'heart':'heart_off']; if(hi && hi.naturalWidth){ const hw=sz*1.12, hh=hw*hi.naturalHeight/hi.naturalWidth; g.save(); g.globalAlpha=on?1:.75; g.shadowColor='rgba(0,0,0,.5)'; g.shadowBlur=8; g.drawImage(hi,hx-hw/2,hy-hh/2,hw,hh); g.restore(); continue; } g.save(); g.translate(hx,hy); g.scale(sz/52,sz/52); g.fillStyle=on?'#ff3d5a':'rgba(255,255,255,.2)'; g.strokeStyle='#0a1730'; g.lineWidth=5; g.beginPath(); g.moveTo(0,20); g.bezierCurveTo(-34,-4,-22,-30,0,-12); g.bezierCurveTo(22,-30,34,-4,0,20); g.closePath(); g.fill(); g.stroke(); g.restore(); } }
-  if(S.ship!=='std'){ const sp=SHIPS[S.ship], lab=sp.name+'：'+sp.perk+(S.ship==='stealth'?'（あと'+S.dodge+'回）':'')+(S.shipLeft>0?'　あと'+Math.ceil(S.shipLeft)+'秒':''); g.font='900 26px '+FONT; const tw=g.measureText(lab).width+56; g.fillStyle='rgba(8,14,34,.8)'; rr(W-30-tw,180,tw,50,25); g.fill(); g.strokeStyle='#ffd23f'; g.lineWidth=3; g.stroke(); txt(lab,W-30-tw/2,206,26,'#ffd23f','center'); }
+  { const n=SHIPS[S.ship].hp, sz=n>5?34:44; for(let i=0;i<n;i++){ const hx=34+i*(sz+6)+sz/2, hy=204, on=i<S.hp, hi=IMG[on?'heart':'heart_off']; if(hi && hi.naturalWidth){ const hw=sz*1.12, hh=hw*hi.naturalHeight/hi.naturalWidth; g.save(); g.globalAlpha=on?1:.75; g.shadowColor='rgba(0,0,0,.5)'; g.shadowBlur=8; g.drawImage(hi,hx-hw/2,hy-hh/2,hw,hh); g.restore(); continue; } g.save(); g.translate(hx,hy); g.scale(sz/52,sz/52); g.fillStyle=on?'#ff3d5a':'rgba(255,255,255,.2)'; g.strokeStyle='#0a1730'; g.lineWidth=5; g.beginPath(); g.moveTo(0,20); g.bezierCurveTo(-34,-4,-22,-30,0,-12); g.bezierCurveTo(22,-30,34,-4,0,20); g.closePath(); g.fill(); g.stroke(); g.restore(); } }
+  if(S.ship!=='std'){ const sp=SHIPS[S.ship], lab=sp.name+'：'+sp.perk+(S.ship==='stealth'?'（あと'+S.dodge+'回）':'')+(S.shipLeft>0?'　あと'+Math.ceil(S.shipLeft)+'秒':''); g.font='900 26px '+FONT; const tw=g.measureText(lab).width+56; g.fillStyle='rgba(8,14,34,.8)'; rr(966-tw,336,tw,50,25); g.fill(); g.strokeStyle='#ffd23f'; g.lineWidth=3; g.stroke(); txt(lab,966-tw/2,362,26,'#ffd23f','center'); }
   // 右：道のりの物差し
   { const x=W-52, y0=290, y1=850; g.fillStyle='rgba(8,14,34,.6)'; rr(x-20,y0-26,40,y1-y0+52,20); g.fill(); g.fillStyle='#2c4a86'; rr(x-6,y0,12,y1-y0,6); g.fill(); const py=lerp(y1,y0,p); g.fillStyle='#5dffb0'; rr(x-6,py,12,y1-py,6); g.fill();
     if(S.saveAlt>0){ const sy2=lerp(y1,y0,S.saveAlt/CFG.goal); g.fillStyle='#5dffb0'; g.fillRect(x-18,sy2-3,36,6); } const by=lerp(y1,y0,clamp(best/CFG.goal,0,1)); g.fillStyle='#9be9ff'; g.fillRect(x-18,by-2,36,4);
@@ -1108,7 +1108,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ if(S.cine || SPD===1) update(dt); else { const n=Math.ceil(SPD); for(let i=0;i<n && !S.cine;i++) update(dt*SPD/n); } } draw(); } requestAnimationFrame(loop); }
-const VER='1124-162431'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1124-181028'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
