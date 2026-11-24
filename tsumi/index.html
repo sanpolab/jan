@@ -64,7 +64,7 @@ canvas{width:100%;height:100%;display:block}
 #viewers{position:absolute;left:40%;display:none;align-items:center;box-sizing:border-box;padding:0 .8em;border-radius:999px;background:rgba(16,26,48,.82);color:#fff;font-weight:900;font-size:calc(var(--u)*2.3);white-space:nowrap;pointer-events:none;z-index:2}
 #viewers small{font-size:.8em;color:#9fd0ff;margin-right:.5em}
 #memo{position:absolute;left:51%;width:35%;display:none;align-items:center;justify-content:center;text-align:center;white-space:pre-wrap;overflow:hidden;pointer-events:none;z-index:2;font-weight:900;line-height:1.22;color:#fff;text-shadow:0 0 .2em #06102a,0 0 .2em #06102a,0 .08em .12em #06102a,0 0 .55em rgba(6,16,42,.9);word-break:break-all}
-#photo{position:fixed;display:none;object-fit:contain;object-position:right bottom;pointer-events:none;z-index:1;border-radius:10px}
+#photo{position:fixed;display:none;overflow:hidden;background:right bottom no-repeat;pointer-events:none;z-index:1;border-radius:10px}
 #cfg #phPrev{max-width:40%;max-height:6em;border-radius:.4em;display:block;margin:.4em 0}
 .b-n{background:#3d6fd1}.b-l{background:#d1457a}.b-j{background:#b3261e}.b-h{background:#1f8a4c}.b-t{background:#555}
 </style>
@@ -87,7 +87,7 @@ canvas{width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/tsumi/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/tsumi/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 15:59</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 16:02</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -121,6 +121,8 @@ canvas{width:100%;height:100%;display:block}
     <textarea id="memoTx" maxlength="60" placeholder="例：初見さん歓迎！&#10;コメントで動物が出るよ" style="height:4.2em;font-size:1em"></textarea>
     <img id="phPrev" alt="" hidden>
     <div class="row" style="border:0"><input id="phFile" type="file" accept="image/*" hidden><button id="phPick" type="button">写真をえらぶ</button><button id="phDel" type="button" class="x">写真を消す</button><span id="phSt" style="font-size:.85em;color:#ffb0b8"></span></div>
+    <div class="row" style="border:0"><button id="phMinus" type="button">写真を小さく</button><button id="phPlus" type="button">写真を大きく</button><button id="phReset" type="button">元の大きさ</button><span id="phZ" style="font-size:.9em"></span></div>
+    <p>大きくして、わくからはみ出した分は切れます。</p>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
     <h3>調査用：TikFinityから届いた生データ</h3>
@@ -182,7 +184,7 @@ canvas{width:100%;height:100%;display:block}
     <button class="b-h" data-a="help3"><small>お助け 大</small>世界樹<br>台が広がる</button>
   </div>
 </div>
-<img id="photo" alt=""><iframe id="gtbl" title="ギフト表" hidden style="flex:0 0 auto;border:0;background:#000;pointer-events:none;display:none"></iframe>
+<div id="photo"></div><iframe id="gtbl" title="ギフト表" hidden style="flex:0 0 auto;border:0;background:#000;pointer-events:none;display:none"></iframe>
 </div>
 <script src="./lib/decomp.min.js"></script>
 <script src="./lib/matter.min.js"></script>
@@ -204,7 +206,7 @@ function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
 // 全画面の映像が流れているあいだは、テスト・ギフト・一時停止のボタンと下のギフト表を消して、映像だけを画面のまん中に見せる
 // 自動更新：公開先に新しい版が出ていたら、古い画面を持ったままにならないよう自動で読みこみ直す（スマホは古い画面を10分ほど覚えているため）
-const VER='1124-155936'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
+const VER='1124-160229'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
   const chk=()=>{ if(S && S.mode==='playing') return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('tsumi_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('tsumi_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); };
   setTimeout(chk,800); setInterval(chk,60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 let cutUi=false; function syncCutUi(){ const on=!!(S.cut && S.cut.vid); if(on===cutUi) return; cutUi=on; for(const id of ['testBtn','cfgBtn','pauseBtn','rot','gtbl','feed','viewers','memo','photo']){ const e=document.getElementById(id); if(e) e.style.visibility=on?'hidden':''; }
@@ -1466,14 +1468,19 @@ function feedAdd(name,text,kind){ const el=document.getElementById('feed'); if(!
 function feedViewers(n){ n=parseInt(n,10); if(!(n>=0)) return; VIEWN=n; const e=document.getElementById('viewN'); if(e) e.textContent=n.toLocaleString('ja-JP')+'人'; }
 function feedUI(){ const f=document.getElementById('feed'), v=document.getElementById('viewers'); if(!f || !v) return; const on=COMPACT && OPT.feedOn!==false, vh=VH(), pc=y=>(y/vh*100)+'%'; f.style.display=on?'flex':'none'; v.style.display=on?'flex':'none'; if(!on) return; f.style.top=pc(930); f.style.height=pc(480); v.style.top=pc(205); v.style.height=pc(46); }
 /* 画面にのせる文字（右上の空）と写真（下のギフト表の空き）。どちらもこの端末にだけ保存する。写真は、いま見えているギフトの札をよけて、いちばん大きく置ける空きに右下よせで出す */
+const PHIMG=new Image(); let PHZ=1;   /* PHZ＝写真の大きさ（1がわくにぴったり。大きくしてわくからはみ出た分は切れる） */
+try{ const z=parseFloat(localStorage.getItem('tsumi_photoz')); if(z>=.3 && z<=5) PHZ=z; }catch(e){}
 let MEMO='', PHOTO=''; try{ MEMO=localStorage.getItem('tsumi_memo')||''; PHOTO=localStorage.getItem('tsumi_photo')||''; }catch(e){}
 function memoUI(){ const m=document.getElementById('memo'); if(!m) return; const t=MEMO.trim(), on=COMPACT && !!t, vh=VH(); m.style.display=on?'flex':'none'; if(!on) return; m.textContent=t; const lines=t.split('\n'), longest=Math.max.apply(null,lines.map(l=>l.length)), n=Math.max(lines.length,Math.ceil(t.replace(/\n/g,'').length/Math.max(1,Math.min(longest,11)))); m.style.top=(200/vh*100)+'%'; m.style.height=(190/vh*100)+'%'; m.style.fontSize='calc(var(--u)*'+Math.max(2.3,Math.min(4.6,33/Math.max(1,Math.min(longest,11)),15.5/n)).toFixed(2)+')'; }
-function photoFit(){ const im=document.getElementById('photo'), tb=document.getElementById('gtbl'); if(!im) return; const on=!!PHOTO && tb && !tb.hidden && !cutUi && im.naturalWidth>0; if(!on){ im.style.display='none'; return; } const r=tb.getBoundingClientRect(); let bottom=0, rowTop=-1, right=0, doc=null; try{ doc=tb.contentDocument; }catch(e){}
+function photoFit(){ const im=document.getElementById('photo'), tb=document.getElementById('gtbl'); if(!im) return; const on=!!PHOTO && tb && !tb.hidden && !cutUi && PHIMG.naturalWidth>0; if(!on){ im.style.display='none'; return; } const r=tb.getBoundingClientRect(); let bottom=0, rowTop=-1, right=0, doc=null; try{ doc=tb.contentDocument; }catch(e){}
   if(doc && doc.documentElement){ const vw=doc.documentElement.clientWidth, vh2=doc.documentElement.clientHeight, bs=[]; for(const c of doc.querySelectorAll('.c')){ const b=c.getBoundingClientRect(); if(b.width<2 || b.right<=1 || b.left>=vw-1 || b.bottom<=1 || b.top>=vh2-1) continue; bs.push(b); } for(const b of bs){ if(b.top>rowTop) rowTop=b.top; if(b.bottom>bottom) bottom=b.bottom; } for(const b of bs) if(Math.abs(b.top-rowTop)<=4 && b.right>right) right=b.right; if(rowTop<0) rowTop=0; }
-  const pad=Math.max(6,r.width*.018), a=im.naturalWidth/im.naturalHeight, A={x:0,y:bottom,w:r.width,h:r.height-bottom}, B={x:right,y:rowTop,w:r.width-right,h:r.height-rowTop}, sz=q=>{ const w=q.w-pad*2, h=q.h-pad*2; if(w<40 || h<40) return 0; const fw=Math.min(w,h*a); return fw*fw/a; }, R=sz(B)>=sz(A)?B:A; if(!sz(R)){ im.style.display='none'; return; }
-  im.style.display='block'; im.style.left=(r.left+R.x+pad)+'px'; im.style.top=(r.top+R.y+pad)+'px'; im.style.width=(R.w-pad*2)+'px'; im.style.height=(R.h-pad*2)+'px'; }
-function photoSet(u){ PHOTO=u||''; const im=document.getElementById('photo'), pv=document.getElementById('phPrev'); if(pv){ pv.hidden=!PHOTO; if(PHOTO) pv.src=PHOTO; else pv.removeAttribute('src'); } if(im){ if(PHOTO){ im.onload=photoFit; im.src=PHOTO; } else { im.removeAttribute('src'); im.style.display='none'; } } }
+  const pad=Math.max(6,r.width*.018), a=PHIMG.naturalWidth/PHIMG.naturalHeight, A={x:0,y:bottom,w:r.width,h:r.height-bottom}, B={x:right,y:rowTop,w:r.width-right,h:r.height-rowTop}, sz=q=>{ const w=q.w-pad*2, h=q.h-pad*2; if(w<40 || h<40) return 0; const fw=Math.min(w,h*a); return fw*fw/a; }, R=sz(B)>=sz(A)?B:A; if(!sz(R)){ im.style.display='none'; return; }
+  im.style.display='block'; im.style.left=(r.left+R.x+pad)+'px'; im.style.top=(r.top+R.y+pad)+'px'; im.style.width=(R.w-pad*2)+'px'; im.style.height=(R.h-pad*2)+'px'; { const fw=R.w-pad*2, fh=R.h-pad*2, cw=Math.min(fw,fh*a); im.style.backgroundSize=(cw*PHZ)+'px '+(cw/a*PHZ)+'px'; } }   /* 写真はわくに収まる大きさ×PHZ。はみ出た分は切れる */
+function photoSet(u){ PHOTO=u||''; const im=document.getElementById('photo'), pv=document.getElementById('phPrev'); if(pv){ pv.hidden=!PHOTO; if(PHOTO) pv.src=PHOTO; else pv.removeAttribute('src'); } if(im){ if(PHOTO){ PHIMG.onload=photoFit; PHIMG.src=PHOTO; im.style.backgroundImage='url("'+PHOTO+'")'; } else { PHIMG.removeAttribute('src'); im.style.backgroundImage='none'; im.style.display='none'; } } phzUI(); }
+function phzUI(){ const t=document.getElementById('phZ'); if(t) t.textContent='大きさ '+Math.round(PHZ*100)+'%'; }
+function phzSet(z){ PHZ=Math.max(.3,Math.min(5,z)); try{ localStorage.setItem('tsumi_photoz',String(PHZ)); }catch(e){} phzUI(); photoFit(); }
 setTimeout(()=>{ const tx=document.getElementById('memoTx'), fl=document.getElementById('phFile'), st=document.getElementById('phSt'); if(!tx || !fl) return; tx.value=MEMO; tx.addEventListener('input',()=>{ MEMO=tx.value.slice(0,60); try{ localStorage.setItem('tsumi_memo',MEMO); }catch(e){} memoUI(); });
+  document.getElementById('phMinus').addEventListener('click',()=>phzSet(PHZ/1.15)); document.getElementById('phPlus').addEventListener('click',()=>phzSet(PHZ*1.15)); document.getElementById('phReset').addEventListener('click',()=>phzSet(1));
   document.getElementById('phPick').addEventListener('click',()=>fl.click()); document.getElementById('phDel').addEventListener('click',()=>{ try{ localStorage.removeItem('tsumi_photo'); }catch(e){} st.textContent=''; photoSet(''); });
   fl.addEventListener('change',()=>{ const f=fl.files && fl.files[0]; fl.value=''; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ const i=new Image(); i.onload=()=>{ const k=Math.min(1,720/Math.max(i.naturalWidth,i.naturalHeight)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(i.naturalWidth*k)); c.height=Math.max(1,Math.round(i.naturalHeight*k)); c.getContext('2d').drawImage(i,0,0,c.width,c.height); let u=c.toDataURL('image/webp',.86); if(u.indexOf('data:image/webp')!==0 && u.length>900000) u=c.toDataURL('image/jpeg',.86); try{ localStorage.setItem('tsumi_photo',u); st.textContent=''; }catch(e){ st.textContent='保存できませんでした（開き直すと消えます）'; } photoSet(u); }; i.onerror=()=>{ st.textContent='この写真は読みこめませんでした'; }; i.src=rd.result; }; rd.readAsDataURL(f); });
   photoSet(PHOTO); memoUI(); setInterval(photoFit,600); },0);
