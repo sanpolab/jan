@@ -32,7 +32,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     <h3>妨害</h3>
     <button class="j" data-a="banana">バナナの皮<br>ふむとこける</button><button class="j" data-a="puddle">水たまり<br>3秒 おそくなる</button>
     <button class="j" data-a="dog">犬<br>追いつかれるとこける</button><button class="j" data-a="rock">奥から岩<br>前後に動いてよける</button><button class="j" data-a="pit">落とし穴<br>落ちるとこける</button>
-    <button class="j" data-a="bird">鳥<br>3羽（ジャンプするとぶつかる）</button><button class="j" data-a="hill">坂道<br>6秒 連打でこがないと進まない</button><button class="j" data-a="cloud">カミナリ雲<br>前後に動いてよける</button><button class="j" data-a="giant">巨人<br>ハンマー3回（ジャンプでよける）</button><button class="j" data-a="punk">パンク<br>6秒 おそくなる</button>
+    <button class="j" data-a="bird">鳥<br>3羽（ジャンプするとぶつかる）</button><button class="j" data-a="hill">坂道<br>20回こぐまで終わらない（重ねると増える）</button><button class="j" data-a="cloud">カミナリ雲<br>前後に動いてよける</button><button class="j" data-a="giant">巨人<br>ハンマー3回（ジャンプでよける）</button><button class="j" data-a="punk">パンク<br>6秒 おそくなる</button>
     <h3>その他</h3>
     <button class="g" data-a="g5000">目標 5,000m</button><button class="g" data-a="g20000">目標 20,000m</button><button class="g" data-a="g50000">目標 50,000m</button>
     <button class="g" data-a="reset">さいしょから</button><button class="g" data-a="close">とじる</button>
@@ -62,16 +62,16 @@ const FALLS_PER=5;
 /* 岩：画面の奥（道の向こう）から、はねながらだんだん大きくなって転がってくる。ねらった場所（赤いしるし）に落ちるので、前後に動いてよける。ジャンプではよけられない */
 const ROCK={T:2.6,out:.55,hit:158,max:5,w:280};
 /* 鳥：頭より少し高いところを3羽つづけて飛んでくる。ジャンプするとぶつかる（飛ばずにくぐる）
-   坂道：急な上り坂。連打でこがないとほとんど進まない（この間はタップがジャンプではなく「こぐ」になる）
+   坂道：急な上り坂。決まった回数（taps回）こぐまで終わらない。こがないとほとんど進まない。何個も投げられたら、その分こぐ回数が増える（この間はタップがジャンプではなく「こぐ」になる）
    カミナリ雲：頭の上についてきて、止まってから落ちる。前後に動いてよける（ジャンプではよけられない） */
-const BIRD={n:3,gap:1.1,h:392,v:420,hit:70}, HILL={sec:6,base:.12,tap:.34,decay:1.5,tilt:.2}, CLOUD={follow:2.2,warn:.9,after:.7,h:400,hit:86,max:6,offs:[0,-200,200,-400,400,-600]};   /* 連打された分だけ雲が同時に出る（max個まで）。2つ目からは自転車の前後にずれた場所をねらう */
+const BIRD={n:3,gap:1.1,h:392,v:420,hit:70}, HILL={taps:20,max:200,base:.1,tap:.34,decay:1.5,tilt:.2}, CLOUD={follow:2.2,warn:.9,after:.7,h:400,hit:86,max:6,offs:[0,-200,200,-400,400,-600]};   /* 連打された分だけ雲が同時に出る（max個まで）。2つ目からは自転車の前後にずれた場所をねらう */
 /* 巨人：画面の奥に出てきて、ハンマーで地面を3回たたく。たたくたびに地面を振動（波）が走ってくるので、ジャンプでよける。よけそこなうとこける */
 const GIANT={n:3,inT:2.2,outT:1.6,sink:58,x:810,waveV:1150,h:540,fw:298,fh:325,cols:8,nf:48,fps:12,rate:1.3,hitF:8.6,hx:-.22};   /* 絵のコマ（横298×たて325が48コマ、1秒12コマ）、再生の速さ、ハンマーが地面に当たるコマ、当たる場所（巨人の中心から、横幅の何倍ぶん左か） */
 const T_={wind:10,windMul:2,assist:15,assistMul:1.5,rocket:5,rocketMul:3,headwind:5,headMul:.4,puddle:3,puddleMul:.5,punk:6,punkMul:.5,crash:1.7,inv:2,back:1.6,dog:2.6,big:10,bigK:2.1,helmetMax:3,rampGain:200};
 let S, best=0, tries=1, wins=0, falls=0, T=0;
 try{ const o=JSON.parse(localStorage.getItem('bike_save')||'{}'); best=o.best||0; tries=o.tries||1; wins=o.wins||0; falls=o.falls||0; if(o.g3) CFG.goal=o.g3; }catch(e){}
 function save(){ try{ localStorage.setItem('bike_save',JSON.stringify({best,tries,wins,falls,g3:CFG.goal})); }catch(e){} }
-function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, bigT:0, bigK:1, birds:[], birdQ:0, birdT:0, hillT:0, tapPow:0, tilt:0, clouds:[], bolts:[], rocks:[], ox:(S?S.ox:0), tx:(S?S.tx:0), mileI:0, mileFx:null, giant:null, waves:[], bursts:[] }; }
+function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, bigT:0, bigK:1, birds:[], birdQ:0, birdT:0, hillNeed:0, hillAll:0, tapPow:0, tilt:0, clouds:[], bolts:[], rocks:[], ox:(S?S.ox:0), tx:(S?S.tx:0), mileI:0, mileFx:null, giant:null, waves:[], bursts:[] }; }
 function logAdd(t,c){ S.log.push({t,c:c||'#fff',at:T}); if(S.log.length>3) S.log.shift(); }
 function banner(t,c,sub){ S.banner={t,c,sub:sub||'',at:0}; }
 
@@ -88,7 +88,7 @@ function bikePose(){ const cx=camX()+BXX(), yr=gy0(cx-WB/2), yf=gy0(cx+WB/2), an
 /* ===== できごと（ギフトで起きること） ===== */
 const ahead=()=>camX()+W+rand(1500,1900);   /* 速いので、物は画面のずっと先に置く（見えてからよける時間を残す） */
 const Game={
-  jump(){ if(S.mode==='ride' && S.hillT>0 && S.rocketT<=0){ S.tapPow=Math.min(1.25,S.tapPow+HILL.tap); dust(2); return; }   /* 坂道の間は、タップ＝ひとこぎ */
+  jump(){ if(S.mode==='ride' && S.hillNeed>0 && S.rocketT<=0){ S.tapPow=Math.min(1.25,S.tapPow+HILL.tap); dust(2); S.hillNeed--; if(S.hillNeed<=0){ S.hillNeed=0; S.hillAll=0; play('levelup',.6); logAdd('坂道をのぼりきった！','#5dffb0'); } return; }   /* 坂道の間は、タップ＝ひとこぎ */
     if(S.mode!=='ride' || S.air || S.rocketT>0) return; S.air=true; S.vy=CFG.jumpV; dust(8); },
   wind(n){ if(S.mode!=='ride') return; S.windT=Math.min(30,S.windT+T_.wind); S.headT=0; play('gust',.6); play('speed',.6); logAdd((n||'だれか')+' が追い風を吹かせた（'+T_.wind+'秒 2倍速）','#5dffb0'); },
   assist(n){ if(S.mode!=='ride') return; S.assistT=Math.min(45,S.assistT+T_.assist); S.punkT=0; play('boost',.6); logAdd((n||'だれか')+' が電動アシストをつけた（'+T_.assist+'秒 1.5倍速）','#5dffb0'); },
@@ -96,7 +96,7 @@ const Game={
   helmet(n){ if(S.mode!=='ride') return; S.helmet=Math.min(T_.helmetMax,S.helmet+1); play('bless',.6); logAdd((n||'だれか')+' がヘルメットをくれた（あと'+S.helmet+'回こけない）','#5dffb0'); },
   heart(n){ if(S.mode!=='ride') return; if(S.hp<CFG.hp){ S.hp++; play('heal',.6); } logAdd((n||'だれか')+' のハートで体力 ＋1','#5dffb0'); },
   heal(n){ if(S.mode!=='ride') return; S.hp=CFG.hp; S.punkT=0; S.puddleT=0; play('heal',.7); S.flash=.3; logAdd((n||'だれか')+' が全回復してくれた','#5dffb0'); },
-  rocket(n){ if(S.mode!=='ride') return; S.rocketT=Math.min(15,S.rocketT+T_.rocket); S.headT=0; S.punkT=0; S.puddleT=0; S.dog=null; S.air=true; S.vy=-400; play('boom',.6); play('speed',.7); S.flash=.4; S.shake=.4; banner('ロケット自転車！','#ffd23f',n); logAdd((n||'だれか')+' がロケットをつけた（'+T_.rocket+'秒 ぶっ飛ばす）','#ffd23f'); },
+  rocket(n){ if(S.mode!=='ride') return; S.hillNeed=0; S.hillAll=0; S.rocketT=Math.min(15,S.rocketT+T_.rocket); S.headT=0; S.punkT=0; S.puddleT=0; S.dog=null; S.air=true; S.vy=-400; play('boom',.6); play('speed',.7); S.flash=.4; S.shake=.4; banner('ロケット自転車！','#ffd23f',n); logAdd((n||'だれか')+' がロケットをつけた（'+T_.rocket+'秒 ぶっ飛ばす）','#ffd23f'); },
   banana(n){ if(S.mode!=='ride') return; S.ents.push({k:'banana',x:ahead(),by:n}); logAdd((n||'だれか')+' がバナナの皮を置いた','#ff9aa8'); },
   puddle(n){ if(S.mode!=='ride') return; S.ents.push({k:'puddle',x:ahead(),by:n}); logAdd((n||'だれか')+' が水たまりを作った','#ff9aa8'); },
   dog(n){ if(S.mode!=='ride' || S.dog || S.rocketT>0) return; S.dog={t:0,by:n,x:-180,st:'run'}; play('bite',.5); logAdd((n||'だれか')+' の犬が追いかけてきた！','#ff9aa8'); },
@@ -104,7 +104,7 @@ const Game={
   pit(n){ if(S.mode!=='ride') return; S.pits.push({x:ahead()+60,w:560,by:n}); logAdd((n||'だれか')+' が落とし穴をほった','#ff9aa8'); },
   big(n){ if(S.mode!=='ride') return; S.bigT=Math.min(30,S.bigT+T_.big); S.punkT=0; play('levelup',.7); S.flash=.2; banner('でかタイヤ！','#111',n); logAdd((n||'だれか')+' がタイヤをでっかくした（'+T_.big+'秒 落とし穴・岩・振動・バナナが効かない）','#5dffb0'); },
   bird(n){ if(S.mode!=='ride') return; S.birdQ+=BIRD.n; play('gust',.4); logAdd((n||'だれか')+' が鳥を飛ばした（'+BIRD.n+'羽・ジャンプするとぶつかる）','#ff9aa8'); S.birdBy=n; },
-  hill(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.hillT=Math.min(18,S.hillT+HILL.sec); S.windT=0; S.assistT=0; play('bad',.5); banner('坂道！ 連打でこげ！','#e23a3a',n); logAdd((n||'だれか')+' が急な坂道にした（'+HILL.sec+'秒 連打でこげ）','#ff9aa8'); },
+  hill(n){ if(S.mode!=='ride' || S.rocketT>0) return; const add=Math.min(HILL.taps,HILL.max-S.hillNeed); if(add<=0) return; S.hillNeed+=add; S.hillAll=Math.max(S.hillAll,0)+add; S.windT=0; S.assistT=0; play('bad',.5); banner('坂道！ 連打でこげ！','#e23a3a',n); logAdd((n||'だれか')+' が急な坂道にした（あと'+S.hillNeed+'回こぐまで終わらない）','#ff9aa8'); },
   cloud(n){ if(S.mode!=='ride') return; if(S.clouds.length>=CLOUD.max) return; { let sl=0; while(S.clouds.some(c=>c.sl===sl)) sl++; S.clouds.push({t:0,x:W+200,by:n,st:'follow',sl,off:CLOUD.offs[sl%CLOUD.offs.length]}); } play('don',.4); logAdd((n||'だれか')+' がカミナリ雲を呼んだ（前後に動いてよけろ）','#ff9aa8'); },
   giant(n){ if(S.mode!=='ride') return; if(S.giant){ S.giant.left+=GIANT.n; logAdd((n||'だれか')+' が巨人をもっとあばれさせた（あと'+S.giant.left+'回）','#ff9aa8'); return; } S.giant={t:0,st:'in',left:GIANT.n,by:n,tc:0,hit:false,hitFx:0}; play('don',.6); banner('巨人が出た！','#111',n); logAdd((n||'だれか')+' が巨人を呼んだ（ハンマー'+GIANT.n+'回・ジャンプでよけろ）','#ff9aa8'); },
   punk(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.punkT=Math.min(18,S.punkT+T_.punk); S.assistT=0; play('hit',.5); logAdd((n||'だれか')+' がタイヤをパンクさせた（'+T_.punk+'秒 おそくなる）','#ff9aa8'); },
@@ -125,8 +125,8 @@ function update(dt){ T+=dt; { const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.Arrow
   for(const p of S.parts){ p.t-=dt; p.vy+=(p.g||0)*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; } S.parts=S.parts.filter(p=>p.t>0);
   if(S.mode==='ride'){
     if(S.holdT>0){ S.holdT-=dt; }
-    let mul=1; if(S.rocketT>0){ S.rocketT-=dt; mul=T_.rocketMul; } else { if(S.windT>0){ S.windT-=dt; mul*=T_.windMul; } if(S.assistT>0){ S.assistT-=dt; mul*=T_.assistMul; } if(S.headT>0){ S.headT-=dt; mul*=T_.headMul; } if(S.puddleT>0){ S.puddleT-=dt; mul*=T_.puddleMul; } if(S.punkT>0){ S.punkT-=dt; mul*=T_.punkMul; } mul=Math.max(.35,mul); if(S.hillT>0){ S.hillT-=dt; S.tapPow=Math.max(0,S.tapPow-HILL.decay*dt); mul*=HILL.base+Math.min(1,S.tapPow)*.9; if(S.hillT<=0){ S.hillT=0; S.tapPow=0; logAdd('坂道をのぼりきった','#5dffb0'); } } }
-    S.tilt+=((S.hillT>0?HILL.tilt:0)-S.tilt)*Math.min(1,dt*5);
+    let mul=1; if(S.rocketT>0){ S.rocketT-=dt; mul=T_.rocketMul; } else { if(S.windT>0){ S.windT-=dt; mul*=T_.windMul; } if(S.assistT>0){ S.assistT-=dt; mul*=T_.assistMul; } if(S.headT>0){ S.headT-=dt; mul*=T_.headMul; } if(S.puddleT>0){ S.puddleT-=dt; mul*=T_.puddleMul; } if(S.punkT>0){ S.punkT-=dt; mul*=T_.punkMul; } mul=Math.max(.35,mul); if(S.hillNeed>0){ S.tapPow=Math.max(0,S.tapPow-HILL.decay*dt); mul*=HILL.base+Math.min(1,S.tapPow)*.9; } }
+    S.tilt+=((S.hillNeed>0?HILL.tilt:0)-S.tilt)*Math.min(1,dt*5);
     if(S.invT>0) S.invT-=dt; if(S.bigT>0){ S.bigT-=dt; if(S.bigT<=0){ S.bigT=0; logAdd('タイヤが元の大きさにもどった','#fff'); } } S.bigK+=((S.bigT>0?T_.bigK:1)-S.bigK)*Math.min(1,dt*7);
     const v=S.holdT>0?0:CFG.speed*mul; S.spd=lerp(S.spd,v,clamp(dt*4,0,1)); S.x+=S.spd*dt; S.wheel+=S.spd*PPM*dt/WR; if(S.x>best) best=S.x;
     /* ジャンプ・ロケット中は浮く */
@@ -249,7 +249,7 @@ function drawSky(cx){
     else { g.fillStyle=bl?'#ffd400':'#5b6070'; g.strokeStyle=INK; g.lineWidth=6; for(const [dx,dy,r] of [[-70,10,46],[-20,-18,60],[44,-6,52],[90,14,38],[10,22,50]]){ g.beginPath(); g.arc(c.x+dx,y+dy,r,0,7); g.fill(); g.stroke(); } g.fillStyle=bl?'#ffd400':'#5b6070'; for(const [dx,dy,r] of [[-70,10,43],[-20,-18,57],[44,-6,49],[90,14,35],[10,22,47]]){ g.beginPath(); g.arc(c.x+dx,y+dy,r,0,7); g.fill(); } }
     if(c.st!=='after') txt(warn?'落ちる！':'カミナリ雲',c.x,y-96,32,warn?'#e23a3a':INK,'center','#fff'); }
   for(const bo of S.bolts){ const x=bo.x, y0=gy0(cx+x)-CLOUD.h+40, y1=gy0(cx+x), pts=[[x,y0]]; for(let i=1;i<=6;i++) pts.push([x+((i%2)?-34:30)*(i<6?1:0),y0+(y1-y0)*i/6]); line(pts,22,'#111'); line(pts,12,'#ffd400'); }
-  if(S.hillT>0){ const k=clamp(S.tapPow,0,1); rr(W/2-200,400,400,40,20); g.fillStyle='#fff'; g.fill(); g.lineWidth=5; g.strokeStyle=INK; g.stroke(); rr(W/2-194,406,Math.max(28,388*k),28,14); g.fillStyle=k>.6?'#2ea44f':'#e23a3a'; g.fill(); txt('連打でこげ！ あと'+Math.ceil(S.hillT)+'秒',W/2,372,34,INK,'center','#fff'); } }
+  if(S.hillNeed>0){ const k=clamp(1-S.hillNeed/Math.max(1,S.hillAll),0,1), bl=Math.floor(T*6)%2; rr(W/2-220,400,440,44,22); g.fillStyle='#fff'; g.fill(); g.lineWidth=5; g.strokeStyle=INK; g.stroke(); if(k>0){ rr(W/2-214,406,Math.max(32,428*k),32,16); g.fillStyle='#2ea44f'; g.fill(); } txt('連打でこげ！ あと '+S.hillNeed+' 回',W/2,368,38,bl&&S.tapPow<.3?'#e23a3a':INK,'center','#fff'); } }
 /* 棒人間と自転車。ペダルはタイヤの回転に合わせてこぐ */
 function drawBikeOnly(wheel,flat){ const k=(S.mode==='crash')?1:S.bigK, R=WR*k, hx=WB/2*(1+.42*(k-1));   /* でかタイヤ：タイヤの半径を k 倍にして、ぶつからないように前後へ少し広げる */
   for(const sg of [-1,1]){ const wx=sg*hx; g.save(); g.translate(wx,0); if(flat && sg<0) g.scale(1,.84); ring(0,0,R-4,LW+(k-1)*5,'#fff'); if(k>1.15){ for(let i=0;i<14;i++){ const a=wheel/k+i*Math.PI/7; line([[Math.cos(a)*(R-4),Math.sin(a)*(R-4)],[Math.cos(a)*(R+8),Math.sin(a)*(R+8)]],7); } ring(0,0,R*.42,5,'#fff'); } for(let i=0;i<3;i++){ const a=wheel/k+i*Math.PI/3; line([[Math.cos(a)*(R-8),Math.sin(a)*(R-8)],[-Math.cos(a)*(R-8),-Math.sin(a)*(R-8)]],2.5); } g.restore(); }
