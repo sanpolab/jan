@@ -101,7 +101,7 @@ function dust(n){ const p=bikePose(); for(let i=0;i<n;i++) S.parts.push({x:BX-60
 /* こける：ヘルメットがあれば1回たえる。体力−1。0になったらスタートへもどる */
 function crash(what,by){ if(S.mode!=='ride' || inv()) return false; if(S.helmet>0){ S.helmet--; S.invT=1.2; play('guard',.7); S.flash=.2; logAdd('ヘルメットが'+what+'から守った（あと'+S.helmet+'回）','#9be9ff'); return false; }
   const p=bikePose(); S.hp--; S.mode='crash'; S.crashT=0; S.red=.5; S.shake=.6; S.windT=0; S.assistT=0; S.air=false; S.jy=0; S.vy=0; play('hit',.8); play('fall',.5);
-  S.rider={x:BX,y:p.y-90,vx:rand(260,420),vy:-rand(620,820),rot:0,vr:rand(7,11)}; S.bikeP={x:BX,y:p.y,vx:rand(120,220),vy:-rand(260,420),rot:p.ang,vr:-rand(4,7)};
+  S.rider={x:BX,y:p.y-110,vx:rand(260,420),vy:-rand(620,820),rot:0,vr:rand(7,11)}; S.bikeP={x:BX,y:p.y,vx:rand(120,220),vy:-rand(260,420),rot:p.ang,vr:-rand(4,7)};
   for(let i=0;i<14;i++) S.parts.push({x:BX+rand(-30,30),y:p.y+rand(-40,30),vx:rand(-300,300),vy:rand(-500,-100),g:900,t:rand(.4,.9),r:rand(6,12),c:pick(['#ffd23f','#fff','#ff9aa8'])});
   logAdd(what+'でこけた！（体力−1）','#ff9aa8'); return true; }
 
@@ -138,7 +138,7 @@ function update(dt){ T+=dt; if(S.flash>0) S.flash-=dt; if(S.shake>0) S.shake-=dt
     if(S.x>=CFG.goal){ S.x=CFG.goal; S.mode='clear'; S.clearT=0; wins++; best=CFG.goal; save(); play('fanfare',.8); S.flash=.6; banner('ゴール！','#ffd23f',fmt(CFG.goal)+'m　'+tries+'回目で成功'); logAdd(fmt(CFG.goal)+'m 走りきった！ おつかれさま','#ffd23f'); S.winFx=0; }
   }
   else if(S.mode==='crash'){ S.crashT+=dt; S.spd=lerp(S.spd,0,clamp(dt*6,0,1)); const gyb=gy0(camX()+BX)-10;
-    for(const o of [S.rider,S.bikeP]){ o.vy+=2200*dt; o.x+=o.vx*dt; o.y+=o.vy*dt; o.rot+=o.vr*dt; const fl=S.pitFall?H+300:gyb-(o===S.rider?24:WR); if(o.y>fl){ o.y=fl; o.vy*=-.42; o.vx*=.6; o.vr*=.5; if(Math.abs(o.vy)<90){ o.vy=0; o.vr*=.3; } } }
+    for(const o of [S.rider,S.bikeP]){ o.vy+=2200*dt; o.x+=o.vx*dt; o.y+=o.vy*dt; o.rot+=o.vr*dt; const fl=S.pitFall?H+300:gyb-(o===S.rider?60:WR); if(o.y>fl){ o.y=fl; o.vy*=-.42; o.vx*=.6; o.vr*=.5; if(Math.abs(o.vy)<90){ o.vy=0; o.vr*=.3; } } }
     if(S.crashT>=T_.crash){ S.pitFall=false; if(S.afterPit){ S.x=Math.max(S.x,(S.afterPit-BX)/PPM); S.afterPit=0; }
       if(S.hp<=0){ S.mode='back'; S.backT=0; S.backFrom=S.x; tries++; falls++; const lost=falls>=FALLS_PER; if(lost){ falls=0; wins--; S.winFx=2.2; } S.fallFx=1.2; save(); play('bad',.7); banner('スタートにもどる…','#ff5c5c',lost?FALLS_PER+'回もどされた（WIN −1）':''); logAdd('体力が0になった。スタートからやり直し（'+tries+'回目）','#ff5c5c'); }
       else { S.mode='ride'; S.invT=T_.inv; S.holdT=.25; S.rider=null; S.bikeP=null; } } }
@@ -191,7 +191,12 @@ function drawRider(wheel,lean,scared){ const bb=[-6,-6], hb=[60,-104], cr=20, pa
   { const fl=clamp(S.spd/CFG.speed,0,1.6), n=6, pts=[[nk[0],nk[1]]]; for(let i=1;i<=n;i++) pts.push([nk[0]-i*17*fl,nk[1]-4+Math.sin(T*22-i*.9)*(3+i*2.2)*Math.min(1,fl)+i*(1.4-fl)*5]); line(pts,5); }   /* 首のマフラーが風でなびく */
   ring(hd[0],hd[1],HR,LW,'#fff');
   if(S.helmet>0){ line([[hd[0]-HR-6,hd[1]-4],[hd[0]-HR+4,hd[1]-HR-8],[hd[0]+HR-4,hd[1]-HR-8],[hd[0]+HR+10,hd[1]-4],[hd[0]-HR-6,hd[1]-4]],LW); } }
-function drawStickFly(o){ g.save(); g.translate(o.x,o.y); g.rotate(o.rot); line([[0,-30],[0,30]]); line([[0,-18],[-34,-44]]); line([[0,-18],[36,-36]]); line([[0,30],[-30,62]]); line([[0,30],[32,58]]); ring(0,-54,24,LW,'#fff'); g.restore(); }
+function drawStickFly(o){ /* こけて飛んでいる棒人間。乗っているときと同じ等身（頭の大きさ・胴の長さ・手足の長さ）で描く */
+  const HR=24, sh=[0,-34], hip=[0,40], w=Math.sin(T*13), w2=Math.cos(T*11); g.save(); g.translate(o.x,o.y); g.rotate(o.rot);
+  const limb=(p,a1,a2,L)=>{ const k=[p[0]+Math.cos(a1)*L,p[1]+Math.sin(a1)*L], e=[k[0]+Math.cos(a2)*L,k[1]+Math.sin(a2)*L]; line([p,k,e],LW); };
+  limb(hip,1.05+w*.35,1.9+w*.3,48); limb(hip,2.1-w*.35,1.2-w2*.3,48);
+  line([[0,sh[1]-10],hip],LW); limb(sh,-.5+w2*.5,-1.2+w*.4,38); limb(sh,Math.PI+.5-w*.5,Math.PI+1.2-w2*.4,38);
+  ring(0,sh[1]-10-HR,HR,LW,'#fff'); g.restore(); }
 function drawDog(d){ const y=gy0(camX()+d.x)-4, run=Math.sin(T*22); g.save(); g.translate(d.x,y); if(d.st==='out') g.scale(-1,1);
   line([[-50,-52],[40,-56]]); line([[-46,-50],[-52+run*22,0]],6); line([[-34,-50],[-22-run*22,0]],6); line([[26,-54],[18+run*22,0]],6); line([[36,-54],[48-run*22,0]],6); line([[-50,-52],[-78,-84+run*8]],6);
   line([[40,-56],[52,-92],[84,-92],[112,-74],[84,-62],[40,-56]],LW); line([[52,-92],[46,-116],[66,-92]],6);
