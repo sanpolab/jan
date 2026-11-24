@@ -81,7 +81,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 13:26</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 13:37</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -95,13 +95,19 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   <div class="row"><input id="clKey" type="password" placeholder="tik.tools のAPIキー" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
   <p><button id="clOn" type="button">つなぐ</button> <span id="clSt"></span></p>
     <h3>どのギフトで何が起きるか</h3>
-    <p>緑の「ON」を押すと「OFF」になり、そのギフトは来ても何も起きません（割り当ては残るので、もう一度押せば元に戻ります）。</p> <p>左のわくを押して一覧からギフトをえらびます。「受信で登録」は、押してからそのギフトを1個投げてもらうと確実に結びつきます。未設定の効果はギフトでは起きません。</p>
+    <p>緑の「ON」を押すと「OFF」になり、そのギフトは来ても何も起きず、ギフト表からも消えます（割り当ては残るので、もう一度押せば元に戻ります）。</p> <p>効果の名前の下のらんに文字を入れると、ギフト表に出る名前を変えられます（空にすると元の名前に戻ります）。</p> <p>左のわくを押して一覧からギフトをえらびます。「受信で登録」は、押してからそのギフトを1個投げてもらうと確実に結びつきます。未設定の効果はギフトでは起きません。</p>
     <p><button id="seqLearn" type="button">上から順に受信で登録</button> <span id="seqNote"></span></p>
     <div id="cfgRows"></div>
+    <h3>ギフト表（配信にのせる用）</h3>
+    <p>下のURLがギフト表です。ギフトを変えると、URLも表も自動で変わります。</p>
+    <div class="row"><input id="tblUrl" type="text" readonly></div>
+    <p>1段の数 <button class="tc" type="button" data-c="6">6</button> <button class="tc" type="button" data-c="7">7</button> <button class="tc" type="button" data-c="9">9</button>　<button id="tblCopy" type="button">URLをコピー</button> <button id="cfgTable" type="button">ひらく</button></p>
+    <p id="tblNote">このChromeで開いた表は、ギフトを変えると数秒で自動で変わります。配信ソフトにURLを貼る場合は、ギフトを変えたあとにもう一度コピーして貼り直してください。</p>
     <h3>ギフト以外</h3>
     <div class="row jam"><div class="nm">コメント<small>隕石が落ちてくる（同じ人は20秒に1回、画面に3個まで）</small></div><button id="optChat" type="button"></button></div>
     <div class="row jam"><div class="nm">いいね1000回<small>魔法使いが1体出る（画面に3体まで）</small></div><button id="optLike" type="button"></button></div>
     <div class="row jam"><div class="nm">フォロー<small>隕石が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
+    <div class="row both"><div class="nm">ギフト表のコイン数<small>オフにすると、ギフト表のギフトの絵にコイン数を出さない</small></div><button id="optCoin" type="button"></button></div>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
     <h3>調査用：TikFinityから届いた生データ</h3>
@@ -1013,10 +1019,10 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ update(dt); draw(); } requestAnimationFrame(loop); }
-const VER='1124-132600'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1124-133752'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
-const OPT={chatOn:true,likeOn:true,followOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
+const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
 function optSave(){ try{ localStorage.setItem('rocket_opts',JSON.stringify(OPT)); }catch(e){} }
 function runFx(fn){ fn(); }
 const FX_LIST=[
@@ -1128,14 +1134,14 @@ function pickDraw(){ const tb=document.getElementById('pickTabs'); tb.innerHTML=
     b.appendChild(gi); b.appendChild(sp); b.appendChild(em); b.addEventListener('click',()=>{ TF.map[pickFx[0]]={id:null,name:e[0],coins:e[1],ci:i,pic:null}; tfSave(); document.getElementById('pick').hidden=true; cfgBuild(); }); fr.appendChild(b); });
   g.appendChild(fr); if(!g.children.length){ const d=document.createElement('p'); d.textContent='見つかりませんでした'; g.appendChild(d); } }
 /* ギフト表に出す名前（自分で変えた分だけ入る）。TBL_NAME=元の名前 */
-const TBL_NAME={}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('rocket_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('rocket_lbl',JSON.stringify(LBL)); }catch(e){} }
+const TBL_NAME={fuel:'全回復',boost:'3倍速',shield:'ガード',heart:'耐久＋1',bomb:'敵を1体消す',buddy:'おとも',pad:'加速板',crow:'＋200m',fairy:'小さくなる',dome:'バリア',roulUp:'ゴール−',gacha:'機体ガチャ',stop:'時間停止',save:'セーブ',phoenix:'＋2,000m',comet:'＋3,000m',samurai:'敵を全消し',astro:'＋10,000m',hero:'ゴール−10万',dragonAtk:'火球3発',meteor:'隕石',bird:'小鳥',wizard:'魔法使い',stall:'エンジン停止',garg:'ガーゴイル',tengu:'大風',spike:'トゲ鉄球',blackout:'まっ暗',roulDown:'ゴール＋',ufo:'操作が逆',unsave:'セーブ解除',hole:'−1,000m',jelly:'クラゲ',storm:'落雷',vamp:'コウモリ',ice:'−2,000m',crash:'即ついらく',maou:'ゴール＋10万'}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('rocket_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('rocket_lbl',JSON.stringify(LBL)); }catch(e){} }
 let tblCols=7; try{ tblCols=parseInt(localStorage.getItem('rocket_tblcols'),10)||7; }catch(e){}
 function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name || b.off) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
-  const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+(OPT.coinOn?1:0)+'&g='+parts.join(',')+(()=>{ const l=Object.keys(LBL).filter(k=>LBL[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LBL[k]))); return l.length?'&l='+l.join(','):''; })(); }
+  const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+(OPT.coinOn?1:0)+(OPT.chatOn?1:0)+'&g='+parts.join(',')+(()=>{ const l=Object.keys(LBL).filter(k=>LBL[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LBL[k]))); return l.length?'&l='+l.join(','):''; })(); }
 function tblUI(){ const el=document.getElementById('tblUrl'); if(el) el.value=tblUrl(); document.querySelectorAll('#cfg button.tc').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.c,10)===tblCols)); }
 function cfgBuild(){ tblUI(); missBuild(); { const en=document.getElementById('embedNote'); if(en) en.hidden=!EMBED; } { const sb=document.getElementById('seqLearn'), sn=document.getElementById('seqNote'); if(sb){ sb.textContent=TF.seqLearn?'順番登録をやめる':'上から順に受信で登録'; sb.style.background=TF.seqLearn?'#d1457a':''; const f=TF.seqLearn&&FX_LIST.find(x=>x[0]===TF.learn); sn.textContent=f?'いま待っているのは「'+f[2]+'」（'+((TF.map[f[0]]||{}).name||'')+'）。このギフトを1個流してください':''; } } const box=document.getElementById('cfgRows'); if(!box) return; box.innerHTML='';
   for(const f of FX_LIST){ const b=TF.map[f[0]]||{}, row=document.createElement('div'); row.className='row '+f[1];
-    const nm=document.createElement('div'); nm.className='nm'; nm.textContent=(f[1]==='jam'?'妨害｜':f[1]==='help'?'お助け｜':'')+f[2]; const sm=document.createElement('small'); sm.textContent=f[3]+(b.coins!=null?'　'+b.coins+'コイン':''); nm.appendChild(sm); 
+    const nm=document.createElement('div'); nm.className='nm'; nm.textContent=(f[1]==='jam'?'妨害｜':f[1]==='help'?'お助け｜':'')+f[2]; const sm=document.createElement('small'); sm.textContent=f[3]+(b.coins!=null?'　'+b.coins+'コイン':''); nm.appendChild(sm); { const li=document.createElement('input'); li.type='text'; li.maxLength=14; li.value=LBL[f[0]]||''; li.placeholder='表の名前：'+(TBL_NAME[f[0]]||f[2]); li.style.cssText='display:block;width:100%;box-sizing:border-box;font-size:.8em;margin-top:.25em;padding:.25em .4em'; const sv=()=>{ const v=li.value.trim(); if(v) LBL[f[0]]=v; else delete LBL[f[0]]; lblSave(); tblUI(); }; li.addEventListener('input',sv); li.addEventListener('pointerdown',e=>e.stopPropagation()); li.addEventListener('keydown',e=>e.stopPropagation()); nm.appendChild(li); } 
     const inp=document.createElement('button'); inp.type='button'; inp.className='gsel'; const gi=document.createElement('div'); gi.className='gi'; if(b.ci!=null) catIcon(gi,b.ci); else if(b.pic){ gi.style.backgroundImage='url('+b.pic+')'; gi.style.backgroundSize='contain'; gi.style.backgroundPosition='center'; }
     const gt=document.createElement('div'); gt.className='gt'; gt.textContent=b.name||'未設定（押してえらぶ）'; if(b.name){ const sm2=document.createElement('small'); sm2.textContent=(b.coins!=null?b.coins+'コイン':'')+(b.id!=null?'　受信ずみ':''); gt.appendChild(sm2); }
     inp.appendChild(gi); inp.appendChild(gt); inp.addEventListener('click',()=>pickOpen(f));
@@ -1147,6 +1153,9 @@ function cfgBuild(){ tblUI(); missBuild(); { const en=document.getElementById('e
 { const cfg=document.getElementById('cfg'); document.getElementById('cfgBtn').addEventListener('click',()=>{ catLoad(()=>{ cfgBuild(); }); cfgBuild(); tfUI(); cfg.hidden=false; tp.hidden=true; }); document.getElementById('cfgClose').addEventListener('click',()=>{ TF.learn=null; TF.seqLearn=false; cfg.hidden=true; }); for(const id of ['clUser','clKey']) document.getElementById(id).addEventListener('input',e=>{ e.target.dataset.d='1'; });
   document.getElementById('clOn').addEventListener('click',()=>{ const u=document.getElementById('clUser').value.trim().replace(/^@/,''), k=document.getElementById('clKey').value.trim(); if(!CLOUD.on && (!u || !k)){ document.getElementById('clSt').textContent='ユーザー名とキーの両方を入れてください'; return; } CLOUD={on:!CLOUD.on,user:u,key:k}; delete document.getElementById('clUser').dataset.d; delete document.getElementById('clKey').dataset.d; try{ localStorage.setItem('rocket_cloud',JSON.stringify(CLOUD)); }catch(e){} TF.tries=0; TF.wait=3000; TF.ok=false; tfConnect(); tfUI(); });
   document.getElementById('pickClose').addEventListener('click',()=>{ document.getElementById('pick').hidden=true; }); document.getElementById('pickQ').addEventListener('input',pickDraw);
+  document.getElementById('cfgTable').addEventListener('click',()=>{ window.open(tblUrl(),'_blank'); });
+  document.querySelectorAll('#cfg button.tc').forEach(b=>b.addEventListener('click',()=>{ tblCols=parseInt(b.dataset.c,10); try{ localStorage.setItem('rocket_tblcols',String(tblCols)); }catch(e){} tblUI(); }));
+  document.getElementById('tblCopy').addEventListener('click',()=>{ const el=document.getElementById('tblUrl'), bt=document.getElementById('tblCopy'); el.select(); const done=()=>{ bt.textContent='コピーしました'; setTimeout(()=>{ bt.textContent='URLをコピー'; },1500); }; try{ navigator.clipboard.writeText(el.value).then(done,()=>{ document.execCommand('copy'); done(); }); }catch(e){ try{ document.execCommand('copy'); done(); }catch(_){} } });
   document.getElementById('seqLearn').addEventListener('click',()=>{ if(TF.seqLearn){ TF.seqLearn=false; TF.learn=null; } else { const f=FX_LIST.find(x=>TF.map[x[0]] && TF.map[x[0]].name); if(f){ TF.seqLearn=true; TF.learn=f[0]; } else tfLogAdd('先にギフトをえらんでください'); } cfgBuild(); });
   document.getElementById('tfRe').addEventListener('click',()=>{ TF.wait=3000; tfConnect(); });
   // 配る用のリンク：ギフトの割り当て（名前・コイン・届いた名前とID・ON/OFF・表の名前）を短くまとめてアドレスの後ろに付ける。キーは入れない
@@ -1164,8 +1173,8 @@ function cfgBuild(){ tblUI(); missBuild(); { const en=document.getElementById('e
     let t=raw.replace(/[\u201C\u201D\u201E\u201F\u2033\uFF02]/g,'"').replace(/[\u2018\u2019\u2032\uFF07]/g,"'").replace(/\uFF1A/g,':').replace(/\uFF0C/g,',').replace(/[\u200B\uFEFF]/g,''); const i=t.indexOf('{'), j=t.lastIndexOf('}'); if(i<0 || j<=i){ say(raw.trim()?'読みこめません：文字が途中で切れているか、ちがう文字です。「配る用のリンク」を送ってもらうのが確実です':'箱が空です。もらった文字を貼ってから押してください'); return; }
     try{ const o=JSON.parse(t.slice(i,j+1)); if(o && typeof o==='object'){ if(Array.isArray(o.g)){ shareApply(o); say('読みこみました（'+o.g.length+'個）'); return; } if(o.__lbl && typeof o.__lbl==='object'){ LBL=o.__lbl; lblSave(); } delete o.__lbl; TF.map=o; tfSave(); cfgBuild(); say('読みこみました（'+Object.keys(o).length+'個）'); } }
     catch(e){ say('読みこめません：文字が途中で切れているようです（'+raw.length+'文字）。「配る用のリンク」を送ってもらうのが確実です'); } }); }
-function optUI(){ for(const [id,k] of [['optChat','chatOn'],['optLike','likeOn'],['optFollow','followOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
-for(const [id,k] of [['optChat','chatOn'],['optLike','likeOn'],['optFollow','followOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); }); optUI();
+function optUI(){ for(const [id,k] of [['optChat','chatOn'],['optLike','likeOn'],['optFollow','followOn'],['optCoin','coinOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
+for(const [id,k] of [['optChat','chatOn'],['optLike','likeOn'],['optFollow','followOn'],['optCoin','coinOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); tblUI(); }); optUI();
 catLoad(()=>{});
 window.RocketTF={ TF, simulate:m=>tfEvent(m), connect:tfConnect };
 tfConnect();
