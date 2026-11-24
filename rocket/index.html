@@ -131,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 23:01</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 23:12</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -192,7 +192,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <h3>妨害</h3>
     <button class="j" data-a="meteor">隕石<br>耐久 −1</button><button class="j" data-a="stall">エンジン停止<br>3秒 落ちていく</button>
     <button class="j" data-a="hole">ブラックホール<br>−1,000m</button><button class="j" data-a="crash">撃墜（機械クジラ）<br>飲みこまれて即ついらく＋セーブ消去</button><button class="j" data-a="dragonAtk">ドラゴン襲来<br>火球4発（当たれば耐久−1）</button>
-    <!-- 減速板はいったんお休み（絵 img/pad_dn.webp と Game.slowpad は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="vamp">吸血鬼<br>20秒 コウモリの嵐（連打で3体まで）</button><button class="j" data-a="unsave">セーブ解除（魔女）<br>セーブ地点を消す</button><button class="j" data-a="tengu">天狗<br>うちわの大風 3回（横に強く流される）</button><button class="j" data-a="maou">魔王<br>ゴールが ＋100,000m 遠ざかる（ゴールしても消えない）</button><button class="j" data-a="roulDown">ゴール＋ルーレット<br>ゴールが 100〜1,000m 遠ざかる</button><button class="j" data-a="jelly">クラゲの群れ<br>30秒 6匹がいすわる（連打で増える）</button><button class="j" data-a="storm">雷雲<br>落雷を8回（予告あり・1本はねらってくる）</button><button class="j" data-a="spike">トゲ鉄球<br>10秒 振り子（当たると耐久−1）</button><button class="j" data-a="blackout">チョウチンアンコウ<br>10秒 まっ暗（ライトの先だけ見える）</button><button class="j" data-a="ufo">UFO<br>15秒 操作が上下左右とも逆（必ず当たる）</button><button class="j" data-a="garg">ガーゴイル<br>しがみつかれると落ちていく（振り落とせる）</button><button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−2,000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法2発（耐久−1）</button>
+    <!-- 減速板はいったんお休み（絵 img/pad_dn.webp と Game.slowpad は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="vamp">吸血鬼<br>15秒 コウモリの嵐（連打で3体まで）</button><button class="j" data-a="unsave">セーブ解除（魔女）<br>セーブ地点を消す</button><button class="j" data-a="tengu">天狗<br>うちわの大風 3回（横に強く流される）</button><button class="j" data-a="maou">魔王<br>ゴールが ＋100,000m 遠ざかる（ゴールしても消えない）</button><button class="j" data-a="roulDown">ゴール＋ルーレット<br>ゴールが 100〜1,000m 遠ざかる</button><button class="j" data-a="jelly">クラゲの群れ<br>30秒 6匹がいすわる（連打で増える）</button><button class="j" data-a="storm">雷雲<br>落雷を8回（予告あり・1本はねらってくる）</button><button class="j" data-a="spike">トゲ鉄球<br>10秒 振り子（当たると耐久−1）</button><button class="j" data-a="blackout">チョウチンアンコウ<br>10秒 まっ暗（ライトの先だけ見える）</button><button class="j" data-a="ufo">UFO<br>15秒 操作が上下左右とも逆（必ず当たる）</button><button class="j" data-a="garg">ガーゴイル<br>しがみつかれると落ちていく（振り落とせる）</button><button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−2,000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法2発（耐久−1）</button>
     <h3>目標の高さ（変えると0からやり直し）</h3>
     <button class="g" data-g="1000">1,000m</button><button class="g" data-g="5000">5,000m</button><button class="g" data-g="10000">10,000m</button>
     <button class="g" data-g="50000">50,000m</button><button class="g" data-g="100000">100,000m</button><button class="n" data-a="reset">記録を消す</button><button class="n" data-a="title">タイトルに戻る</button>
@@ -743,7 +743,7 @@ function drawBlackout(){ if(!(S.blk>0) || S.mode!=='fly') return; const t=S.blkT
   if(S.ang && S.ang.lx!==undefined){ const d=S.ang, R=50*(.9+.1*Math.sin(T*9)); g.save(); g.globalCompositeOperation='lighter'; const gr=g.createRadialGradient(d.lx,d.ly,2,d.lx,d.ly,R); gr.addColorStop(0,'rgba(235,255,170,'+.75*a+')'); gr.addColorStop(.3,'rgba(190,255,120,'+.3*a+')'); gr.addColorStop(1,'rgba(160,255,90,0)'); g.fillStyle=gr; g.fillRect(d.lx-R,d.ly-R,R*2,R*2); g.restore(); }
   g.save(); g.globalCompositeOperation='lighter'; g.translate(rx,ry-50); g.rotate(ang); { const gr=g.createLinearGradient(0,0,0,-L); gr.addColorStop(0,'rgba(255,240,190,'+.2*a*fl+')'); gr.addColorStop(1,'rgba(255,240,190,0)'); g.fillStyle=gr; g.beginPath(); g.moveTo(-14,0); g.lineTo(-hw*.7,-L); g.lineTo(hw*.7,-L); g.lineTo(14,0); g.closePath(); g.fill(); } g.restore(); }
 /* むずかしさ：「むずかしい」だと、無料の妨害が同時に出る数がふえ、コメントの間隔も短くなる */
-const DIFFS={normal:{name:'ふつう',commentGap:20,meteorMax:3,wizMax:3,stack:3,vamp:20,jelly:30,storm:8},hard:{name:'むずかしい',commentGap:10,meteorMax:5,wizMax:5,stack:5,vamp:35,jelly:60,storm:16}};   /* stack＝ドラゴンと天狗を重ねられる数、vamp＝吸血鬼の秒数、jelly＝クラゲのいる秒数、storm＝雷雲の落雷の回数 */
+const DIFFS={normal:{name:'ふつう',commentGap:20,meteorMax:3,wizMax:3,stack:3,vamp:15,jelly:30,storm:8},hard:{name:'むずかしい',commentGap:10,meteorMax:5,wizMax:5,stack:5,vamp:30,jelly:60,storm:16}};   /* stack＝ドラゴンと天狗を重ねられる数、vamp＝吸血鬼の秒数、jelly＝クラゲのいる秒数、storm＝雷雲の落雷の回数 */
 /* ===== 2倍タイム：5分間、ギフトなどで起きることが全部2回ずつ起きる（生き物は2体、時間のものは2倍の時間、距離のものは2倍の距離）。
    しくみ：1回目をふつうに出したあと、少し間をあけて同じことをもう1回出す。2回目は全画面の映像を出さない（QUIET） ===== */
 const DBL={sec:300,max:900,gap:.7}; let dblT=0, dblFx=0, dblEnd=0, dblSave=0, QUIET=false; const DBLQ=[], dblPops=[];
@@ -878,7 +878,8 @@ function update(dt){ if(S.cine){ const c=S.cine; c.t+=dt; if(c.t>=c.dur){ try{ c
   if(!frozen){
   for(const d of S.vamps){ d.t+=dt; const endT=VAMP.inT+VAMP.dur, P=VAMP.slots[d.slot||0]; if(S.mode!=='fly' && d.t<endT) d.t=endT; d.x=W/2+P[0]+Math.sin(d.t*.55+(d.slot||0)*2.1)*(S.vamps.length>1?150:300); d.y=VAMP.y+P[1]+Math.sin(d.t*1.7+(d.slot||0))*18;
     if(d.t<endT && S.mode==='fly') while(d.t>=d.next){ d.next+=VAMP.every; d.i++; d.thr=.28; const hx=d.x+(d.i%2?-1:1)*120, hy=d.y-10, mk=(ang,sp,cv)=>S.items.push({k:'bat',x:hx,y:hy,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,t:0,ph:rand(0,6),cv:cv||0,by:d.by});
-      const aim=Math.atan2(RYw()-hy,RXw()-hx); if(d.i%4===0){ for(const o of [-.42,0,.42]) mk(aim+o,VAMP.spd*.9,0); } else if(d.i%2){ mk(aim+rand(-.12,.12),VAMP.spd,0); } else { mk(Math.PI/2+rand(-.9,.9),VAMP.spd*rand(.75,1.05),rand(-1,1)*.5); } }
+      const dn=Math.PI/2;   /* コウモリはロケットをねらわない（追いかけない）。下向きにばらまくだけ */
+      if(d.i%4===0){ const c0=dn+rand(-.35,.35); for(const o of [-.42,0,.42]) mk(c0+o,VAMP.spd*.9,0); } else if(d.i%2){ mk(dn+rand(-.8,.8),VAMP.spd,0); } else { mk(Math.PI/2+rand(-.9,.9),VAMP.spd*rand(.75,1.05),rand(-1,1)*.5); } }
     if(d.thr>0) d.thr-=dt; if(d.flinch>0) d.flinch-=dt; if(d.t>=endT+VAMP.outT) d.gone=true; } if(S.vamps.some(v=>v.gone)) S.vamps=S.vamps.filter(v=>!v.gone);
   for(const it of S.items){ if(it.k!=='bat') continue; it.t+=dt; if(it.cv){ const c=Math.cos(it.cv*dt), sn=Math.sin(it.cv*dt), vx=it.vx*c-it.vy*sn, vy=it.vx*sn+it.vy*c; it.vx=vx; it.vy=Math.max(vy,120); } const px=-it.vy, py=it.vx, L=Math.hypot(px,py)||1, wob=Math.cos(it.t*8+it.ph)*70; it.x+=(it.vx+px/L*wob)*dt; it.y+=(it.vy+py/L*wob)*dt;
     if(!it.dead && S.mode==='fly' && !(S.batCd>0) && Math.abs(it.x-RXw())<HITB.x+26 && Math.abs(it.y-(RYw()+HITB.oy))<HITB.y+20){ it.dead=true; S.batCd=VAMP.cd; if(!jamBlocked(it.by,'コウモリ')){ S.shake=Math.max(S.shake,.4); S.flash=Math.max(S.flash,.15); ring(W/2,RY-40,'#ff9ad0'); for(let i=0;i<10;i++) S.parts.push({abs:1,k:'conf',x:it.x,y:it.y,vx:rand(-420,420),vy:rand(-420,200),g:700,t:rand(.3,.7),c:pick(['#3a1450','#7a2a6a','#c04a8a']),r:rand(7,13),rot:rand(0,6),vr:rand(-12,12)}); logAdd('コウモリが当たった！（耐久−1）','#ff9aa8'); damage(); } }
@@ -1137,7 +1138,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ update(dt); } draw(); } requestAnimationFrame(loop); }
-const VER='1124-230136'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1124-231246'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1180,7 +1181,7 @@ const FX_LIST=[
  ['hole','jam','ブラックホール','−1,000m',n=>Game.hole(n)],
  ['jelly','jam','クラゲの群れ','30秒 6匹がいすわる',n=>Game.jelly(n)],
  ['storm','jam','雷雲','落雷を8回',n=>Game.storm(n)],
- ['vamp','jam','吸血鬼','20秒 コウモリの嵐',n=>Game.vamp(n)],
+ ['vamp','jam','吸血鬼','15秒 コウモリの嵐',n=>Game.vamp(n)],
  ['ice','jam','氷の怪鳥','凍って−2,000m＋30秒 速さ半分',n=>Game.ice(n)],
  ['crash','jam','機械クジラ','飲みこまれて即ついらく＋セーブ消去',n=>Game.crash(n)],
  ['maou','jam','魔王','ゴールが ＋100,000m 遠ざかる（永続）',n=>Game.maou(n)]];
