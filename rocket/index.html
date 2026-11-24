@@ -109,7 +109,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 14:28</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 14:30</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -160,7 +160,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <h3>音</h3>
     <button class="g" id="optBgm">BGM</button><button class="g" id="optSe">効果音</button><span></span>
     <h3>妨害</h3>
-    <button class="j" data-a="meteor">隕石<br>耐久 −1</button><button class="j" data-a="stall">エンジン停止<br>6秒 落ちていく</button>
+    <button class="j" data-a="meteor">隕石<br>耐久 −1</button><button class="j" data-a="stall">エンジン停止<br>3秒 落ちていく</button>
     <button class="j" data-a="hole">ブラックホール<br>−1,000m</button><button class="j" data-a="crash">撃墜（機械クジラ）<br>飲みこまれて即ついらく＋セーブ消去</button><button class="j" data-a="dragonAtk">ドラゴン襲来<br>火球3発（当たれば耐久−1）</button>
     <!-- 減速板はいったんお休み（絵 img/pad_dn.webp と Game.slowpad は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="vamp">吸血鬼<br>20秒 コウモリの嵐（連打で3体まで）</button><button class="j" data-a="unsave">セーブ解除（魔女）<br>セーブ地点を消す</button><button class="j" data-a="tengu">天狗<br>うちわの大風 3回（横に強く流される）</button><button class="j" data-a="maou">魔王<br>ゴールが ＋100,000m 遠ざかる（ゴールしても消えない）</button><button class="j" data-a="roulDown">ゴール＋ルーレット<br>ゴールが 100〜1,000m 遠ざかる</button><button class="j" data-a="jelly">クラゲの群れ<br>30秒 6匹がいすわる（連打で増える）</button><button class="j" data-a="storm">雷雲<br>落雷を8回（予告あり・1本はねらってくる）</button><button class="j" data-a="spike">トゲ鉄球<br>10秒 振り子（当たると耐久−1）</button><button class="j" data-a="blackout">チョウチンアンコウ<br>10秒 まっ暗（ライトの先だけ見える）</button><button class="j" data-a="ufo">UFO<br>15秒 操作が上下左右とも逆（必ず当たる）</button><button class="j" data-a="garg">ガーゴイル<br>しがみつかれると落ちていく（振り落とせる）</button><button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−2,000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法1発（耐久−1）</button>
     <h3>目標の高さ（変えると0からやり直し）</h3>
@@ -176,7 +176,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 const W=1080, H=1700, cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, pick=a=>a[Math.floor(Math.random()*a.length)];
 const FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
-const CFG={ goal:10000, speed:25, powDecay:.05, comment:.12, like:.006, follow:.5, hp:3, boostSec:10, boostMul:3, stallSec:6, stallFall:30, hole:1000, warp:500, ppm:20 };
+const CFG={ goal:10000, speed:25, powDecay:.05, comment:.12, like:.006, follow:.5, hp:3, boostSec:10, boostMul:3, stallSec:3, stallFall:30, hole:1000, warp:500, ppm:20 };
 /* 絵（チャッピー製）。読めていない間は何も描かない */
 const IMG={}; function img(k,src){ const im=new Image(); im.src='./img/'+src; IMG[k]=im; return im; }
 for(const k of ['std','stealth','gold','dragon','crystal','mega']) img('ship_'+k,'ship_'+k+'.png');
@@ -1059,7 +1059,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ if(S.cine || SPD===1) update(dt); else { const n=Math.ceil(SPD); for(let i=0;i<n && !S.cine;i++) update(dt*SPD/n); } } draw(); } requestAnimationFrame(loop); }
-const VER='1124-142848'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1124-143015'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1089,7 +1089,7 @@ const FX_LIST=[
  ['meteor','jam','隕石','耐久 −1',n=>Game.meteor(n)],
  ['bird','jam','小鳥','当たると一瞬おそくなる',n=>Game.bird(n)],
  ['wizard','jam','魔法使い','追ってくる魔法1発',n=>Game.wizard(n)],
- ['stall','jam','エンジン停止','6秒 落ちていく',n=>Game.stall(n)],
+ ['stall','jam','エンジン停止','3秒 落ちていく',n=>Game.stall(n)],
  ['garg','jam','ガーゴイル','しがみつかれると落ちていく',n=>Game.garg(n)],
  ['tengu','jam','天狗','うちわの大風 3回',n=>Game.tengu(n)],
  ['spike','jam','トゲ鉄球','10秒 振り子（当たると耐久−1）',n=>Game.spike(n)],
