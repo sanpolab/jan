@@ -70,8 +70,9 @@ function showPg(){ PG.forEach((s,i)=>{ let d=i-pgI; if(PG.length>2 && d<-1) d+=P
 function autoFit(){ if(q.get('fit')!=='1') return; const gr=document.getElementById('grid'); const fresh=[...gr.children].filter(c=>c.classList.contains('c'));
   if(fresh.length||!CELLS){ CELLS={jam:[],help:[]}; for(const c of fresh) CELLS[(c.classList.contains('help')||c.classList.contains('free')||c.classList.contains('both'))?'help':'jam'].push(c); }
   gr.classList.add('split'); gr.innerHTML=''; const H=window.innerHeight, nj=CELLS.jam.length, nh=CELLS.help.length, all=CELLS.jam.concat(CELLS.help); if(!all.length) return; let best=null;
-  for(let c=4;c<=13;c++){ document.documentElement.style.setProperty('--cols',c); const t=mkSec('jam',all.slice(0,1),c,''); t.style.height='auto'; t.style.position='static'; gr.appendChild(t); const hd=t.firstChild.offsetHeight, rh=t.lastChild.offsetHeight, gap=Math.max(1,window.innerWidth*.007), pad=window.innerWidth*.006; gr.removeChild(t);
-    const rows=Math.floor((H-hd-pad+gap)/(rh+gap)); if(rows<1) continue; const cap=c*rows, pages=Math.ceil(nj/cap)+Math.ceil(nh/cap); best={c,cap}; if(pages<=4) break; }
+  const MAXPG=Math.max(1,parseInt(q.get('pg'),10)||4), MINC=Math.max(4,Math.min(13,parseInt(q.get('min'),10)||4));   // pg=ページ数の上限（少ないほど札が小さくなって段が増える）、min=1段の数の下限
+  for(let c=MINC;c<=13;c++){ document.documentElement.style.setProperty('--cols',c); const t=mkSec('jam',all.slice(0,1),c,''); t.style.height='auto'; t.style.position='static'; gr.appendChild(t); const hd=t.firstChild.offsetHeight, rh=t.lastChild.offsetHeight, gap=Math.max(1,window.innerWidth*.007), pad=window.innerWidth*.006; gr.removeChild(t);
+    const rows=Math.floor((H-hd-pad+gap)/(rh+gap)); if(rows<1) continue; const cap=c*rows, pages=Math.ceil(nj/cap)+Math.ceil(nh/cap); best={c,cap}; if(pages<=MAXPG) break; }
   if(!best) best={c:13,cap:13}; document.documentElement.style.setProperty('--cols',best.c); PG=[];
   for(const k of ['jam','help']){ const a=CELLS[k], n=Math.ceil(a.length/best.cap); if(!n) continue; const per=Math.ceil(a.length/n); for(let i=0;i<n;i++) PG.push(mkSec(k,a.slice(i*per,(i+1)*per),best.c,n>1?(i+1)+' / '+n:'')); }
   for(const s of PG) gr.appendChild(s); if(pgI>=PG.length) pgI=0; showPg(); clearInterval(pgTm); if(PG.length>1) pgTm=setInterval(()=>{ pgI=(pgI+1)%PG.length; showPg(); },5000); }

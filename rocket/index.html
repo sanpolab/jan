@@ -10,6 +10,21 @@
 @font-face{font-family:DELA;src:url(./font/dela.woff2) format('woff2');font-display:swap}
 html,body{margin:0;height:100%;background:#03060f;overflow:hidden;font-family:MPR,'Hiragino Sans','Noto Sans JP',sans-serif;font-weight:900;color:#fff;-webkit-user-select:none;user-select:none}
 #stage{position:absolute;left:50%;top:0;transform:translateX(-50%);overflow:hidden}
+/* スマホの縦画面：ゲームを上につめて、下の空きに「視聴者数と文字」「コメントらん」「ギフト表（空きに写真）」を出す */
+#below{position:absolute;display:none;flex-direction:column;overflow:hidden;background:#03060f;font-weight:900}
+#binfo{flex:0 0 auto;display:flex;align-items:center;gap:calc(var(--u)*1.6);padding:calc(var(--u)*1.6) calc(var(--u)*2.4);box-sizing:border-box;min-height:calc(var(--u)*8.4);background:#0a1730;border-top:calc(var(--u)*.35) solid #b8964a}
+#viewers{flex:0 0 auto;padding:.3em .9em;border-radius:999px;background:#16264a;font-size:calc(var(--u)*3.2);white-space:nowrap}
+#viewers small{font-size:.8em;color:#9fd0ff;margin-right:.5em}
+#memo{flex:1 1 auto;min-width:0;text-align:center;white-space:pre-wrap;word-break:break-all;line-height:1.2;color:#ffd23f;max-height:calc(var(--u)*7.4);overflow:hidden}
+#frow{flex:0 0 auto;height:calc(var(--u)*25);display:flex;align-items:stretch;gap:calc(var(--u)*1.5);padding:calc(var(--u)*1.6) calc(var(--u)*2.4);box-sizing:border-box;background:#070d1f;margin-bottom:calc(var(--u)*1.2)}
+#feed{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:calc(var(--u)*.6);overflow:hidden}
+#feed .ln{font-size:calc(var(--u)*3.3);line-height:1.25;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:0 0 auto}
+#feed .ln b{color:#a9dcff;margin-right:.45em}#feed .ln.gf{color:#ffe27a}#feed .ln.gf b{color:#ffd23f}#feed .ln.fl{color:#ffc2dc}#feed .ln.fl b{color:#ff8fc0}
+#feed .ln.hint{color:#6f7da6;font-size:calc(var(--u)*2.8)}
+#gtbl{flex:1 1 auto;min-height:0;width:100%;border:0;background:#000;pointer-events:none;display:block}
+#photo{flex:0 0 auto;display:none;height:100%;width:auto;max-width:30%;object-fit:contain;object-position:right center;pointer-events:none;border-radius:calc(var(--u)*1.4)}
+#cfg #phPrev{max-width:40%;max-height:6em;border-radius:.4em;display:block;margin:.4em 0}
+#cfg textarea#memoTx{width:100%;box-sizing:border-box;height:4.2em;font:inherit;background:#0c1436;color:#fff;border:1px solid #6677aa;border-radius:.4em}
 canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 #testBtn{position:absolute;right:1em;top:.7em;font:inherit;font-size:2em;padding:.25em .9em;border-radius:1.2em;border:.12em solid #fff;background:#0a1730;color:#fff;z-index:8;cursor:pointer}
 #tp{grid-template-columns:repeat(4,1fr) !important;position:absolute;left:3em;right:3em;top:9em;max-height:92em;overflow:auto;box-sizing:border-box;background:rgba(8,16,40,.95);border:.3em solid #2c4a86;border-radius:2em;padding:2em;z-index:9;display:grid;grid-template-columns:repeat(3,1fr);gap:1.2em}
@@ -109,7 +124,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 14:40</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 15:29</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -136,6 +151,11 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <div class="row jam"><div class="nm">いいね1000回<small>魔法使いが1体出る（画面に3体まで）</small></div><button id="optLike" type="button"></button></div>
     <div class="row jam"><div class="nm">フォロー<small>隕石が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
     <div class="row both"><div class="nm">ギフト表のコイン数<small>オフにすると、ギフト表のギフトの絵にコイン数を出さない</small></div><button id="optCoin" type="button"></button></div>
+    <h3>画面にのせる文字と写真（スマホの縦画面）</h3>
+    <p>文字はゲームのすぐ下（視聴者数の右）に、写真はコメントらんの右に小さく出ます。この端末にだけ保存されます。</p>
+    <textarea id="memoTx" maxlength="40" placeholder="例：初見さん歓迎！ギフトで妨害できるよ"></textarea>
+    <img id="phPrev" alt="" hidden>
+    <div class="row" style="border:0"><input id="phFile" type="file" accept="image/*" hidden><button id="phPick" type="button">写真をえらぶ</button><button id="phDel" type="button" class="x">写真を消す</button><span id="phSt" style="font-size:.85em;color:#ffb0b8"></span></div>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
     <h3>調査用：TikFinityから届いた生データ</h3>
@@ -168,6 +188,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <button class="g" data-g="50000">50,000m</button><button class="g" data-g="100000">100,000m</button><button class="n" data-a="reset">記録を消す</button><button class="n" data-a="title">タイトルに戻る</button>
   </div>
 </div>
+<div id="below"><div id="binfo"><div id="viewers"><small>視聴</small><span id="viewN">–</span></div><div id="memo"></div></div><div id="frow"><div id="feed"><div class="ln hint">ここにコメント・ギフト・フォローが流れます</div></div><img id="photo" alt=""></div><iframe id="gtbl" title="ギフト表"></iframe></div>
 <script>
 'use strict';
 /* ロケット「◯◯mまで飛ぶまで終われません」
@@ -1049,12 +1070,13 @@ function draw(){ if(S.cine){ drawCine(); return; }
   g.fillStyle='rgba(8,14,34,.9)'; g.fillRect(0,930,W,150); g.fillStyle='#2c4a86'; g.fillRect(0,930,W,5);
   S.log.slice(-2).forEach((l,i)=>{ g.font='900 30px '+FONT; let s2=l.text; while(g.measureText(s2).width>W-60 && s2.length>4) s2=s2.slice(0,-2); txt(s2,30,966+i*44,30,l.color,'left'); });
   txt('コメントで隕石　いいねで魔法使い　ハートミーでドラゴン',W/2,1058,24,'#ffd23f','center'); }
-function fit(){ const w=Math.min(window.innerWidth,window.innerHeight); stage.style.width=w+'px'; stage.style.height=w+'px'; stage.style.top=((window.innerHeight-w)/2)+'px'; stage.style.fontSize=(w/108)+'px'; stage.style.setProperty('--u',(w/150)+'px'); }
-fit(); window.addEventListener('resize',fit);
+let TALL=false; function fit(){ const iw=window.innerWidth, ih=window.innerHeight, w=Math.min(iw,ih), left=ih-w; TALL=iw<=ih && left>=200; stage.style.width=w+'px'; stage.style.height=w+'px'; stage.style.top=(TALL?0:(ih-w)/2)+'px'; stage.style.fontSize=(w/108)+'px'; stage.style.setProperty('--u',(w/150)+'px');
+  const bl=document.getElementById('below'), tb=document.getElementById('gtbl'); if(bl){ bl.style.display=TALL?'flex':'none'; if(TALL){ bl.style.left=((iw-w)/2)+'px'; bl.style.top=w+'px'; bl.style.width=w+'px'; bl.style.height=left+'px'; bl.style.setProperty('--u',(w/100)+'px'); try{ if(tb && !tb.getAttribute('src')) tb.setAttribute('src','./gifts.html?fit=1&pg=2&cols=7&v='+VER); }catch(e){} } } try{ memoUI(); photoFit(); }catch(e){} }
+fit(); window.addEventListener('resize',fit); setTimeout(fit,0);
 const tp=document.getElementById('tp'), NAMES=['たぬ吉','ぽんた','みけ','そら','りく','はな','こてつ','もも','ゆず','まる'];
 function goalUI(){ tp.querySelectorAll('button[data-g]').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.g,10)===CFG.goal)); }
 document.getElementById('testBtn').onclick=()=>{ tp.hidden=!tp.hidden; goalUI(); };
-tp.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.dataset.a==='title'){ Game.title(); tp.hidden=true; return; } if(TITLE || PAUSE){ tp.hidden=true; return; } const n=pick(NAMES); if(b.dataset.g){ Game.setGoal(parseInt(b.dataset.g,10)); } else if(b.dataset.s){ Game.ship(b.dataset.s,n); } else { const a=b.dataset.a; if(a==='like') Game.like(1000,n); else if(a==='reset') Game.reset(); else Game[a](n); } tp.hidden=true; });
+tp.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.dataset.a==='title'){ Game.title(); tp.hidden=true; return; } if(TITLE || PAUSE){ tp.hidden=true; return; } const n=pick(NAMES); if(b.dataset.g){ Game.setGoal(parseInt(b.dataset.g,10)); } else if(b.dataset.s){ Game.ship(b.dataset.s,n); } else { const a=b.dataset.a; if(a==='like') Game.like(1000,n); else if(a==='reset') Game.reset(); else { if(a==='comment') feedAdd(n,'テストのコメントです'); else if(a==='follow') feedAdd(n,'がフォローした','fl'); Game[a](n); } } tp.hidden=true; });
 // 操作：画面を押したまま動かすと、動かした分だけロケットが動く（指でロケットが隠れない）。パソコンはマウスのドラッグか矢印キー
 cv.style.touchAction='none';
 cv.addEventListener('pointerdown',e=>{ drag={x:e.clientX,y:e.clientY,tx:S.tx,ty:S.ty}; try{ cv.setPointerCapture(e.pointerId); }catch(_){} });
@@ -1065,7 +1087,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ if(S.cine || SPD===1) update(dt); else { const n=Math.ceil(SPD); for(let i=0;i<n && !S.cine;i++) update(dt*SPD/n); } } draw(); } requestAnimationFrame(loop); }
-const VER='1124-144015'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1124-152930'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1130,6 +1152,18 @@ function missBuild(){ const box=document.getElementById('missBox'), el=document.
     const wrap=document.createElement('div'); wrap.style.cssText='display:flex;flex-wrap:wrap;gap:.4em'; for(const f of list){ const bt=document.createElement('button'); bt.type='button'; bt.style.cssText='font:inherit;font-weight:900;font-size:.85em;padding:.45em .7em;border-radius:.6em;border:0;color:#fff;background:'+(f[1]==='help'?'#1f8f3c':f[1]==='jam'?'#b3262e':'#8a6a00'); bt.textContent=TF.map[f[0]].name+' → '+f[2]; bt.addEventListener('click',()=>missBind(i,f[0])); wrap.appendChild(bt); }
     const del=document.createElement('button'); del.type='button'; del.style.cssText='font:inherit;font-size:.8em;padding:.45em .7em;border-radius:.6em;border:1px solid #778;background:transparent;color:#aab'; del.textContent='使わない（消す）'; del.addEventListener('click',()=>{ MISS.splice(i,1); missSave(); missBuild(); }); wrap.appendChild(del); row.appendChild(wrap); el.appendChild(row); }); }
 setTimeout(()=>{ const cb=document.getElementById('cfgBtn'); if(cb) cb.addEventListener('click',()=>setTimeout(()=>{ const bx=document.getElementById('missBox'); if(MISS.length && bx && !bx.hidden) bx.scrollIntoView({block:'center'}); },80)); missBuild(); },0);   // 分からなかったギフトがある時は、ギフト画面を開いたらそこまで自動で進む
+/* スマホの縦画面で、ゲームの下に出すもの：コメントらん（コメント・ギフト・フォローを下から足す）、視聴者数、自分で入れる文字、ギフト表の空きに出す写真。文字と写真はこの端末にだけ保存する */
+const FEED_MAX=5;
+function feedAdd(name,text,kind){ const el=document.getElementById('feed'); if(!el) return; const h=el.querySelector('.hint'); if(h) el.removeChild(h); const ln=document.createElement('div'); ln.className='ln'+(kind?' '+kind:''); const b=document.createElement('b'); b.textContent=String(name||'').slice(0,16); ln.appendChild(b); ln.appendChild(document.createTextNode(String(text||'').slice(0,60))); el.appendChild(ln); while(el.children.length>FEED_MAX) el.removeChild(el.firstChild); }
+function feedViewers(n){ n=parseInt(n,10); if(!(n>=0)) return; const e=document.getElementById('viewN'); if(e) e.textContent=n.toLocaleString('ja-JP')+'人'; }
+let MEMO='', PHOTO=''; try{ MEMO=localStorage.getItem('rocket_memo')||''; PHOTO=localStorage.getItem('rocket_photo')||''; }catch(e){}
+function memoUI(){ const m=document.getElementById('memo'); if(!m) return; const t=MEMO.trim(); m.textContent=t; const lines=t.split('\n'), longest=Math.max.apply(null,lines.map(l=>l.length)), two=lines.length>1 || longest>18; m.style.fontSize='calc(var(--u)*'+(two?2.9:Math.max(2.9,Math.min(4.4,62/Math.max(1,longest)))).toFixed(2)+')'; }
+function photoFit(){ const im=document.getElementById('photo'); if(im) im.style.display=(PHOTO && im.naturalWidth>0)?'block':'none'; }
+function photoSet(u){ PHOTO=u||''; const im=document.getElementById('photo'), pv=document.getElementById('phPrev'); if(pv){ pv.hidden=!PHOTO; if(PHOTO) pv.src=PHOTO; else pv.removeAttribute('src'); } if(im){ if(PHOTO){ im.onload=photoFit; im.src=PHOTO; } else { im.removeAttribute('src'); im.style.display='none'; } } }
+setTimeout(()=>{ const tx=document.getElementById('memoTx'), fl=document.getElementById('phFile'), st=document.getElementById('phSt'); if(!tx || !fl) return; tx.value=MEMO; tx.addEventListener('input',()=>{ MEMO=tx.value.slice(0,40); try{ localStorage.setItem('rocket_memo',MEMO); }catch(e){} memoUI(); }); for(const ev of ['pointerdown','keydown','keyup']) tx.addEventListener(ev,e=>e.stopPropagation());
+  document.getElementById('phPick').addEventListener('click',()=>fl.click()); document.getElementById('phDel').addEventListener('click',()=>{ try{ localStorage.removeItem('rocket_photo'); }catch(e){} st.textContent=''; photoSet(''); });
+  fl.addEventListener('change',()=>{ const f=fl.files && fl.files[0]; fl.value=''; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ const i=new Image(); i.onload=()=>{ const k=Math.min(1,720/Math.max(i.naturalWidth,i.naturalHeight)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(i.naturalWidth*k)); c.height=Math.max(1,Math.round(i.naturalHeight*k)); c.getContext('2d').drawImage(i,0,0,c.width,c.height); let u=c.toDataURL('image/webp',.86); if(u.indexOf('data:image/webp')!==0 && u.length>900000) u=c.toDataURL('image/jpeg',.86); try{ localStorage.setItem('rocket_photo',u); st.textContent=''; }catch(e){ st.textContent='保存できませんでした（開き直すと消えます）'; } photoSet(u); }; i.onerror=()=>{ st.textContent='この写真は読みこめませんでした'; }; i.src=rd.result; }; rd.readAsDataURL(f); });
+  photoSet(PHOTO); memoUI(); },0);
 function tfLogAdd(t){ TF.log.unshift(t); if(TF.log.length>40) TF.log.length=40; const el=document.getElementById('tfLog'); if(el) el.textContent=TF.log.join('\n'); }
 function tfUI(){ const b=document.getElementById('cfgBtn'), st=document.getElementById('tfSt'); if(b) b.classList.toggle('on',TF.ok); if(st){ st.classList.toggle('on',TF.ok); st.textContent=srcName()+(TF.ok?'：つながっています':(cloudOn()&&TF.offline?'：配信が始まるのを待っています':'：つながっていません')); } { const cu=document.getElementById('clUser'), ck=document.getElementById('clKey'), cb=document.getElementById('clOn'), cs=document.getElementById('clSt'); if(cb){ if(document.activeElement!==cu && !cu.dataset.d) cu.value=CLOUD.user; if(document.activeElement!==ck && !ck.dataset.d) ck.value=CLOUD.key; cb.textContent=CLOUD.on?'やめる（TikFinityに戻す）':'つなぐ'; cb.style.background=CLOUD.on?'#d1457a':''; cs.textContent=CLOUD.on?(TF.ok?'つながっています':(TF.offline?'キーとユーザー名は通りました。いまは配信していないので待っています（配信を始めたら、上の「つなぎ直す」を押すとすぐつながります）':(EMBED?'このページ（Claudeの共有ページ）からは、つなぐことができません。Safariで '+HOME_URL+' を開いて、そちらでユーザー名とキーを入れてください':TF.why?'つながりません：'+TF.why:'つなぎ中…（つながらない時は、ユーザー名・キー・配信中かどうかを確かめてください）'))):''; } } tfDiag(); }
 function tfDiag(){ const el=document.getElementById('tfDiag'); if(!el) return; const L=[]; const n=TF.rawN||0, kinds=Object.keys(TF.kinds||{}).map(k=>k+'×'+TF.kinds[k]).join('、');
@@ -1153,11 +1187,12 @@ function tfConnect(){ clearTimeout(TF.timer); try{ if(TF.ws){ TF.ws.onclose=null
 function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.data||m||{}, u=d.user||{}, name=d.nickname||u.nickname||d.uniqueId||u.uniqueId||'だれか';
   if(ev==='gift'){ const gd=d.giftDetails||d.extendedGiftInfo||d.gift||{}, id=d.giftId!=null?d.giftId:(gd.id!=null?gd.id:gd.giftId), gname=d.giftName||gd.giftName||gd.name||('ID'+id), coins=d.diamondCount!=null?d.diamondCount:(gd.diamondCount!=null?gd.diamondCount:gd.diamond_count), pic=d.giftPictureUrl||gd.giftPictureUrl||gd.pictureUrl||(gd.icon&&gd.icon.url_list&&gd.icon.url_list[0])||(gd.image&&gd.image.url_list&&gd.image.url_list[0])||null, gtype=d.giftType!=null?d.giftType:gd.giftType, rc=Math.max(1,parseInt(d.repeatCount,10)||1), end=!!d.repeatEnd;
     let n=rc; if(gtype===1){ const k=(d.uniqueId||u.uniqueId||name)+'|'+id, last=TF.streak[k]||0; n=Math.max(0,rc-last); if(end) delete TF.streak[k]; else TF.streak[k]=rc; }
-    if(n<=0) return; tfGift({id,name:gname,coins,pic},name,Math.min(n,50)); }
-  else if(ev==='chat'){ if(OPT.chatOn && !TITLE && !PAUSE) Game.comment(name); tfLogAdd('コメント：'+name+(OPT.chatOn?'':'（オフ）')); }
+    if(n<=0) return; feedAdd(name,'が '+gname+(n>1?' ×'+n:'')+' を贈った','gf'); tfGift({id,name:gname,coins,pic},name,Math.min(n,50)); }
+  else if(ev==='roomuser'){ const vc=d.viewerCount!=null?d.viewerCount:(d.viewer_count!=null?d.viewer_count:(d.totalUser!=null?d.totalUser:d.total)); if(vc!=null) feedViewers(vc); }
+  else if(ev==='chat'){ { const tx=d.comment!=null?d.comment:(d.text!=null?d.text:d.content); if(tx) feedAdd(name,tx); } if(OPT.chatOn && !TITLE && !PAUSE) Game.comment(name); tfLogAdd('コメント：'+name+(OPT.chatOn?'':'（オフ）')); }
   else if(ev==='like'){ const c=parseInt(d.likeCount!=null?d.likeCount:(d.count!=null?d.count:d.likes),10)||1; if(OPT.likeOn && !TITLE && !PAUSE) Game.like(c,name); }
   else if(ev==='error'||ev==='disconnected'||ev==='streamend'){ tfLogAdd('つなぎ先から：'+ev+' '+JSON.stringify(d).slice(0,140)); }
-  else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow' && OPT.followOn) runFx(()=>Game.follow(name)); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
+  else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') feedAdd(name,'がフォローした','fl'); if(ev==='follow' && OPT.followOn) runFx(()=>Game.follow(name)); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
 const GIFT_EN={'rose':['バラ','ローズ'],'tiktok':['TikTok','ティックトック'],'gg':['GG'],'icecreamcone':['ソフトクリーム','アイスクリーム'],'fingerheart':['フィンガーハート','指ハート'],'heartme':['ハートミー'],'rosa':['ローザ'],'perfume':['香水'],'doughnut':['ドーナッツ','ドーナツ'],'donut':['ドーナッツ','ドーナツ'],'handhearts':['ハンドハート'],'handheart':['ハンドハート'],'hatandmustache':['帽子と口ひげ','帽子とひげ'],'papercrane':['折り鶴','折り稚'],'swan':['白鳥','スワン'],'train':['列車'],'corgi':['コーギー'],'confetti':['紙吹雪','コンフェッティ'],'goldenconfetti':['金の紙吹雪'],'lion':['ライオン'],'galaxy':['ギャラクシー','銀河'],'moneygun':['マネーガン'],'sunglasses':['サングラス'],'hearts':['ハート'],'heart':['ハート'],'cap':['キャップ'],'littlecrown':['小さな王冠'],'bubblegum':['風船ガム'],'friendshipnecklace':['友情ネックレス'],'loveyou':['愛してる'],'garlandheadpiece':['花冠'],'coral':['サンゴ'],'football':['サッカー'],'soccer':['サッカー'],'winkwink':['ウインク'],'wink':['ウインク'],'cheeryouup':['エール'],'whalediving':['ダイビングするクジラ','クジラダイビング'],'universe':['TikTok Universe','ユニバース'],'tiktokuniverse':['TikTok Universe','ユニバース'],'interstellar':['インターステラー'],'rocket':['ロケット'],'pegasus':['ペガサス'],'firephoenix':['不死鳥','フェニックス','火の鳥'],'phoenix':['不死鳥','フェニックス'],'feather':['羽根'],'featherstiara':['羽のティアラ'],'feathermask':['羽根のマスク'],'loveshelter':['ラブシェルター'],'superpopular':['スーパー人気'],'ilovepoyou':['大好き'],'ilyso':['大好き'],'youreawesome':['素晴らしい'],'acorn':['どんぐり'],'popsicle':['アイスバー'],'baseball':['野球'],'catpaws':['猫の足'],'glowstick':['ペンライト'],'fan':['うちわ'],'omamori':['おまもり'],'amulet':['おまもり'],'slowmotion':['スローモーション'],'bravo':['ブラボー！'],'genius':['天才'],'firstvisit':['初見です'],'mirrorbloom':['ミラーブルーム'],'butterfly':['蝶結び'],'chili':['チリ'],'starglasses':['スターメガネ'],'ramune':['ラムネ']};
 const enKey=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]/g,''), enHit=(b,gf)=>{ const c=GIFT_EN[enKey(gf.name)]; return !!(c && b.name && c.some(j=>tfNorm(j)===tfNorm(b.name))); };
 function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
