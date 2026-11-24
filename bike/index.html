@@ -60,7 +60,7 @@ const CFG={goal:20000, speed:28, hp:5, jumpV:-930, grav:2500};
 const BX=340, WR=46, WB=150;        /* 自転車の画面上の位置、タイヤの半径、前後のタイヤの間隔 */
 const FALLS_PER=5;
 /* 巨人：画面の奥に出てきて、ハンマーで地面を3回たたく。たたくたびに地面を振動（波）が走ってくるので、ジャンプでよける。よけそこなうとこける */
-const GIANT={n:3,inT:1.0,outT:.9,x:810,waveV:1150,h:540,fw:298,fh:325,cols:8,nf:48,fps:12,rate:1.3,hitF:8.6,hx:-.22};   /* 絵のコマ（横298×たて325が48コマ、1秒12コマ）、再生の速さ、ハンマーが地面に当たるコマ、当たる場所（巨人の中心から、横幅の何倍ぶん左か） */
+const GIANT={n:3,inT:2.2,outT:1.6,sink:58,x:810,waveV:1150,h:540,fw:298,fh:325,cols:8,nf:48,fps:12,rate:1.3,hitF:8.6,hx:-.22};   /* 絵のコマ（横298×たて325が48コマ、1秒12コマ）、再生の速さ、ハンマーが地面に当たるコマ、当たる場所（巨人の中心から、横幅の何倍ぶん左か） */
 const T_={wind:10,windMul:2,assist:15,assistMul:1.5,rocket:5,rocketMul:3,headwind:5,headMul:.4,puddle:3,puddleMul:.5,punk:6,punkMul:.5,crash:1.7,inv:2,back:1.6,dog:2.6,helmetMax:3,rampGain:200};
 let S, best=0, tries=1, wins=0, falls=0, T=0;
 try{ const o=JSON.parse(localStorage.getItem('bike_save')||'{}'); best=o.best||0; tries=o.tries||1; wins=o.wins||0; falls=o.falls||0; if(o.g3) CFG.goal=o.g3; }catch(e){}
@@ -168,6 +168,7 @@ function ring(x,y,r,w,fill){ g.beginPath(); g.arc(x,y,r,0,7); if(fill){ g.fillSt
 function drawGround(cx){
   /* 地面は1本の線。落とし穴のところは線が切れて、下へ落ちる線を引く */
   let cur=null; const segs=[]; for(let x=-20;x<=W+20;x+=10){ const wx=x+cx; if(pitAt(wx)){ if(cur){ segs.push(cur); cur=null; } } else { if(!cur) cur=[]; cur.push([x,gy0(wx)]); } } if(cur) segs.push(cur);
+  for(const s of segs){ g.beginPath(); g.moveTo(s[0][0],H); for(const q of s) g.lineTo(q[0],q[1]); g.lineTo(s[s.length-1][0],H); g.closePath(); g.fillStyle='#fff'; g.fill(); }   /* 道より下は白くぬる（道の向こう側にいる巨人の足もとをかくす） */
   for(const s of segs) line(s,LW);
   for(const p of S.pits){ const x0=p.x-cx, x1=x0+p.w; if(x0>W+40||x1<-40) continue; line([[x0,gy0(p.x)],[x0+14,gy0(p.x)+150]],LW); line([[x1,gy0(p.x+p.w)],[x1-14,gy0(p.x+p.w)+150]],LW); }
   /* 流れて見えるように、地面に短いしるしを打つ */
@@ -194,7 +195,8 @@ function drawWarn(cx){ const L=[]; for(const e of S.ents){ if(e.x-cx>W+10) L.pus
   let y=560; for(const [x,name,good] of L.slice(0,3)){ const bl=Math.floor(T*8)%2; rr(W-250,y-34,236,68,14); g.fillStyle=good?'#fff':(bl?'#111':'#fff'); g.fill(); g.lineWidth=5; g.strokeStyle=INK; g.stroke(); txt((good?'▲ ':'！ ')+name,W-132,y+2,32,good?INK:(bl?'#fff':'#111'),'center'); y-=84; } }
 /* 巨人（仮の線の絵。あとで動画から作った絵に差し替える）と、地面を走ってくる振動 */
 function drawGiant(cx){ const d=S.giant; if(!d || !ok('giant')) return; const gyv=gy0(cx+GIANT.x), e=x=>x*x*(3-2*x), up=d.st==='in'?1-e(clamp(d.t/GIANT.inT,0,1)):(d.st==='out'?e(clamp(d.t/GIANT.outT,0,1)):0), h=GIANT.h, w=h*GIANT.fw/GIANT.fh, f=d.st==='act'?clamp(Math.floor(d.tc*GIANT.fps),0,GIANT.nf-1):0;
-  g.save(); g.translate(GIANT.x,gyv+16+up*(h+60)+(d.hitFx>0?d.hitFx*14:0)); g.scale(-1,1);   /* 絵は右にたたくので、左右を反転して自転車のほうへたたかせる */
+  const sway=(d.st==='in'||d.st==='out')?Math.sin(d.t*5.2)*10*up:0;   /* 道の向こう側から、ゆれながら「のそっ」と立ち上がる。足もとは道にかくれる */
+  g.save(); g.translate(GIANT.x+sway,gyv+GIANT.sink+up*(h+20)+(d.hitFx>0?d.hitFx*12:0)); g.rotate(sway*.004); g.scale(-1,1);   /* 絵は右にたたくので、左右を反転して自転車のほうへたたかせる */
   g.drawImage(IMG.giant,(f%GIANT.cols)*GIANT.fw,Math.floor(f/GIANT.cols)*GIANT.fh,GIANT.fw,GIANT.fh,-w/2,-h,w,h); g.restore();
   const cyc=GIANT.nf/GIANT.fps, toHit=d.st==='in'?9:(d.hit?(d.left>0?cyc-d.tc+GIANT.hitF/GIANT.fps:99):GIANT.hitF/GIANT.fps-d.tc)/GIANT.rate;
   if(d.st==='in' || toHit<1.1){ const bl=Math.floor(T*8)%2; txt('ハンマーが来る！ ジャンプでよけろ',W/2,310,40,bl?'#e23a3a':INK,'center','#fff'); } }
