@@ -131,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 22:52</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 23:01</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -1099,11 +1099,12 @@ function draw(){ if(S.cine){ drawCine(); return; }
   S.log.slice(-2).forEach((l,i)=>{ g.font='900 30px '+FONT; let s2=l.text; while(g.measureText(s2).width>W-60 && s2.length>4) s2=s2.slice(0,-2); txt(s2,30,966+i*44,30,l.color,'left'); });
   txt('コメントで隕石　いいねで魔法使い　ハートミーでドラゴン',W/2,1058,24,'#ffd23f','center'); drawDbl(); }
 /* 2倍タイムの見た目：金色のふち、残り時間、始まりの大きな「×2」、2倍が効いたときの小さな「×2」、終わりの知らせ */
+img('moon2','moon2.webp');
 /* ゲーム画面に出る「2つの金の月」：2倍タイムの間、空（敵よりうしろ）に浮かぶ。始まりは1つの月が左右に分かれる。絵（img/moon2.webp）があればそれを使い、無ければ丸で描く */
 function drawDblMoons(){ if(!(dblT>0)) return; const last=dblT<10;
     { const t0=dblFx>0?3.2-dblFx:9, sp=clamp((t0-.5)/.9,0,1), e=sp*sp*(3-2*sp), off=150*e, my=330+Math.sin(T*1.3)*6, R=84, fade=last?(Math.floor(T*4)%2?1:.45):1;
       for(const sg of (e>0?[-1,1]:[0])){ const mx=W/2+sg*off; g.save(); g.globalAlpha=fade; const gl=g.createRadialGradient(mx,my,R*.6,mx,my,R*2.3); gl.addColorStop(0,'rgba(255,214,90,.55)'); gl.addColorStop(1,'rgba(255,214,90,0)'); g.fillStyle=gl; g.beginPath(); g.arc(mx,my,R*2.3,0,7); g.fill();
-        if(ok('moon2')){ g.drawImage(IMG.moon2,mx-R*1.25,my-R*1.25,R*2.5,R*2.5); } else { const mg=g.createRadialGradient(mx-R*.35,my-R*.35,R*.1,mx,my,R); mg.addColorStop(0,'#fff6c2'); mg.addColorStop(.6,'#ffd23f'); mg.addColorStop(1,'#d99a14'); g.fillStyle=mg; g.beginPath(); g.arc(mx,my,R,0,7); g.fill(); g.strokeStyle='#8a5a00'; g.lineWidth=4; g.stroke(); g.fillStyle='rgba(180,120,10,.35)'; for(const [cx,cy,cr] of [[-.3,-.1,.2],[.25,.3,.15],[.2,-.4,.11],[-.15,.42,.09]]){ g.beginPath(); g.arc(mx+cx*R,my+cy*R,cr*R,0,7); g.fill(); } }
+        if(ok('moon2')){ g.drawImage(IMG.moon2,mx-R*1.06,my-R*1.06,R*2.12,R*2.12); } else { const mg=g.createRadialGradient(mx-R*.35,my-R*.35,R*.1,mx,my,R); mg.addColorStop(0,'#fff6c2'); mg.addColorStop(.6,'#ffd23f'); mg.addColorStop(1,'#d99a14'); g.fillStyle=mg; g.beginPath(); g.arc(mx,my,R,0,7); g.fill(); g.strokeStyle='#8a5a00'; g.lineWidth=4; g.stroke(); g.fillStyle='rgba(180,120,10,.35)'; for(const [cx,cy,cr] of [[-.3,-.1,.2],[.25,.3,.15],[.2,-.4,.11],[-.15,.42,.09]]){ g.beginPath(); g.arc(mx+cx*R,my+cy*R,cr*R,0,7); g.fill(); } }
         g.restore(); } } }
 function drawDbl(){
   if(dblT>0){ const last=dblT<10, pul=.55+.25*Math.sin(T*(last?14:3)), a=last?(Math.floor(T*4)%2?.9:.25):pul; g.save();
@@ -1136,7 +1137,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ update(dt); } draw(); } requestAnimationFrame(loop); }
-const VER='1124-225222'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1124-230136'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
