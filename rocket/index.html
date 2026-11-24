@@ -81,7 +81,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 13:23</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 13:26</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -100,8 +100,8 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <div id="cfgRows"></div>
     <h3>ギフト以外</h3>
     <div class="row jam"><div class="nm">コメント<small>隕石が落ちてくる（同じ人は20秒に1回、画面に3個まで）</small></div><button id="optChat" type="button"></button></div>
-    <div class="row jam"><div class="nm">いいね100回<small>魔法使いが1体出る（画面に3体まで）</small></div><button id="optLike" type="button"></button></div>
-    <div class="row help"><div class="nm">フォロー<small>一気にスピードアップ</small></div><button id="optFollow" type="button"></button></div>
+    <div class="row jam"><div class="nm">いいね1000回<small>魔法使いが1体出る（画面に3体まで）</small></div><button id="optLike" type="button"></button></div>
+    <div class="row jam"><div class="nm">フォロー<small>隕石が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
     <h3>調査用：TikFinityから届いた生データ</h3>
@@ -116,7 +116,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="tp" hidden>
     <h3>無料・1コイン（妨害になる）</h3>
-    <button class="j" data-a="comment">コメント<br>隕石（耐久 −1）</button><button class="j" data-a="like">いいね×100<br>魔法使い 1体</button><button class="j" data-a="heartme">ハートミー<br>ドラゴン襲来</button><button class="n" data-a="follow">フォロー<br>大きく加速</button>
+    <button class="j" data-a="comment">コメント<br>隕石（耐久 −1）</button><button class="j" data-a="like">いいね×1000<br>魔法使い 1体</button><button class="j" data-a="heartme">ハートミー<br>ドラゴン襲来</button><button class="j" data-a="follow">フォロー<br>隕石（耐久 −1）</button>
     <h3>お助け</h3>
     <button class="h" data-a="fuel">エネルギー補給<br>耐久・パワー全回復</button><button class="h" data-a="boost">ブースター<br>10秒 3倍速</button><button class="h" data-a="shield">天使の加護<br>攻撃を1回防ぐ（3回分まで）</button><button class="h" data-a="heart">ハート<br>耐久 ＋1</button><button class="h" data-a="bomb">カミナリ<br>敵を1体消す（ガーゴイル・ドラゴン・天狗・魔法使い・アンコウ）</button><button class="h" data-a="buddy">おとも<br>20秒 弾を3発まで受ける</button><button class="h" data-a="hero">勇者<br>ゴールが −100,000m 近づく（呪いを斬る）</button><button class="h" data-a="dome">バリアドーム<br>15秒 弾をはね返す</button><button class="h" data-a="roulUp">ゴール−ルーレット<br>ゴールが 100〜1,000m 近づく</button><button class="h" data-a="fairy">妖精の粉<br>15秒 小さくなって当たりにくい</button><button class="h" data-a="pad">加速板<br>ふれると1.5秒 加速</button><button class="h" data-a="astro">宇宙飛行士<br>＋10,000m 引っぱる</button><button class="h" data-a="samurai">侍<br>敵と弾をすべて斬る＋全回復＋混乱解除</button><button class="h" data-a="stop">時間停止<br>10秒 敵と弾が止まる</button><button class="h" data-a="comet">彗星ライド<br>＋3,000m 運ぶ間は無敵</button><button class="h" data-a="phoenix">不死鳥<br>＋2000m 運ぶ間は無敵</button>
     <button class="h" data-a="save">セーブ（天使）<br>落ちてもここから</button><button class="h" data-a="crow">カラス<br>＋200m 運んでくれる</button><span></span>
@@ -298,13 +298,13 @@ function fx(k,x,y,dur,s){ S.fx.push({k,x:RXw()+(x-W/2)*RS,y:RYw()+(y-RY)*RS,t:0,
 function debris(x,y,n,pw){ for(let i=0;i<n;i++) S.parts.push({k:'deb',i:Math.floor(rand(0,6)),x:x+rand(-50,50),y:y+rand(-30,30),vx:rand(-1,1)*pw,vy:rand(-1.3,-.2)*pw,g:1500,t:rand(1,1.8),r:rand(50,105),rot:rand(0,6),vr:rand(-9,9)}); }
 function fmt(n){ return Math.floor(n).toLocaleString(); }
 const Game={
-  /* 無料の行動はぜんぶ妨害：コメント＝隕石（同じ人は20秒に1回、画面に3個まで）、いいね100回＝魔法使い（画面に3体まで）、ハートミー＝ドラゴン */
+  /* 無料の行動はぜんぶ妨害：コメント＝隕石（同じ人は20秒に1回、画面に3個まで）、フォロー＝隕石、いいね1000回＝魔法使い（画面に3体まで）、ハートミー＝ドラゴン */
   comment(n){ if(S.mode!=='fly') return; const k=n||'?'; if(T-(FREE.last.get(k)??-99)<FREE.commentGap) return; if(S.items.filter(it=>it.k==='meteor'&&!it.hit).length>=FREE.meteorMax) return; FREE.last.set(k,T); if(FREE.last.size>3000) FREE.last.clear(); this.meteor(n); },
   like(c,n){ FREE.likes+=(c||1); if(S.mode!=='fly'){ FREE.likes=Math.min(FREE.likes,FREE.likePer); return; } while(FREE.likes>=FREE.likePer){ FREE.likes-=FREE.likePer; if(S.wizs.length<FREE.wizMax) this.wizard(n||'いいね'); } },
   heartme(n){ this.dragonAtk(n); },
   blackout(n){ if(S.mode!=='fly') return; if(inv() || jamBlocked(n,'チョウチンアンコウ')) return; if(!(S.blk>0)){ S.blkT=0; play('bubble',.7); play('dark',.6); } if(!S.ang || S.ang.out) S.ang={t:0,x:W+330,y:330,a:.9}; cutOnce('angler',n); S.blk=Math.min(BLK.max,Math.max(0,S.blk||0)+BLK.sec); S.shake=Math.max(S.shake,.25); logAdd((n||'だれか')+' がチョウチンアンコウを呼んだ（'+BLK.sec+'秒 まっ暗）','#ff9aa8'); },
   angler(n){ this.blackout(n); },
-  follow(n){ addPow(CFG.follow); logAdd((n||'だれか')+' がフォロー！一気にスピードアップ','#b9ffb0'); },
+  follow(n){ if(S.mode!=='fly') return; if(S.items.filter(it=>it.k==='meteor'&&!it.hit).length>=FREE.meteorMax+2) return; this.meteor(n); },   /* フォロー＝隕石（コメントとちがって1人1回きりなので、間隔の制限はなし） */
   fuel(n){ if(S.mode!=='fly') return; S.pow=1; S.hp=SHIPS[S.ship].hp; S.tankT=0; S.flash=.3; logAdd((n||'だれか')+' がエネルギー補給（耐久とパワー全回復）','#5dffb0'); },
   boost(n){ if(S.mode!=='fly') return; S.boostT=CFG.boostSec; S.stallT=0; ring(W/2,RY+150,'#bff3ff'); banner('ブースター！','#5dffb0',n,'logo_boost'); logAdd((n||'だれか')+' がブースターに点火','#5dffb0'); },
   shield(n){ if(S.mode!=='fly') return; if(S.cutin && S.cutin.k==='angel'){ S.cutin.more=(S.cutin.more||0)+1; return; } logAdd((n||'だれか')+' が天使の加護をさずけた（攻撃を1回防ぐ）','#5dffb0'); if(S.cutin || T-(cutLast.angel===undefined?-99:cutLast.angel)<8){ cutLast.angel=T; blessGo(1); return; } cutLast.angel=T; S.cutin={k:'angel',t:0,by:n,done:false,more:0}; S.flash=Math.max(S.flash,.1); if(0) logAdd((n||'だれか')+' が天使の加護をさずけた（攻撃を1回防ぐ）','#5dffb0'); },
@@ -663,7 +663,7 @@ function drawBlackout(){ if(!(S.blk>0) || S.mode!=='fly') return; const t=S.blkT
   g.drawImage(blkCv,0,0);
   if(S.ang && S.ang.lx!==undefined){ const d=S.ang, R=50*(.9+.1*Math.sin(T*9)); g.save(); g.globalCompositeOperation='lighter'; const gr=g.createRadialGradient(d.lx,d.ly,2,d.lx,d.ly,R); gr.addColorStop(0,'rgba(235,255,170,'+.75*a+')'); gr.addColorStop(.3,'rgba(190,255,120,'+.3*a+')'); gr.addColorStop(1,'rgba(160,255,90,0)'); g.fillStyle=gr; g.fillRect(d.lx-R,d.ly-R,R*2,R*2); g.restore(); }
   g.save(); g.globalCompositeOperation='lighter'; g.translate(rx,ry-50); g.rotate(ang); { const gr=g.createLinearGradient(0,0,0,-L); gr.addColorStop(0,'rgba(255,240,190,'+.2*a*fl+')'); gr.addColorStop(1,'rgba(255,240,190,0)'); g.fillStyle=gr; g.beginPath(); g.moveTo(-14,0); g.lineTo(-hw*.7,-L); g.lineTo(hw*.7,-L); g.lineTo(14,0); g.closePath(); g.fill(); } g.restore(); }
-const FREE={commentGap:20,meteorMax:3,likePer:100,wizMax:3,likes:0,last:new Map()};
+const FREE={commentGap:20,meteorMax:3,likePer:1000,wizMax:3,likes:0,last:new Map()};
 const GACHA={spin:1.9,show:1.0,sec:15,list:['gold','dragon','mega'],gap:330};   /* 機体ガチャ：回る秒数、結果を見せる秒数、変身が続く秒数、出る機体、絵の間隔 */
 function ring(x,y,c,big){ S.rings.push({x:RXw()+(x-W/2)*RS,y:RYw()+(y-RY)*RS,c,t:0,big:!!big}); }
 function damage(n){ if(inv()) return; S.hp-=1; S.red=.5; if(S.hp<=0){ S.hp=0; logAdd('耐久が0になった！','#ff5c5c'); startFall(); } }
@@ -1002,7 +1002,7 @@ fit(); window.addEventListener('resize',fit);
 const tp=document.getElementById('tp'), NAMES=['たぬ吉','ぽんた','みけ','そら','りく','はな','こてつ','もも','ゆず','まる'];
 function goalUI(){ tp.querySelectorAll('button[data-g]').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.g,10)===CFG.goal)); }
 document.getElementById('testBtn').onclick=()=>{ tp.hidden=!tp.hidden; goalUI(); };
-tp.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const n=pick(NAMES); if(b.dataset.g){ Game.setGoal(parseInt(b.dataset.g,10)); } else if(b.dataset.s){ Game.ship(b.dataset.s,n); } else { const a=b.dataset.a; if(a==='like') Game.like(100,n); else if(a==='reset') Game.reset(); else Game[a](n); } tp.hidden=true; });
+tp.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const n=pick(NAMES); if(b.dataset.g){ Game.setGoal(parseInt(b.dataset.g,10)); } else if(b.dataset.s){ Game.ship(b.dataset.s,n); } else { const a=b.dataset.a; if(a==='like') Game.like(1000,n); else if(a==='reset') Game.reset(); else Game[a](n); } tp.hidden=true; });
 // 操作：画面を押したまま動かすと、動かした分だけロケットが動く（指でロケットが隠れない）。パソコンはマウスのドラッグか矢印キー
 cv.style.touchAction='none';
 cv.addEventListener('pointerdown',e=>{ drag={x:e.clientX,y:e.clientY,tx:S.tx,ty:S.ty}; try{ cv.setPointerCapture(e.pointerId); }catch(_){} });
@@ -1013,7 +1013,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ update(dt); draw(); } requestAnimationFrame(loop); }
-const VER='1124-132359'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1124-132600'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
