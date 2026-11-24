@@ -146,7 +146,8 @@ function update(dt){ T+=dt; if(S.flash>0) S.flash-=dt; if(S.shake>0) S.shake-=dt
   else if(S.mode==='clear'){ S.clearT+=dt; if(Math.random()<dt*40) S.parts.push({x:rand(0,W),y:150,vx:rand(-80,80),vy:rand(100,400),g:300,t:rand(1,2),r:rand(8,14),c:pick(['#ffd400','#fff','#4cc3ff','#ff5c8a','#5dffb0'])}); if(S.clearT>4){ tries=1; best=0; newRun(); save(); logAdd(fmt(CFG.goal)+'m まで走るまで終われません！','#ffd23f'); } }
 }
 
-/* ===== 描く：白い紙に黒い線だけ ===== */
+/* ===== 描く：白い紙に黒い線。妨害だけは色つきの絵（img/ に絵があればそれを使い、無ければ線で描く） ===== */
+const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 const INK='#111', LW=7;
 function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 function txt(s,x,y,size,color,align,stroke,font){ g.font=(font===FONTD?'400 ':'900 ')+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineWidth=Math.max(4,size*.16); g.strokeStyle=stroke; g.lineJoin='round'; g.strokeText(s,x,y); } g.fillStyle=color; g.fillText(s,x,y); }
@@ -164,7 +165,8 @@ function drawGround(cx){
   { const x=CFG.goal*PPM-cx; if(x<W+200){ const y=gy0(CFG.goal*PPM); line([[x,y],[x,y-330]],LW); for(let r=0;r<4;r++) for(let c=0;c<5;c++){ if((r+c)%2){ g.fillStyle=INK; g.fillRect(x+4+c*30,y-330+r*30,30,30); } } g.lineWidth=5; g.strokeStyle=INK; g.strokeRect(x+4,y-330,150,120); txt('ゴール',x+80,y-366,44,INK,'center',null,FONTD); } }
 }
 function drawEnts(cx){ for(const e of S.ents){ const x=e.x-cx, y=gy0(e.x);
-    if(e.k==='banana'){ g.save(); g.translate(x,y-8); line([[-44,0],[-16,-12],[0,-44],[16,-12],[44,0]],LW); line([[-16,-12],[0,-4],[16,-12]],5); line([[0,-44],[0,-58]],LW); g.restore(); }
+    if(ok(e.k) && e.k!=='ramp'){ const im=IMG[e.k]; if(e.k==='rock'){ g.save(); g.translate(x,y-78); g.rotate(e.rot); g.drawImage(im,-82,-82,164,164); g.restore(); } else if(e.k==='puddle'){ const w=230, h=w*im.naturalHeight/im.naturalWidth; g.drawImage(im,x-w/2,y-h*.45,w,h); } else { const w=110, h=w*im.naturalHeight/im.naturalWidth; g.drawImage(im,x-w/2,y-h+6,w,h); } }
+    else if(e.k==='banana'){ g.save(); g.translate(x,y-8); line([[-44,0],[-16,-12],[0,-44],[16,-12],[44,0]],LW); line([[-16,-12],[0,-4],[16,-12]],5); line([[0,-44],[0,-58]],LW); g.restore(); }
     else if(e.k==='puddle'){ { const y0=gy0(e.x-90), y1=gy0(e.x+90); g.fillStyle='#fff'; g.fillRect(x-86,Math.min(y0,y1)-6,172,14); line([[x-90,y0],[x-74,y0+20],[x+74,y1+20],[x+90,y1]],LW); line([[x-52,y0+8],[x-22,y0+8]],4); line([[x-4,y1+8],[x+50,y1+8]],4); line([[x-30,y0-2],[x+12,y0-2]],4); } }
     else if(e.k==='rock'){ g.save(); g.translate(x,y-70); g.rotate(e.rot); g.beginPath(); for(let i=0;i<9;i++){ const a=i/9*6.283, r=70+((i*37)%17)-8; g.lineTo(Math.cos(a)*r,Math.sin(a)*r); } g.closePath(); g.fillStyle='#fff'; g.fill(); g.lineWidth=LW; g.strokeStyle=INK; g.lineJoin='round'; g.stroke(); line([[-30,-20],[0,4],[26,-10]],5); line([[-10,30],[14,22]],5); g.restore(); }
     else if(e.k==='ramp'){ g.save(); g.translate(x,y); g.beginPath(); g.moveTo(-90,0); g.lineTo(80,-78); g.lineTo(80,0); g.closePath(); g.fillStyle='#fff'; g.fill(); g.lineWidth=LW; g.strokeStyle=INK; g.lineJoin='round'; g.stroke(); line([[20,-120],[40,-150],[60,-120]],6); g.restore(); } } }
@@ -198,6 +200,7 @@ function drawStickFly(o){ /* こけて飛んでいる棒人間。乗っている
   line([[0,sh[1]-10],hip],LW); limb(sh,-.5+w2*.5,-1.2+w*.4,38); limb(sh,Math.PI+.5-w*.5,Math.PI+1.2-w2*.4,38);
   ring(0,sh[1]-10-HR,HR,LW,'#fff'); g.restore(); }
 function drawDog(d){ const y=gy0(camX()+d.x)-4, run=Math.sin(T*22); g.save(); g.translate(d.x,y); if(d.st==='out') g.scale(-1,1);
+  if(ok('dog0') && ok('dog1')){ const im=IMG['dog'+(Math.floor(T*9)%2)], k=.47, w=im.naturalWidth*k, h=im.naturalHeight*k, hop=Math.abs(Math.sin(T*9*Math.PI))*10; g.drawImage(im,-w*.5,-h-hop+8,w,h); if(d.st==='run' && d.t>T_.dog-.7) txt('ガウ！',40,-h-34,38,'#e23a3a','center','#fff'); g.restore(); return; }
   line([[-50,-52],[40,-56]]); line([[-46,-50],[-52+run*22,0]],6); line([[-34,-50],[-22-run*22,0]],6); line([[26,-54],[18+run*22,0]],6); line([[36,-54],[48-run*22,0]],6); line([[-50,-52],[-78,-84+run*8]],6);
   line([[40,-56],[52,-92],[84,-92],[112,-74],[84,-62],[40,-56]],LW); line([[52,-92],[46,-116],[66,-92]],6);
   if(d.st==='run' && d.t>T_.dog-.7) txt('ガウ！',40,-140,36,INK,'center'); g.restore(); }
