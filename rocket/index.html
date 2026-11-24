@@ -4,6 +4,11 @@
 <meta name="robots" content="noindex,nofollow">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="月まで届け">
+<link rel="apple-touch-icon" href="./icon_180.png">
 <title>月まで届け</title>
 <style>
 @font-face{font-family:MPR;src:url(./font/mpr.woff2) format('woff2');font-weight:900;font-display:swap}
@@ -124,7 +129,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 15:29</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 15:33</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -1087,7 +1092,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ if(S.cine || SPD===1) update(dt); else { const n=Math.ceil(SPD); for(let i=0;i<n && !S.cine;i++) update(dt*SPD/n); } } draw(); } requestAnimationFrame(loop); }
-const VER='1124-152930'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1124-153300'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1134,7 +1139,10 @@ const FX_LIST=[
  ['maou','jam','魔王','ゴールが ＋100,000m 遠ざかる（永続）',n=>Game.maou(n)]];
 /* スマホ用のつなぎ先（tik.tools）。オンの間はTikFinityのかわりに、ネット経由で同じ形の知らせを受け取る。キーはこの端末にだけ保存 */
 const HOME_URL='https://sanpolab.github.io/jan/rocket/', EMBED=!/(^|\.)github\.io$|^localhost$|^127\./.test(location.hostname);   // EMBED：Claudeの共有ページなど、正式なアドレス以外で開いている
-let CLOUD={on:false,user:'',key:''}; try{ Object.assign(CLOUD,JSON.parse(localStorage.getItem('rocket_cloud')||'{}')); }catch(e){} const cloudOn=()=>!!(CLOUD.on && CLOUD.user && CLOUD.key), srcName=()=>cloudOn()?'スマホ用のつなぎ先':'TikFinity';
+let CLOUD={on:false,user:'',key:''}; try{ Object.assign(CLOUD,JSON.parse(localStorage.getItem('rocket_cloud')||'{}')); }catch(e){}
+/* まだロケットにキーを入れていない時は、つみつみアニマルに入れたキーとユーザー名をそのまま引き継ぐ（同じサイトなので読める。入れ直さなくていいように） */
+if(!CLOUD.key){ try{ const t=JSON.parse(localStorage.getItem('tsumi_cloud')||'{}'); if(t && t.key && t.user){ CLOUD={on:!!t.on,user:String(t.user),key:String(t.key)}; localStorage.setItem('rocket_cloud',JSON.stringify(CLOUD)); } }catch(e){} }
+const cloudOn=()=>!!(CLOUD.on && CLOUD.user && CLOUD.key), srcName=()=>cloudOn()?'スマホ用のつなぎ先':'TikFinity';
 const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://127.0.0.1:21213/'],url:'ws://localhost:21213/',ws:null,ok:false,wait:3000,timer:null,streak:{},log:[],learn:null,map:{}};
 try{ TF.map=JSON.parse(localStorage.getItem('rocket_gifts')||'{}')||{}; }catch(e){ TF.map={}; }
 if(!localStorage.getItem('rocket_hmdef')){ try{ localStorage.setItem('rocket_hmdef','1'); }catch(e){} if(!TF.map.dragonAtk) TF.map.dragonAtk={id:null,name:'ハートミー',alt:['Heart Me','HeartMe','Heart Me!'],coins:1,pic:null,ci:null}; try{ localStorage.setItem('rocket_gifts',JSON.stringify(TF.map)); }catch(e){} }   // 最初から：ハートミー＝ドラゴン
