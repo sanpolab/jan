@@ -76,7 +76,7 @@ canvas{width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/tsumi/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/tsumi/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 09:20</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 11:45</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -103,6 +103,7 @@ canvas{width:100%;height:100%;display:block}
     <div class="row both"><div class="nm">フォロー<small>ランダム動物が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
     <div class="row both"><div class="nm">コメント<small>コメントした人の名前の動物が1体出る（1人につき1分に1回まで）</small></div><button id="optChat" type="button"></button></div>
     <div class="row both"><div class="nm">ギフト表のコイン数<small>オフにすると、ギフト表のギフトの絵にコイン数を出さない</small></div><button id="optCoin" type="button"></button></div>
+    <div class="row both"><div class="nm">BGM<small>ゲーム中に音楽を流す（全画面の映像の間は自動で止まる）</small></div><button id="optBgm" type="button"></button></div>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
     <h3>調査用：TikFinityから届いた生データ</h3>
@@ -186,7 +187,7 @@ function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
 // 全画面の映像が流れているあいだは、テスト・ギフト・一時停止のボタンと下のギフト表を消して、映像だけを画面のまん中に見せる
 // 自動更新：公開先に新しい版が出ていたら、古い画面を持ったままにならないよう自動で読みこみ直す（スマホは古い画面を10分ほど覚えているため）
-const VER='1124-092005'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
+const VER='1124-114516'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
   const chk=()=>{ if(S && S.mode==='playing') return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('tsumi_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('tsumi_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); };
   setTimeout(chk,800); setInterval(chk,60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 let cutUi=false; function syncCutUi(){ const on=!!(S.cut && S.cut.vid); if(on===cutUi) return; cutUi=on; for(const id of ['testBtn','cfgBtn','pauseBtn','rot','gtbl']){ const e=document.getElementById(id); if(e) e.style.visibility=on?'hidden':''; }
@@ -228,7 +229,7 @@ const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 let wins = 0, best = 0;
 /* 2倍タイム：5分間、ギフトの効果とWINの増減がぜんぶ2倍（演出の長さはそのまま） */
 const DBL={sec:300,max:1800,flash:2.0}; let dblT=0, dblFlash=0, dblHit=0; const DB=()=>dblT>0?2:1;
-const OPT={likeOn:true,followOn:true,chatOn:true,coinOn:true}; const CHAT_GAP=60, chatLast=new Map();   // コメントで動物が出るのは1人につき60秒に1回
+const OPT={likeOn:true,followOn:true,chatOn:true,coinOn:true,bgmOn:true}; const CHAT_GAP=60, chatLast=new Map();   // コメントで動物が出るのは1人につき60秒に1回
  try{ Object.assign(OPT,JSON.parse(localStorage.getItem('tsumi_opts')||'{}')); }catch(e){}
 function optSave(){ try{ localStorage.setItem('tsumi_opts',JSON.stringify(OPT)); }catch(e){} }
 const SPD_OPTS=[1,1.25,1.5,2]; let baseSpd=1; try{ const v=parseFloat(localStorage.getItem('tsumi_spd')); if(SPD_OPTS.includes(v)) baseSpd=v; }catch(e){}
@@ -242,8 +243,11 @@ function saveWins(){ try { localStorage.setItem('tsumi_wins', String(wins)); } c
 /* 効果音（効果音ラボの音）。Web Audio で読み込んで鳴らす。最初のタップで音が出るようになる */
 const SND_NAMES=['chest','drop','land','heavy','rot','bad','good','win','lose','impact','jean','fall','count','quake','wind','witch','angel','break','ant','shakin','bomb','bigboom','missile','laser','beam','charge','robo','alert','gara','jakon','coins','roll','kira','flee','slash','slash2','flame','wv_wash','wv_whale','knell','splat','doon','rumble','crow','tentacle','dv_in','dv_pop','dv_flick','dv_stop','dv_thunder','dv_laugh','dv_bored','dv_out'];
 const SND_VOL={chest:.9,drop:.35,land:.55,heavy:.8,rot:.4,bad:.6,good:.55,win:.75,lose:.7,impact:.8,jean:.7,fall:.5,count:.7,quake:.8,wind:.65,witch:.6,angel:.6,break:.7,ant:.6,shakin:.5,bomb:.6,bigboom:.95,missile:.45,laser:.6,beam:.75,charge:.7,robo:.7,alert:.55,gara:.5,jakon:.7,coins:.7,roll:.6,kira:.6,flee:.55,slash:.9,slash2:.8,flame:.7,wv_wash:.8,wv_whale:1,knell:.7,splat:.7,doon:.9,rumble:.9,crow:.8,tentacle:.9,dv_in:.8,dv_pop:.75,dv_flick:.9,dv_stop:.7,dv_thunder:.7,dv_laugh:1,dv_bored:.9,dv_out:.7};
-const SND={}; let actx=null;
-function sndInit(){ if(actx) return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; try{ actx=new AC(); }catch(e){ return; }
+const SND={}; let actx=null, bgmGain=null, bgmSrc=null; const ALLVID=[];   /* BGMは甘茶の音楽工房「夏休みの探検」（ロケットと同じ曲） */
+function bgmStart(){ if(bgmSrc || !actx || !SND.bgm) return; bgmSrc=actx.createBufferSource(); bgmSrc.buffer=SND.bgm; bgmSrc.loop=true; bgmSrc.connect(bgmGain); bgmSrc.start(); }
+setInterval(()=>{ if(!bgmGain) return; const cine=ALLVID.some(v=>!v.paused && !v.ended && v.currentTime>0), tg=OPT.bgmOn && !cine?.24:0; bgmGain.gain.value+=(tg-bgmGain.gain.value)*(tg?.12:.5); window.__bgm={tg,cine,on:!!bgmSrc,g:+bgmGain.gain.value.toFixed(3),vids:ALLVID}; },50);
+function sndInit(){ if(actx) return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; try{ actx=new AC(); }catch(e){ return; } bgmGain=actx.createGain(); bgmGain.gain.value=0; bgmGain.connect(actx.destination);
+  fetch('./snd/bgm.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,ng)=>actx.decodeAudioData(b,ok,ng))).then(buf=>{ SND.bgm=buf; bgmStart(); }).catch(()=>{});
   for(const k of SND_NAMES){ fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,ng)=>actx.decodeAudioData(b,ok,ng))).then(buf=>{ SND[k]=buf; }).catch(()=>{}); } }
 function play(k,v){ const buf=SND[k]; if(!buf || !actx) return; try{ if(actx.state==='suspended') actx.resume(); const src=actx.createBufferSource(), gn=actx.createGain(); src.buffer=buf; gn.gain.value=(v===undefined?1:v)*(SND_VOL[k]||.6); src.connect(gn); gn.connect(actx.destination); src.start(); }catch(e){} }
 let audioUnlocked=false;
@@ -318,7 +322,7 @@ const heightM = () => Math.max(0, (TOP_Y - S.topY)/100);
 /* ====== 演出 ======
    小ギフト=上の小さい告知 / 中ギフト=ななめの帯（ゲームは止めない） / 大ギフト=全画面カットイン（一瞬止める） */
 function mkVid(name){ const v=document.createElement('video'); v.preload='auto'; v.playsInline=true; v.setAttribute('playsinline','');
-  for(const [ext,type] of [['mp4','video/mp4'],['webm','video/webm']]){ const so=document.createElement('source'); so.src='./vid/'+name+'.'+ext; so.type=type; v.appendChild(so); } v.load(); return v; }
+  for(const [ext,type] of [['mp4','video/mp4'],['webm','video/webm']]){ const so=document.createElement('source'); so.src='./vid/'+name+'.'+ext; so.type=type; v.appendChild(so); } v.load(); ALLVID.push(v); return v; }
 const riftVid=mkVid('rift'), dragonVid=mkVid('dragon');   // 裂け目から出てくる → 咆哮
 const caveVid=mkVid('cave');                              // スライムが洞窟で宝箱を見つける（WINガチャの前）
 const devilVid=mkVid('devil');                            // 玉座の悪魔がコインをはじく（コイントスの前）
@@ -1523,8 +1527,8 @@ function cfgBuild(){ tblUI(); missBuild(); { const en=document.getElementById('e
     let t=raw.replace(/[\u201C\u201D\u201E\u201F\u2033\uFF02]/g,'"').replace(/[\u2018\u2019\u2032\uFF07]/g,"'").replace(/\uFF1A/g,':').replace(/\uFF0C/g,',').replace(/[\u200B\uFEFF]/g,''); const i=t.indexOf('{'), j=t.lastIndexOf('}'); if(i<0 || j<=i){ say(raw.trim()?'読みこめません：文字が途中で切れているか、ちがう文字です。「配る用のリンク」を送ってもらうのが確実です':'箱が空です。もらった文字を貼ってから押してください'); return; }
     try{ const o=JSON.parse(t.slice(i,j+1)); if(o && typeof o==='object'){ if(Array.isArray(o.g)){ shareApply(o); say('読みこみました（'+o.g.length+'個）'); return; } if(o.__lbl && typeof o.__lbl==='object'){ LBL=o.__lbl; lblSave(); } delete o.__lbl; TF.map=o; tfSave(); cfgBuild(); say('読みこみました（'+Object.keys(o).length+'個）'); } }
     catch(e){ say('読みこめません：文字が途中で切れているようです（'+raw.length+'文字）。「配る用のリンク」を送ってもらうのが確実です'); } }); }
-function optUI(){ for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn'],['optCoin','coinOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
-for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn'],['optCoin','coinOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); tblUI(); }); optUI();
+function optUI(){ for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn'],['optCoin','coinOn'],['optBgm','bgmOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
+for(const [id,k] of [['optLike','likeOn'],['optFollow','followOn'],['optChat','chatOn'],['optCoin','coinOn'],['optBgm','bgmOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); tblUI(); }); optUI();
 catLoad(()=>{});
 window.TsumiTF={ TF, simulate:m=>tfEvent(m), connect:tfConnect };
 tfConnect();
