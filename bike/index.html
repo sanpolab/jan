@@ -100,7 +100,7 @@ const Game={
   banana(n){ if(S.mode!=='ride') return; S.ents.push({k:'banana',x:ahead(),by:n}); logAdd((n||'だれか')+' がバナナの皮を置いた','#ff9aa8'); },
   puddle(n){ if(S.mode!=='ride') return; S.ents.push({k:'puddle',x:ahead(),by:n}); logAdd((n||'だれか')+' が水たまりを作った','#ff9aa8'); },
   dog(n){ if(S.mode!=='ride' || S.dog || S.rocketT>0) return; S.dog={t:0,by:n,x:-180,st:'run'}; play('bite',.5); logAdd((n||'だれか')+' の犬が追いかけてきた！','#ff9aa8'); },
-  rock(n){ if(S.mode!=='ride' || S.rocks.length>=ROCK.max) return; const tx=clamp(BXX()+(S.rocks.length?rand(-280,280):0),150,W-170); S.rocks.push({t:0,tx,x0:clamp(tx+rand(-260,260)+180,200,W-80),by:n,rot:0,hit:false}); play('don',.5); logAdd((n||'だれか')+' が奥から岩を転がした（前後に動いてよけろ）','#ff9aa8'); },
+  rock(n){ if(S.mode!=='ride' || S.rocks.length>=ROCK.max) return; const tx=clamp(BXX()+(S.rocks.length?rand(-280,280):0),150,W-170); S.rocks.push({f0:Math.floor(rand(0,12)),t:0,tx,x0:clamp(tx+rand(-260,260)+180,200,W-80),by:n,rot:0,hit:false}); play('don',.5); logAdd((n||'だれか')+' が奥から岩を転がした（前後に動いてよけろ）','#ff9aa8'); },
   pit(n){ if(S.mode!=='ride') return; S.pits.push({x:ahead()+60,w:560,by:n}); logAdd((n||'だれか')+' が落とし穴をほった','#ff9aa8'); },
   big(n){ if(S.mode!=='ride') return; S.bigT=Math.min(30,S.bigT+T_.big); S.punkT=0; play('levelup',.7); S.flash=.2; banner('でかタイヤ！','#111',n); logAdd((n||'だれか')+' がタイヤをでっかくした（'+T_.big+'秒 落とし穴・岩・振動・バナナが効かない）','#5dffb0'); },
   bird(n){ if(S.mode!=='ride') return; S.birdQ+=BIRD.n; play('gust',.4); logAdd((n||'だれか')+' が鳥を飛ばした（'+BIRD.n+'羽・ジャンプするとぶつかる）','#ff9aa8'); S.birdBy=n; },
@@ -185,7 +185,7 @@ function update(dt){ T+=dt; { const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.Arrow
 }
 
 /* ===== 描く：白い紙に黒い線。妨害だけは色つきの絵（img/ に絵があればそれを使い、無ければ線で描く） ===== */
-const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
+const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 const INK='#111', LW=7;
 function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 function txt(s,x,y,size,color,align,stroke,font){ g.font=(font===FONTD?'400 ':'900 ')+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineWidth=Math.max(4,size*.16); g.strokeStyle=stroke; g.lineJoin='round'; g.strokeText(s,x,y); } g.fillStyle=color; g.fillText(s,x,y); }
@@ -233,7 +233,8 @@ function drawWaves(cx){ for(const b of S.bursts){ if(!ok('burst')) break; const 
 function rockPos(r,cx){ const u=clamp(r.t/ROCK.T,0,1), gy=gy0(cx+r.tx), sc=.1+1.05*Math.pow(u,1.7), x=lerp(r.x0,r.tx,u*u*(3-2*u)), base=lerp(gy-250,gy-ROCK.w*.47*sc,Math.pow(u,1.5)), hop=Math.abs(Math.sin(u*Math.PI*3))*150*(1-u)*(.3+u); if(r.t<=ROCK.T) return {x,y:base-hop,sc,u}; const o=(r.t-ROCK.T)/ROCK.out; return {x:x-o*60,y:gy-ROCK.w*.47*sc+o*o*620,sc:sc*(1+o*1.1),u:1}; }
 function drawRocks(cx,front){ for(const r of S.rocks){ const p=rockPos(r,cx), isFront=p.u>.62; if(isFront!==front) continue; const gy=gy0(cx+r.tx);
     if(front && r.t<ROCK.T){ const bl=Math.floor(T*10)%2, a=clamp((p.u-.62)/.3,0,1); g.globalAlpha=.25+.3*a; g.fillStyle='#111'; g.beginPath(); g.ellipse(r.tx,gy+6,ROCK.hit*(.5+.5*a),12,0,0,7); g.fill(); g.globalAlpha=1; }
-    g.save(); g.translate(p.x,p.y); g.rotate(r.rot); const w=ROCK.w*p.sc; if(ok('rock')) g.drawImage(IMG.rock,-w/2,-w/2,w,w); else { g.fillStyle='#8a7060'; g.strokeStyle=INK; g.lineWidth=6; g.beginPath(); g.arc(0,0,w/2,0,7); g.fill(); g.stroke(); } g.restore(); }
+    g.save(); g.translate(p.x,p.y); const w=ROCK.w*p.sc; if(ok('rockroll')){ const f=((r.f0||0)+Math.floor(r.t*15*1.5))%69; g.drawImage(IMG.rockroll,(f%10)*200,Math.floor(f/10)*200,200,200,-w*.53,-w*.53,w*1.06,w*1.06); }   /* 動画から作った「こっちへ転がる」69コマ */
+    else if(ok('rock')){ g.rotate(r.rot); g.drawImage(IMG.rock,-w/2,-w/2,w,w); } else { g.fillStyle='#8a7060'; g.strokeStyle=INK; g.lineWidth=6; g.beginPath(); g.arc(0,0,w/2,0,7); g.fill(); g.stroke(); } g.restore(); }
   if(front){ for(const r of S.rocks){ if(r.t>=ROCK.T) continue; const gy=gy0(cx+r.tx), bl=Math.floor(T*10)%2; line([[r.tx-ROCK.hit,gy-4],[r.tx+ROCK.hit,gy-4]],9,bl?'#e23a3a':'#111'); line([[r.tx,gy-330],[r.tx,gy-250]],9,'#e23a3a'); line([[r.tx-34,gy-286],[r.tx,gy-244],[r.tx+34,gy-286]],9,'#e23a3a'); }
     if(S.rocks.some(r=>r.t<ROCK.T)){ const bl=Math.floor(T*8)%2; txt('岩が来る！ 前後によけろ',W/2,262,38,bl?'#e23a3a':INK,'center','#fff'); } } }
 /* 鳥とカミナリ雲（絵が img/ にあればそれを使う。無ければ色つきの図形で描く） */
