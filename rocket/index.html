@@ -20,14 +20,16 @@ html,body{margin:0;height:100%;background:#03060f;overflow:hidden;font-family:MP
 #binfo{flex:0 0 auto;display:flex;align-items:center;gap:calc(var(--u)*1.6);padding:calc(var(--u)*1.6) calc(var(--u)*2.4);box-sizing:border-box;min-height:calc(var(--u)*8.4);background:#0a1730;border-top:calc(var(--u)*.35) solid #b8964a}
 #viewers{flex:0 0 auto;padding:.3em .9em;border-radius:999px;background:#16264a;font-size:calc(var(--u)*3.2);white-space:nowrap}
 #viewers small{font-size:.8em;color:#9fd0ff;margin-right:.5em}
-#memo{flex:1 1 auto;min-width:0;text-align:center;white-space:pre-wrap;word-break:break-all;line-height:1.2;color:#ffd23f;max-height:calc(var(--u)*7.4);overflow:hidden}
+#memo{flex:1 1 auto;min-width:0;text-align:center;white-space:pre-wrap;word-break:break-all;line-height:1.2;color:#ffd23f;max-height:calc(var(--u)*7.4);overflow:hidden;cursor:text;min-height:calc(var(--u)*5)}
+#memo.empty{color:#56658f}
+#memo input{width:100%;box-sizing:border-box;font:inherit;font-size:calc(var(--u)*3.4);color:#ffd23f;background:#101c3c;border:calc(var(--u)*.3) solid #ffd23f;border-radius:calc(var(--u)*1.2);padding:.25em .5em;text-align:center}
 #frow{flex:0 0 auto;height:calc(var(--u)*25);display:flex;align-items:stretch;gap:calc(var(--u)*1.5);padding:calc(var(--u)*1.6) calc(var(--u)*2.4);box-sizing:border-box;background:#070d1f;margin-bottom:calc(var(--u)*1.2)}
 #feed{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:calc(var(--u)*.6);overflow:hidden}
 #feed .ln{font-size:calc(var(--u)*3.3);line-height:1.25;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:0 0 auto}
 #feed .ln b{color:#a9dcff;margin-right:.45em}#feed .ln.gf{color:#ffe27a}#feed .ln.gf b{color:#ffd23f}#feed .ln.fl{color:#ffc2dc}#feed .ln.fl b{color:#ff8fc0}
 #feed .ln.hint{color:#6f7da6;font-size:calc(var(--u)*2.8)}
 #gtbl{flex:1 1 auto;min-height:0;width:100%;border:0;background:#000;pointer-events:none;display:block}
-#photo{flex:0 0 auto;display:none;height:100%;width:auto;max-width:30%;object-fit:contain;object-position:right center;pointer-events:none;border-radius:calc(var(--u)*1.4)}
+#photo{flex:0 0 auto;display:none;height:100%;max-width:30%;overflow:hidden;background:center center no-repeat;pointer-events:none;border-radius:calc(var(--u)*1.4)}
 #cfg #phPrev{max-width:40%;max-height:6em;border-radius:.4em;display:block;margin:.4em 0}
 #cfg textarea#memoTx{width:100%;box-sizing:border-box;height:4.2em;font:inherit;background:#0c1436;color:#fff;border:1px solid #6677aa;border-radius:.4em}
 canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
@@ -129,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 15:59</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/24 16:02</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -161,6 +163,8 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <textarea id="memoTx" maxlength="40" placeholder="例：初見さん歓迎！ギフトで妨害できるよ"></textarea>
     <img id="phPrev" alt="" hidden>
     <div class="row" style="border:0"><input id="phFile" type="file" accept="image/*" hidden><button id="phPick" type="button">写真をえらぶ</button><button id="phDel" type="button" class="x">写真を消す</button><span id="phSt" style="font-size:.85em;color:#ffb0b8"></span></div>
+    <div class="row" style="border:0"><button id="phMinus" type="button">写真を小さく</button><button id="phPlus" type="button">写真を大きく</button><button id="phReset" type="button">元の大きさ</button><span id="phZ" style="font-size:.9em"></span></div>
+    <p>大きくして、わくからはみ出した分は切れます。</p>
     <h3>届いたもの（新しい順）</h3>
     <div id="tfLog">まだ何も届いていません</div>
     <h3>調査用：TikFinityから届いた生データ</h3>
@@ -193,7 +197,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <button class="g" data-g="50000">50,000m</button><button class="g" data-g="100000">100,000m</button><button class="n" data-a="reset">記録を消す</button><button class="n" data-a="title">タイトルに戻る</button>
   </div>
 </div>
-<div id="below"><div id="binfo"><div id="viewers"><small>視聴</small><span id="viewN">–</span></div><div id="memo"></div></div><div id="frow"><div id="feed"><div class="ln hint">ここにコメント・ギフト・フォローが流れます</div></div><img id="photo" alt=""></div><iframe id="gtbl" title="ギフト表"></iframe></div>
+<div id="below"><div id="binfo"><div id="viewers"><small>視聴</small><span id="viewN">–</span></div><div id="memo"></div></div><div id="frow"><div id="feed"><div class="ln hint">ここにコメント・ギフト・フォローが流れます</div></div><div id="photo"></div></div><iframe id="gtbl" title="ギフト表"></iframe></div>
 <script>
 'use strict';
 /* ロケット「◯◯mまで飛ぶまで終われません」
@@ -1092,7 +1096,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ if(S.cine || SPD===1) update(dt); else { const n=Math.ceil(SPD); for(let i=0;i<n && !S.cine;i++) update(dt*SPD/n); } } draw(); } requestAnimationFrame(loop); }
-const VER='1124-155934'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1124-160227'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1164,14 +1168,23 @@ setTimeout(()=>{ const cb=document.getElementById('cfgBtn'); if(cb) cb.addEventL
 const FEED_MAX=5;
 function feedAdd(name,text,kind){ const el=document.getElementById('feed'); if(!el) return; const h=el.querySelector('.hint'); if(h) el.removeChild(h); const ln=document.createElement('div'); ln.className='ln'+(kind?' '+kind:''); const b=document.createElement('b'); b.textContent=String(name||'').slice(0,16); ln.appendChild(b); ln.appendChild(document.createTextNode(String(text||'').slice(0,60))); el.appendChild(ln); while(el.children.length>FEED_MAX) el.removeChild(el.firstChild); }
 function feedViewers(n){ n=parseInt(n,10); if(!(n>=0)) return; const e=document.getElementById('viewN'); if(e) e.textContent=n.toLocaleString('ja-JP')+'人'; }
+const PHIMG=new Image(); let PHZ=1;   /* PHZ＝写真の大きさ（1がわくにぴったり。大きくしてわくからはみ出た分は切れる） */
+try{ const z=parseFloat(localStorage.getItem('rocket_photoz')); if(z>=.3 && z<=5) PHZ=z; }catch(e){}
 let MEMO='', PHOTO=''; try{ MEMO=localStorage.getItem('rocket_memo')||''; PHOTO=localStorage.getItem('rocket_photo')||''; }catch(e){}
-function memoUI(){ const m=document.getElementById('memo'); if(!m) return; const t=MEMO.trim(); m.textContent=t; const lines=t.split('\n'), longest=Math.max.apply(null,lines.map(l=>l.length)), two=lines.length>1 || longest>18; m.style.fontSize='calc(var(--u)*'+(two?2.9:Math.max(2.9,Math.min(4.4,62/Math.max(1,longest)))).toFixed(2)+')'; }
-function photoFit(){ const im=document.getElementById('photo'); if(im) im.style.display=(PHOTO && im.naturalWidth>0)?'block':'none'; }
-function photoSet(u){ PHOTO=u||''; const im=document.getElementById('photo'), pv=document.getElementById('phPrev'); if(pv){ pv.hidden=!PHOTO; if(PHOTO) pv.src=PHOTO; else pv.removeAttribute('src'); } if(im){ if(PHOTO){ im.onload=photoFit; im.src=PHOTO; } else { im.removeAttribute('src'); im.style.display='none'; } } }
+function memoUI(){ const m=document.getElementById('memo'); if(!m || m.querySelector('input')) return; const t=MEMO.trim(); m.classList.toggle('empty',!t); m.textContent=t||'ここを押すと文字を書けます'; const lines=t.split('\n'), longest=Math.max.apply(null,lines.map(l=>l.length)), two=lines.length>1 || longest>18; m.style.fontSize='calc(var(--u)*'+(two?2.9:Math.max(2.9,Math.min(4.4,62/Math.max(1,longest)))).toFixed(2)+')'; }
+function photoFit(){ const im=document.getElementById('photo'); if(!im) return; const on=!!PHOTO && PHIMG.naturalWidth>0; im.style.display=on?'block':'none'; if(!on) return; const row=im.parentElement.getBoundingClientRect(); if(row.height<4) return; const a=PHIMG.naturalWidth/PHIMG.naturalHeight, maxW=row.width*.30, cw=Math.min(maxW,row.height*a), iw=cw*PHZ, ih=cw/a*PHZ; im.style.width=Math.min(maxW,iw)+'px'; im.style.backgroundSize=iw+'px '+ih+'px'; }   /* わく＝コメントらんの右（横はばの3割まで・高さいっぱい）。写真はわくに収まる大きさ×PHZ で、はみ出た分は切れる */
+window.addEventListener('resize',()=>setTimeout(photoFit,50));
+function photoSet(u){ PHOTO=u||''; const im=document.getElementById('photo'), pv=document.getElementById('phPrev'); if(pv){ pv.hidden=!PHOTO; if(PHOTO) pv.src=PHOTO; else pv.removeAttribute('src'); } if(im){ if(PHOTO){ PHIMG.onload=photoFit; PHIMG.src=PHOTO; im.style.backgroundImage='url("'+PHOTO+'")'; } else { PHIMG.removeAttribute('src'); im.style.backgroundImage='none'; im.style.display='none'; } } phzUI(); }
+function phzUI(){ const t=document.getElementById('phZ'); if(t) t.textContent='大きさ '+Math.round(PHZ*100)+'%'; }
+function phzSet(z){ PHZ=Math.max(.3,Math.min(5,z)); try{ localStorage.setItem('rocket_photoz',String(PHZ)); }catch(e){} phzUI(); photoFit(); }
 setTimeout(()=>{ const tx=document.getElementById('memoTx'), fl=document.getElementById('phFile'), st=document.getElementById('phSt'); if(!tx || !fl) return; tx.value=MEMO; tx.addEventListener('input',()=>{ MEMO=tx.value.slice(0,40); try{ localStorage.setItem('rocket_memo',MEMO); }catch(e){} memoUI(); }); for(const ev of ['pointerdown','keydown','keyup']) tx.addEventListener(ev,e=>e.stopPropagation());
+  document.getElementById('phMinus').addEventListener('click',()=>phzSet(PHZ/1.15)); document.getElementById('phPlus').addEventListener('click',()=>phzSet(PHZ*1.15)); document.getElementById('phReset').addEventListener('click',()=>phzSet(1));
   document.getElementById('phPick').addEventListener('click',()=>fl.click()); document.getElementById('phDel').addEventListener('click',()=>{ try{ localStorage.removeItem('rocket_photo'); }catch(e){} st.textContent=''; photoSet(''); });
   fl.addEventListener('change',()=>{ const f=fl.files && fl.files[0]; fl.value=''; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ const i=new Image(); i.onload=()=>{ const k=Math.min(1,720/Math.max(i.naturalWidth,i.naturalHeight)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(i.naturalWidth*k)); c.height=Math.max(1,Math.round(i.naturalHeight*k)); c.getContext('2d').drawImage(i,0,0,c.width,c.height); let u=c.toDataURL('image/webp',.86); if(u.indexOf('data:image/webp')!==0 && u.length>900000) u=c.toDataURL('image/jpeg',.86); try{ localStorage.setItem('rocket_photo',u); st.textContent=''; }catch(e){ st.textContent='保存できませんでした（開き直すと消えます）'; } photoSet(u); }; i.onerror=()=>{ st.textContent='この写真は読みこめませんでした'; }; i.src=rd.result; }; rd.readAsDataURL(f); });
-  photoSet(PHOTO); memoUI(); },0);
+  /* 画面の文字のところを直接押して書けるようにする（設定画面のらんと同じ中身） */
+  { const m=document.getElementById('memo'); if(m) m.addEventListener('click',()=>{ if(m.querySelector('input')) return; const i=document.createElement('input'); i.type='text'; i.maxLength=40; i.value=MEMO; i.placeholder='例：初見さん歓迎！'; i.enterKeyHint='done'; m.classList.remove('empty'); m.textContent=''; m.style.fontSize=''; m.appendChild(i); for(const ev of ['pointerdown','keydown','keyup']) i.addEventListener(ev,e=>e.stopPropagation());
+      const done=()=>{ MEMO=i.value.slice(0,40); try{ localStorage.setItem('rocket_memo',MEMO); }catch(e){} tx.value=MEMO; i.remove(); memoUI(); }; i.addEventListener('blur',done); i.addEventListener('keydown',e=>{ if(e.key==='Enter') i.blur(); }); i.focus(); }); }
+  photoSet(PHOTO); memoUI(); setInterval(photoFit,700); },0);
 function tfLogAdd(t){ TF.log.unshift(t); if(TF.log.length>40) TF.log.length=40; const el=document.getElementById('tfLog'); if(el) el.textContent=TF.log.join('\n'); }
 function tfUI(){ const b=document.getElementById('cfgBtn'), st=document.getElementById('tfSt'); if(b) b.classList.toggle('on',TF.ok); if(st){ st.classList.toggle('on',TF.ok); st.textContent=srcName()+(TF.ok?'：つながっています':(cloudOn()&&TF.offline?'：配信が始まるのを待っています':'：つながっていません')); } { const cu=document.getElementById('clUser'), ck=document.getElementById('clKey'), cb=document.getElementById('clOn'), cs=document.getElementById('clSt'); if(cb){ if(document.activeElement!==cu && !cu.dataset.d) cu.value=CLOUD.user; if(document.activeElement!==ck && !ck.dataset.d) ck.value=CLOUD.key; cb.textContent=CLOUD.on?'やめる（TikFinityに戻す）':'つなぐ'; cb.style.background=CLOUD.on?'#d1457a':''; cs.textContent=CLOUD.on?(TF.ok?'つながっています':(TF.offline?'キーとユーザー名は通りました。いまは配信していないので待っています（配信を始めたら、上の「つなぎ直す」を押すとすぐつながります）':(EMBED?'このページ（Claudeの共有ページ）からは、つなぐことができません。Safariで '+HOME_URL+' を開いて、そちらでユーザー名とキーを入れてください':TF.why?'つながりません：'+TF.why:'つなぎ中…（つながらない時は、ユーザー名・キー・配信中かどうかを確かめてください）'))):''; } } tfDiag(); }
 function tfDiag(){ const el=document.getElementById('tfDiag'); if(!el) return; const L=[]; const n=TF.rawN||0, kinds=Object.keys(TF.kinds||{}).map(k=>k+'×'+TF.kinds[k]).join('、');
