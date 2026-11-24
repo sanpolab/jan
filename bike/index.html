@@ -26,7 +26,7 @@ canvas{display:block;width:100%;height:100%}
   <button id="testBtn" class="hb" type="button">テスト</button>
   <div id="tp" hidden>
     <h3>お助け</h3>
-    <button class="h" data-a="wind">追い風<br>10秒 2倍速</button><button class="h" data-a="assist">電動アシスト<br>15秒 1.5倍速</button><button class="h" data-a="ramp">ジャンプ台<br>大ジャンプで ＋50m</button>
+    <button class="h" data-a="wind">追い風<br>10秒 2倍速</button><button class="h" data-a="assist">電動アシスト<br>15秒 1.5倍速</button><button class="h" data-a="ramp">ジャンプ台<br>大ジャンプで ＋100m</button>
     <button class="h" data-a="helmet">ヘルメット<br>1回こけない（3個まで）</button><button class="h" data-a="heart">ハート<br>体力 ＋1</button><button class="h" data-a="heal">全回復<br>体力まんたん</button>
     <button class="h" data-a="rocket">ロケット自転車<br>5秒 ぶっ飛ばす</button>
     <h3>妨害</h3>
@@ -34,7 +34,7 @@ canvas{display:block;width:100%;height:100%}
     <button class="j" data-a="dog">犬<br>追いつかれるとこける</button><button class="j" data-a="rock">転がる岩<br>当たるとこける</button><button class="j" data-a="pit">落とし穴<br>落ちるとこける</button>
     <button class="j" data-a="punk">パンク<br>6秒 おそくなる</button>
     <h3>その他</h3>
-    <button class="g" data-a="g1000">目標 1,000m</button><button class="g" data-a="g3000">目標 3,000m</button><button class="g" data-a="g10000">目標 10,000m</button>
+    <button class="g" data-a="g3000">目標 3,000m</button><button class="g" data-a="g10000">目標 10,000m</button><button class="g" data-a="g30000">目標 30,000m</button>
     <button class="g" data-a="reset">さいしょから</button><button class="g" data-a="close">とじる</button>
   </div>
 </div></div>
@@ -56,13 +56,13 @@ window.addEventListener('pointerdown',()=>{ audioInit(); if(actx && actx.state==
 
 /* ===== 設定の数字 ===== */
 const PPM=40;                       /* 1m＝画面の40ドット */
-const CFG={goal:3000, speed:8, hp:5, jumpV:-930, grav:2500};
+const CFG={goal:10000, speed:16, hp:5, jumpV:-930, grav:2500};
 const BX=340, WR=46, WB=150;        /* 自転車の画面上の位置、タイヤの半径、前後のタイヤの間隔 */
 const FALLS_PER=5;
-const T_={wind:10,windMul:2,assist:15,assistMul:1.5,rocket:5,rocketMul:6,headwind:5,headMul:.4,puddle:3,puddleMul:.5,punk:6,punkMul:.5,crash:1.7,inv:2,back:1.6,dog:2.6,helmetMax:3,rampGain:50};
+const T_={wind:10,windMul:2,assist:15,assistMul:1.5,rocket:5,rocketMul:4,headwind:5,headMul:.4,puddle:3,puddleMul:.5,punk:6,punkMul:.5,crash:1.7,inv:2,back:1.6,dog:2.6,helmetMax:3,rampGain:100};
 let S, best=0, tries=1, wins=0, falls=0, T=0;
-try{ const o=JSON.parse(localStorage.getItem('bike_save')||'{}'); best=o.best||0; tries=o.tries||1; wins=o.wins||0; falls=o.falls||0; if(o.goal) CFG.goal=o.goal; }catch(e){}
-function save(){ try{ localStorage.setItem('bike_save',JSON.stringify({best,tries,wins,falls,goal:CFG.goal})); }catch(e){} }
+try{ const o=JSON.parse(localStorage.getItem('bike_save')||'{}'); best=o.best||0; tries=o.tries||1; wins=o.wins||0; falls=o.falls||0; if(o.g2) CFG.goal=o.g2; }catch(e){}
+function save(){ try{ localStorage.setItem('bike_save',JSON.stringify({best,tries,wins,falls,g2:CFG.goal})); }catch(e){} }
 function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, mileI:0, mileFx:null }; }
 function logAdd(t,c){ S.log.push({t,c:c||'#fff',at:T}); if(S.log.length>3) S.log.shift(); }
 function banner(t,c,sub){ S.banner={t,c,sub:sub||'',at:0}; }
@@ -76,7 +76,7 @@ const camX=()=>S.x*PPM-BX;
 function bikePose(){ const cx=camX()+BX, yr=gy0(cx-WB/2), yf=gy0(cx+WB/2), ang=Math.atan2(yf-yr,WB); return {cx,y:(yr+yf)/2-WR+S.jy,ang}; }
 
 /* ===== できごと（ギフトで起きること） ===== */
-const ahead=()=>camX()+W+rand(140,260);
+const ahead=()=>camX()+W+rand(700,1000);   /* 速いので、物は画面のずっと先に置く（見えてからよける時間を残す） */
 const Game={
   jump(){ if(S.mode!=='ride' || S.air || S.rocketT>0) return; S.air=true; S.vy=CFG.jumpV; dust(8); },
   wind(n){ if(S.mode!=='ride') return; S.windT=Math.min(30,S.windT+T_.wind); S.headT=0; play('gust',.6); play('speed',.6); logAdd((n||'だれか')+' が追い風を吹かせた（'+T_.wind+'秒 2倍速）','#5dffb0'); },
@@ -91,7 +91,7 @@ const Game={
   headwind(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.headT=Math.min(15,S.headT+T_.headwind); S.windT=0; play('gust',.7); logAdd((n||'だれか')+' が向かい風を吹かせた（'+T_.headwind+'秒 おそくなる）','#ff9aa8'); },
   dog(n){ if(S.mode!=='ride' || S.dog || S.rocketT>0) return; S.dog={t:0,by:n,x:-180,st:'run'}; play('bite',.5); logAdd((n||'だれか')+' の犬が追いかけてきた！','#ff9aa8'); },
   rock(n){ if(S.mode!=='ride') return; S.ents.push({k:'rock',x:ahead()+200,by:n,rot:0}); play('don',.5); logAdd((n||'だれか')+' が岩を転がした','#ff9aa8'); },
-  pit(n){ if(S.mode!=='ride') return; S.pits.push({x:ahead()+60,w:210,by:n}); logAdd((n||'だれか')+' が落とし穴をほった','#ff9aa8'); },
+  pit(n){ if(S.mode!=='ride') return; S.pits.push({x:ahead()+60,w:360,by:n}); logAdd((n||'だれか')+' が落とし穴をほった','#ff9aa8'); },
   punk(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.punkT=Math.min(18,S.punkT+T_.punk); S.assistT=0; play('hit',.5); logAdd((n||'だれか')+' がタイヤをパンクさせた（'+T_.punk+'秒 おそくなる）','#ff9aa8'); },
   setGoal(v){ CFG.goal=v; best=0; newRun(); save(); logAdd('目標を '+fmt(v)+'m にした','#ffd23f'); },
   reset(){ best=0; tries=1; wins=0; falls=0; newRun(); save(); }
@@ -118,7 +118,7 @@ function update(dt){ T+=dt; if(S.flash>0) S.flash-=dt; if(S.shake>0) S.shake-=dt
     else if(S.air){ S.vy+=CFG.grav*dt; S.jy+=S.vy*dt; if(S.jy>=0){ S.jy=0; S.vy=0; S.air=false; dust(6); } }
     const cx=camX()+BX;
     /* 落とし穴 */
-    if(!S.air){ const p=pitAt(cx); if(p && cx>p.x+34 && cx<p.x+p.w-34){ if(inv()){ S.air=true; S.vy=-500; } else if(crash('落とし穴',p.by)){ S.afterPit=p.x+p.w+170; S.pitFall=true; } } }
+    if(!S.air){ const p=pitAt(cx); if(p && cx>p.x+34 && cx<p.x+p.w-34){ if(inv()){ S.air=true; S.vy=-500; } else if(crash('落とし穴',p.by)){ S.afterPit=p.x+p.w+220; S.pitFall=true; } } }
     S.pits=S.pits.filter(p=>p.x+p.w>camX()-300);
     /* 道の上のもの */
     for(const e of S.ents){ if(e.dead) continue; if(e.k==='rock'){ e.x-=230*dt; e.rot-=dt*5; }
@@ -134,7 +134,7 @@ function update(dt){ T+=dt; if(S.flash>0) S.flash-=dt; if(S.shake>0) S.shake-=dt
     if(S.dog){ const d=S.dog; d.t+=dt; const fast=S.spd>CFG.speed*1.3; if(d.st==='run'){ d.x=lerp(d.x,fast?-260:BX-150,clamp(dt*(fast?1.2:1.6),0,1)); if(fast && d.t>1.5){ d.st='out'; logAdd('犬は追いつけなかった','#5dffb0'); } else if(d.t>=T_.dog){ if(S.jy<-60){ d.st='miss'; d.t=0; logAdd('犬のかみつきをジャンプでよけた！','#5dffb0'); } else { d.st='out'; play('bite',.7); crash('犬',d.by); } } }
       else if(d.st==='miss'){ d.x+=520*dt; if(d.x>W+200) S.dog=null; } else { d.x-=420*dt; if(d.x<-260) S.dog=null; } }
     /* 100mごとの立て札 */
-    { const idx=Math.floor(S.x/500); if(idx>S.mileI){ S.mileI=idx; if(S.x<CFG.goal) S.mileFx={t:0,text:fmt(idx*500)+'m 突破！',sub:'ゴールまで あと '+fmt(CFG.goal-idx*500)+'m'}; } }
+    { const idx=Math.floor(S.x/1000); if(idx>S.mileI){ S.mileI=idx; if(S.x<CFG.goal) S.mileFx={t:0,text:fmt(idx*1000)+'m 突破！',sub:'ゴールまで あと '+fmt(CFG.goal-idx*1000)+'m'}; } }
     if(S.x>=CFG.goal){ S.x=CFG.goal; S.mode='clear'; S.clearT=0; wins++; best=CFG.goal; save(); play('fanfare',.8); S.flash=.6; banner('ゴール！','#ffd23f',fmt(CFG.goal)+'m　'+tries+'回目で成功'); logAdd(fmt(CFG.goal)+'m 走りきった！ おつかれさま','#ffd23f'); S.winFx=0; }
   }
   else if(S.mode==='crash'){ S.crashT+=dt; S.spd=lerp(S.spd,0,clamp(dt*6,0,1)); const gyb=gy0(camX()+BX)-10;
