@@ -32,7 +32,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;touch
     <h3>お助け</h3>
     <button class="h" data-a="check">中間ポイント<br>今いる場所から再開</button><button class="h" data-a="barrier">バリア<br>1回だけ守る</button><button class="h" data-a="bridge">足場<br>この先の穴をふさぐ</button><button class="h" data-a="sweep">おそうじ<br>画面の罠を全部消す</button><button class="h" data-a="present">プレゼント箱<br>たたくと おにぎり</button>
     <h3>妨害</h3>
-    <button class="j" data-a="fakebox">ニセの箱<br>たたくと ばくだん</button><button class="j" data-a="spike">トゲ<br>目の前に飛び出す</button><button class="j" data-a="crumble">床ぬけ<br>足元がくずれる</button><button class="j" data-a="drop">落石<br>頭の上から</button><button class="j" data-a="ghost">見えないブロック<br>頭の上に12秒</button><button class="j" data-a="bullet">矢<br>右から飛んでくる</button><button class="j" data-a="wall">せまるトゲ壁<br>6秒 左から追ってくる</button><button class="j" data-a="reverse">あべこべ<br>8秒 左右が逆</button><button class="j" data-a="fake">ニセのゴール<br>さわるとやられる</button>
+    <button class="j" data-a="fakespring">ニセのバネ<br>空のかなたへ</button><button class="j" data-a="fakebox">ニセの箱<br>たたくと ばくだん</button><button class="j" data-a="spike">トゲ<br>目の前に飛び出す</button><button class="j" data-a="crumble">床ぬけ<br>足元がくずれる</button><button class="j" data-a="drop">落石<br>頭の上から</button><button class="j" data-a="ghost">見えないブロック<br>頭の上に12秒</button><button class="j" data-a="bullet">矢<br>右から飛んでくる</button><button class="j" data-a="wall">せまるトゲ壁<br>6秒 左から追ってくる</button><button class="j" data-a="reverse">あべこべ<br>8秒 左右が逆</button><button class="j" data-a="fake">ニセのゴール<br>さわるとやられる</button>
     <h3>その他</h3>
     <button class="n" data-a="next">次のステージへ</button><button class="n" data-a="reset">記録を消す</button><button class="n" data-a="close">とじる</button>
   </div>
@@ -58,15 +58,15 @@ function mk(name,n,ops){ const rows=[]; for(let r=0;r<ROWS;r++) rows.push(new Ar
 /* ステージは「ふつうの道」にしてある（穴・段差・見えているトゲだけ）。罠はギフトで足してもらう */
 const STAGES=[
  mk('はじめの一歩',56,s=>{ s.p(22,6,'B'); s.p(12,9,'^'); s.gap(18,2); s.box(26,9,1,1); s.box(27,8,1,2); s.gap(34,2); s.p(42,9,'^'); s.e('goal',52,9); }),
- mk('でこぼこ道',60,s=>{ s.p(21,6,'B'); s.gap(10,2); s.box(16,8,3,1); s.gap(24,3); s.box(30,9,1,1); s.box(31,8,1,2); s.box(32,7,1,3); s.row(36,9,2,'^'); s.gap(44,2); s.e('goal',56,9); }),
+ mk('でこぼこ道',60,s=>{ s.p(40,9,'L'); s.p(21,6,'B'); s.gap(10,2); s.box(16,8,3,1); s.gap(24,3); s.box(30,9,1,1); s.box(31,8,1,2); s.box(32,7,1,3); s.row(36,9,2,'^'); s.gap(44,2); s.e('goal',56,9); }),
  mk('あなぼこ',62,s=>{ s.p(42,6,'B'); s.gap(9,2); s.gap(14,2); s.gap(20,3); s.box(27,7,4,1); s.gap(33,3); s.p(40,9,'^'); s.gap(45,2); s.gap(50,2); s.e('goal',58,9); }),
  mk('かいだん',64,s=>{ s.p(46,6,'B'); s.box(10,9,1,1); s.box(11,8,1,2); s.box(12,7,1,3); s.box(13,6,6,1); s.gap(22,3); s.gap(30,8); s.box(28,8,2,1); s.box(33,7,2,1); s.p(44,9,'^'); s.p(50,9,'^'); s.e('goal',60,9); }),
- mk('まんなか',70,s=>{ s.p(24,6,'B'); s.p(9,9,'^'); s.gap(13,3); s.box(19,9,1,1); s.box(20,8,1,2); s.p(22,9,'^'); s.gap(27,2); s.gap(31,2); s.box(37,7,3,1); s.row(37,9,3,'^'); s.gap(46,3); s.row(52,9,2,'^'); s.gap(58,2); s.e('goal',66,9); }),
+ mk('まんなか',70,s=>{ s.p(43,9,'L'); s.p(24,6,'B'); s.p(9,9,'^'); s.gap(13,3); s.box(19,9,1,1); s.box(20,8,1,2); s.p(22,9,'^'); s.gap(27,2); s.gap(31,2); s.box(37,7,3,1); s.row(37,9,3,'^'); s.gap(46,3); s.row(52,9,2,'^'); s.gap(58,2); s.e('goal',66,9); }),
  mk('とびうつれ',66,s=>{ s.p(31,6,'B'); s.box(7,9,1,1); s.box(8,7,1,3); s.gap(13,3); s.row(19,9,10,'^'); s.box(19,8,2,1); s.box(23,6,2,1); s.box(27,8,2,1); s.gap(34,3); s.p(40,9,'^'); s.gap(44,2); s.row(49,9,2,'^'); s.gap(54,3); s.e('goal',62,9); }),
  mk('とびいし',70,s=>{ s.p(43,6,'B'); s.gap(8,22); s.box(11,10,2,2,'#'); s.box(16,10,2,2,'#'); s.box(21,10,1,2,'#'); s.box(25,10,2,2,'#'); s.p(34,9,'^'); s.row(38,9,3,'^'); s.box(38,7,3,1); s.gap(45,3); s.gap(50,6); s.box(52,10,2,2,'#'); s.row(60,9,2,'^'); s.e('goal',66,9); }),
- mk('のぼりくだり',72,s=>{ s.p(49,6,'B'); s.box(8,9,1,1); s.box(9,8,1,2); s.box(10,7,1,3); s.box(11,6,1,4); s.box(12,5,4,5); s.p(14,4,'^'); s.gap(17,3); s.gap(24,18); s.box(24,8,2,1); s.box(28,6,2,1); s.box(32,4,2,1); s.box(36,6,2,1); s.box(40,8,2,1); s.row(46,9,2,'^'); s.gap(51,3); s.p(56,9,'^'); s.p(58,9,'^'); s.gap(62,3); s.e('goal',68,9); }),
+ mk('のぼりくだり',72,s=>{ s.p(44,9,'L'); s.p(49,6,'B'); s.box(8,9,1,1); s.box(9,8,1,2); s.box(10,7,1,3); s.box(11,6,1,4); s.box(12,5,4,5); s.p(14,4,'^'); s.gap(17,3); s.gap(24,18); s.box(24,8,2,1); s.box(28,6,2,1); s.box(32,4,2,1); s.box(36,6,2,1); s.box(40,8,2,1); s.row(46,9,2,'^'); s.gap(51,3); s.p(56,9,'^'); s.p(58,9,'^'); s.gap(62,3); s.e('goal',68,9); }),
  mk('トゲの道',74,s=>{ s.p(11,6,'B'); s.row(8,9,2,'^'); s.row(13,9,3,'^'); s.p(18,9,'^'); s.p(21,9,'^'); s.p(24,9,'^'); s.gap(28,3); s.row(33,9,6,'^'); s.box(34,7,3,1); s.gap(43,2); s.row(46,9,2,'^'); s.gap(50,3); s.row(54,9,3,'^'); s.box(60,9,1,1); s.box(61,8,1,2); s.row(62,9,2,'^'); s.e('goal',70,9); }),
- mk('さいごの試練',84,s=>{ s.p(39,6,'B'); s.row(7,9,2,'^'); s.gap(11,3); s.box(16,7,2,1); s.gap(18,6); s.box(20,10,2,2,'#'); s.p(26,9,'^'); s.box(29,9,1,1); s.box(30,8,1,2); s.box(31,7,1,3); s.gap(33,3); s.row(36,9,2,'^'); s.gap(41,14); s.box(43,8,2,1); s.box(47,6,2,1); s.box(51,8,2,1); s.row(58,9,3,'^'); s.gap(64,3); s.p(69,9,'^'); s.p(72,9,'^'); s.gap(75,3); s.e('goal',80,9); }) ];
+ mk('さいごの試練',84,s=>{ s.p(27,9,'L'); s.p(39,6,'B'); s.row(7,9,2,'^'); s.gap(11,3); s.box(16,7,2,1); s.gap(18,6); s.box(20,10,2,2,'#'); s.p(26,9,'^'); s.box(29,9,1,1); s.box(30,8,1,2); s.box(31,7,1,3); s.gap(33,3); s.row(36,9,2,'^'); s.gap(41,14); s.box(43,8,2,1); s.box(47,6,2,1); s.box(51,8,2,1); s.row(58,9,3,'^'); s.gap(64,3); s.p(69,9,'^'); s.p(72,9,'^'); s.gap(75,3); s.e('goal',80,9); }) ];
 
 /* ===== 状態 ===== */
 let S, deaths=0, stageI=0, T=0, playT=0, saveT=0;   /* playT＝はじめてからの時間（秒）。全ステージをクリアするまで続く */
@@ -74,7 +74,7 @@ try{ const o=JSON.parse(localStorage.getItem('trap_save')||'{}'); deaths=o.death
 function save(){ try{ localStorage.setItem('trap_save',JSON.stringify({deaths,time:Math.round(playT),stage:stageI})); }catch(e){} }
 function newRun(keepCp){ const st=STAGES[stageI], cp=keepCp&&S?S.cp:null, sd=S?S.stDeaths||0:0, sp=cp||{x:st.start[0]*TS+TS/2,y:(st.start[1]+1)*TS};
   S={ mode:'play', n:st.n, t:0, map:st.rows.map(r=>r.slice()), ents:st.ents.map(e=>Object.assign({},e,{st:'wait',t:0,px:e.x*TS+TS/2,py:(e.y+1)*TS,vy:0,dir:e.v||1})), p:{x:sp.x,y:sp.y,vx:0,vy:0,face:1,ground:false,coy:0,buf:0,run:0,jumping:false},
-    cp, stDeaths:keepCp?sd:0, cam:0, parts:[], pops:[], crumbs:[], debris:[], warns:[], bullets:[], drops:[], ghosts:[], bridges:[], items:[], booms:[], hiT:0, wall:null, revT:0, barrier:0, invT:1, safe:{x:sp.x,y:sp.y}, shake:0, flash:0, red:0, log:S?S.log:[], banner:null, wanim:[], deadT:0, clearT:0, fakeHit:null };
+    cp, stDeaths:keepCp?sd:0, cam:0, parts:[], pops:[], crumbs:[], debris:[], warns:[], bullets:[], drops:[], ghosts:[], bridges:[], items:[], booms:[], hiT:0, sky:null, twinkle:null, wall:null, revT:0, barrier:0, invT:1, safe:{x:sp.x,y:sp.y}, shake:0, flash:0, red:0, log:S?S.log:[], banner:null, wanim:[], deadT:0, clearT:0, fakeHit:null };
   S.cam=clamp(S.p.x-W*.38,0,S.n*TS-W); }
 const logAdd=(s,c)=>{ S.log.unshift({s,c:c||'#fff',t:6}); S.log.length=Math.min(S.log.length,3); };
 const banner=(a,c,b)=>{ S.banner={a,b:b||'',c:c||'#fff',t:0}; };
@@ -112,12 +112,13 @@ const Game={
   bridge(n){ const {tx,ty}=pTile(); let done=0; for(let x=tx;x<tx+14 && x<S.n;x++){ if(!solid(x,10) && !solid(x,11) && tile(x,10)!=='b'){ let w=0; while(x+w<S.n && !solid(x+w,10) && w<6) w++; for(let i=0;i<w;i++){ setT(x+i,10,'b'); S.bridges.push({x:x+i,y:10,t:T_.bridge}); } done=w; break; } }
     if(!done && !S.p.ground){ const y=clamp(Math.floor(S.p.y/TS)+1,1,10); for(let i=-1;i<=1;i++) if(tile(tx+i,y)==='.'){ setT(tx+i,y,'b'); S.bridges.push({x:tx+i,y,t:T_.bridge}); done++; } }
     play('pon',.7); logAdd((n||'だれか')+(done?' が足場を出した（'+T_.bridge+'秒）':' の足場（この先に穴がなかった）'),'#5dffb0'); },
-  sweep(n){ const x0=Math.floor(S.cam/TS)-1, x1=x0+20; let c=0; for(let y=0;y<ROWS;y++) for(let x=x0;x<=x1;x++){ const ch=tile(x,y); if(ch==='^'||ch==='v'||ch==='h'||ch==='p'||ch==='F'){ setT(x,y,'.'); burst(x*TS+30,y*TS+30,['#fff','#ffd23f'],4,220); c++; } }
+  sweep(n){ const x0=Math.floor(S.cam/TS)-1, x1=x0+20; let c=0; for(let y=0;y<ROWS;y++) for(let x=x0;x<=x1;x++){ const ch=tile(x,y); if(ch==='^'||ch==='v'||ch==='h'||ch==='p'||ch==='F'||ch==='M'){ setT(x,y,'.'); burst(x*TS+30,y*TS+30,['#fff','#ffd23f'],4,220); c++; } }
     for(const gh of S.ghosts) setT(gh.x,gh.y,'.'); S.ghosts=[]; c+=S.bullets.length+S.drops.length+S.warns.length; S.bullets=[]; S.drops=[]; S.warns=[]; S.pops=[]; if(S.wall){ S.wall=null; c++; } if(S.revT>0){ S.revT=0; c++; }
     S.ents=S.ents.filter(e=>{ const on=e.px>S.cam-80&&e.px<S.cam+W+80; if(on&&(e.k==='ball'||e.k==='crusher'||e.k==='fake')){ burst(e.px,e.py-30,['#fff','#ffd23f'],10,300); c++; return false; } return true; });
     S.flash=.35; play('harp2',.7); play('kick',.6); banner('おそうじ！','#ffd23f',(n||'だれか')+' が画面の罠を消した'); logAdd((n||'だれか')+' が罠を'+c+'こ消した','#5dffb0'); },
   present(n){ const {tx,ty}=pTile(); for(const dx of [S.p.face*2,S.p.face*3,S.p.face,0]){ const x=tx+dx, gy=groundBelow(x,ty); if(gy<4) continue; const y=gy-4; if(tile(x,y)==='.' && tile(x,y+1)==='.' && tile(x,y+2)==='.'){ setT(x,y,'B'); play('pon',.6); burst(x*TS+30,y*TS+30,['#ffd23f','#fff'],10,260); logAdd((n||'だれか')+' がプレゼント箱を置いた（下からたたく）','#5dffb0'); return; } } logAdd((n||'だれか')+' のプレゼント箱（置けなかった）','#5dffb0'); },
   /* 妨害 */
+  fakespring(n){ const {tx,ty}=pTile(), p=S.p; for(const dx of [p.face*2,p.face*3,p.face*4,p.face]){ const x=tx+dx, gy=groundBelow(x,ty-1); if(gy>0 && tile(x,gy-1)==='.' && x>1 && x<S.n-2){ setT(x,gy-1,'M'); play('pon',.6); burst(x*TS+30,gy*TS-20,['#e23a3a','#fff'],8,220); logAdd((n||'だれか')+' がバネを置いた…？','#ff9aa8'); return; } } logAdd((n||'だれか')+' のニセのバネ（置けなかった）','#ff9aa8'); },
   fakebox(n){ const {tx,ty}=pTile(); for(const dx of [S.p.face*2,S.p.face*3,S.p.face,0]){ const x=tx+dx, gy=groundBelow(x,ty); if(gy<4) continue; const y=gy-4; if(tile(x,y)==='.' && tile(x,y+1)==='.' && tile(x,y+2)==='.'){ setT(x,y,'F'); play('pon',.6); burst(x*TS+30,y*TS+30,['#ffd23f','#fff'],10,260); logAdd((n||'だれか')+' がプレゼント箱を置いた…？','#ff9aa8'); return; } } logAdd((n||'だれか')+' のニセの箱（置けなかった）','#ff9aa8'); },
   spike(n){ const {tx,ty}=pTile(), p=S.p; let best=null; for(const dx of [p.face*2,p.face*3,p.face,-p.face*2]){ const x=tx+dx, gy=groundBelow(x,ty-1); if(gy>0 && tile(x,gy-1)==='.'){ best={x,y:gy-1}; break; } } if(!best){ logAdd((n||'だれか')+' のトゲ（置ける場所がなかった）','#ff9aa8'); return; }
     S.warns.push({k:'spike',x:best.x,y:best.y,t:.5}); play('swing',.6); logAdd((n||'だれか')+' がトゲをしかけた','#ff9aa8'); },
@@ -133,7 +134,7 @@ const Game={
   reset(){ deaths=0; playT=0; stageI=0; WAITQ.length=0; save(); newRun(false); } };
 /* やられている間・ゴール演出中に届いたギフトは、ためておいて動けるようになってから順番に出す */
 const WAITQ=[]; let waitT=0;
-for(const k of ['check','barrier','bridge','sweep','present','fakebox','spike','crumble','drop','ghost','bullet','wall','reverse','fake']){ const f=Game[k]; Game[k]=function(n){ if(S.mode!=='play'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
+for(const k of ['check','barrier','bridge','sweep','present','fakebox','fakespring','spike','crumble','drop','ghost','bullet','wall','reverse','fake']){ const f=Game[k]; Game[k]=function(n){ if(S.mode!=='play'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
 
 /* ===== やられる・ゴール ===== */
 function die(cause){ const p=S.p; if(S.mode!=='play') return;
@@ -149,11 +150,12 @@ function update(dt){ T+=dt; S.t+=dt; const p=S.p;
   if(S.flash>0) S.flash-=dt; if(S.red>0) S.red-=dt; if(S.shake>0) S.shake-=dt; if(S.banner){ S.banner.t+=dt; if(S.banner.t>2.2) S.banner=null; } for(const l of S.log) l.t-=dt; S.log=S.log.filter(l=>l.t>0);
   for(const q of S.parts){ q.t-=dt; q.vy+=q.g*dt; q.x+=q.vx*dt; q.y+=q.vy*dt; } S.parts=S.parts.filter(q=>q.t>0); for(const q of S.debris){ q.vy+=2400*dt; q.y+=q.vy*dt; q.rot+=q.vr*dt; } S.debris=S.debris.filter(q=>q.y<ROWS*TS+200);
   for(const a of S.wanim) a.t+=dt; S.wanim=S.wanim.filter(a=>a.t<1.6);
-  if(S.mode==='dead'){ playT+=dt; S.deadT+=dt; const c=S.corpse; if(c){ c.vy+=2400*dt; c.x+=c.vx*dt; c.y+=c.vy*dt; c.rot+=dt*5*c.face; } if(S.deadT>=T_.dead){ newRun(true); } return; }
+  if(S.mode==='dead'){ playT+=dt; S.deadT+=dt; if(S.twinkle) S.twinkle.t+=dt; const c=S.corpse; if(c){ c.vy+=2400*dt; c.x+=c.vx*dt; c.y+=c.vy*dt; c.rot+=dt*5*c.face; } if(S.deadT>=T_.dead){ newRun(true); } return; }
   if(S.mode==='allclear'){ S.clearT+=dt; if(Math.random()<dt*70) S.parts.push({x:S.cam+rand(0,W),y:-20,vx:rand(-60,60),vy:rand(80,300),g:300,t:rand(1.2,2.2),s:pick([10,14,18]),c:pick(['#ffd23f','#fff','#4cc3ff','#ff5c8a','#5dffb0'])}); if(S.clearT>3 && S.again){ S.again=false; Game.reset(); } return; }
   playT+=dt; saveT+=dt; if(saveT>5){ saveT=0; save(); }
   if(S.mode==='clear'){ S.clearT+=dt; if(Math.random()<dt*40) S.parts.push({x:S.cam+rand(0,W),y:-20,vx:rand(-60,60),vy:rand(80,300),g:300,t:rand(1.2,2.2),s:pick([10,14]),c:pick(['#ffd23f','#fff','#4cc3ff','#ff5c8a','#5dffb0'])}); if(S.clearT>=T_.clear){ stageI=(stageI+1)%STAGES.length; save(); newRun(false); banner('ステージ '+(stageI+1),'#fff',STAGES[stageI].name); } return; }
   if(WAITQ.length){ waitT-=dt; if(waitT<=0){ waitT=.3; const fn=WAITQ.shift(); try{ fn(); }catch(e){} } } else waitT=.2;
+  if(S.sky){ S.sky.t+=dt; p.y-=2500*dt; p.x+=p.vx*dt*.15; p.run+=dt*20; if(Math.random()<dt*60) S.parts.push({x:p.x+rand(-14,14),y:p.y,vx:rand(-60,60),vy:rand(200,500),g:0,t:.35,s:pick([8,12]),c:'#fff'}); if(p.y<-240){ S.twinkle={x:p.x,t:0}; S.sky=null; S.invT=0; S.barrier=0; die('ニセのバネ'); S.corpse=null; play('harp2',.5); } return; }
   if(S.invT>0) S.invT-=dt; if(S.revT>0){ S.revT-=dt; if(S.revT<=0){ S.revT=0; logAdd('あべこべが元にもどった','#fff'); } }
   /* 横の動き */
   const ax=axis(), tv=ax*PH.run, a=(p.ground?PH.acc:PH.air)*dt; if(ax){ p.vx+=clamp(tv-p.vx,-a,a); p.face=ax>0?1:-1; } else { const f=(p.ground?PH.fric:PH.air*.5)*dt; p.vx=Math.abs(p.vx)<=f?0:p.vx-Math.sign(p.vx)*f; }
@@ -169,7 +171,9 @@ function update(dt){ T+=dt; S.t+=dt; const p=S.p;
     else { const ty=Math.floor((p.y-PH.h)/TS); let hit=-1; const cxm=Math.floor(p.x/TS); if(solid(cxm,ty)) hit=cxm; else for(let x=x0;x<=x1;x++) if(solid(x,ty)){ hit=x; break; } if(hit>=0){ p.y=(ty+1)*TS+PH.h+.01; p.vy=0; p.jumping=false; reveal(hit,ty); play('pon',.35); if(tile(hit,ty)==='B'||tile(hit,ty)==='F') openBox(hit,ty); } } }
   if(p.ground && Math.abs(p.vx)>20) p.run+=dt*Math.abs(p.vx)/26;
   /* バネ */
-  { const tx=Math.floor(p.x/TS), ty=Math.floor((p.y-4)/TS); if(tile(tx,ty)==='L' && p.vy>=0 && p.y>ty*TS+34){ p.vy=PH.spring; p.ground=false; p.jumping=false; play('boyon',.7); S.springFx={x:tx,y:ty,t:.25}; } if(S.springFx){ S.springFx.t-=dt; if(S.springFx.t<=0) S.springFx=null; } }
+  { const tx=Math.floor(p.x/TS), ty=Math.floor((p.y-4)/TS); const sc=tile(tx,ty); if((sc==='L'||sc==='M') && p.vy>=0 && p.y>ty*TS+34){ p.ground=false; p.jumping=false; play('boyon',.7); S.springFx={x:tx,y:ty,t:.25};
+      if(sc==='M' && S.barrier>0){ S.barrier--; S.invT=T_.inv; setT(tx,ty,'.'); p.vy=PH.spring; play('guard',.8); burst(p.x,p.y-25,['#8fd3ff','#fff'],16,360); logAdd('バリアが守った！（ニセのバネ）','#8fd3ff'); }
+      else if(sc==='M'){ S.sky={t:0}; p.vy=-2500; play('kick',.8); logAdd('ニセのバネだった！','#ff5c5c'); } else p.vy=PH.spring; } if(S.springFx){ S.springFx.t-=dt; if(S.springFx.t<=0) S.springFx=null; } }
   /* かくれトゲ・トゲ・穴 */
   { const tx=Math.floor(p.x/TS), ty=Math.floor((p.y-1)/TS); for(let x=tx-2;x<=tx+2;x++) for(let y=ty-2;y<=ty+2;y++) if(tile(x,y)==='h' && Math.abs(x*TS+30-p.x)<TS*1.45){ setT(x,y,'p'); S.pops.push({x,y,t:T_.hPop}); play('swing',.5); }
     for(const q of S.pops){ q.t-=dt; if(q.t<=0 && tile(q.x,q.y)==='p') setT(q.x,q.y,'^'); } S.pops=S.pops.filter(q=>q.t>0);
@@ -222,7 +226,7 @@ function drawHero(x,y,face,pose,al,rot){ if(ok('hero')){ const f={stand:0,run1:1
 function drawTile(ch,x,y,tx,ty){ const TI=ok('tiles');
   if(TI && (ch==='#'||ch==='='||ch==='b'||ch==='f')){ const top=ch==='f'||(ch==='#'&&tile(tx,ty-1)!=='#'&&tile(tx,ty-1)!=='f'), i=ch==='='?2:(ch==='b'?3:(top?0:1)); g.drawImage(IMG.tiles,i*60,0,60,60,x,y,TS+.5,TS+.5); if(ch==='f'){ g.fillStyle='#4a2508'; g.fillRect(x+26,y+20,4,10); g.fillRect(x+30,y+28,4,8); g.fillRect(x+22,y+34,4,6); } return; }
   if(ok('spikes') && (ch==='^'||ch==='p'||ch==='v')){ const hh=49*(ch==='p'?.45:1); if(ch==='v'){ g.save(); g.translate(x,y+49); g.scale(1,-1); g.drawImage(IMG.spikes,0,0,TS,49); g.restore(); } else g.drawImage(IMG.spikes,x,y+TS-hh,TS,hh); return; }
-  if(ok('spring') && ch==='L'){ const sq=S.springFx&&S.springFx.x===tx&&S.springFx.y===ty?.5:1, hh=58*sq; g.drawImage(IMG.spring,x+6,y+TS-hh,48,hh); return; }
+  if(ok('spring') && (ch==='L'||ch==='M')){ const sq=S.springFx&&S.springFx.x===tx&&S.springFx.y===ty?.5:1, hh=58*sq, wob=ch==='M'&&((T+tx*.37)%2.2)<.22?Math.sin(T*60)*2:0; g.drawImage(IMG.spring,x+6+wob,y+TS-hh,48,hh); return; }
   if(ch==='r'){ rock(x,y); return; }
   if(ch==='B'||ch==='F'||ch==='u'){ const up=S.boxFx&&S.boxFx.x===tx&&S.boxFx.y===ty?-10*Math.sin(S.boxFx.t/.18*Math.PI):0; y+=up; if(ch==='u'){ g.fillStyle='#8a6a48'; g.fillRect(x,y,TS,TS); g.fillStyle='#6b4f33'; g.fillRect(x+6,y+6,TS-12,TS-12); g.fillStyle='#4a3520'; g.fillRect(x+12,y+12,TS-24,TS-24); g.strokeStyle='#111'; g.lineWidth=4; g.strokeRect(x+2,y+2,TS-4,TS-4); return; }
     g.fillStyle='#ffc21a'; g.fillRect(x,y,TS,TS); g.fillStyle='#ffe07a'; g.fillRect(x+4,y+4,TS-8,8); g.fillStyle='#d99400'; g.fillRect(x+4,y+TS-12,TS-8,8); g.fillStyle='#e23a3a'; g.fillRect(x+24,y,12,TS); g.fillRect(x,y+24,TS,12); g.fillStyle='#ff8a8a'; g.fillRect(x+24,y,4,TS); g.fillRect(x,y+24,TS,4); g.fillStyle='#e23a3a'; g.fillRect(x+12,y-10,14,12); g.fillRect(x+34,y-10,14,12); g.fillStyle='#b01e1e'; g.fillRect(x+26,y-6,8,10); g.strokeStyle='#111'; g.lineWidth=4; g.strokeRect(x+2,y+2,TS-4,TS-4); if(ch==='B'){ const tw=(Math.sin(T*4+tx)+1)/2; g.fillStyle='rgba(255,255,255,'+(.8*tw)+')'; g.fillRect(x+44,y+8,6,6); } return; }
@@ -268,6 +272,7 @@ function draw(){ const p=S.p; g.setTransform(1,0,0,1,0,0);
   if(S.mode!=='dead'){ const pose=!p.ground?'jump':(Math.abs(p.vx)>30?(Math.floor(p.run)%2?'run1':'run2'):'stand'), bl=S.invT>0&&Math.floor(T*20)%2; if(!bl) drawHero(p.x,p.y,p.face,pose);
     if(S.barrier>0){ g.strokeStyle='rgba(143,211,255,'+(.7+.2*Math.sin(T*8))+')'; g.lineWidth=5; g.beginPath(); g.arc(p.x,p.y-27,44,0,7); g.stroke(); if(S.barrier>1) txt('×'+S.barrier,p.x+40,p.y-64,26,'#8fd3ff','left','#111'); }
     if(S.revT>0){ txt('？',p.x,p.y-82+Math.sin(T*8)*4,40,'#c08bff','center','#111',FONTD); } }
+  if(S.twinkle && S.twinkle.t<.9){ const k=S.twinkle.t/.9, r=70*Math.sin(k*Math.PI), x=S.twinkle.x, y=26; g.fillStyle='#fff'; g.beginPath(); g.moveTo(x,y-r); g.lineTo(x+r*.18,y-r*.18); g.lineTo(x+r,y); g.lineTo(x+r*.18,y+r*.18); g.lineTo(x,y+r); g.lineTo(x-r*.18,y+r*.18); g.lineTo(x-r,y); g.lineTo(x-r*.18,y-r*.18); g.closePath(); g.fill(); g.strokeStyle='#ffd23f'; g.lineWidth=4; g.stroke(); }
   if(S.mode==='dead' && S.corpse) drawHero(S.corpse.x,S.corpse.y,S.corpse.face,'dead',1,0);
   /* トゲ壁 */
   if(S.wall){ const wx=S.wall.x; g.fillStyle='#333'; g.fillRect(wx-400,-40,430,ROWS*TS+80); for(let y=-20;y<ROWS*TS;y+=40){ g.fillStyle='#c9ced8'; g.beginPath(); g.moveTo(wx+30,y); g.lineTo(wx+78,y+20); g.lineTo(wx+30,y+40); g.closePath(); g.fill(); g.strokeStyle='#111'; g.lineWidth=3; g.stroke(); } g.fillStyle='#e23a3a'; g.fillRect(wx-60,ROWS*TS*.35,26,26); g.fillRect(wx-60,ROWS*TS*.55,26,26); }
