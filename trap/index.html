@@ -30,9 +30,9 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;touch
   <button id="testBtn" type="button">テスト</button>
   <div id="tp" hidden>
     <h3>お助け</h3>
-    <button class="h" data-a="check">中間ポイント<br>今いる場所から再開</button><button class="h" data-a="barrier">バリア<br>1回だけ守る</button><button class="h" data-a="bridge">足場<br>この先の穴をふさぐ</button><button class="h" data-a="sweep">おそうじ<br>画面の罠を全部消す</button><button class="h" data-a="winUp">WIN ＋1</button>
+    <button class="h" data-a="check">中間ポイント<br>今いる場所から再開</button><button class="h" data-a="barrier">バリア<br>1回だけ守る</button><button class="h" data-a="bridge">足場<br>この先の穴をふさぐ</button><button class="h" data-a="sweep">おそうじ<br>画面の罠を全部消す</button>
     <h3>妨害</h3>
-    <button class="j" data-a="spike">トゲ<br>目の前に飛び出す</button><button class="j" data-a="crumble">床ぬけ<br>足元がくずれる</button><button class="j" data-a="drop">落石<br>頭の上から</button><button class="j" data-a="ghost">見えないブロック<br>頭の上に12秒</button><button class="j" data-a="bullet">矢<br>右から飛んでくる</button><button class="j" data-a="wall">せまるトゲ壁<br>6秒 左から追ってくる</button><button class="j" data-a="reverse">あべこべ<br>8秒 左右が逆</button><button class="j" data-a="fake">ニセのゴール<br>さわるとやられる</button><button class="j" data-a="winDown">WIN −1</button>
+    <button class="j" data-a="spike">トゲ<br>目の前に飛び出す</button><button class="j" data-a="crumble">床ぬけ<br>足元がくずれる</button><button class="j" data-a="drop">落石<br>頭の上から</button><button class="j" data-a="ghost">見えないブロック<br>頭の上に12秒</button><button class="j" data-a="bullet">矢<br>右から飛んでくる</button><button class="j" data-a="wall">せまるトゲ壁<br>6秒 左から追ってくる</button><button class="j" data-a="reverse">あべこべ<br>8秒 左右が逆</button><button class="j" data-a="fake">ニセのゴール<br>さわるとやられる</button>
     <h3>その他</h3>
     <button class="n" data-a="next">次のステージへ</button><button class="n" data-a="reset">記録を消す</button><button class="n" data-a="close">とじる</button>
   </div>
@@ -64,9 +64,9 @@ const STAGES=[
  mk('さいごの道',70,s=>{ s.p(9,9,'^'); s.gap(13,3); s.box(19,9,1,1); s.box(20,8,1,2); s.p(22,9,'^'); s.gap(27,2); s.gap(31,2); s.box(37,7,3,1); s.row(37,9,3,'^'); s.gap(46,3); s.row(52,9,2,'^'); s.gap(58,2); s.e('goal',66,9); }) ];
 
 /* ===== 状態 ===== */
-let S, wins=0, deaths=0, stageI=0, T=0;
-try{ const o=JSON.parse(localStorage.getItem('trap_save')||'{}'); wins=o.wins|0; deaths=o.deaths|0; stageI=clamp(o.stage|0,0,STAGES.length-1); }catch(e){}
-function save(){ try{ localStorage.setItem('trap_save',JSON.stringify({wins,deaths,stage:stageI})); }catch(e){} }
+let S, deaths=0, stageI=0, T=0, playT=0, saveT=0;   /* playT＝はじめてからの時間（秒）。全ステージをクリアするまで続く */
+try{ const o=JSON.parse(localStorage.getItem('trap_save')||'{}'); deaths=o.deaths|0; playT=+o.time||0; stageI=clamp(o.stage|0,0,STAGES.length-1); }catch(e){}
+function save(){ try{ localStorage.setItem('trap_save',JSON.stringify({deaths,time:Math.round(playT),stage:stageI})); }catch(e){} }
 function newRun(keepCp){ const st=STAGES[stageI], cp=keepCp&&S?S.cp:null, sd=S?S.stDeaths||0:0, sp=cp||{x:st.start[0]*TS+TS/2,y:(st.start[1]+1)*TS};
   S={ mode:'play', n:st.n, t:0, map:st.rows.map(r=>r.slice()), ents:st.ents.map(e=>Object.assign({},e,{st:'wait',t:0,px:e.x*TS+TS/2,py:(e.y+1)*TS,vy:0,dir:e.v||1})), p:{x:sp.x,y:sp.y,vx:0,vy:0,face:1,ground:false,coy:0,buf:0,run:0,jumping:false},
     cp, stDeaths:keepCp?sd:0, cam:0, parts:[], pops:[], crumbs:[], debris:[], warns:[], bullets:[], drops:[], ghosts:[], bridges:[], wall:null, revT:0, barrier:0, invT:1, safe:{x:sp.x,y:sp.y}, shake:0, flash:0, red:0, log:S?S.log:[], banner:null, wanim:[], deadT:0, clearT:0, fakeHit:null };
@@ -91,7 +91,7 @@ const IN={l:false,r:false,j:false}, KEYS={};
 function padBind(id,k){ const el=document.getElementById(id); const on=e=>{ e.preventDefault(); IN[k]=true; el.classList.add('on'); if(k==='j') jumpPress(); try{ el.setPointerCapture(e.pointerId); }catch(_){} }, off=e=>{ IN[k]=false; el.classList.remove('on'); if(k==='j') jumpRelease(); };
   el.addEventListener('pointerdown',on); el.addEventListener('pointerup',off); el.addEventListener('pointercancel',off); el.addEventListener('lostpointercapture',off); }
 padBind('bL','l'); padBind('bR','r'); padBind('bJ','j');
-function jumpPress(){ if(S.mode==='play') S.p.buf=PH.buf; }
+function jumpPress(){ if(S.mode==='play') S.p.buf=PH.buf; else if(S.mode==='allclear' && S.clearT>3) S.again=true; }
 function jumpRelease(){ const p=S.p; if(p.jumping && p.vy<0){ p.vy*=PH.cut; } p.jumping=false; }
 window.addEventListener('keydown',e=>{ if(e.repeat) return; KEYS[e.code]=true; if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW'||e.code==='KeyZ'){ e.preventDefault(); jumpPress(); } if(e.code==='ArrowLeft'||e.code==='ArrowRight') e.preventDefault(); });
 window.addEventListener('keyup',e=>{ KEYS[e.code]=false; if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW'||e.code==='KeyZ') jumpRelease(); });
@@ -111,7 +111,6 @@ const Game={
     for(const gh of S.ghosts) setT(gh.x,gh.y,'.'); S.ghosts=[]; c+=S.bullets.length+S.drops.length+S.warns.length; S.bullets=[]; S.drops=[]; S.warns=[]; S.pops=[]; if(S.wall){ S.wall=null; c++; } if(S.revT>0){ S.revT=0; c++; }
     S.ents=S.ents.filter(e=>{ const on=e.px>S.cam-80&&e.px<S.cam+W+80; if(on&&(e.k==='ball'||e.k==='crusher'||e.k==='fake')){ burst(e.px,e.py-30,['#fff','#ffd23f'],10,300); c++; return false; } return true; });
     S.flash=.35; play('harp2',.7); play('kick',.6); banner('おそうじ！','#ffd23f',(n||'だれか')+' が画面の罠を消した'); logAdd((n||'だれか')+' が罠を'+c+'こ消した','#5dffb0'); },
-  winUp(n){ wins++; save(); S.wanim.push({t:0,d:1}); S.flash=.3; play('fanfare',.6); logAdd((n||'だれか')+' が WIN ＋1','#ffd23f'); },
   /* 妨害 */
   spike(n){ const {tx,ty}=pTile(), p=S.p; let best=null; for(const dx of [p.face*2,p.face*3,p.face,-p.face*2]){ const x=tx+dx, gy=groundBelow(x,ty-1); if(gy>0 && tile(x,gy-1)==='.'){ best={x,y:gy-1}; break; } } if(!best){ logAdd((n||'だれか')+' のトゲ（置ける場所がなかった）','#ff9aa8'); return; }
     S.warns.push({k:'spike',x:best.x,y:best.y,t:.5}); play('swing',.6); logAdd((n||'だれか')+' がトゲをしかけた','#ff9aa8'); },
@@ -123,19 +122,19 @@ const Game={
   wall(n){ if(S.wall){ S.wall.t+=T_.wallT; logAdd((n||'だれか')+' がトゲ壁をのばした','#ff9aa8'); return; } S.wall={x:S.cam-260,t:T_.wallT,out:0}; play('dark',.7); play('heavy',.5); banner('うしろからトゲ壁！','#ff5c5c',n); logAdd((n||'だれか')+' がトゲ壁を呼んだ（'+T_.wallT+'秒 前に逃げろ）','#ff9aa8'); },
   reverse(n){ S.revT=Math.min(40,S.revT+T_.rev); play('bad',.6); banner('あべこべ！','#c08bff','左右が逆になった'); logAdd((n||'だれか')+' があべこべにした（'+T_.rev+'秒）','#ff9aa8'); },
   fake(n){ const {tx,ty}=pTile(); for(const dx of [S.p.face*4,S.p.face*5,S.p.face*3,-S.p.face*4]){ const x=tx+dx, gy=groundBelow(x,ty-1); if(gy>0 && tile(x,gy-1)==='.' && x>1 && x<S.n-1){ S.ents.push({k:'fake',gift:true,x,y:gy-1,px:x*TS+30,py:gy*TS,st:'wait',t:0}); play('pon',.5); logAdd((n||'だれか')+' がゴールの旗を立てた…？','#ff9aa8'); return; } } logAdd((n||'だれか')+' のニセのゴール（置けなかった）','#ff9aa8'); },
-  winDown(n){ wins--; save(); S.wanim.push({t:0,d:-1}); S.red=.35; S.shake=Math.max(S.shake,.5); play('glass',.55); play('bad',.5); logAdd((n||'だれか')+' が WIN −1','#ff9aa8'); },
   next(){ stageI=(stageI+1)%STAGES.length; save(); newRun(false); },
-  reset(){ wins=0; deaths=0; stageI=0; save(); newRun(false); } };
+  reset(){ deaths=0; playT=0; stageI=0; WAITQ.length=0; save(); newRun(false); } };
 /* やられている間・ゴール演出中に届いたギフトは、ためておいて動けるようになってから順番に出す */
 const WAITQ=[]; let waitT=0;
-for(const k of ['check','barrier','bridge','sweep','winUp','spike','crumble','drop','ghost','bullet','wall','reverse','fake','winDown']){ const f=Game[k]; Game[k]=function(n){ if(S.mode!=='play'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
+for(const k of ['check','barrier','bridge','sweep','spike','crumble','drop','ghost','bullet','wall','reverse','fake']){ const f=Game[k]; Game[k]=function(n){ if(S.mode!=='play'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
 
 /* ===== やられる・ゴール ===== */
 function die(cause){ const p=S.p; if(S.mode!=='play') return;
   if(S.barrier>0 && S.invT<=0){ S.barrier--; S.invT=T_.inv; play('guard',.8); S.flash=.2; burst(p.x,p.y-25,['#8fd3ff','#fff'],16,360); if(cause==='穴'){ p.x=S.safe.x; p.y=S.safe.y; p.vx=0; p.vy=0; } else { p.vy=-720; } logAdd('バリアが守った！（'+cause+'）','#8fd3ff'); return; }
   if(S.invT>0 && cause!=='穴') return;
   S.mode='dead'; S.deadT=0; S.corpse={x:p.x,y:p.y,vy:-760,vx:-p.face*90,rot:0,face:p.face}; deaths++; S.stDeaths++; save(); S.shake=.5; S.red=.4; play('crash',.8); burst(p.x,p.y-25,['#2f6fe0','#ffd9a8','#e23a3a','#fff'],26,460); logAdd(cause+'でやられた（'+fmt(deaths)+'回目）','#ff5c5c'); }
-function clearStage(){ if(S.mode!=='play') return; S.mode='clear'; S.clearT=0; wins++; save(); play('goal',.8); play('clap',.7); play('cheer',.6); S.flash=.5; banner('ゴール！','#ffd23f','このステージで '+S.stDeaths+'回やられた'); logAdd('ステージ'+(stageI+1)+'「'+STAGES[stageI].name+'」をクリア！ WIN ＋1','#ffd23f'); }
+const tstr=t=>{ t=Math.floor(t); const h=Math.floor(t/3600), m=Math.floor(t%3600/60), ss=t%60; return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(ss).padStart(2,'0'); };
+function clearStage(){ if(S.mode!=='play') return; const last=stageI>=STAGES.length-1; S.mode=last?'allclear':'clear'; S.clearT=0; WAITQ.length=0; save(); play('goal',.8); play('clap',.7); play('cheer',.6); S.flash=.5; if(!last) banner('ステージ クリア！','#ffd23f','このステージで '+S.stDeaths+'回やられた'); logAdd('ステージ'+(stageI+1)+'「'+STAGES[stageI].name+'」をクリア！'+(last?' 全ステージ制覇！':''),'#ffd23f'); }
 
 /* ===== 進める ===== */
 function hitRect(ax,ay,aw,ah){ const p=S.p, x0=p.x-PH.w/2+7, x1=p.x+PH.w/2-7, y0=p.y-PH.h+8, y1=p.y-3; return x0<ax+aw && x1>ax && y0<ay+ah && y1>ay; }
@@ -143,7 +142,9 @@ function update(dt){ T+=dt; S.t+=dt; const p=S.p;
   if(S.flash>0) S.flash-=dt; if(S.red>0) S.red-=dt; if(S.shake>0) S.shake-=dt; if(S.banner){ S.banner.t+=dt; if(S.banner.t>2.2) S.banner=null; } for(const l of S.log) l.t-=dt; S.log=S.log.filter(l=>l.t>0);
   for(const q of S.parts){ q.t-=dt; q.vy+=q.g*dt; q.x+=q.vx*dt; q.y+=q.vy*dt; } S.parts=S.parts.filter(q=>q.t>0); for(const q of S.debris){ q.vy+=2400*dt; q.y+=q.vy*dt; q.rot+=q.vr*dt; } S.debris=S.debris.filter(q=>q.y<ROWS*TS+200);
   for(const a of S.wanim) a.t+=dt; S.wanim=S.wanim.filter(a=>a.t<1.6);
-  if(S.mode==='dead'){ S.deadT+=dt; const c=S.corpse; if(c){ c.vy+=2400*dt; c.x+=c.vx*dt; c.y+=c.vy*dt; c.rot+=dt*5*c.face; } if(S.deadT>=T_.dead){ newRun(true); } return; }
+  if(S.mode==='dead'){ playT+=dt; S.deadT+=dt; const c=S.corpse; if(c){ c.vy+=2400*dt; c.x+=c.vx*dt; c.y+=c.vy*dt; c.rot+=dt*5*c.face; } if(S.deadT>=T_.dead){ newRun(true); } return; }
+  if(S.mode==='allclear'){ S.clearT+=dt; if(Math.random()<dt*70) S.parts.push({x:S.cam+rand(0,W),y:-20,vx:rand(-60,60),vy:rand(80,300),g:300,t:rand(1.2,2.2),s:pick([10,14,18]),c:pick(['#ffd23f','#fff','#4cc3ff','#ff5c8a','#5dffb0'])}); if(S.clearT>3 && S.again){ S.again=false; Game.reset(); } return; }
+  playT+=dt; saveT+=dt; if(saveT>5){ saveT=0; save(); }
   if(S.mode==='clear'){ S.clearT+=dt; if(Math.random()<dt*40) S.parts.push({x:S.cam+rand(0,W),y:-20,vx:rand(-60,60),vy:rand(80,300),g:300,t:rand(1.2,2.2),s:pick([10,14]),c:pick(['#ffd23f','#fff','#4cc3ff','#ff5c8a','#5dffb0'])}); if(S.clearT>=T_.clear){ stageI=(stageI+1)%STAGES.length; save(); newRun(false); banner('ステージ '+(stageI+1),'#fff',STAGES[stageI].name); } return; }
   if(WAITQ.length){ waitT-=dt; if(waitT<=0){ waitT=.3; const fn=WAITQ.shift(); try{ fn(); }catch(e){} } } else waitT=.2;
   if(S.invT>0) S.invT-=dt; if(S.revT>0){ S.revT-=dt; if(S.revT<=0){ S.revT=0; logAdd('あべこべが元にもどった','#fff'); } }
@@ -238,8 +239,8 @@ function draw(){ const p=S.p; g.setTransform(1,0,0,1,0,0);
     else if(e.k==='crusher'){ if(e.st==='fall'){ rock(e.px-30,e.py-TS); } else { const x=e.px-30, y=e.py-TS; g.fillStyle='#c9773a'; g.fillRect(x,y,TS,TS); g.fillStyle='#8e4d20'; g.fillRect(x,y+28,TS,4); g.fillRect(x,y+56,TS,4); g.fillRect(x+28,y,4,28); g.fillRect(x+12,y+32,4,24); g.fillRect(x+44,y+32,4,24); g.fillStyle='#e7a063'; g.fillRect(x,y,TS,4); } }
     else if(e.k==='ball'){ g.save(); g.translate(e.px,e.py-26); g.rotate(e.px/26); g.fillStyle='#c9ced8'; for(let i=0;i<8;i++){ g.rotate(Math.PI/4); g.beginPath(); g.moveTo(-9,-18); g.lineTo(0,-34); g.lineTo(9,-18); g.closePath(); g.fill(); g.strokeStyle='#111'; g.lineWidth=3; g.stroke(); } g.fillStyle='#333'; g.beginPath(); g.arc(0,0,21,0,7); g.fill(); g.strokeStyle='#111'; g.lineWidth=4; g.stroke(); g.fillStyle='#e23a3a'; g.fillRect(-10,-6,7,7); g.fillRect(4,-6,7,7); g.restore(); } }
   /* 予告（！）と落石・たま */
-  for(const w of S.warns){ const bl=Math.floor(T*14)%2; if(w.k==='spike'){ g.fillStyle=bl?'#e23a3a':'#ffd23f'; g.fillRect(w.x*TS+4,(w.y+1)*TS-8,TS-8,8); txt('！',w.x*TS+30,w.y*TS+10,46,'#e23a3a','center','#fff',FONTD); } else if(w.k==='bullet'){ txt('！',cam+W-50,w.y,70,bl?'#e23a3a':'#ffd23f','center','#111',FONTD); g.fillStyle='rgba(226,58,58,.25)'; g.fillRect(cam,w.y-16,W,32); } }
-  for(const d of S.drops){ const x=d.x*TS; if(d.st==='warn'){ const bl=Math.floor(T*14)%2; g.fillStyle='rgba(226,58,58,'+(bl?.3:.12)+')'; g.fillRect(x,0,TS,ROWS*TS); txt('！',x+30,40,60,'#e23a3a','center','#fff',FONTD); } else { rock(x,d.py-TS); } }
+  for(const w of S.warns){ const bl=Math.floor(T*14)%2; if(w.k==='bullet'){ txt('！',cam+W-44,w.y,54,bl?'#e23a3a':'#ffd23f','center','#111',FONTD); } }
+  for(const d of S.drops){ const x=d.x*TS; if(d.st==='warn'){ const bl=Math.floor(T*14)%2; txt('！',x+30,30,48,bl?'#e23a3a':'#ffd23f','center','#111',FONTD); } else { rock(x,d.py-TS); } }
   for(const b of S.bullets){ const x=b.x, y=b.y; g.fillStyle='#111'; g.fillRect(x-22,y-5,66,10); g.fillStyle='#b9793a'; g.fillRect(x-20,y-3,62,6); g.fillStyle='#111'; g.beginPath(); g.moveTo(x-44,y); g.lineTo(x-18,y-15); g.lineTo(x-18,y+15); g.closePath(); g.fill(); g.fillStyle='#c9ced8'; g.beginPath(); g.moveTo(x-37,y); g.lineTo(x-21,y-9); g.lineTo(x-21,y+9); g.closePath(); g.fill(); g.fillStyle='#111'; g.fillRect(x+30,y-14,18,28); g.fillStyle='#e23a3a'; g.fillRect(x+33,y-11,12,8); g.fillRect(x+33,y+3,12,8); for(let i=1;i<=3;i++){ g.fillStyle='rgba(17,17,17,'+(.3-i*.08)+')'; g.fillRect(x+48+i*16,y-2,12,4); } }
   /* 主人公 */
   if(S.mode!=='dead'){ const pose=!p.ground?'jump':(Math.abs(p.vx)>30?(Math.floor(p.run)%2?'run1':'run2'):'stand'), bl=S.invT>0&&Math.floor(T*20)%2; if(!bl) drawHero(p.x,p.y,p.face,pose);
@@ -257,15 +258,16 @@ function draw(){ const p=S.p; g.setTransform(1,0,0,1,0,0);
 function drawHud(){ g.fillStyle='#1b2440'; g.fillRect(0,0,W,TOPH); g.fillStyle='#ffd23f'; g.fillRect(0,TOPH-6,W,6); g.fillStyle='#1b2440'; g.fillRect(0,BOTY,W,H-BOTY); g.fillStyle='#ffd23f'; g.fillRect(0,BOTY,W,6);
   txt('ステージ '+(stageI+1)+' / '+STAGES.length,24,40,34,'#fff'); txt(STAGES[stageI].name,24,84,30,'#9fb0d8'); txt('このステージ '+S.stDeaths+'回',24,128,28,'#ff9aa8');
   txt('やられた回数',W/2-40,34,30,'#ff9aa8','center'); txtD(fmt(deaths),W/2-40,104,96,S.mode==='dead'?'#ff5c5c':'#fff'); txt('回',W/2-40+g.measureText(fmt(deaths)).width/2+34,120,36,'#fff','left');
-  const bx=W-224, a=S.wanim[0]; txt('WIN',bx+60,30,30,'#fff','center'); const sc=a?1+.5*Math.max(0,1-a.t/.4):1; txtD(String(wins<0?'−'+(-wins):wins),bx+60,96,78*sc,a?(a.d>0?'#5dffb0':'#ff5c5c'):'#ffd23f'); if(a) txt(a.d>0?'＋1':'−1',bx+60,150-a.t*14,30,a.d>0?'#5dffb0':'#ff5c5c','center');
+  { const bx=W-224; txt('時間',bx+60,30,30,'#fff','center'); txtD(tstr(playT),bx+60,96,playT>=3600?46:60,'#ffd23f'); }
   /* 効いているもの */
   let tx=24; const tag=(s,c)=>{ g.font='900 28px '+FONT; const w=g.measureText(s).width+32; g.fillStyle=c; rr(tx,TOPH+14,w,44,22); g.fill(); txt(s,tx+16,TOPH+37,28,'#111'); tx+=w+10; };
   if(S.barrier>0) tag('バリア ×'+S.barrier,'#8fd3ff'); if(S.revT>0) tag('あべこべ あと'+Math.ceil(S.revT)+'秒','#c08bff'); if(S.wall&&S.wall.t>0) tag('トゲ壁 あと'+Math.ceil(S.wall.t)+'秒','#ff9aa8'); if(S.cp) tag('中間ポイントあり','#5dffb0');
   /* できごと */
   for(let i=0;i<S.log.length;i++){ const l=S.log[i]; g.globalAlpha=clamp(l.t,0,1)*(i?.75:1); if(TALLPAD) txt(l.s,24,BOTY+40+i*38,30,l.c,'left'); else txt(l.s,W-24,BOTY-34-i*38,28,l.c,'right','rgba(0,0,0,.75)'); } g.globalAlpha=1;
   if(S.banner){ const b=S.banner, k=clamp(b.t/.18,0,1), al=clamp((2.2-b.t)/.3,0,1); g.globalAlpha=al; txtD(b.a,W/2,470,96*(.7+.3*k),b.c,'center','#111'); if(b.b) txt(b.b,W/2,560,36,'#fff','center','#111'); g.globalAlpha=1; }
+  if(S.mode==='allclear'){ const k=clamp(S.clearT/.4,0,1); g.fillStyle='rgba(16,22,43,'+(.72*k)+')'; g.fillRect(0,TOPH,W,BOTY-TOPH); g.globalAlpha=k; txtD('全ステージ クリア！',W/2,330,84,'#ffd23f','center','#111'); txt('やられた回数',W/2-170,470,36,'#ff9aa8','center'); txtD(fmt(deaths)+'回',W/2-170,550,84,'#fff'); txt('かかった時間',W/2+190,470,36,'#9fd0ff','center'); txtD(tstr(playT),W/2+190,550,84,'#fff'); txt('おつかれさま！',W/2,680,48,'#fff','center'); if(S.clearT>3 && Math.floor(T*2)%2) txt('ジャンプを押すと、最初からもう一度',W/2,780,34,'#ffd23f','center'); g.globalAlpha=1; }
   if(S.mode==='dead'){ const k=clamp(S.deadT/.2,0,1); txtD('×',W/2,480,220*(1.3-.3*k),'#e23a3a','center','#fff'); txt(fmt(deaths)+'回目',W/2,620,56,'#fff','center','#111'); }
-  if(S.t<5 && stageI===0 && S.stDeaths===0 && deaths===0){ txt('← → で動く　ジャンプで跳ぶ　旗まで行けばWIN',W/2,BOTY-40,32,'#111','center','#fff'); } }
+  if(S.t<5 && stageI===0 && S.stDeaths===0 && deaths===0){ txt('← → で動く　ジャンプで跳ぶ　旗まで行けばクリア',W/2,BOTY-40,32,'#111','center','#fff'); } }
 function txtD(s,x,y,size,color,align,stroke){ txt(s,x,y,size,color,align||'center',stroke,FONTD); }
 
 /* ===== 画面に合わせる・テスト・ループ ===== */
@@ -281,7 +283,7 @@ tp.addEventListener('click',ev=>{ const b=ev.target.closest('button'); if(!b) re
 newRun(false);
 let last=performance.now(); window.__ready=false;
 function loop(now){ let dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ const n=Math.max(1,Math.ceil(dt/(1/120))); for(let i=0;i<n;i++) update(dt/n); draw(); } requestAnimationFrame(loop); }
-window.__dbg={ get S(){ return S; }, set S(v){ S=v; }, Game, STAGES, PH, T_, IN, KEYS, update, draw, tile, solid, jumpPress, jumpRelease, WAITQ, get wins(){ return wins; }, get deaths(){ return deaths; }, get stageI(){ return stageI; }, set stageI(v){ stageI=v; newRun(false); } };
+window.__dbg={ get S(){ return S; }, set S(v){ S=v; }, Game, STAGES, PH, T_, IN, KEYS, update, draw, tile, solid, jumpPress, jumpRelease, WAITQ, get playT(){ return playT; }, get deaths(){ return deaths; }, get stageI(){ return stageI; }, set stageI(v){ stageI=v; newRun(false); } };
 Promise.all([document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()].concat(Object.values(IMG).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.onload=r; im.onerror=r; } })))).then(()=>{ window.__ready=true; requestAnimationFrame(loop); });
 </script>
 </body>
