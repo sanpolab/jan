@@ -55,16 +55,13 @@ function mk(name,n,ops){ const rows=[]; for(let r=0;r<ROWS;r++) rows.push(new Ar
   const put=(x,y,c)=>{ if(x>=0&&x<n&&y>=0&&y<ROWS) rows[y][x]=c; };
   ops({ p:put, gap:(x,w)=>{ for(let i=0;i<w;i++){ put(x+i,10,'.'); put(x+i,11,'.'); } }, box:(x,y,w,h,c)=>{ for(let i=0;i<w;i++) for(let j=0;j<h;j++) put(x+i,y+j,c||'='); },
     row:(x,y,w,c)=>{ for(let i=0;i<w;i++) put(x+i,y,c); }, fall:(x,w)=>{ for(let i=0;i<w;i++){ put(x+i,10,'f'); put(x+i,11,'.'); } }, e:(k,x,y,o)=>t.ents.push(Object.assign({k,x,y},o||{})) }); return t; }
+/* ステージは「ふつうの道」にしてある（穴・段差・見えているトゲだけ）。罠はギフトで足してもらう */
 const STAGES=[
- mk('はじめの一歩',66,s=>{ s.p(10,9,'^'); s.gap(15,2); s.p(21,9,'h'); s.box(25,9,1,1); s.box(26,8,1,2); s.p(28,9,'^'); s.fall(32,3); s.e('crusher',40,2); s.gap(45,2); s.p(46,6,'i'); s.e('fake',53,9); s.e('goal',61,9); }),
- mk('しんじるな',74,s=>{ s.p(8,9,'h'); s.gap(12,3); s.p(15,9,'h'); s.row(20,9,5,'^'); s.box(21,7,3,1,'f'); s.e('crusher',29,2); s.e('crusher',31,2); s.box(34,3,3,1); s.row(34,4,3,'v'); s.p(35,9,'L'); s.gap(41,2); s.fall(43,4); s.e('check',48,9);
-   s.e('ball',54,9,{a:51,b:58}); s.p(61,9,'L'); s.box(62,7,1,3); s.p(64,9,'h'); s.p(67,9,'h'); s.e('goal',70,9); }),
- mk('ひくい天井',78,s=>{ s.box(8,5,22,1); s.row(11,6,4,'v'); s.p(18,9,'^'); s.p(19,9,'^'); s.e('crusher',23,6); s.p(26,9,'h'); s.gap(31,3); s.e('check',35,9); s.box(38,9,1,1); s.box(39,8,1,2); s.box(40,7,1,3); s.box(41,6,7,1); s.p(44,5,'h'); s.row(49,9,3,'^');
-   s.fall(55,5); s.e('ball',64,9,{a:61,b:67}); s.e('fake',70,9); s.e('crusher',73,2); s.e('goal',75,9); }),
- mk('バネのわな',82,s=>{ s.p(7,9,'L'); s.box(6,2,3,1); s.row(6,3,3,'v'); s.gap(11,2); s.p(13,9,'h'); s.box(17,7,1,3); s.p(16,9,'L'); s.p(18,9,'^'); s.p(19,9,'^'); s.gap(23,4); s.box(24,8,2,1,'f'); s.e('ball',31,9,{a:28,b:34}); s.e('check',37,9);
-   s.gap(40,3); s.p(41,6,'i'); s.fall(44,3); s.gap(47,2); s.p(49,9,'h'); s.e('crusher',53,2); s.e('crusher',54,2); s.e('crusher',56,2); s.box(60,6,1,4); s.p(59,9,'L'); s.row(61,9,3,'^'); s.box(61,6,4,1,'f'); s.e('ball',70,9,{a:67,b:73}); s.e('fake',75,9); s.p(77,9,'h'); s.e('goal',79,9); }),
- mk('ぜんぶのせ',90,s=>{ s.p(6,9,'h'); s.gap(9,2); s.p(11,9,'h'); s.fall(14,6); s.e('crusher',17,2); s.box(23,5,10,1); s.row(24,6,3,'v'); s.p(29,9,'^'); s.e('crusher',31,6); s.gap(35,3); s.p(36,6,'i'); s.e('check',40,9); s.e('ball',45,9,{a:42,b:48}); s.e('ball',47,9,{a:44,b:50,v:-1});
-   s.p(53,9,'L'); s.box(52,2,3,1); s.row(52,3,3,'v'); s.box(57,7,1,3); s.p(56,9,'L'); s.row(58,9,4,'^'); s.box(58,7,4,1,'f'); s.e('fake',65,9); s.gap(68,2); s.fall(70,4); s.gap(74,2); s.p(76,9,'h'); s.e('check',78,9); s.e('crusher',81,2); s.e('crusher',83,2); s.e('fake',85,9); s.p(86,9,'h'); s.e('goal',88,9); }) ];
+ mk('はじめの一歩',56,s=>{ s.p(12,9,'^'); s.gap(18,2); s.box(26,9,1,1); s.box(27,8,1,2); s.gap(34,2); s.p(42,9,'^'); s.e('goal',52,9); }),
+ mk('でこぼこ道',60,s=>{ s.gap(10,2); s.box(16,8,3,1); s.gap(24,3); s.box(30,9,1,1); s.box(31,8,1,2); s.box(32,7,1,3); s.row(36,9,2,'^'); s.gap(44,2); s.e('goal',56,9); }),
+ mk('あなぼこ',62,s=>{ s.gap(9,2); s.gap(14,2); s.gap(20,3); s.box(27,7,4,1); s.gap(33,3); s.p(40,9,'^'); s.gap(45,2); s.gap(50,2); s.e('goal',58,9); }),
+ mk('かいだん',64,s=>{ s.box(10,9,1,1); s.box(11,8,1,2); s.box(12,7,1,3); s.box(13,6,6,1); s.gap(22,3); s.gap(30,8); s.box(28,8,2,1); s.box(33,7,2,1); s.p(44,9,'^'); s.p(50,9,'^'); s.e('goal',60,9); }),
+ mk('さいごの道',70,s=>{ s.p(9,9,'^'); s.gap(13,3); s.box(19,9,1,1); s.box(20,8,1,2); s.p(22,9,'^'); s.gap(27,2); s.gap(31,2); s.box(37,7,3,1); s.row(37,9,3,'^'); s.gap(46,3); s.row(52,9,2,'^'); s.gap(58,2); s.e('goal',66,9); }) ];
 
 /* ===== 状態 ===== */
 let S, wins=0, deaths=0, stageI=0, T=0;
