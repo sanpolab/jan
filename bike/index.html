@@ -146,7 +146,7 @@ canvas{touch-action:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/bike/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/bike/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/25 13:27</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/25 13:39</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -204,6 +204,8 @@ canvas{touch-action:none}
     <button class="j" data-a="banana">バナナの皮<br>ふむとこける</button><button class="j" data-a="puddle">水たまり<br>3秒 おそくなる</button>
     <button class="j" data-a="dog">犬<br>追いつかれるとこける</button><button class="j" data-a="rock">奥から岩<br>前後に動いてよける</button><button class="j" data-a="pit">落とし穴<br>落ちるとこける</button>
     <button class="j" data-a="winDown">WIN −1</button><button class="j" data-a="block">ストップの手<br>ずがががっと押しもどす（−60m・連打で続く）</button><button class="j" data-a="bird">鳥<br>3羽（ジャンプするとぶつかる）</button><button class="j" data-a="hill">坂道<br>20回こぐまで終わらない（重ねると増える）</button><button class="j" data-a="cloud">カミナリ雲<br>前後に動いてよける</button><button class="j" data-a="bone">骨ドラゴン<br>下レーザー・上レーザー・落とし穴（でたらめに4回）</button><button class="j" data-a="giant">巨人<br>ハンマー3回（ジャンプでよける）</button>
+    <h3>音</h3>
+    <button class="g" id="optBgm">BGM</button><button class="g" id="optSe">効果音</button><button class="g" id="optTrack">曲</button>
     <h3>その他</h3>
     <button class="n" data-a="reset">記録を消す</button><button class="n" data-a="title">タイトルに戻る</button><button class="n" data-a="close">とじる</button>
   </div>
@@ -215,16 +217,22 @@ const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.ge
 const W=1080, H=1080, FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, rand=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.floor(Math.random()*a.length)];
 const fmt=n=>Math.floor(n).toLocaleString('ja-JP');
-const VER='1125-132733';
+const VER='1125-133944';
 let SPD=1, TITLE=true, PAUSE=false; const PENDQ=[], SPD_OPTS=[1,1.25,1.5,2];   /* SPD＝タイトルでえらぶ速さ。PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 try{ const o=JSON.parse(localStorage.getItem('bike_cfg')||'{}'); if(SPD_OPTS.includes(o.spd)) SPD=o.spd; }catch(e){}
 function cfgSave(){ try{ localStorage.setItem('bike_cfg',JSON.stringify({spd:SPD})); }catch(e){} }
 
 /* ===== 音（効果音ラボの音だけ。自作の電子音は使わない） ===== */
-const SND=['hit','heal','speed','fanfare','bad','gust','guard','bless','boost','fall','don','levelup','bite','bubble','boom','count','zap','dragon','crow','holy'], sndBuf={}; let actx=null, seGain=null;
-function audioInit(){ if(actx) return; try{ actx=new (window.AudioContext||window.webkitAudioContext)(); seGain=actx.createGain(); seGain.gain.value=.8; const hs=actx.createBiquadFilter(); hs.type='highshelf'; hs.frequency.value=5000; hs.gain.value=-6; seGain.connect(hs); hs.connect(actx.destination);
-  for(const k of SND) fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>actx.decodeAudioData(b)).then(b=>{ sndBuf[k]=b; }).catch(()=>{}); }catch(e){} }
-function play(k,v){ if(!actx || !sndBuf[k]) return; try{ const s=actx.createBufferSource(), gn=actx.createGain(); s.buffer=sndBuf[k]; gn.gain.value=v==null?.7:v; s.connect(gn); gn.connect(seGain); s.start(); }catch(e){} }
+const SND=['hit','heal','speed','fanfare','bad','gust','guard','bless','boost','fall','don','levelup','bite','boom','zap','dragon','crow','holy','bell','jump','crash','lose','swing','kick','pon','cheer','clap','boyon','power','harp','harp2','splash','block','punch','heavy','dog','crack','roll','rockhit','rumble','stomp','tremor','charge','beam','wing','goal','glass','dark','kaminari','quake'], sndBuf={}; let actx=null, seGain=null, bgmGain=null, bgmSrc=null, bgmNow='';
+/* 音の設定（この端末に保存）。bgm＝BGMを鳴らすか、se＝効果音を鳴らすか、track＝BGMの曲（bgm1＝夏休みの探検、bgm2＝エナジー。どちらも甘茶の音楽工房） */
+const OPTS=(()=>{ try{ return Object.assign({bgm:1,se:1,track:'bgm1'},JSON.parse(localStorage.getItem('bike_snd')||'{}')); }catch(e){ return {bgm:1,se:1,track:'bgm1'}; } })(); if(OPTS.track!=='bgm1' && OPTS.track!=='bgm2') OPTS.track='bgm1';
+function audioInit(){ if(actx) return; try{ actx=new (window.AudioContext||window.webkitAudioContext)(); seGain=actx.createGain(); seGain.gain.value=.8; const hs=actx.createBiquadFilter(); hs.type='highshelf'; hs.frequency.value=5000; hs.gain.value=-6; seGain.connect(hs); hs.connect(actx.destination); bgmGain=actx.createGain(); bgmGain.gain.value=0; bgmGain.connect(actx.destination);
+  for(const k of SND) fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>actx.decodeAudioData(b)).then(b=>{ sndBuf[k]=b; }).catch(()=>{}); bgmLoad(OPTS.track); }catch(e){} }
+function bgmLoad(k){ if(!actx) return; if(sndBuf[k]){ bgmStart(); return; } fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>actx.decodeAudioData(b)).then(b=>{ sndBuf[k]=b; bgmStart(); }).catch(()=>{}); }
+function bgmStart(){ const k=OPTS.track; if(!actx || !sndBuf[k] || bgmNow===k) return; try{ if(bgmSrc){ bgmSrc.stop(); bgmSrc.disconnect(); } }catch(e){} bgmSrc=actx.createBufferSource(); bgmSrc.buffer=sndBuf[k]; bgmSrc.loop=true; bgmSrc.connect(bgmGain); bgmSrc.start(); bgmNow=k; }
+setInterval(()=>{ if(!bgmGain) return; const tg=OPTS.bgm?(PAUSE?.08:.2):0; bgmGain.gain.value+=(tg-bgmGain.gain.value)*.15; window.__bgm={tg,g:+bgmGain.gain.value.toFixed(3),now:bgmNow}; },50);
+const SE_LAST={};   /* 同じ音が一度にたくさん重なって、うるさくならないようにする（同じ音は0.05秒あける） */
+function play(k,v){ if(!actx || !sndBuf[k] || !OPTS.se) return; const now=actx.currentTime; if(SE_LAST[k] && now-SE_LAST[k]<.05) return; SE_LAST[k]=now; try{ const s=actx.createBufferSource(), gn=actx.createGain(); s.buffer=sndBuf[k]; gn.gain.value=v==null?.7:v; s.connect(gn); gn.connect(seGain); s.start(); }catch(e){} }
 window.addEventListener('pointerdown',()=>{ audioInit(); if(actx && actx.state==='suspended') actx.resume(); },{passive:true});
 
 /* ===== 設定の数字 ===== */
@@ -274,34 +282,34 @@ function bikePose(){ const cx=camX()+BXX(), yr=gy0(cx-WB/2), yf=gy0(cx+WB/2), an
 /* ===== できごと（ギフトで起きること） ===== */
 const ahead=()=>camX()+W+rand(1500,1900);   /* 速いので、物は画面のずっと先に置く（見えてからよける時間を残す） */
 const Game={
-  jump(){ if(S.mode==='ride' && S.hillNeed>0 && S.rocketT<=0){ S.tapPow=Math.min(1.25,S.tapPow+HILL.tap); dust(2); S.hillNeed--; if(S.hillNeed<=0){ S.hillNeed=0; S.hillAll=0; play('levelup',.6); logAdd('坂道をのぼりきった！','#5dffb0'); } }   /* 坂道の間は、タップ＝ひとこぎ。ジャンプもふつうにできる（空中で押しても、こいだ数に入る） */
-    if(S.mode!=='ride' || S.air || S.rocketT>0) return; S.air=true; S.vy=CFG.jumpV; dust(8); },
+  jump(){ if(S.mode==='ride' && S.hillNeed>0 && S.rocketT<=0){ S.tapPow=Math.min(1.25,S.tapPow+HILL.tap); dust(2); S.hillNeed--; if(S.hillNeed<=0){ S.hillNeed=0; S.hillAll=0; play('bell',.35); play('levelup',.5); logAdd('坂道をのぼりきった！','#5dffb0'); } }   /* 坂道の間は、タップ＝ひとこぎ。ジャンプもふつうにできる（空中で押しても、こいだ数に入る） */
+    if(S.mode!=='ride' || S.air || S.rocketT>0) return; S.air=true; S.vy=CFG.jumpV; dust(8); play('jump',.25); },
   push(n){ if(S.mode!=='ride') return; S.pushQ=Math.min(30,S.pushQ+1); logAdd((n||'だれか')+' がうしろから押してくれた（＋'+PUSH.gain+'m）','#5dffb0'); },
   block(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.blockLeft+=BLOCK.back; if(!S.block) S.block={t:0,st:'in',tick:0}; else if(S.block.st==='out'){ S.block.st='in'; S.block.t=BLOCK.inT*(1-Math.min(1,S.block.t/BLOCK.outT)); } logAdd((n||'だれか')+' の手が押しもどした（−'+BLOCK.back+'m）','#ff9aa8'); },
-  winUp(n){ if(S.mode==='clear') return; S.wanim.push({k:'up',t:0,by:n,done:false,x0:BXX(),y0:bikePose().y-150}); play('levelup',.6); logAdd((n||'だれか')+' が WIN を＋1 してくれた','#5dffb0'); },
-  winDown(n){ if(S.mode==='clear') return; S.wanim.push({k:'down',t:0,by:n,done:false}); play('gust',.6); logAdd((n||'だれか')+' の悪魔が WIN を−1 しに来た','#ff9aa8'); },
-  god(n){ if(S.mode!=='ride' || S.god) return; S.god={t:0,by:n,done:false}; play('holy',.7); play('gust',.6); logAdd((n||'だれか')+' が神の手を呼んだ（妨害をぜんぶはらう）','#ffd23f'); },
-  cheer(n){ if(S.mode!=='ride') return; S.cheerT=Math.min(CHEER.maxSec,S.cheerT+CHEER.sec); S.cheerN=Math.min(CHEER.maxN,S.cheerN+1); if(S.cheerN===1) S.cheerIn=0; play('levelup',.5); logAdd((n||'だれか')+' が応援団を呼んだ（'+CHEER.sec+'秒 スピードアップ・'+S.cheerN+'組め）','#5dffb0'); },
+  winUp(n){ if(S.mode==='clear') return; S.wanim.push({k:'up',t:0,by:n,done:false,x0:BXX(),y0:bikePose().y-150}); play('harp',.75); logAdd((n||'だれか')+' が WIN を＋1 してくれた','#5dffb0'); },
+  winDown(n){ if(S.mode==='clear') return; S.wanim.push({k:'down',t:0,by:n,done:false}); play('dark',.6); play('wing',.7); logAdd((n||'だれか')+' の悪魔が WIN を−1 しに来た','#ff9aa8'); },
+  god(n){ if(S.mode!=='ride' || S.god) return; S.god={t:0,by:n,done:false}; play('holy',.7); play('gust',.5); logAdd((n||'だれか')+' が神の手を呼んだ（妨害をぜんぶはらう）','#ffd23f'); },
+  cheer(n){ if(S.mode!=='ride') return; S.cheerT=Math.min(CHEER.maxSec,S.cheerT+CHEER.sec); S.cheerN=Math.min(CHEER.maxN,S.cheerN+1); if(S.cheerN===1) S.cheerIn=0; play('cheer',.7); logAdd((n||'だれか')+' が応援団を呼んだ（'+CHEER.sec+'秒 スピードアップ・'+S.cheerN+'組め）','#5dffb0'); },
   ramp(n){ if(S.mode!=='ride') return; S.ents.push({k:'ramp',x:ahead(),by:n}); logAdd((n||'だれか')+' がジャンプ台を置いた','#5dffb0'); },
   helmet(n){ if(S.mode!=='ride') return; S.helmet=Math.min(T_.helmetMax,S.helmet+1); play('bless',.6); logAdd((n||'だれか')+' がヘルメットをくれた（あと'+S.helmet+'回こけない）','#5dffb0'); },
   heart(n){ if(S.mode!=='ride') return; if(S.hp<CFG.hp){ S.hp++; play('heal',.6); } logAdd((n||'だれか')+' のハートで体力 ＋1','#5dffb0'); },
   rocket(n){ if(S.mode!=='ride') return; if(S.hillNeed>0){ S.hillNeed=Math.max(0,S.hillNeed-HILL.taps); S.hillAll=Math.max(0,S.hillAll-HILL.taps); if(S.hillNeed<=0){ S.hillNeed=0; S.hillAll=0; } logAdd('ロケットで坂道を1つ消した'+(S.hillNeed>0?'（あと'+S.hillNeed+'回こぐ）':''),'#5dffb0'); } S.rocketT=Math.min(15,S.rocketT+T_.rocket); S.headT=0; S.punkT=0; S.puddleT=0; S.dog=null; S.air=true; S.vy=-400; play('boom',.6); play('speed',.7); S.flash=.4; S.shake=.4; banner('ロケット自転車！','#ffd23f',n); logAdd((n||'だれか')+' がロケットをつけた（'+T_.rocket+'秒 ぶっ飛ばす）','#ffd23f'); },
   banana(n){ if(S.mode!=='ride') return; S.ents.push({k:'banana',x:ahead(),by:n}); logAdd((n||'だれか')+' がバナナの皮を置いた','#ff9aa8'); },
   puddle(n){ if(S.mode!=='ride') return; S.ents.push({k:'puddle',x:ahead(),by:n}); logAdd((n||'だれか')+' が水たまりを作った','#ff9aa8'); },
-  dog(n){ if(S.mode!=='ride' || S.dog || S.rocketT>0) return; S.dog={t:0,by:n,x:-180,st:'run'}; play('bite',.5); logAdd((n||'だれか')+' の犬が追いかけてきた！','#ff9aa8'); },
-  rock(n){ if(S.mode!=='ride' || S.rocks.length>=ROCK.max) return; const tx=clamp(BXX()+(S.rocks.length?rand(-280,280):0),150,W-170); S.rocks.push({f0:Math.floor(rand(0,12)),t:0,tx,x0:clamp(tx+rand(-260,260)+180,200,W-80),by:n,rot:0,hit:false}); play('don',.5); logAdd((n||'だれか')+' が奥から岩を転がした（前後に動いてよけろ）','#ff9aa8'); },
-  pit(n){ if(S.mode!=='ride') return; S.pits.push({x:ahead()+60,w:560,by:n}); logAdd((n||'だれか')+' が落とし穴をほった','#ff9aa8'); },
-  big(n){ if(S.mode!=='ride') return; S.bigT=Math.min(30,S.bigT+T_.big); S.punkT=0; play('levelup',.7); S.flash=.2; banner('でかタイヤ！','#111',n); logAdd((n||'だれか')+' がタイヤをでっかくした（'+T_.big+'秒 落とし穴・岩・振動・バナナが効かない）','#5dffb0'); },
-  bird(n){ if(S.mode!=='ride') return; S.birdQ+=BIRD.n; play('gust',.4); logAdd((n||'だれか')+' が鳥を飛ばした（'+BIRD.n+'羽・ジャンプするとぶつかる）','#ff9aa8'); S.birdBy=n; },
+  dog(n){ if(S.mode!=='ride' || S.dog || S.rocketT>0) return; S.dog={t:0,by:n,x:-180,st:'run'}; play('dog',.7); logAdd((n||'だれか')+' の犬が追いかけてきた！','#ff9aa8'); },
+  rock(n){ if(S.mode!=='ride' || S.rocks.length>=ROCK.max) return; const tx=clamp(BXX()+(S.rocks.length?rand(-280,280):0),150,W-170); S.rocks.push({f0:Math.floor(rand(0,12)),t:0,tx,x0:clamp(tx+rand(-260,260)+180,200,W-80),by:n,rot:0,hit:false}); play('roll',.6); logAdd((n||'だれか')+' が奥から岩を転がした（前後に動いてよけろ）','#ff9aa8'); },
+  pit(n){ if(S.mode!=='ride') return; S.pits.push({x:ahead()+60,w:560,by:n}); play('crack',.6); logAdd((n||'だれか')+' が落とし穴をほった','#ff9aa8'); },
+  big(n){ if(S.mode!=='ride') return; S.bigT=Math.min(30,S.bigT+T_.big); S.punkT=0; play('power',.7); S.flash=.2; banner('でかタイヤ！','#111',n); logAdd((n||'だれか')+' がタイヤをでっかくした（'+T_.big+'秒 落とし穴・岩・振動・バナナが効かない）','#5dffb0'); },
+  bird(n){ if(S.mode!=='ride') return; S.birdQ+=BIRD.n; play('crow',.5); logAdd((n||'だれか')+' が鳥を飛ばした（'+BIRD.n+'羽・ジャンプするとぶつかる）','#ff9aa8'); S.birdBy=n; },
   hill(n){ if(S.mode!=='ride' || S.rocketT>0) return; const add=HILL.taps; S.hillNeed+=add; S.hillAll=Math.max(S.hillAll,0)+add; S.windT=0; S.assistT=0; play('bad',.5); banner('坂道！ 連打でこげ！','#e23a3a',n); logAdd((n||'だれか')+' が急な坂道にした（あと'+S.hillNeed+'回こぐまで終わらない）','#ff9aa8'); },
-  cloud(n){ if(S.mode!=='ride') return; if(S.clouds.length>=KUMO.max) return; { let sl=0; while(S.clouds.some(c=>c.sl===sl)) sl++; S.clouds.push({t:0,x:W+200,by:n,st:'follow',sl,off:KUMO.offs[sl%KUMO.offs.length]}); } play('don',.4); logAdd((n||'だれか')+' がカミナリ雲を呼んだ（前後に動いてよけろ）','#ff9aa8'); },
+  cloud(n){ if(S.mode!=='ride') return; if(S.clouds.length>=KUMO.max) return; { let sl=0; while(S.clouds.some(c=>c.sl===sl)) sl++; S.clouds.push({t:0,x:W+200,by:n,st:'follow',sl,off:KUMO.offs[sl%KUMO.offs.length]}); } play('rumble',.6); logAdd((n||'だれか')+' がカミナリ雲を呼んだ（前後に動いてよけろ）','#ff9aa8'); },
   bone(n){ if(S.mode!=='ride') return; const sh=()=>{ const K=['low','high','pit'], a=[]; for(let i=0;i<BONE.n;i++) a.push(pick(K)); if(a.every(k=>k===a[0])) a[Math.floor(Math.random()*a.length)]=pick(K.filter(k=>k!==a[0])); return a; };   /* 4回ぶんを、3種類からでたらめにえらぶ（同じものが続くこともある。4回とも同じにはしない） */
     if(S.bone && S.bone.st!=='out'){ S.bone.seq.push(...sh()); logAdd((n||'だれか')+' が骨ドラゴンをもっとあばれさせた','#ff9aa8'); return; }
     S.bone={t:0,st:'first',seq:sh(),i:0,by:n,hit:false,slide:1}; play('dragon',.7); logAdd((n||'だれか')+' が骨ドラゴンを呼んだ（こうげき'+BONE.n+'回）','#ff9aa8'); },
-  giant(n){ if(S.mode!=='ride') return; if(S.giant){ S.giant.left+=GIANT.n; logAdd((n||'だれか')+' が巨人をもっとあばれさせた（あと'+S.giant.left+'回）','#ff9aa8'); return; } S.giant={t:0,st:'in',left:GIANT.n,by:n,tc:0,hit:false,hitFx:0}; play('don',.6); banner('巨人が出た！','#111',n); logAdd((n||'だれか')+' が巨人を呼んだ（ハンマー'+GIANT.n+'回・ジャンプでよけろ）','#ff9aa8'); },
+  giant(n){ if(S.mode!=='ride') return; if(S.giant){ S.giant.left+=GIANT.n; logAdd((n||'だれか')+' が巨人をもっとあばれさせた（あと'+S.giant.left+'回）','#ff9aa8'); return; } S.giant={t:0,st:'in',left:GIANT.n,by:n,tc:0,hit:false,hitFx:0}; play('stomp',.8); banner('巨人が出た！','#111',n); logAdd((n||'だれか')+' が巨人を呼んだ（ハンマー'+GIANT.n+'回・ジャンプでよけろ）','#ff9aa8'); },
   setGoal(v){ CFG.goal=v; best=0; newRun(); save(); logAdd('目標を '+fmt(v)+'m にした','#ffd23f'); },
   reset(){ best=0; tries=1; wins=0; falls=0; newRun(); save(); },
-  start(){ TITLE=false; ttlUI(); tries=1; best=0; newRun(); save(); logAdd(fmt(CFG.goal)+'m まで走るまで終われません！','#ffd23f'); },
+  start(){ audioInit(); play('bell',.35); TITLE=false; ttlUI(); tries=1; best=0; newRun(); save(); logAdd(fmt(CFG.goal)+'m まで走るまで終われません！','#ffd23f'); },
   title(){ setPause(false,true); newRun(); save(); TITLE=true; ttlUI(); },
   /* 無料の反応。コメント＝バナナの皮（同じ人は20秒に1回、先にあるバナナは3個まで）、いいね1000回ごと＝水たまり、フォロー＝ひと押し */
   comment(n){ if(S.mode!=='ride') return; const now=performance.now(), k=String(n||''); if(CMT[k] && now-CMT[k]<20000) return; if(S.ents.filter(e=>e.k==='banana' && !e.dead).length>=3) return; CMT[k]=now; Game.banana(n); },
@@ -312,7 +320,7 @@ const inv=()=>S.invT>0 || S.rocketT>0;
 function dust(n){ const p=bikePose(); for(let i=0;i<n;i++) S.parts.push({x:BXX()-60+rand(-20,20),y:p.y+WR+rand(-6,4),vx:rand(-260,-60),vy:rand(-160,-20),g:300,t:rand(.3,.6),r:rand(10,22),c:'rgba(214,190,150,.8)'}); }
 /* こける：ヘルメットがあれば1回たえる。体力−1。0になったらスタートへもどる */
 function crash(what,by){ if(S.mode!=='ride' || inv()) return false; if(S.helmet>0){ S.helmet--; S.invT=1.2; play('guard',.7); S.flash=.2; logAdd('ヘルメットが'+what+'から守った（あと'+S.helmet+'回）','#9be9ff'); return false; }
-  const p=bikePose(); S.hp--; S.mode='crash'; S.crashT=0; S.red=.5; S.shake=.6; S.windT=0; S.assistT=0; S.air=false; S.jy=0; S.vy=0; play('hit',.8); play('fall',.5);
+  const p=bikePose(); S.hp--; S.mode='crash'; S.crashT=0; S.red=.5; S.shake=.6; S.windT=0; S.assistT=0; S.air=false; S.jy=0; S.vy=0; play('crash',.8); play('fall',.5);
   S.rider={x:BXX(),y:p.y-110,vx:rand(260,420),vy:-rand(620,820),rot:0,vr:rand(7,11)}; S.bikeP={x:BXX(),y:p.y,vx:rand(120,220),vy:-rand(260,420),rot:p.ang,vr:-rand(4,7)};
   for(let i=0;i<14;i++) S.parts.push({x:BXX()+rand(-30,30),y:p.y+rand(-40,30),vx:rand(-300,300),vy:rand(-500,-100),g:900,t:rand(.4,.9),r:rand(6,12),c:pick(['#ffd23f','#fff','#ff9aa8'])});
   logAdd(what+'でこけた！（体力−1）','#ff9aa8'); return true; }
@@ -322,11 +330,11 @@ function godSweep(){ const cx=camX(), puff=(x,y)=>{ for(let i=0;i<8;i++) S.parts
   for(const e of S.ents){ if(e.k!=='ramp'){ puff(e.x-cx,gy0(e.x)-30); e.dead=true; } } for(const r of S.rocks) puff(r.tx,gy0(cx+r.tx)-200); for(const c of S.clouds) puff(c.x,gy0(cx+c.x)-KUMO.h); for(const b of S.birds) puff(b.x,gy0(cx+b.x)-BIRD.h);
   if(S.giant) puff(GIANT.x,gy0(cx+GIANT.x)-300); if(S.bone) puff(BONE.mx,400); if(S.dog) puff(S.dog.x,gy0(cx+S.dog.x)-60);
   S.ents=S.ents.filter(e=>!e.dead); S.pits=[]; S.rocks=[]; S.clouds=[]; S.bolts=[]; S.birds=[]; S.birdQ=0; S.waves=[]; S.bursts=[]; S.giant=null; S.bone=null; S.dog=null; S.hillNeed=0; S.hillAll=0; S.tapPow=0; S.punkT=0; S.puddleT=0; S.block=null; S.blockLeft=0;
-  S.wanim=S.wanim.filter(a=>a.k!=='down' || a.done); S.flash=.35; S.shake=Math.max(S.shake,.6); play('boom',.5); }
+  S.wanim=S.wanim.filter(a=>a.k!=='down' || a.done); S.flash=.35; S.shake=Math.max(S.shake,.6); play('kick',.9); play('boom',.5); }
 function update(dt){ T+=dt;
   if(S.god){ const d=S.god; d.t+=dt; if(!d.done && d.t>=GOD.hit){ d.done=true; godSweep(); } if(d.t>=GOD.T) S.god=null; }
-  for(const a of S.wanim){ a.t+=dt; if(a.k==='up'){ if(!a.done && a.t>=WINFX.upHit){ a.done=true; wins++; save(); S.winFx=2.4; S.winSign=1; S.flash=.3; S.shake=Math.max(S.shake,.35); play('fanfare',.6); for(let i=0;i<14;i++){ const an=i/14*6.283; S.parts.push({x:WINFX.cx,y:WINFX.cy,vx:Math.cos(an)*rand(250,520),vy:Math.sin(an)*rand(250,520),g:0,t:rand(.3,.6),r:rand(8,16),c:'#111'}); } } }
-    else if(!a.done && a.t>=WINFX.downHit){ a.done=true; wins--; save(); S.winFx=2.4; S.winSign=-1; S.red=.4; S.shake=Math.max(S.shake,.7); play('hit',.6); play('bad',.6); for(let i=0;i<12;i++) S.parts.push({x:WINFX.cx,y:WINFX.cy,vx:rand(-520,320),vy:rand(-300,420),g:1400,t:rand(.4,.8),r:rand(10,20),c:'#111'}); } }
+  for(const a of S.wanim){ a.t+=dt; if(a.k==='up'){ if(!a.done && a.t>=WINFX.upHit){ a.done=true; wins++; save(); S.winFx=2.4; S.winSign=1; S.flash=.3; S.shake=Math.max(S.shake,.35); play('fanfare',.6); play('harp2',.6); for(let i=0;i<14;i++){ const an=i/14*6.283; S.parts.push({x:WINFX.cx,y:WINFX.cy,vx:Math.cos(an)*rand(250,520),vy:Math.sin(an)*rand(250,520),g:0,t:rand(.3,.6),r:rand(8,16),c:'#111'}); } } }
+    else if(!a.done && a.t>=WINFX.downHit){ a.done=true; wins--; save(); S.winFx=2.4; S.winSign=-1; S.red=.4; S.shake=Math.max(S.shake,.7); play('heavy',.85); play('glass',.55); play('bad',.5); for(let i=0;i<12;i++) S.parts.push({x:WINFX.cx,y:WINFX.cy,vx:rand(-520,320),vy:rand(-300,420),g:1400,t:rand(.4,.8),r:rand(10,20),c:'#111'}); } }
   S.wanim=S.wanim.filter(a=>a.t<(a.k==='up'?WINFX.up:WINFX.down)); if(S.cheerT>0) S.cheerIn=Math.min(1,S.cheerIn+dt*2.5); else S.cheerIn=Math.max(0,S.cheerIn-dt*2.5); { const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.ArrowLeft||KEYS.a?1:0); if(kx) S.tx=clamp(S.tx+kx*MOVE.key*dt,MOVE.min,MOVE.max); S.ox+=(S.tx-S.ox)*Math.min(1,dt*14); } if(S.flash>0) S.flash-=dt; if(S.shake>0) S.shake-=dt; if(S.red>0) S.red-=dt; if(S.winFx>0) S.winFx-=dt; if(S.fallFx>0) S.fallFx-=dt; if(S.banner){ S.banner.at+=dt; if(S.banner.at>2.2) S.banner=null; } if(S.mileFx){ S.mileFx.t+=dt; if(S.mileFx.t>2) S.mileFx=null; }
   for(const p of S.parts){ p.t-=dt; p.vy+=(p.g||0)*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; } S.parts=S.parts.filter(p=>p.t>0);
   if(S.mode==='ride'){
@@ -345,11 +353,11 @@ function update(dt){ T+=dt;
     /* 道の上のもの */
     for(const e of S.ents){ if(e.dead) continue; if(e.k==='rock'){ e.x-=230*dt; e.rot-=dt*5; }
       const dx=e.x-cx, low=S.jy>-58;
-      if(e.k==='ramp'){ if(Math.abs(dx-40)<70 && low && !e.used){ e.used=true; S.air=true; S.vy=-1250; S.invT=Math.max(S.invT,1.1); S.x+=0; S.rampGain=T_.rampGain; play('speed',.6); S.flash=.2; banner('大ジャンプ！ ＋'+T_.rampGain+'m','#5dffb0',e.by); } }
+      if(e.k==='ramp'){ if(Math.abs(dx-40)<70 && low && !e.used){ e.used=true; S.air=true; S.vy=-1250; S.invT=Math.max(S.invT,1.1); S.x+=0; S.rampGain=T_.rampGain; play('boyon',.7); play('speed',.5); S.flash=.2; banner('大ジャンプ！ ＋'+T_.rampGain+'m','#5dffb0',e.by); } }
       else if(Math.abs(dx)<(e.k==='rock'?96:84) && (e.k==='rock'?(S.jy>-120||S.bigT>0):low) && !e.hit){
         if(e.k==='banana'){ e.hit=true; e.dead=true; if(S.bigT>0){ for(let i=0;i<8;i++) S.parts.push({x:e.x-camX()+rand(-30,30),y:gy0(e.x)-6,vx:rand(-300,300),vy:rand(-400,-100),g:1300,t:rand(.3,.6),r:rand(8,14),c:'#111'}); } else crash('バナナの皮',e.by); }
         else if(e.k==='rock'){ e.hit=true; if(S.rocketT>0 || S.bigT>0){ e.dead=true; S.shake=Math.max(S.shake,.3); play('boom',.5); for(let i=0;i<12;i++) S.parts.push({x:e.x-camX(),y:gy0(e.x)-60,vx:rand(-400,400),vy:rand(-600,-100),g:1200,t:rand(.5,1),r:rand(10,24),c:'#8a8f9a'}); } else crash('岩',e.by); }
-        else if(e.k==='puddle'){ e.hit=true; if(!inv()){ S.puddleT=T_.puddle; play('bubble',.6); for(let i=0;i<16;i++) S.parts.push({x:BXX()+rand(-40,60),y:gy0(e.x)-6,vx:rand(-260,260),vy:rand(-520,-160),g:1300,t:rand(.4,.8),r:rand(6,12),c:'#7fd0ff'}); logAdd('水たまりにつっこんだ（'+T_.puddle+'秒 おそくなる）','#ff9aa8'); } } } }
+        else if(e.k==='puddle'){ e.hit=true; if(!inv()){ S.puddleT=T_.puddle; play('splash',.7); for(let i=0;i<16;i++) S.parts.push({x:BXX()+rand(-40,60),y:gy0(e.x)-6,vx:rand(-260,260),vy:rand(-520,-160),g:1300,t:rand(.4,.8),r:rand(6,12),c:'#7fd0ff'}); logAdd('水たまりにつっこんだ（'+T_.puddle+'秒 おそくなる）','#ff9aa8'); } } } }
     if(S.rampGain>0){ const d=Math.min(S.rampGain,T_.rampGain*dt/.8); S.rampGain-=d; S.x+=d; }
     S.ents=S.ents.filter(e=>!e.dead && e.x>camX()-300);
     /* 犬：後ろから追いついてきて、かみつく。そのしゅんかんにジャンプしていればよけられる。速いときは追いつけない */
@@ -357,12 +365,12 @@ function update(dt){ T+=dt;
       else if(d.st==='miss'){ d.x+=520*dt; if(d.x>W+200) S.dog=null; } else { d.x-=420*dt; if(d.x<-260) S.dog=null; } }
     /* ひと押し */
     if(!S.push && S.pushQ>0){ S.pushQ--; S.push={t:0,hit:false}; }
-    if(S.push){ const h=S.push; h.t+=dt; if(!h.hit && h.t>=PUSH.inT){ h.hit=true; S.pushGain+=PUSH.gain; S.shake=Math.max(S.shake,.18); play('speed',.5); dust(6); } if(h.t>=PUSH.inT+PUSH.hold+PUSH.outT) S.push=null; }
+    if(S.push){ const h=S.push; h.t+=dt; if(!h.hit && h.t>=PUSH.inT){ h.hit=true; S.pushGain+=PUSH.gain; S.shake=Math.max(S.shake,.18); play('pon',.7); play('swing',.7); dust(6); } if(h.t>=PUSH.inT+PUSH.hold+PUSH.outT) S.push=null; }
     if(S.pushGain>0){ const d=Math.min(S.pushGain,PUSH.gain*dt/.45); S.pushGain-=d; S.x+=d; }
     /* ストップの手：出てくる → 残りの距離がなくなるまで押しもどし続ける → 引っこむ */
     if(S.block){ const h=S.block; h.t+=dt;
-      if(h.st==='in'){ if(h.t>=BLOCK.inT){ h.st='push'; h.t=0; S.shake=Math.max(S.shake,.5); play('hit',.6); } }
-      else if(h.st==='push'){ const d=Math.min(S.blockLeft,BLOCK.back/BLOCK.per*dt); S.blockLeft-=d; S.x=Math.max(0,S.x-d); S.spd=0; S.wheel-=d*PPM/WR; S.shake=Math.max(S.shake,.28); h.tick-=dt; if(h.tick<=0){ h.tick=.11; play('hit',.28); }
+      if(h.st==='in'){ if(h.t>=BLOCK.inT){ h.st='push'; h.t=0; S.shake=Math.max(S.shake,.5); play('block',.8); } }
+      else if(h.st==='push'){ const d=Math.min(S.blockLeft,BLOCK.back/BLOCK.per*dt); S.blockLeft-=d; S.x=Math.max(0,S.x-d); S.spd=0; S.wheel-=d*PPM/WR; S.shake=Math.max(S.shake,.28); h.tick-=dt; if(h.tick<=0){ h.tick=.11; play('punch',.4); }
         if(!S.air){ const p=bikePose(); for(let i=0;i<2;i++) S.parts.push({x:BXX()+rand(-90,90),y:p.y+WR*S.bigK+rand(-8,2),vx:rand(260,620),vy:rand(-260,-40),g:900,t:rand(.2,.45),r:rand(8,18),c:'#111'}); }
         if(S.blockLeft<=0 || S.x<=0){ S.blockLeft=0; h.st='out'; h.t=0; } }
       else if(h.t>=BLOCK.outT) S.block=null; }
@@ -372,24 +380,24 @@ function update(dt){ T+=dt;
     S.birds=S.birds.filter(b=>b.x>-260);
     /* カミナリ雲 */
     for(const c of S.clouds){ c.t+=dt; if(c.st==='follow'){ c.x+=(clamp(BXX()+c.off,90,W-90)-c.x)*Math.min(1,dt*3.2); if(c.t>=KUMO.follow){ c.st='warn'; c.t=0; } }
-      else if(c.st==='warn'){ if(c.t>=KUMO.warn){ c.st='after'; c.t=0; S.bolts.push({x:c.x,t:0}); S.flash=.35; S.shake=Math.max(S.shake,.5); play('boom',.8); if(Math.abs(c.x-BXX())<KUMO.hit && !(S.rocketT>0)) crash('カミナリ',c.by); else if(S.mode==='ride') logAdd('カミナリをよけた！','#5dffb0'); } }
+      else if(c.st==='warn'){ if(c.t>=KUMO.warn){ c.st='after'; c.t=0; S.bolts.push({x:c.x,t:0}); S.flash=.35; S.shake=Math.max(S.shake,.5); play('kaminari',.8); if(Math.abs(c.x-BXX())<KUMO.hit && !(S.rocketT>0)) crash('カミナリ',c.by); else if(S.mode==='ride') logAdd('カミナリをよけた！','#5dffb0'); } }
       else if(c.t>=KUMO.after) c.gone=true; }
     S.clouds=S.clouds.filter(c=>!c.gone); for(const b of S.bolts) b.t+=dt; S.bolts=S.bolts.filter(b=>b.t<.35);
     /* 奥から転がってくる岩 */
-    for(const r of S.rocks){ r.t+=dt; r.rot-=dt*(3+r.t*3); if(!r.hit && r.t>=ROCK.T){ r.hit=true; S.shake=Math.max(S.shake,.5); play('don',.8); play('boom',.5); for(let i=0;i<10;i++) S.parts.push({x:r.tx+rand(-70,70),y:gy0(camX()+r.tx)-rand(0,20),vx:rand(-380,380),vy:rand(-520,-140),g:1400,t:rand(.3,.7),r:rand(10,20),c:'#111'});
+    for(const r of S.rocks){ r.t+=dt; r.rot-=dt*(3+r.t*3); if(!r.hit && r.t>=ROCK.T){ r.hit=true; S.shake=Math.max(S.shake,.5); play('rockhit',.8); play('boom',.5); for(let i=0;i<10;i++) S.parts.push({x:r.tx+rand(-70,70),y:gy0(camX()+r.tx)-rand(0,20),vx:rand(-380,380),vy:rand(-520,-140),g:1400,t:rand(.3,.7),r:rand(10,20),c:'#111'});
         if(Math.abs(r.tx-BXX())<ROCK.hit && !(S.rocketT>0)){ if(S.bigT>0){ r.smash=true; logAdd('でかタイヤが岩をくだいた','#5dffb0'); } else crash('岩',r.by); } else if(S.mode==='ride') logAdd('岩をよけた！','#5dffb0'); } }
     S.rocks=S.rocks.filter(r=>r.t<ROCK.T+ROCK.out && !r.smash);
     /* 骨ドラゴン */
     if(S.bone){ const d=S.bone; d.t+=dt; const kind=d.seq[d.i], e=x=>x*x*(3-2*x);
       if(d.st==='first'){ d.slide=1; if(d.t>=BONE.first){ d.st='pop'; d.t=0; } }
-      else if(d.st==='pop'){ d.slide=1-e(clamp(d.t/BONE.pop,0,1)); if(d.t>=BONE.pop){ d.st='warn'; d.t=0; d.hit=false; play('dragon',.35); if(kind==='pit'){ S.pits.push({x:camX()+W+380,w:520,by:d.by}); play('don',.6); S.shake=Math.max(S.shake,.3); } } }
-      else if(d.st==='warn'){ d.slide=0; if(d.t>=(kind==='pit'?BONE.pitHold:BONE.warn)){ d.t=0; if(kind==='pit'){ d.st='back'; d.wait=BONE.pitWait; } else { d.st='beam'; S.shake=Math.max(S.shake,.5); S.flash=.18; play('zap',.7); play('boom',.35); } } }
+      else if(d.st==='pop'){ d.slide=1-e(clamp(d.t/BONE.pop,0,1)); if(d.t>=BONE.pop){ d.st='warn'; d.t=0; d.hit=false; play('dragon',.35); play('charge',.45); if(kind==='pit'){ S.pits.push({x:camX()+W+380,w:520,by:d.by}); play('don',.6); S.shake=Math.max(S.shake,.3); } } }
+      else if(d.st==='warn'){ d.slide=0; if(d.t>=(kind==='pit'?BONE.pitHold:BONE.warn)){ d.t=0; if(kind==='pit'){ d.st='back'; d.wait=BONE.pitWait; } else { d.st='beam'; S.shake=Math.max(S.shake,.5); S.flash=.18; play('beam',.8); play('boom',.35); } } }
       else if(d.st==='beam'){ if(!d.hit && !(S.rocketT>0)){ const low=kind==='low'; if(low?S.jy>-(BONE.lowY+BONE.beamH*.5-WR*.4):S.jy<-64){ d.hit=true; crash(low?'骨ドラゴンのレーザー':'頭の上のレーザー',d.by); } } if(d.t>=BONE.beam){ if(!d.hit && S.mode==='ride') logAdd(kind==='low'?'レーザーをジャンプでよけた！':'頭の上のレーザーをやりすごした！','#5dffb0'); d.st='back'; d.t=0; d.wait=BONE.gap; } }
       else if(d.st==='back'){ d.slide=e(clamp(d.t/BONE.back,0,1)); if(d.t>=BONE.back+d.wait){ d.i++; d.t=0; d.hit=false; if(d.i>=d.seq.length) S.bone=null; else d.st='pop'; } } }
     /* 巨人と振動 */
     if(S.giant){ const d=S.giant; d.t+=dt; if(d.hitFx>0) d.hitFx-=dt; const cyc=GIANT.nf/GIANT.fps, gw=GIANT.h*GIANT.fw/GIANT.fh, hx=GIANT.x+GIANT.hx*gw;
       if(d.st==='in'){ if(d.t>=GIANT.inT){ d.st='act'; d.tc=0; d.hit=false; } }
-      else if(d.st==='act'){ d.tc+=dt*GIANT.rate; if(!d.hit && d.tc*GIANT.fps>=GIANT.hitF){ d.hit=true; d.left--; d.hitFx=.5; S.shake=Math.max(S.shake,.7); play('boom',.7); play('don',.7); S.waves.push({x:hx-60,by:d.by,hit:false,dir:-1},{x:hx+60,by:d.by,hit:false,dir:1}); S.bursts.push({x:hx,t:0}); }   /* 振動は左右の両方へ走る（巨人の前に出ても逃げられない） */
+      else if(d.st==='act'){ d.tc+=dt*GIANT.rate; if(!d.hit && d.tc*GIANT.fps>=GIANT.hitF){ d.hit=true; d.left--; d.hitFx=.5; S.shake=Math.max(S.shake,.7); play('tremor',.8); play('don',.6); play('don',.7); S.waves.push({x:hx-60,by:d.by,hit:false,dir:-1},{x:hx+60,by:d.by,hit:false,dir:1}); S.bursts.push({x:hx,t:0}); }   /* 振動は左右の両方へ走る（巨人の前に出ても逃げられない） */
         if(d.tc>=cyc){ if(d.left>0){ d.tc=0; d.hit=false; } else { d.st='out'; d.t=0; } } }
       else if(d.st==='out'){ if(d.t>=GIANT.outT) S.giant=null; } }
     for(const b of S.bursts) b.t+=dt; S.bursts=S.bursts.filter(b=>b.t<.55);
@@ -397,12 +405,12 @@ function update(dt){ T+=dt;
     S.waves=S.waves.filter(w=>w.x>-300 && w.x<W+300);
     /* 100mごとの立て札 */
     { const idx=Math.floor(S.x/1000); if(idx>S.mileI){ S.mileI=idx; if(S.x<CFG.goal) S.mileFx={t:0,text:fmt(idx*1000)+'m 突破！',sub:'ゴールまで あと '+fmt(CFG.goal-idx*1000)+'m'}; } }
-    if(S.x>=CFG.goal){ S.x=CFG.goal; S.mode='clear'; S.clearT=0; wins++; best=CFG.goal; save(); play('fanfare',.8); S.flash=.6; banner('ゴール！','#ffd23f',fmt(CFG.goal)+'m　'+tries+'回目で成功'); logAdd(fmt(CFG.goal)+'m 走りきった！ おつかれさま','#ffd23f'); S.winFx=0; }
+    if(S.x>=CFG.goal){ S.x=CFG.goal; S.mode='clear'; S.clearT=0; wins++; best=CFG.goal; save(); play('goal',.8); play('clap',.7); play('cheer',.6); S.flash=.6; banner('ゴール！','#ffd23f',fmt(CFG.goal)+'m　'+tries+'回目で成功'); logAdd(fmt(CFG.goal)+'m 走りきった！ おつかれさま','#ffd23f'); S.winFx=0; }
   }
   else if(S.mode==='crash'){ S.crashT+=dt; S.spd=lerp(S.spd,0,clamp(dt*6,0,1)); const gyb=gy0(camX()+BXX())-10;
     for(const o of [S.rider,S.bikeP]){ o.vy+=2200*dt; o.x+=o.vx*dt; o.y+=o.vy*dt; o.rot+=o.vr*dt; const fl=S.pitFall?H+300:gyb-(o===S.rider?60:WR); if(o.y>fl){ o.y=fl; o.vy*=-.42; o.vx*=.6; o.vr*=.5; if(Math.abs(o.vy)<90){ o.vy=0; o.vr*=.3; } } }
     if(S.crashT>=T_.crash){ S.pitFall=false; if(S.afterPit){ S.x=Math.max(S.x,(S.afterPit-BXX())/PPM); S.afterPit=0; }
-      if(S.hp<=0){ S.mode='back'; S.backT=0; S.backFrom=S.x; tries++; falls++; const lost=falls>=FALLS_PER; if(lost){ falls=0; wins--; S.winFx=2.2; S.winSign=-1; } S.fallFx=1.2; save(); play('bad',.7); banner('スタートにもどる…','#ff5c5c',lost?FALLS_PER+'回もどされた（WIN −1）':''); logAdd('体力が0になった。スタートからやり直し（'+tries+'回目）','#ff5c5c'); }
+      if(S.hp<=0){ S.mode='back'; S.backT=0; S.backFrom=S.x; tries++; falls++; const lost=falls>=FALLS_PER; if(lost){ falls=0; wins--; S.winFx=2.2; S.winSign=-1; } S.fallFx=1.2; save(); play('lose',.7); banner('スタートにもどる…','#ff5c5c',lost?FALLS_PER+'回もどされた（WIN −1）':''); logAdd('体力が0になった。スタートからやり直し（'+tries+'回目）','#ff5c5c'); }
       else { S.mode='ride'; S.invT=T_.inv; S.holdT=.25; S.rider=null; S.bikeP=null; } } }
   else if(S.mode==='back'){ S.backT+=dt; const u=clamp(S.backT/T_.back,0,1), e=u*u*(3-2*u); S.x=lerp(S.backFrom,0,e); S.wheel-=dt*40; if(u>=1){ const wf=S.winFx, ff=S.fallFx, ws=S.winSign; newRun(); S.winFx=wf; S.fallFx=ff; S.winSign=ws; S.invT=1.5; } }
   else if(S.mode==='clear'){ S.clearT+=dt; if(Math.random()<dt*40) S.parts.push({x:rand(0,W),y:150,vx:rand(-80,80),vy:rand(100,400),g:300,t:rand(1,2),r:rand(8,14),c:pick(['#ffd400','#fff','#4cc3ff','#ff5c8a','#5dffb0'])}); if(S.clearT>4){ tries=1; best=0; newRun(); save(); logAdd(fmt(CFG.goal)+'m まで走るまで終われません！','#ffd23f'); } }
@@ -633,7 +641,9 @@ window.addEventListener('keydown',e=>{ KEYS[e.key]=true; if(e.target && /INPUT|T
 window.addEventListener('keyup',e=>{ KEYS[e.key]=false; });
 const tp=document.getElementById('tp'), NAMES=['たぬ吉','ぽんた','みけ','そら','りく','はな','こてつ','もも','ゆず','まる'];
 document.getElementById('testBtn').onclick=()=>{ tp.hidden=!tp.hidden; };
-tp.addEventListener('click',ev=>{ const b=ev.target.closest('button'); if(!b) return; const a=b.dataset.a; tp.hidden=true; if(a==='close') return; if(a==='title'){ Game.title(); return; } if(TITLE || PAUSE) return; const n=pick(NAMES); if(a==='reset'){ Game.reset(); return; } if(a==='like'){ Game.like(1000,n); return; } if(a==='comment') feedAdd(n,'テストのコメントです'); else if(a==='follow') feedAdd(n,'がフォローした','fl'); if(Game[a]) Game[a](n); });
+{ const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'), t=document.getElementById('optTrack'); b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); t.innerHTML='BGMの曲<br>'+(OPTS.track==='bgm2'?'2：エナジー':'1：夏休みの探検'); try{ localStorage.setItem('bike_snd',JSON.stringify(OPTS)); }catch(_){} };
+  document.getElementById('optBgm').addEventListener('click',ev=>{ ev.stopPropagation(); OPTS.bgm=OPTS.bgm?0:1; up(); }); document.getElementById('optSe').addEventListener('click',ev=>{ ev.stopPropagation(); OPTS.se=OPTS.se?0:1; up(); }); document.getElementById('optTrack').addEventListener('click',ev=>{ ev.stopPropagation(); OPTS.track=OPTS.track==='bgm1'?'bgm2':'bgm1'; up(); audioInit(); bgmLoad(OPTS.track); }); up(); }
+tp.addEventListener('click',ev=>{ const b=ev.target.closest('button'); if(!b || !b.dataset.a) return; const a=b.dataset.a; tp.hidden=true; if(a==='close') return; if(a==='title'){ Game.title(); return; } if(TITLE || PAUSE) return; const n=pick(NAMES); if(a==='reset'){ Game.reset(); return; } if(a==='like'){ Game.like(1000,n); return; } if(a==='comment') feedAdd(n,'テストのコメントです'); else if(a==='follow') feedAdd(n,'がフォローした','fl'); if(Game[a]) Game[a](n); });
 
 newRun(); logAdd(fmt(CFG.goal)+'m まで走るまで終われません！','#ffd23f');
 let last=performance.now(); window.__ready=false;
@@ -685,6 +695,8 @@ const cloudOn=()=>!!(CLOUD.on && CLOUD.user && CLOUD.key), srcName=()=>cloudOn()
 const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://127.0.0.1:21213/'],url:'ws://localhost:21213/',ws:null,ok:false,wait:3000,timer:null,streak:{},log:[],learn:null,map:{}};
 try{ TF.map=JSON.parse(localStorage.getItem('bike_gifts')||'{}')||{}; }catch(e){ TF.map={}; }
 const tfNorm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.');
+/* はじめて開いた時だけ、ギフトの割り当てのたたき台を入れる（あとから自由に変えられる） */
+if(!localStorage.getItem('bike_gdef')){ try{ localStorage.setItem('bike_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"heart": {"id": null, "name": "バラ", "coins": 1, "ci": 1, "pic": null}, "push": {"id": null, "name": "GG", "coins": 1, "ci": 4, "pic": null}, "helmet": {"id": null, "name": "おまもり", "coins": 5, "ci": 27, "pic": null}, "cheer": {"id": null, "name": "エール", "coins": 5, "ci": 26, "pic": null}, "ramp": {"id": null, "name": "ローザ", "coins": 10, "ci": 37, "pic": null}, "big": {"id": null, "name": "ドーナッツ", "coins": 30, "ci": 58, "pic": null}, "rocket": {"id": null, "name": "ハンドハート", "coins": 100, "ci": 87, "pic": null}, "god": {"id": null, "name": "愛してる", "coins": 199, "ci": 107, "pic": null}, "winUp": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}, "banana": {"id": null, "name": "どんぐり", "coins": 1, "ci": 3, "pic": null}, "puddle": {"id": null, "name": "ソフトクリーム", "coins": 1, "ci": 7, "pic": null}, "block": {"id": null, "name": "フィンガーハート", "coins": 5, "ci": 28, "pic": null}, "dog": {"id": null, "name": "ニャオ", "coins": 5, "ci": 30, "pic": null}, "bird": {"id": null, "name": "スカイフライト", "coins": 10, "ci": 36, "pic": null}, "pit": {"id": null, "name": "アイスバー", "coins": 10, "ci": 40, "pic": null}, "rock": {"id": null, "name": "香水", "coins": 20, "ci": 55, "pic": null}, "cloud": {"id": null, "name": "天才", "coins": 50, "ci": 59, "pic": null}, "hill": {"id": null, "name": "帽子と口ひげ", "coins": 99, "ci": 62, "pic": null}, "giant": {"id": null, "name": "隙だらけだぜ！", "coins": 199, "ci": 106, "pic": null}, "bone": {"id": null, "name": "ドラゴンの冠", "coins": 500, "ci": 320, "pic": null}, "winDown": {"id": null, "name": "ミラーボール", "coins": 1000, "ci": 348, "pic": null}}; try{ localStorage.setItem('bike_gifts',JSON.stringify(TF.map)); }catch(e){} } }
 function tfSave(){ try{ localStorage.setItem('bike_gifts',JSON.stringify(TF.map)); }catch(e){} }
 // 名前が合わずに「割り当てなし」になったギフトを覚えておき、設定画面で「どの効果か」を1回えらべば、届いた名前とIDをその効果に結びつける
 let MISS=[]; try{ MISS=JSON.parse(localStorage.getItem('bike_miss')||'[]')||[]; }catch(e){}
