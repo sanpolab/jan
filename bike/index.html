@@ -146,7 +146,7 @@ canvas{touch-action:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/bike/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/bike/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/25 17:10</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/25 17:21</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -217,7 +217,7 @@ const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.ge
 const W=1080, H=1080, FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, rand=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.floor(Math.random()*a.length)];
 const fmt=n=>Math.floor(n).toLocaleString('ja-JP');
-const VER='1125-171007';
+const VER='1125-172140';
 let SPD=1, TITLE=true, PAUSE=false; const PENDQ=[], SPD_OPTS=[1,1.25,1.5,2];   /* SPD＝タイトルでえらぶ速さ。PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 try{ const o=JSON.parse(localStorage.getItem('bike_cfg')||'{}'); if(SPD_OPTS.includes(o.spd)) SPD=o.spd; }catch(e){}
 function cfgSave(){ try{ localStorage.setItem('bike_cfg',JSON.stringify({spd:SPD})); }catch(e){} }
@@ -267,7 +267,7 @@ const T_={wind:10,windMul:2,assist:15,assistMul:1.5,rocket:5,rocketMul:3,headwin
 let S, best=0, tries=1, wins=0, falls=0, T=0, likeAcc=0; const CMT={};
 try{ const o=JSON.parse(localStorage.getItem('bike_save')||'{}'); best=o.best||0; tries=o.tries||1; wins=o.wins||0; falls=o.falls||0; if(o.g3) CFG.goal=o.g3; }catch(e){}
 function save(){ try{ localStorage.setItem('bike_save',JSON.stringify({best,tries,wins,falls,g3:CFG.goal})); }catch(e){} }
-function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, cheerT:0, cheerN:0, cheerIn:0, push:null, pushQ:0, pushGain:0, block:null, blockLeft:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, bigT:0, bigK:1, birds:[], birdQ:0, birdT:0, hillNeed:0, hillAll:0, tapPow:0, tilt:0, clouds:[], bolts:[], rocks:[], bone:null, god:null, wanim:[], ox:(S?S.ox:0), tx:(S?S.tx:0), mileI:0, mileFx:null, giant:null, waves:[], bursts:[], spear:null, spears:[], spearFl:[] }; }
+function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, cheerT:0, cheerN:0, cheerIn:0, push:null, pushQ:0, pushGain:0, block:null, blockLeft:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, bigT:0, bigK:1, birds:[], birdQ:0, birdT:0, hillNeed:0, hillAll:0, tapPow:0, tilt:0, clouds:[], bolts:[], rocks:[], bone:null, god:null, wanim:[], ox:(S?S.ox:0), tx:(S?S.tx:0), mileI:0, mileFx:null, giant:null, waves:[], bursts:[], spear:null, spears:[], spearFl:[], rocketAge:0, junk:null }; }
 function logAdd(t,c){ S.log.push({t,c:c||'#fff',at:T}); if(S.log.length>3) S.log.shift(); }
 function banner(t,c,sub){ S.banner={t,c,sub:sub||'',at:0}; }
 
@@ -295,7 +295,7 @@ const Game={
   ramp(n){ if(S.mode!=='ride') return; S.ents.push({k:'ramp',x:ahead(),by:n}); logAdd((n||'だれか')+' がジャンプ台を置いた','#5dffb0'); },
   helmet(n){ if(S.mode!=='ride') return; S.helmet=Math.min(T_.helmetMax,S.helmet+1); play('bless',.6); logAdd((n||'だれか')+' がヘルメットをくれた（あと'+S.helmet+'回こけない）','#5dffb0'); },
   heart(n){ if(S.mode!=='ride') return; if(S.hp<CFG.hp){ S.hp++; play('heal',.6); } logAdd((n||'だれか')+' のハートで体力 ＋1','#5dffb0'); },
-  rocket(n){ if(S.mode!=='ride') return; if(S.hillNeed>0){ S.hillNeed=Math.max(0,S.hillNeed-HILL.taps); S.hillAll=Math.max(0,S.hillAll-HILL.taps); if(S.hillNeed<=0){ S.hillNeed=0; S.hillAll=0; } logAdd('ロケットで坂道を1つ消した'+(S.hillNeed>0?'（あと'+S.hillNeed+'回こぐ）':''),'#5dffb0'); } S.rocketT=Math.min(15,S.rocketT+T_.rocket); S.headT=0; S.punkT=0; S.puddleT=0; S.dog=null; S.air=true; S.vy=-400; play('boom',.6); play('speed',.7); S.flash=.4; S.shake=.4; banner('ロケット自転車！','#ffd23f',n); logAdd((n||'だれか')+' がロケットをつけた（'+T_.rocket+'秒 ぶっ飛ばす）','#ffd23f'); },
+  rocket(n){ if(S.mode!=='ride') return; if(S.hillNeed>0){ S.hillNeed=Math.max(0,S.hillNeed-HILL.taps); S.hillAll=Math.max(0,S.hillAll-HILL.taps); if(S.hillNeed<=0){ S.hillNeed=0; S.hillAll=0; } logAdd('ロケットで坂道を1つ消した'+(S.hillNeed>0?'（あと'+S.hillNeed+'回こぐ）':''),'#5dffb0'); } if(!(S.rocketT>0)) S.rocketAge=0; S.junk=null; S.rocketT=Math.min(15,S.rocketT+T_.rocket); S.headT=0; S.punkT=0; S.puddleT=0; S.dog=null; S.air=true; S.vy=-400; play('boom',.6); play('speed',.7); S.flash=.4; S.shake=.4; banner('ロケット自転車！','#ffd23f',n); logAdd((n||'だれか')+' がロケットをつけた（'+T_.rocket+'秒 ぶっ飛ばす）','#ffd23f'); },
   banana(n){ if(S.mode!=='ride') return; S.ents.push({k:'banana',x:ahead(),by:n}); logAdd((n||'だれか')+' がバナナの皮を置いた','#ff9aa8'); },
   puddle(n){ if(S.mode!=='ride') return; S.ents.push({k:'puddle',x:ahead(),by:n}); logAdd((n||'だれか')+' が水たまりを作った','#ff9aa8'); },
   dog(n){ if(S.mode!=='ride' || S.dog || S.rocketT>0) return; S.dog={t:0,by:n,x:-180,st:'run'}; play('dog',.7); logAdd((n||'だれか')+' の犬が追いかけてきた！','#ff9aa8'); },
@@ -340,11 +340,12 @@ function update(dt){ T+=dt;
   for(const a of S.wanim){ a.t+=dt; if(a.k==='up'){ if(!a.done && a.t>=WINFX.upHit){ a.done=true; wins++; save(); S.winFx=2.4; S.winSign=1; S.flash=.3; S.shake=Math.max(S.shake,.35); play('fanfare',.6); play('harp2',.6); for(let i=0;i<14;i++){ const an=i/14*6.283; S.parts.push({x:WINFX.cx,y:WINFX.cy,vx:Math.cos(an)*rand(250,520),vy:Math.sin(an)*rand(250,520),g:0,t:rand(.3,.6),r:rand(8,16),c:'#111'}); } } }
     else if(!a.done && a.t>=WINFX.downHit){ a.done=true; wins--; save(); S.winFx=2.4; S.winSign=-1; S.red=.4; S.shake=Math.max(S.shake,.7); play('heavy',.85); play('glass',.55); play('bad',.5); for(let i=0;i<12;i++) S.parts.push({x:WINFX.cx,y:WINFX.cy,vx:rand(-520,320),vy:rand(-300,420),g:1400,t:rand(.4,.8),r:rand(10,20),c:'#111'}); } }
   S.wanim=S.wanim.filter(a=>a.t<(a.k==='up'?WINFX.up:WINFX.down)); if(S.cheerT>0) S.cheerIn=Math.min(1,S.cheerIn+dt*2.5); else S.cheerIn=Math.max(0,S.cheerIn-dt*2.5); { const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.ArrowLeft||KEYS.a?1:0); if(kx) S.tx=clamp(S.tx+kx*MOVE.key*dt,MOVE.min,MOVE.max); S.ox+=(S.tx-S.ox)*Math.min(1,dt*14); } if(S.flash>0) S.flash-=dt; if(S.shake>0) S.shake-=dt; if(S.red>0) S.red-=dt; if(S.winFx>0) S.winFx-=dt; if(S.fallFx>0) S.fallFx-=dt; if(S.banner){ S.banner.at+=dt; if(S.banner.at>2.2) S.banner=null; } if(S.mileFx){ S.mileFx.t+=dt; if(S.mileFx.t>2) S.mileFx=null; }
+  if(S.junk){ const j=S.junk; j.t+=dt; j.vy+=2400*dt; j.x+=j.vx*dt; j.y+=j.vy*dt; j.rot+=j.vr*dt; if(j.t>1.6 || j.y>H+200) S.junk=null; }
   for(const p of S.parts){ p.t-=dt; p.vy+=(p.g||0)*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; } S.parts=S.parts.filter(p=>p.t>0);
   if(S.mode==='ride'){
     if(WAITQ.length){ waitT-=dt; if(waitT<=0){ waitT=.3; const fn=WAITQ.shift(); try{ fn(); }catch(e){} } } else waitT=.15;
     if(S.holdT>0){ S.holdT-=dt; }
-    let mul=1; if(S.rocketT>0){ S.rocketT-=dt; mul=T_.rocketMul; } else { if(S.windT>0){ S.windT-=dt; mul*=T_.windMul; } if(S.assistT>0){ S.assistT-=dt; mul*=T_.assistMul; } if(S.cheerT>0){ S.cheerT-=dt; mul*=CHEER.mul+CHEER.add*(S.cheerN-1); if(S.cheerT<=0){ S.cheerT=0; S.cheerN=0; logAdd('応援団が帰っていった','#fff'); } } if(S.headT>0){ S.headT-=dt; mul*=T_.headMul; } if(S.puddleT>0){ S.puddleT-=dt; mul*=T_.puddleMul; } if(S.punkT>0){ S.punkT-=dt; mul*=T_.punkMul; } mul=Math.max(.35,mul); if(S.hillNeed>0){ S.tapPow=Math.max(0,S.tapPow-HILL.decay*dt); mul*=HILL.base+Math.min(1,S.tapPow)*.9; } }
+    let mul=1; if(S.rocketT>0){ S.rocketT-=dt; S.rocketAge+=dt; mul=T_.rocketMul; if(S.rocketT<=0){ S.rocketT=0; const bp=bikePose(); S.junk={x:BXX()-124,y:bp.y-100,vx:-420,vy:-620,rot:0,vr:-7,t:0}; play('pon',.6); logAdd('ロケットが燃えつきた','#fff'); } } else { if(S.windT>0){ S.windT-=dt; mul*=T_.windMul; } if(S.assistT>0){ S.assistT-=dt; mul*=T_.assistMul; } if(S.cheerT>0){ S.cheerT-=dt; mul*=CHEER.mul+CHEER.add*(S.cheerN-1); if(S.cheerT<=0){ S.cheerT=0; S.cheerN=0; logAdd('応援団が帰っていった','#fff'); } } if(S.headT>0){ S.headT-=dt; mul*=T_.headMul; } if(S.puddleT>0){ S.puddleT-=dt; mul*=T_.puddleMul; } if(S.punkT>0){ S.punkT-=dt; mul*=T_.punkMul; } mul=Math.max(.35,mul); if(S.hillNeed>0){ S.tapPow=Math.max(0,S.tapPow-HILL.decay*dt); mul*=HILL.base+Math.min(1,S.tapPow)*.9; } }
     S.tilt+=((S.hillNeed>0?HILL.tilt:0)-S.tilt)*Math.min(1,dt*5);
     if(S.invT>0) S.invT-=dt; if(S.bigT>0){ S.bigT-=dt; if(S.bigT<=0){ S.bigT=0; logAdd('タイヤが元の大きさにもどった','#fff'); } } S.bigK+=((S.bigT>0?T_.bigK:1)-S.bigK)*Math.min(1,dt*7);
     const v=(S.holdT>0 || (S.block && S.block.st==='push'))?0:CFG.speed*mul*SPD; S.spd=lerp(S.spd,v,clamp(dt*4,0,1)); S.x+=S.spd*dt; S.wheel+=S.spd*PPM*dt/WR; if(S.x>best) best=S.x;
@@ -432,7 +433,7 @@ function update(dt){ T+=dt;
 }
 
 /* ===== 描く：白い紙に黒い線。妨害だけは色つきの絵（img/ に絵があればそれを使い、無ければ線で描く） ===== */
-const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','hand','zlines','impact','bone','beam','mflash','boneanim','god0','god1','angel','devil','fxstar','fxcrack','fxwind','spear','lancer']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
+const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','hand','zlines','impact','bone','beam','mflash','boneanim','god0','god1','angel','devil','fxstar','fxcrack','fxwind','spear','lancer','engine','flame']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 const INK='#111', LW=7;
 function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 function txt(s,x,y,size,color,align,stroke,font){ g.font=(font===FONTD?'400 ':'900 ')+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineWidth=Math.max(4,size*.16); g.strokeStyle=stroke; g.lineJoin='round'; g.strokeText(s,x,y); } g.fillStyle=color; g.fillText(s,x,y); }
@@ -633,9 +634,15 @@ function draw(){ const cx=camX(); g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.sav
   if(S.dog) drawDog(S.dog); drawSky(cx); drawPush(); drawBlock(); drawBone(cx);
   if(S.mode==='crash'){ const b=S.bikeP; g.save(); g.translate(b.x,b.y); g.rotate(b.rot); drawBikeOnly(S.wheel,false); g.restore(); drawStickFly(S.rider); }
   else { const p=bikePose(), blink=S.invT>0 && S.rocketT<=0 && Math.floor(T*14)%2===0; if(!blink){ g.save(); g.translate(BXX()+((S.block&&S.block.st==='push')?Math.sin(T*70)*7-14:0),p.y+WR*S.bigK); g.rotate(((S.block&&S.block.st==='push')?-.1+Math.sin(T*50)*.03:0)+p.ang+(S.air?clamp(S.vy/3000,-.3,.3):0)+(S.punkT>0?Math.sin(T*18)*.03:0)); g.translate(0,-WR*S.bigK);
-      if(S.rocketT>0){ rr(-124,-72,100,36,16); g.fillStyle='#fff'; g.fill(); g.lineWidth=LW; g.strokeStyle=INK; g.stroke(); const fl=70+Math.sin(T*40)*20; line([[-124,-66],[-124-fl,-54],[-124,-42]],6); line([[-124,-60],[-124-fl*.5,-54],[-124,-48]],4); }
+      if(S.rocketT>0 && ok('engine') && ok('flame')){ const EW=160, EH=EW*263/340, x0=-204+Math.sin(T*83)*2.2, y0=-206+Math.cos(T*97)*2.2, ny=y0+EH*.538, age=S.rocketAge||0, on=clamp(age/.14,0,1)*(1+.5*Math.max(0,1-age/.3))*clamp(S.rocketT/.35,0,1);
+        const j1=Math.sin(T*61)*.5+Math.sin(T*37+1)*.5, j2=Math.sin(T*53+2)*.5+Math.sin(T*29)*.5;
+        for(let L=1;L>=0;L--){ const FL=(L?380:310)*(1+.16*(L?j2:j1))*on, FH=(L?136:112)*(1-.1*(L?j1:j2))*Math.min(1,on+.2), wob=Math.sin(T*(L?44:71))*5; if(FL<4) continue; g.save(); g.globalAlpha=L?.45:1; g.translate(x0+30,ny); g.rotate(wob*.006); g.drawImage(IMG.flame,-FL,-FH*.493+wob*.4,FL,FH); g.restore(); }
+        if(age<.4){ const k=age/.4; g.save(); g.globalAlpha=1-k; g.lineWidth=12*(1-k)+3; g.strokeStyle='#ffb400'; g.beginPath(); g.ellipse(x0-10-k*60,ny,30+k*70,60+k*170,0,0,7); g.stroke(); g.lineWidth=4; g.strokeStyle=INK; g.beginPath(); g.ellipse(x0-30-k*110,ny,20+k*60,50+k*210,0,0,7); g.stroke(); g.restore(); }
+        g.drawImage(IMG.engine,x0,y0,EW,EH); }
+      else if(S.rocketT>0){ rr(-124,-72,100,36,16); g.fillStyle='#fff'; g.fill(); g.lineWidth=LW; g.strokeStyle=INK; g.stroke(); const fl=70+Math.sin(T*40)*20; line([[-124,-66],[-124-fl,-54],[-124,-42]],6); line([[-124,-60],[-124-fl*.5,-54],[-124,-48]],4); }
       drawBikeOnly(S.wheel,S.punkT>0); drawRider(S.wheel,S.headT>0?-.6:(S.spd>CFG.speed*1.3?1:.45),!!S.dog||S.air); g.restore(); } }
   drawSpears(cx,true);
+  if(S.junk && ok('engine')){ const j=S.junk; g.save(); g.translate(j.x,j.y); g.rotate(j.rot); g.globalAlpha=clamp((1.6-j.t)/.3,0,1); g.drawImage(IMG.engine,-80,-62,160,124); g.restore(); }
   for(const p of S.parts){ g.globalAlpha=clamp(p.t*3,0,1); g.beginPath(); g.arc(p.x,p.y,p.r*.5,0,7); g.lineWidth=3; g.strokeStyle=INK; g.stroke(); } g.globalAlpha=1;
   g.restore();
   if(S.red>0){ g.fillStyle='rgba(0,0,0,'+(S.red*.25)+')'; g.fillRect(0,0,W,H); }
