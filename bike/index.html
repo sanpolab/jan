@@ -61,7 +61,7 @@ const BX=340, WR=46, WB=150;        /* 自転車の画面上の位置、タイ�
 const FALLS_PER=5;
 /* 骨ドラゴン（強い妨害）：右はしから頭が出てきて、3種類のこうげきを、ばらばらの順番で1回ずつ出す。
    low＝足もとのレーザー（ジャンプでよける）、high＝頭の上のレーザー（ジャンプするとあたる）、pit＝落とし穴（ジャンプでこえる）。全画面の映像は使わない */
-const BONE={first:.5,pop:.2,warn:.55,beam:.36,back:.18,gap:.12,pitHold:.5,pitWait:1.25,mx:700,lowY:74,highY:372,beamH:64,w:820,ax:27/820,ay:337/393};   /* すばやく：頭を出す→ねらう→撃つ→引っこめる、をくり返す。mx＝口の横位置、ax/ay＝絵の中の口の位置 */
+const BONE={first:.5,pop:.2,warn:.55,beam:.36,back:.18,gap:.12,pitHold:.5,pitWait:1.25,mx:760,lowY:74,highY:372,beamH:64,w:860,ax:.284,ay:.589,fw:576,fh:324,cols:6,nf:23};   /* 動画から作った23コマ（口を開けて光をためる）。ax/ay は、口の中の光の中心 */   /* すばやく：頭を出す→ねらう→撃つ→引っこめる、をくり返す。mx＝口の横位置、ax/ay＝絵の中の口の位置 */
 /* ひと押し：画面の左から大きな手が出てきて、自転車のうしろをポンと押す（少しだけ前へ進む）。安いギフト向き。連打された分は順番に押す */
 const PUSH={gain:40,inT:.28,hold:.12,outT:.35,w:520};
 /* ストップの手（妨害）：画面の右はしから大きな手が出てきて、自転車を前から押しもどす（少しだけ後ろへ下がる）。安いギフト向き。連打された分は順番に押す */
@@ -217,7 +217,7 @@ function update(dt){ T+=dt; if(S.cheerT>0) S.cheerIn=Math.min(1,S.cheerIn+dt*2.5
 }
 
 /* ===== 描く：白い紙に黒い線。妨害だけは色つきの絵（img/ に絵があればそれを使い、無ければ線で描く） ===== */
-const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','fan0','fan1','fan2','fan3','hand','zlines','impact','bone','beam','mflash']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
+const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','fan0','fan1','fan2','fan3','hand','zlines','impact','bone','beam','mflash','boneanim']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 const INK='#111', LW=7;
 function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 function txt(s,x,y,size,color,align,stroke,font){ g.font=(font===FONTD?'400 ':'900 ')+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineWidth=Math.max(4,size*.16); g.strokeStyle=stroke; g.lineJoin='round'; g.strokeText(s,x,y); } g.fillStyle=color; g.fillText(s,x,y); }
@@ -275,13 +275,14 @@ function drawBlock(){ const h=S.block; if(!h || !ok('hand')) return; const p=bik
     if(ok('impact')){ const im=IMG.impact, sz=230+((fr*53)%90), ix=tipX-8+((fr*29)%24)-12, iy=cy+((fr*41)%60)-30; g.save(); g.translate(ix,iy); g.rotate((fr%4)*.5); g.drawImage(im,-sz/2,-sz/2,sz,sz*im.naturalHeight/im.naturalWidth); g.restore(); } } }
 /* 骨ドラゴンの頭（仮の線の絵。あとで動画から作った絵に差し替える）と、レーザー。ねらっている高さには、撃つ前に細い線と知らせを出す */
 function drawBone(cx){ const d=S.bone; if(!d || d.st==='first') return; const kind=d.seq[d.i], gyb=gy0(cx+BXX()), aim=kind==='high'?BONE.highY:(kind==='low'?BONE.lowY:230), mx=BONE.mx+d.slide*520, my=gyb-aim+(d.st==='warn'?Math.sin(T*40)*3:0), fr=Math.floor(T*20), bl=fr%2;
-  if(d.st==='warn' && kind!=='pit'){ const a=clamp(d.t/BONE.warn,0,1); g.globalAlpha=.3+.6*a; line([[0,my],[mx,my]],5+a*12,bl?'#b14cff':'#e23a3a'); g.globalAlpha=1; txt(kind==='low'?'ジャンプ！':'飛ぶな！',W/2-120,278,72,bl?'#e23a3a':INK,'center','#fff',FONTD); if(ok('mflash')){ const sz=60+a*130+bl*20; g.save(); g.translate(mx+10,my); g.rotate(fr*.4); g.drawImage(IMG.mflash,-sz/2,-sz/2,sz,sz); g.restore(); } }
+  if(d.st==='warn' && kind!=='pit'){ const a=clamp(d.t/BONE.warn,0,1); g.globalAlpha=.3+.6*a; line([[0,my],[mx,my]],5+a*12,bl?'#b14cff':'#e23a3a'); g.globalAlpha=1; txt(kind==='low'?'ジャンプ！':'飛ぶな！',W/2-120,278,72,bl?'#e23a3a':INK,'center','#fff',FONTD); }
   if((d.st==='warn' || d.st==='pop') && kind==='pit') txt('落とし穴！',W/2-120,278,72,bl?'#e23a3a':INK,'center','#fff',FONTD);
   if(d.st==='beam'){ const k=1-clamp(d.t/BONE.beam,0,1), hh=BONE.beamH*(.75+.35*k)+bl*8;
     if(ok('beam')){ const im=IMG.beam, dh=hh*135/70, tw=520, off=(T*2600)%tw; g.save(); g.beginPath(); g.rect(-10,my-dh,mx+10,dh*2); g.clip(); for(let x=mx-tw+off;x>-tw;x-=tw-2){ g.save(); g.translate(x,my); if(bl) g.scale(1,-1); g.drawImage(im,0,-dh/2,tw,dh); g.restore(); } g.restore(); }
     else { g.fillStyle='#111'; g.fillRect(-20,my-hh/2-6,mx+20,hh+12); g.fillStyle='#b14cff'; g.fillRect(-20,my-hh/2,mx+20,hh); g.fillStyle='#fff'; g.fillRect(-20,my-hh*.2,mx+20,hh*.4); }
     if(ok('mflash')){ const sz=250+bl*60; g.save(); g.translate(mx+6,my); g.rotate(fr*.5); g.drawImage(IMG.mflash,-sz/2,-sz/2,sz,sz); g.restore(); } }
-  if(ok('bone')){ const im=IMG.bone, w=BONE.w, hh=w*im.naturalHeight/im.naturalWidth, rc=d.st==='beam'?14+bl*6:0; g.drawImage(im,mx-w*BONE.ax+rc,my-hh*BONE.ay,w,hh); if(mx-w*BONE.ax+rc+w<W+20) g.drawImage(im,im.naturalWidth-30,0,30,im.naturalHeight,mx-w*BONE.ax+rc+w-1,my-hh*BONE.ay,W+40-(mx-w*BONE.ax+rc+w),hh); }
+  if(ok('boneanim')){ const im=IMG.boneanim, w=BONE.w, hh=w*BONE.fh/BONE.fw, rc=d.st==='beam'?14+bl*6:0, N=BONE.nf-1, open=d.st==='warn'?clamp(d.t/(kind==='pit'?BONE.pitHold:BONE.warn),0,1)*(kind==='pit'?.55:1):(d.st==='beam'?1:(d.st==='back'?(kind==='pit'?.55:1)*(1-clamp(d.t/BONE.back,0,1)):0)), f=clamp(Math.round(open*N),0,N);
+    g.drawImage(im,(f%BONE.cols)*BONE.fw,Math.floor(f/BONE.cols)*BONE.fh,BONE.fw,BONE.fh,mx-w*BONE.ax+rc,my-hh*BONE.ay,w,hh); }
   else { g.fillStyle='#fffbe8'; g.strokeStyle=INK; g.lineWidth=LW; g.beginPath(); g.moveTo(mx,my+20); g.lineTo(mx+150,my-70); g.lineTo(W+40,my-90); g.lineTo(W+40,my+60); g.lineTo(mx+140,my+50); g.closePath(); g.fill(); g.stroke(); } }
 /* 応援団：道の向こう側（足もとは道にかくれる）にならんで、ぴょんぴょんはねる。絵（img/fan0〜3）があればそれを使い、無ければ線で描く */
 function drawFans(cx){ if(S.cheerIn<=0) return; const L=Math.max(1,S.cheerN), i0=Math.floor((cx-200)/CHEER.gap), i1=Math.floor((cx+W+200)/CHEER.gap);
