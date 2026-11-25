@@ -131,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 01:44</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 01:51</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -235,7 +235,9 @@ const AKU={T:15,maxT:60,hit:62,dmg:2,inT:1.3,gap:2.0,warn:.95,fly:.34,r:125,minX
 img('aku','aku.webp'); img('aku_spear','aku_spear.webp'); img('aku_face','aku_face.jpg');
 const HERO={win:50,sub:100000,gain:10000,inT:.6,hit:1.6,life:3.6,outT:.6,rate:1.5,h:620,y:500,move:1.4};   /* 勇者：ゴールを近づける高さ、呪いが無いときに進む高さ、現れる秒数、剣を振り下ろす時刻、いる秒数、消える秒数、コマ送りの速さ、絵の高さと位置、進むのにかける秒数 */
 img('mcircle','mcircle.webp'); const moSh=mkSheet('maou',{n:48,cols:8,fw:400,fh:300,fps:10});   /* 正面向きの魔王の全身（腕を広げる→上げる→こぶしを握る） */
-const MAOU={win:50,add:100000,inT:.7,hit:2.5,life:4.6,outT:.7,rate:1.25,w:900,y:520};   /* 魔王：ゴールに足す高さ、現れる秒数、こぶしを握ってゴールが遠ざかる時刻、いる秒数、消える秒数、コマ送りの速さ、絵の横幅と位置 */
+/* 魔王の落雷：こぶしを握ったあと、赤いカミナリが10本落ちる。当たると一発で墜落（boltR＝当たる幅の半分） */
+const maouBoltX=i=>XL-60+(XW+120)*(.07+.86*hsh(i,41+((S.maou&&S.maou.seed)||0))), maouBoltT=i=>MAOU.hit+(i<5?i*.06:.42+(i-5)*.05);
+const MAOU={boltR:78,win:50,add:100000,inT:.7,hit:2.5,life:4.6,outT:.7,rate:1.25,w:900,y:520};   /* 魔王：ゴールに足す高さ、現れる秒数、こぶしを握ってゴールが遠ざかる時刻、いる秒数、消える秒数、コマ送りの速さ、絵の横幅と位置 */
 img('jzap','jzap.webp'); const jfSh=mkSheet('jelly',{n:24,cols:8,fw:224,fh:216,fps:10}), jfCv=[];   /* 横から見た光るクラゲ（ふくらむ→縮むの1周） */
 function jellyCv(i){ if(!jfSh.ok) return null; if(jfCv[i]) return jfCv[i]; if(i===0) return jfCv[0]=jfSh.cv; const c=document.createElement('canvas'); c.width=jfSh.cv.width; c.height=jfSh.cv.height; const x=c.getContext('2d'); x.drawImage(jfSh.cv,0,0); try{ const d=x.getImageData(0,0,c.width,c.height), q=d.data; for(let k=0;k<q.length;k+=4){ const r=q[k], gg=q[k+1], b=q[k+2]; if(i===1){ q[k]=b; q[k+1]=r; q[k+2]=gg; } else { q[k]=gg; q[k+1]=b; q[k+2]=r*.6+b*.4; } } x.putImageData(d,0,0); }catch(e){} return jfCv[i]=c; }   /* 色ちがい：0＝水色、1＝ピンク、2＝黄みどり */
 const JELLY={n:9,maxN:36,get sec(){ return DIFFS[DIFF].jelly; },inT:1.3,outT:1.1,w:205,hx:66,hy:52,by:.3};   /* クラゲ：数、いすわる秒数、来る・帰る秒数、絵の横幅、傘の当たり幅と高さの半分、傘の中心が絵の上からどこか */
@@ -638,7 +640,7 @@ function strikeFx(kind,t,cx,cy){ if(t<0 || t>2.1) return; const X0=XL-60, Wd=XW+
   g.globalCompositeOperation='lighter';
   if(neg){ const bi=redBoltCv(), sp=IMG.sspark, sc=IMG.fxscar;
     if(sc && sc.naturalWidth){ const rv=clamp(t/.14,0,1), fl=.75+.25*Math.sin(T*9); g.save(); g.beginPath(); g.rect(X0,0,Wd,VH*rv); g.clip(); g.globalAlpha=fade*fl; g.drawImage(sc,X0,60,Wd,VH-60); g.globalAlpha=fade*.5; g.drawImage(sc,X0+Wd,60,-Wd,VH-60); g.restore(); }
-    if(bi) for(let i=0;i<10;i++){ const lt=t-(i<5?i*.06:.42+(i-5)*.05); if(lt<0 || lt>.85) continue; const x=X0+Wd*(.07+.86*hsh(i,41)), rv=clamp(lt/.09,0,1), a=clamp(1-(lt-.15)/.7,0,1)*(.6+.4*Math.sin(T*80+i*3)), bw=320+hsh(i,42)*200; g.save(); g.beginPath(); g.rect(x-bw,0,bw*2,VH*rv); g.clip(); g.globalAlpha=a; g.translate(x,0); g.scale(i%2?-1:1,1); g.drawImage(bi,-bw/2,-40,bw,VH+80); g.restore(); if(lt>.09 && lt<.5 && sp && sp.naturalWidth){ const sw=280+lt*620; g.globalAlpha=1-lt/.5; g.drawImage(sp,x-sw/2,VH*.84-sw/2,sw,sw); } }
+    if(bi) for(let i=0;i<10;i++){ const lt=t-(i<5?i*.06:.42+(i-5)*.05); if(lt<0 || lt>.85) continue; const x=maouBoltX(i), rv=clamp(lt/.09,0,1), a=clamp(1-(lt-.15)/.7,0,1)*(.6+.4*Math.sin(T*80+i*3)), bw=320+hsh(i,42)*200; g.save(); g.beginPath(); g.rect(x-bw,0,bw*2,VH*rv); g.clip(); g.globalAlpha=a; g.translate(x,0); g.scale(i%2?-1:1,1); g.drawImage(bi,-bw/2,-40,bw,VH+80); g.restore(); if(lt>.09 && lt<.5 && sp && sp.naturalWidth){ const sw=280+lt*620; g.globalAlpha=1-lt/.5; g.drawImage(sp,x-sw/2,VH*.84-sw/2,sw,sw); } }
     g.globalAlpha=1; if(t<1.1){ const q=t/1.1, R=160+q*1300; g.strokeStyle='rgba(255,60,50,'+(.8*(1-q))+')'; g.lineWidth=30*(1-q)+4; g.beginPath(); g.arc(cx,cy,R,0,7); g.stroke(); } }
   else { const si=IMG.hslash, cuts=[[X0+60,VH-30,X0+Wd-60,240,0,190],[X0+60,270,X0+Wd-60,VH-60,.22,165]];
     if(t>.08){ const fk=.75+.25*Math.sin(T*21), fd=fade*clamp((t-.08)/.1,0,1); g.lineCap='round'; for(const [lw,col] of [[110,'rgba(255,170,0,'+(.2*fd*fk)+')'],[40,'rgba(255,215,90,'+(.65*fd*fk)+')'],[12,'rgba(255,255,240,'+fd+')']]){ g.strokeStyle=col; g.lineWidth=lw; for(const c of cuts){ if(t<c[4]+.08) continue; g.beginPath(); g.moveTo(c[0],c[1]); g.lineTo(c[2],c[3]); g.stroke(); } if(t>.52){ g.beginPath(); g.moveTo(cx,210); g.lineTo(cx,VH); g.stroke(); } } }
@@ -660,6 +662,7 @@ function drawMaou(){ const d=S.maou; if(!d) return; const sh=moSh, ci=IMG.mcircl
   if(ci && ci.naturalWidth){ g.globalCompositeOperation='lighter'; for(let i=0;i<3;i++){ const w=(760+i*330)*(.6+.4*a)*(1+.25*hot), al=a*(i?.35:.8)*(.6+.4*ch); g.save(); g.translate(cx,cy-40); g.rotate((i%2?-1:1)*T*(.5+i*.2)); g.globalAlpha=al; g.drawImage(ci,-w/2,-w/2,w,w); g.restore(); } g.globalCompositeOperation='source-over'; }
   if(d.t<MAOU.hit){ g.globalCompositeOperation='lighter'; g.strokeStyle='rgba(255,60,40,'+(.55*a*ch)+')'; g.lineCap='round'; for(let i=0;i<26;i++){ const an=hsh(i,21)*6.283, ph=(T*(1.2+hsh(i,22))+hsh(i,23))%1, r0=900-ph*760, r1=r0+120; g.lineWidth=3+hsh(i,24)*5; g.globalAlpha=Math.sin(ph*Math.PI); g.beginPath(); g.moveTo(cx+Math.cos(an)*r0,cy+Math.sin(an)*r0); g.lineTo(cx+Math.cos(an)*r1,cy+Math.sin(an)*r1); g.stroke(); } g.globalAlpha=1; g.globalCompositeOperation='source-over'; }
   if(sh.ok){ const f=Math.min(sh.n-1,Math.floor(Math.max(0,d.t)*sh.fps*MAOU.rate)), w=MAOU.w*(1+.05*hot), h=w*sh.fh/sh.fw; g.globalAlpha=a; g.shadowColor='rgba(255,30,20,.9)'; g.shadowBlur=30+40*hot; g.drawImage(sh.cv,(f%sh.cols)*sh.fw,Math.floor(f/sh.cols)*sh.fh,sh.fw,sh.fh,cx-w/2,cy-h*.5-(1-a)*120,w,h); g.shadowBlur=0; g.globalAlpha=1; }
+  if(d.seed!==undefined && d.t>MAOU.hit-1.3 && d.t<MAOU.hit){ const k=(d.t-(MAOU.hit-1.3))/1.3; g.save(); g.globalCompositeOperation='lighter'; for(let i=0;i<10;i++){ const x=maouBoltX(i), fl=.55+.45*Math.sin(T*30+i*2); g.globalAlpha=k*fl; const gr=g.createLinearGradient(x-MAOU.boltR,0,x+MAOU.boltR,0); gr.addColorStop(0,'rgba(255,40,40,0)'); gr.addColorStop(.5,'rgba(255,70,60,'+(.35+.4*k)+')'); gr.addColorStop(1,'rgba(255,40,40,0)'); g.fillStyle=gr; g.fillRect(x-MAOU.boltR,0,MAOU.boltR*2,1500); g.fillStyle='rgba(255,220,210,'+(.5+.5*k)+')'; g.fillRect(x-2-3*k,0,4+6*k,1500); } g.restore(); }
   strikeFx('m',d.t-MAOU.hit,cx,cy);
   g.restore(); }
 function drawHero(){ const d=S.hero; if(!d) return; const sh=heSh, si=IMG.hslash, e=x=>x*x*(3-2*x), a=e(clamp(d.t/HERO.inT,0,1))*(1-e(clamp((d.t-HERO.life)/HERO.outT,0,1))), cx=W/2, cy=HERO.y, since=d.t-HERO.hit, hot=d.done?clamp(1-since/.9,0,1):0, ch=clamp(d.t/HERO.hit,0,1);
@@ -880,6 +883,8 @@ function update(dt){ if(S.cine){ const c=S.cine; c.t+=dt; if(c.t>=c.dur){ try{ c
         if(d.pt>=AKU.gap-AKU.warn){ if(d.left>0) wave(); else { d.st='out'; d.pt=0; logAdd('悪魔が帰っていった','#fff'); } } }
       else if(d.st==='out'){ if(d.pt>=.8) S.aku=null; } } }
   if(S.akuFl && S.akuFl.length){ for(const f of S.akuFl){ f.t+=dt; if(!f.done && f.t>=AKU.fly){ f.done=true; if(S.mode==='fly' && !inv() && S.aku && !S.aku.waveHit && Math.hypot(RXw()-f.tx,RYw()-f.ty)<AKU.hit){ S.aku.waveHit=true; play('aku_hit',.9); play('hit',.7); S.shake=Math.max(S.shake,.8); S.rings.push({x:f.tx,y:f.ty,c:'#ff5c5c',t:0,big:true}); logAdd('悪魔の槍が当たった（耐久−'+AKU.dmg+'）','#ff5c5c'); for(let i=0;i<AKU.dmg && S.mode==='fly';i++) damage(S.aku.by); } } } S.akuFl=S.akuFl.filter(f=>f.t<AKU.fly*2.6); }
+  if(S.maou && S.maou.seed===undefined){ const d=S.maou; let best=0, bg=-1; for(let k=0;k<40;k++){ d.seed=1+Math.floor(Math.random()*900); const xs=[-9999]; for(let i=0;i<10;i++) xs.push(maouBoltX(i)); xs.push(9999); xs.sort((a,b)=>a-b); let gap=0; for(let i=0;i<xs.length-1;i++){ const lo=Math.max(xs[i],W/2-MOVE.x-MAOU.boltR), hi=Math.min(xs[i+1],W/2+MOVE.x+MAOU.boltR); gap=Math.max(gap,hi-lo); } if(gap>bg){ bg=gap; best=d.seed; } if(gap>=MAOU.boltR*2+190) break; } d.seed=best; }
+  if(S.maou && S.maou.done && S.mode==='fly'){ const d=S.maou, bh=d.bh||(d.bh=[]); for(let i=0;i<10;i++){ if(bh[i] || d.t<maouBoltT(i)) continue; bh[i]=true; if(!inv() && Math.abs(RXw()-maouBoltX(i))<MAOU.boltR){ S.hp=0; S.flash=Math.max(S.flash,.7); play('kaminari',.9); logAdd('魔王のカミナリが直撃！ 一発で墜落','#ff5c5c'); startFall(); break; } } }
   if(S.maou){ const d=S.maou; d.t+=dt; if(d.t<MAOU.hit) S.shake=Math.max(S.shake,.05+.2*d.t/MAOU.hit); if(!d.done && d.t>=MAOU.hit){ d.done=true; if(S.mode==='fly'){ wins-=MAOU.win; save(); S.winPop={d:-MAOU.win,t:0}; S.shake=1; S.flash=Math.max(S.flash,.5); S.red=1; play('glass',.6); logAdd('魔王の呪い：WIN −'+MAOU.win+'（いま '+wins+'）','#ff5c5c'); } } if(d.t>=MAOU.life+MAOU.outT || (S.mode!=='fly' && d.t<MAOU.hit)){ S.maou=null; if(S.maouQ>0 && S.mode==='fly'){ S.maouQ--; S.maou={t:.4,by:d.by,done:false}; } } }
   // 勇者：全画面の映像のあと画面の上に現れ、剣を振り下ろした瞬間に魔王の呪いを HERO.sub m ぶん斬る（元のゴールより手前にはならない）。呪いが無ければ、かわりに HERO.gain m 進む
   if(S.hero){ const d=S.hero; d.t+=dt; if(!d.done && d.t>=HERO.hit){ d.done=true; if(S.mode==='fly'){ S.shake=.8; S.flash=Math.max(S.flash,.6);
@@ -1160,7 +1165,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ update(dt); } draw(); } requestAnimationFrame(loop); }
-const VER='1126-014431'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1126-015118'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1206,7 +1211,7 @@ const FX_LIST=[
  ['vamp','jam','吸血鬼','15秒 コウモリの嵐',n=>Game.vamp(n)],
  ['ice','jam','氷の怪鳥','凍って−2,000m＋30秒 速さ半分',n=>Game.ice(n)],
  ['crash','jam','機械クジラ','飲みこまれて即ついらく＋セーブ消去',n=>Game.crash(n)],
- ['maou','jam','魔王','WIN −50',n=>Game.maou(n)],
+ ['maou','jam','魔王','WIN −50＋赤いカミナリ（当たると一発で墜落）',n=>Game.maou(n)],
  ['akuma','jam','悪魔降臨','15秒 光る輪の外は槍が降る（当たると耐久−2）',n=>Game.akuma(n)]];
 /* スマホ用のつなぎ先（tik.tools）。オンの間はTikFinityのかわりに、ネット経由で同じ形の知らせを受け取る。キーはこの端末にだけ保存 */
 const HOME_URL='https://sanpolab.github.io/jan/rocket/', EMBED=!/(^|\.)github\.io$|^localhost$|^127\./.test(location.hostname);   // EMBED：Claudeの共有ページなど、正式なアドレス以外で開いている
