@@ -61,7 +61,8 @@ const BX=340, WR=46, WB=150;        /* 自転車の画面上の位置、タイ�
 const FALLS_PER=5;
 /* 神の手（強いお助け）：画面の右上から大きな線の手がふり下ろされて、いま出ている妨害をぜんぶはらい飛ばす
    WIN＋1：自転車から星が飛び出して、右上のWINの数字へ飛びこむ。WIN−1：カラスが飛んできて、WINの数字から「1」をくわえて持っていく。どちらも画面の中だけの演出で、ゲームは止まらない */
-const GOD={T:1.0,hit:.42}, WINFX={up:1.15,down:1.7,cx:W-164,cy:88};
+const GOD={T:1.45,hit:.66}, WINFX={up:2.9,upHit:1.6,down:2.7,downHit:.97,cx:W-164,cy:88};
+const ANG={cols:9,fw:452,fh:400,h:330,flap:19,act:[19,20,21,22,23,24,25,26,31,32,33,34,35,36,37,38],fps:16,t0:.7,sw:12,hx:W-164-330,hy:235}, DEV={cols:6,fw:606,fh:400,h:330,dx:W-164-255,dy:165,rot:-.26,tIn:.75,tWind:.95,tHold:1.45,tBack:1.75,tOut:2.1};
 /* 骨ドラゴン（強い妨害）：右はしから頭が出てきて、3種類のこうげきを、ばらばらの順番で1回ずつ出す。
    low＝足もとのレーザー（ジャンプでよける）、high＝頭の上のレーザー（ジャンプするとあたる）、pit＝落とし穴（ジャンプでこえる）。全画面の映像は使わない */
 const BONE={n:4,first:.5,pop:.2,warn:.55,beam:.36,back:.18,gap:.12,pitHold:.5,pitWait:1.25,mx:760,lowY:74,highY:372,beamH:64,w:860,ax:.284,ay:.589,fw:576,fh:324,cols:6,nf:23};   /* 動画から作った23コマ（口を開けて光をためる）。ax/ay は、口の中の光の中心 */   /* すばやく：頭を出す→ねらう→撃つ→引っこめる、をくり返す。mx＝口の横位置、ax/ay＝絵の中の口の位置 */
@@ -105,7 +106,7 @@ const Game={
   push(n){ if(S.mode!=='ride') return; S.pushQ=Math.min(30,S.pushQ+1); logAdd((n||'だれか')+' がうしろから押してくれた（＋'+PUSH.gain+'m）','#5dffb0'); },
   block(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.blockLeft+=BLOCK.back; if(!S.block) S.block={t:0,st:'in',tick:0}; else if(S.block.st==='out'){ S.block.st='in'; S.block.t=BLOCK.inT*(1-Math.min(1,S.block.t/BLOCK.outT)); } logAdd((n||'だれか')+' の手が押しもどした（−'+BLOCK.back+'m）','#ff9aa8'); },
   winUp(n){ if(S.mode==='clear') return; S.wanim.push({k:'up',t:0,by:n,done:false,x0:BXX(),y0:bikePose().y-150}); play('levelup',.6); logAdd((n||'だれか')+' が WIN を＋1 してくれた','#5dffb0'); },
-  winDown(n){ if(S.mode==='clear') return; S.wanim.push({k:'down',t:0,by:n,done:false}); play('crow',.7); logAdd((n||'だれか')+' のカラスが WIN を−1 しに来た','#ff9aa8'); },
+  winDown(n){ if(S.mode==='clear') return; S.wanim.push({k:'down',t:0,by:n,done:false}); play('gust',.6); logAdd((n||'だれか')+' の悪魔が WIN を−1 しに来た','#ff9aa8'); },
   god(n){ if(S.mode!=='ride' || S.god) return; S.god={t:0,by:n,done:false}; play('holy',.7); play('gust',.6); logAdd((n||'だれか')+' が神の手を呼んだ（妨害をぜんぶはらう）','#ffd23f'); },
   cheer(n){ if(S.mode!=='ride') return; S.cheerT=Math.min(CHEER.maxSec,S.cheerT+CHEER.sec); S.cheerN=Math.min(CHEER.maxN,S.cheerN+1); if(S.cheerN===1) S.cheerIn=0; play('levelup',.5); logAdd((n||'だれか')+' が応援団を呼んだ（'+CHEER.sec+'秒 スピードアップ・'+S.cheerN+'組め）','#5dffb0'); },
   ramp(n){ if(S.mode!=='ride') return; S.ents.push({k:'ramp',x:ahead(),by:n}); logAdd((n||'だれか')+' がジャンプ台を置いた','#5dffb0'); },
@@ -147,8 +148,8 @@ function godSweep(){ const cx=camX(), puff=(x,y)=>{ for(let i=0;i<8;i++) S.parts
   S.wanim=S.wanim.filter(a=>a.k!=='down' || a.done); S.flash=.35; S.shake=Math.max(S.shake,.6); play('boom',.5); }
 function update(dt){ T+=dt;
   if(S.god){ const d=S.god; d.t+=dt; if(!d.done && d.t>=GOD.hit){ d.done=true; godSweep(); } if(d.t>=GOD.T) S.god=null; }
-  for(const a of S.wanim){ a.t+=dt; if(a.k==='up'){ if(!a.done && a.t>=WINFX.up*.82){ a.done=true; wins++; save(); S.winFx=2.4; S.winSign=1; S.flash=.25; play('fanfare',.6); for(let i=0;i<14;i++){ const an=i/14*6.283; S.parts.push({x:WINFX.cx,y:WINFX.cy,vx:Math.cos(an)*rand(250,520),vy:Math.sin(an)*rand(250,520),g:0,t:rand(.3,.6),r:rand(8,16),c:'#111'}); } } }
-    else if(!a.done && a.t>=WINFX.down*.42){ a.done=true; wins--; save(); S.winFx=2.4; S.winSign=-1; S.red=.35; S.shake=Math.max(S.shake,.4); play('bad',.6); } }
+  for(const a of S.wanim){ a.t+=dt; if(a.k==='up'){ if(!a.done && a.t>=WINFX.upHit){ a.done=true; wins++; save(); S.winFx=2.4; S.winSign=1; S.flash=.25; play('fanfare',.6); for(let i=0;i<14;i++){ const an=i/14*6.283; S.parts.push({x:WINFX.cx,y:WINFX.cy,vx:Math.cos(an)*rand(250,520),vy:Math.sin(an)*rand(250,520),g:0,t:rand(.3,.6),r:rand(8,16),c:'#111'}); } } }
+    else if(!a.done && a.t>=WINFX.downHit){ a.done=true; wins--; save(); S.winFx=2.4; S.winSign=-1; S.red=.35; S.shake=Math.max(S.shake,.5); play('hit',.6); play('bad',.6); for(let i=0;i<12;i++) S.parts.push({x:WINFX.cx,y:WINFX.cy,vx:rand(-520,320),vy:rand(-300,420),g:1400,t:rand(.4,.8),r:rand(10,20),c:'#111'}); } }
   S.wanim=S.wanim.filter(a=>a.t<(a.k==='up'?WINFX.up:WINFX.down)); if(S.cheerT>0) S.cheerIn=Math.min(1,S.cheerIn+dt*2.5); else S.cheerIn=Math.max(0,S.cheerIn-dt*2.5); { const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.ArrowLeft||KEYS.a?1:0); if(kx) S.tx=clamp(S.tx+kx*MOVE.key*dt,MOVE.min,MOVE.max); S.ox+=(S.tx-S.ox)*Math.min(1,dt*14); } if(S.flash>0) S.flash-=dt; if(S.shake>0) S.shake-=dt; if(S.red>0) S.red-=dt; if(S.winFx>0) S.winFx-=dt; if(S.fallFx>0) S.fallFx-=dt; if(S.banner){ S.banner.at+=dt; if(S.banner.at>2.2) S.banner=null; } if(S.mileFx){ S.mileFx.t+=dt; if(S.mileFx.t>2) S.mileFx=null; }
   for(const p of S.parts){ p.t-=dt; p.vy+=(p.g||0)*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; } S.parts=S.parts.filter(p=>p.t>0);
   if(S.mode==='ride'){
@@ -231,7 +232,7 @@ function update(dt){ T+=dt;
 }
 
 /* ===== 描く：白い紙に黒い線。妨害だけは色つきの絵（img/ に絵があればそれを使い、無ければ線で描く） ===== */
-const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','fan0','fan1','fan2','fan3','hand','zlines','impact','bone','beam','mflash','boneanim']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
+const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','fan0','fan1','fan2','fan3','hand','zlines','impact','bone','beam','mflash','boneanim','god0','god1','angel','devil']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 const INK='#111', LW=7;
 function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 function txt(s,x,y,size,color,align,stroke,font){ g.font=(font===FONTD?'400 ':'900 ')+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineWidth=Math.max(4,size*.16); g.strokeStyle=stroke; g.lineJoin='round'; g.strokeText(s,x,y); } g.fillStyle=color; g.fillText(s,x,y); }
@@ -300,15 +301,41 @@ function drawBone(cx){ const d=S.bone; if(!d || d.st==='first') return; const ki
   else { g.fillStyle='#fffbe8'; g.strokeStyle=INK; g.lineWidth=LW; g.beginPath(); g.moveTo(mx,my+20); g.lineTo(mx+150,my-70); g.lineTo(W+40,my-90); g.lineTo(W+40,my+60); g.lineTo(mx+140,my+50); g.closePath(); g.fill(); g.stroke(); } }
 /* WIN＋1 の星 と WIN−1 のカラス（画面の中だけの演出） */
 function starPath(x,y,r,rot){ g.beginPath(); for(let i=0;i<10;i++){ const a=rot+i*Math.PI/5, rr2=i%2?r*.45:r; g.lineTo(x+Math.sin(a)*rr2,y-Math.cos(a)*rr2); } g.closePath(); }
-function drawWinAnim(){ for(const a of S.wanim){ const e=x=>x*x*(3-2*x);
-    if(a.k==='up'){ const u=clamp(a.t/(WINFX.up*.82),0,1); if(u>=1) continue; const rise=clamp(u/.3,0,1), fly=e(clamp((u-.3)/.7,0,1)), x=lerp(a.x0,WINFX.cx,fly), y=lerp(a.y0-120*e(rise),WINFX.cy,fly)-Math.sin(fly*Math.PI)*90, r=lerp(20,66,e(rise))*(1-.45*fly);
-      for(let i=1;i<=5;i++){ const uu=clamp(u-i*.035,0,1), f2=e(clamp((uu-.3)/.7,0,1)), tx=lerp(a.x0,WINFX.cx,f2), ty=lerp(a.y0-120*e(clamp(uu/.3,0,1)),WINFX.cy,f2)-Math.sin(f2*Math.PI)*90; g.globalAlpha=.5-i*.08; starPath(tx,ty,r*(1-i*.12),a.t*9-i*.4); g.fillStyle='#ffd400'; g.fill(); } g.globalAlpha=1;
-      starPath(x,y,r,a.t*9); g.fillStyle='#ffd400'; g.fill(); g.lineWidth=7; g.strokeStyle=INK; g.lineJoin='round'; g.stroke(); txt('＋1',x,y+4,r*.62,INK,'center',null,FONTD); }
-    else { const T0=WINFX.down, tIn=T0*.42, u=a.t<tIn?e(a.t/tIn):1, v=a.t<tIn?0:e(clamp((a.t-tIn-.12)/(T0-tIn-.12),0,1)), x=a.t<tIn?lerp(W+160,WINFX.cx+40,u):lerp(WINFX.cx+40,-220,v), y=a.t<tIn?lerp(330,WINFX.cy-6,u)-Math.sin(u*Math.PI)*60:lerp(WINFX.cy-6,300,v)-Math.sin(v*Math.PI)*140, fl=Math.sin(T*20)>0?0:1;
-      if(ok('bird0') && ok('bird1')){ const im=IMG['bird'+fl], w=230, h=w*im.naturalHeight/im.naturalWidth; g.drawImage(im,x-w/2,y-h/2,w,h); } else { g.fillStyle='#223'; g.beginPath(); g.ellipse(x,y,60,30,0,0,7); g.fill(); }
-      if(a.done){ rr(x-128,y+2,72,64,12); g.fillStyle='#fff'; g.fill(); g.lineWidth=5; g.strokeStyle='#e23a3a'; g.stroke(); txt('1',x-92,y+36,50,'#e23a3a','center',null,FONTD); } } } }
+function sheetAt(k,o,f,x,y,sx,rot,sc){ const im=IMG[k], h=o.h*(sc||1), w=h*o.fw/o.fh; g.save(); g.translate(x,y); if(rot) g.rotate(rot); g.scale(sx||1,1); g.drawImage(im,(f%o.cols)*o.fw,Math.floor(f/o.cols)*o.fh,o.fw,o.fh,-w/2,-h/2,w,h); g.restore(); }
+function angelPos(a,t){ const e=x=>x*x*(3-2*x); if(t<ANG.t0){ const u=e(clamp(t/ANG.t0,0,1)); return [lerp(a.x0,ANG.hx,u),lerp(a.y0,ANG.hy,u)-Math.sin(u*Math.PI)*90]; } if(t<2.05) return [ANG.hx,ANG.hy+Math.sin(t*7)*8]; const v=e(clamp((t-2.05)/(WINFX.up-2.05),0,1)); return [lerp(ANG.hx,ANG.hx-120,v),lerp(ANG.hy,-340,v*v)]; }
+/* WIN＋1：天使がWINの横まで飛んで、回って杖をふる → 星が飛んで数字がふえる ／ WIN−1：悪魔が右から来て、やりで数字を突く */
+function drawWinAnim(){ for(const a of S.wanim){ const e=x=>x*x*(3-2*x), cx=WINFX.cx, cy=WINFX.cy;
+    if(a.k==='up'){ const tS=ANG.t0+ANG.sw/ANG.fps, [x,y]=angelPos(a,a.t);
+      if(a.t>=WINFX.upHit){ const q=a.t-WINFX.upHit; if(q<.7){ const k=q/.7; g.save(); g.translate(cx,cy+10); g.globalAlpha=(1-k)*.9; g.fillStyle='#ffd400'; for(let i=0;i<12;i++){ g.rotate(Math.PI/6); g.beginPath(); g.moveTo(-10,-70-k*60); g.lineTo(10,-70-k*60); g.lineTo(0,-150-k*230); g.closePath(); g.fill(); } g.restore();
+          g.globalAlpha=1-k; g.lineWidth=10*(1-k)+2; g.strokeStyle='#ffd400'; g.beginPath(); g.arc(cx,cy+10,60+k*190,0,7); g.stroke(); g.strokeStyle=INK; g.lineWidth=3; g.beginPath(); g.arc(cx,cy+10,40+k*250,0,7); g.stroke();
+          for(let i=0;i<10;i++){ const an=i*.628+.3, d0=60+k*(170+(i%3)*50); starPath(cx+Math.cos(an)*d0,cy+10+Math.sin(an)*d0+k*k*60,(16+(i%3)*7)*(1-k*.5),q*8+i); g.fillStyle='#ffd400'; g.fill(); g.lineWidth=4; g.strokeStyle=INK; g.stroke(); } g.globalAlpha=1; }
+        if(q<1.1){ const pk=q<.18?q/.18*1.25:(q<.3?1.25-(q-.18)/.12*.25:1), al=q>.85?1-(q-.85)/.25:1; g.globalAlpha=clamp(al,0,1); txt('＋1',cx-150,cy+150-q*26,84*pk,'#ffb400','center',INK,FONTD); g.globalAlpha=1; } }
+      if(ok('angel')){ let f, sc=clamp(a.t/.22,.3,1); if(a.t<ANG.t0 || a.t>=ANG.t0+ANG.act.length/ANG.fps) f=Math.floor(a.t*14)%ANG.flap; else f=ANG.act[Math.floor((a.t-ANG.t0)*ANG.fps)];
+        if(a.t<ANG.t0) for(let i=1;i<=6;i++){ const tt=a.t-i*.045; if(tt<=0) break; const [tx,ty]=angelPos(a,tt); g.globalAlpha=.75-i*.1; starPath(tx-60+((i*37)%50),ty+30+((i*53)%70),15-i*1.4,a.t*6+i); g.fillStyle='#ffd400'; g.fill(); g.lineWidth=3; g.strokeStyle=INK; g.stroke(); } g.globalAlpha=1;
+        sheetAt('angel',ANG,f,x,y,1,0,sc);
+        if(a.t>=tS && a.t<WINFX.upHit){ const u=(a.t-tS)/(WINFX.upHit-tS), sx0=ANG.hx+78, sy0=ANG.hy+132; for(let i=4;i>=0;i--){ const uu=clamp(u-i*.09,0,1); g.globalAlpha=i?(.6-i*.1):1; starPath(lerp(sx0,cx,uu),lerp(sy0,cy+10,uu)-Math.sin(uu*Math.PI)*40,(44-i*6),a.t*14); g.fillStyle='#ffd400'; g.fill(); if(!i){ g.lineWidth=6; g.strokeStyle=INK; g.lineJoin='round'; g.stroke(); } } g.globalAlpha=1; } }
+      else if(a.t<WINFX.upHit){ const u=a.t/WINFX.upHit; starPath(lerp(a.x0,cx,e(u)),lerp(a.y0,cy,e(u))-Math.sin(u*Math.PI)*90,50,a.t*9); g.fillStyle='#ffd400'; g.fill(); g.lineWidth=7; g.strokeStyle=INK; g.stroke(); } }
+    else { const t=a.t, D=DEV; let x=D.dx, y=D.dy, sx=-1, rot=D.rot, f=Math.floor(t*12)%12;
+      if(t<D.tIn){ const u=e(t/D.tIn), tr=clamp((u-.72)/.28,0,1); x=lerp(W+300,D.dx,u); y=lerp(440,D.dy,u)+Math.sin(u*Math.PI)*60; sx=lerp(1,-1,tr); if(Math.abs(sx)<.12) sx=sx<0?-.12:.12; rot=D.rot*tr; }
+      else if(t<D.tWind){ const k=(t-D.tIn)/(D.tWind-D.tIn); f=11+Math.min(2,Math.floor(k*3)); x-=26*k; }
+      else if(t<D.tHold){ const q=t-D.tWind; f=14+Math.floor(q*12)%8; x+=22*Math.max(0,1-q/.12)-8+rand(-3,3)*(q<.25?1:0); y+=rand(-3,3)*(q<.25?1:0); }
+      else if(t<D.tBack){ f=25+Math.min(4,Math.floor((t-D.tHold)/(D.tBack-D.tHold)*5)); }
+      else if(t<D.tOut){ y+=Math.sin(t*42)*9; rot+=Math.sin(t*42)*.07; }
+      else { const v=e(clamp((t-D.tOut)/(WINFX.down-D.tOut),0,1)); x=lerp(D.dx,W+340,v*v); y=lerp(D.dy,300,Math.sin(v*Math.PI*.5))-0; rot=D.rot*(1-v)+Math.sin(t*30)*.05; }
+      if(a.done){ const q=t-WINFX.downHit; if(q<.6){ const k=q/.6; g.save(); g.translate(cx,cy+6); g.globalAlpha=1-k; g.strokeStyle='#e23a3a'; g.lineWidth=9*(1-k)+3; g.lineCap='round'; for(let i=0;i<9;i++){ const an=i*.698+.2, r0=46+k*50, r1=90+k*170+(i%2)*40; g.beginPath(); g.moveTo(Math.cos(an)*r0,Math.sin(an)*r0); g.lineTo(Math.cos(an+.12)*(r0+r1)/2,Math.sin(an+.12)*(r0+r1)/2); g.lineTo(Math.cos(an)*r1,Math.sin(an)*r1); g.stroke(); } g.restore(); g.globalAlpha=1; }
+        if(q<1.1){ const pk=q<.18?q/.18*1.25:(q<.3?1.25-(q-.18)/.12*.25:1), al=q>.85?1-(q-.85)/.25:1; g.globalAlpha=clamp(al,0,1); txt('−1',cx-40,cy+200+q*30,84*pk,'#e23a3a','center',INK,FONTD); g.globalAlpha=1; } }
+      if(ok('devil')) sheetAt('devil',DEV,f,x,y,sx,rot,1); else { g.fillStyle='#223'; g.beginPath(); g.ellipse(x,y,60,30,0,0,7); g.fill(); } } } }
 /* 神の手：手のひらを下にした大きな線の手が、右上から左下へ、ぶんっとふり下ろされる */
-function drawGod(){ const d=S.god; if(!d) return; const u=clamp(d.t/GOD.T,0,1), e=u*u*(3-2*u), x=lerp(W+420,-520,e), y=lerp(180,560,Math.sin(e*Math.PI))+60, rot=lerp(.5,-.55,e);
+function drawGod(){ const d=S.god; if(!d) return; if(!(ok('god0') && ok('god1'))) return drawGodLine(d);
+  const t=d.t, e=x=>x*x*(3-2*x), SC=1560, fw=960, fh=540, hh=SC*fh/fw, tA=.5, tB=.86;
+  const f=clamp(Math.floor(t<tA?lerp(6,20,t/tA):(t<tB?lerp(20,30,(t-tA)/(tB-tA)):lerp(30,39,(t-tB)/(GOD.T-tB)))),0,39);
+  let ox, oy; if(t<tA){ const u=1-Math.pow(1-t/tA,2); ox=lerp(1150,0,u); oy=lerp(-420,0,u); } else if(t<tB+.12){ ox=0; oy=0; } else { const v=e(clamp((t-tB-.12)/(GOD.T-tB-.12),0,1)); ox=lerp(0,1500,v); oy=lerp(0,-700,v); }
+  const al=clamp(t/.15,0,1)*clamp((GOD.T-t)/.12,0,1);
+  g.save(); g.globalAlpha=.13*al; g.fillStyle='#ffd400'; for(let i=0;i<5;i++){ const an=2.25+i*.26+Math.sin(T*2+i)*.02; g.beginPath(); g.moveTo(W+40,-40); g.lineTo(W+40+Math.cos(an)*1700,-40+Math.sin(an)*1700); g.lineTo(W+40+Math.cos(an+.08)*1700,-40+Math.sin(an+.08)*1700); g.closePath(); g.fill(); } g.restore();
+  if(t>tA-.05 && t<tB+.25){ const k=(t-tA+.05)/(tB-tA+.3); g.save(); g.globalAlpha=.55*Math.sin(clamp(k,0,1)*Math.PI); g.strokeStyle=INK; g.lineCap='round'; for(let i=0;i<11;i++){ const yy=250+i*58+((i*37)%23), len=260+((i*71)%240), xx=W+200-((k*2600+i*190)%(W+700)); g.lineWidth=5+(i%3)*3; g.beginPath(); g.moveTo(xx,yy); g.lineTo(xx+len,yy); g.stroke(); } g.restore(); }
+  g.save(); g.globalAlpha=al; g.drawImage(IMG[f<20?'god0':'god1'],((f%20)%4)*fw,Math.floor((f%20)/4)*fh,fw,fh,W-SC+ox,oy,SC,hh); g.restore();
+  if(t>GOD.hit && t<GOD.hit+.25){ g.globalAlpha=(1-(t-GOD.hit)/.25)*.8; g.fillStyle='#fff'; g.fillRect(0,172,W,758); g.globalAlpha=1; } }
+function drawGodLine(d){ const u=clamp(d.t/GOD.T,0,1), e=u*u*(3-2*u), x=lerp(W+420,-520,e), y=lerp(180,560,Math.sin(e*Math.PI))+60, rot=lerp(.5,-.55,e);
   g.save(); g.globalAlpha=.3; for(let i=1;i<=3;i++){ const uu=clamp(u-i*.04,0,1), ee=uu*uu*(3-2*uu); line([[lerp(W+420,-520,ee)+260,lerp(180,560,Math.sin(ee*Math.PI))-60+i*70],[lerp(W+420,-520,ee)+620,lerp(180,560,Math.sin(ee*Math.PI))-90+i*70]],10); } g.restore();
   g.save(); g.translate(x,y); g.rotate(rot); g.fillStyle='#fff'; g.strokeStyle=INK; g.lineWidth=12; g.lineJoin='round';
   const part=(px,py,w,h,r)=>{ rr(px,py,w,h,r); g.fill(); g.stroke(); };
