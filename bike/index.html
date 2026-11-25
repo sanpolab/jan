@@ -146,7 +146,7 @@ canvas{touch-action:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/bike/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/bike/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/25 17:07</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/25 17:10</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -217,7 +217,7 @@ const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.ge
 const W=1080, H=1080, FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, rand=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.floor(Math.random()*a.length)];
 const fmt=n=>Math.floor(n).toLocaleString('ja-JP');
-const VER='1125-170739';
+const VER='1125-171007';
 let SPD=1, TITLE=true, PAUSE=false; const PENDQ=[], SPD_OPTS=[1,1.25,1.5,2];   /* SPD＝タイトルでえらぶ速さ。PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 try{ const o=JSON.parse(localStorage.getItem('bike_cfg')||'{}'); if(SPD_OPTS.includes(o.spd)) SPD=o.spd; }catch(e){}
 function cfgSave(){ try{ localStorage.setItem('bike_cfg',JSON.stringify({spd:SPD})); }catch(e){} }
@@ -311,11 +311,11 @@ const Game={
   spear(n){ if(S.mode!=='ride') return; if(S.spear && S.spear.st!=='out'){ S.spear.left=Math.min(SPEAR.maxT,S.spear.left+SPEAR.T); logAdd((n||'だれか')+' が槍の雨をのばした（あと'+Math.ceil(S.spear.left)+'秒）','#ff9aa8'); return; } S.spear={t:0,left:SPEAR.T,by:n,st:'in',pt:0,zx:-999,atkT:-1,hitDone:false}; play('dark',.7); play('wing',.7); banner('槍の雨！','#111',n); logAdd((n||'だれか')+' が槍の雨を呼んだ（'+SPEAR.T+'秒・安全な場所に入ってよける）','#ff9aa8'); },
   giant(n){ if(S.mode!=='ride') return; if(S.giant){ S.giant.left+=GIANT.n; logAdd((n||'だれか')+' が巨人をもっとあばれさせた（あと'+S.giant.left+'回）','#ff9aa8'); return; } S.giant={t:0,st:'in',left:GIANT.n,by:n,tc:0,hit:false,hitFx:0}; play('stomp',.8); banner('巨人が出た！','#111',n); logAdd((n||'だれか')+' が巨人を呼んだ（ハンマー'+GIANT.n+'回・ジャンプでよけろ）','#ff9aa8'); },
   setGoal(v){ CFG.goal=v; best=0; newRun(); save(); logAdd('目標を '+fmt(v)+'m にした','#ffd23f'); },
-  reset(){ best=0; tries=1; wins=0; falls=0; newRun(); save(); },
-  start(){ audioInit(); play('bell',.35); TITLE=false; ttlUI(); tries=1; best=0; newRun(); save(); logAdd(fmt(CFG.goal)+'m まで走るまで終われません！','#ffd23f'); },
-  title(){ setPause(false,true); newRun(); save(); TITLE=true; ttlUI(); },
+  reset(){ WAITQ.length=0; best=0; tries=1; wins=0; falls=0; newRun(); save(); },
+  start(){ WAITQ.length=0; audioInit(); play('bell',.35); TITLE=false; ttlUI(); tries=1; best=0; newRun(); save(); logAdd(fmt(CFG.goal)+'m まで走るまで終われません！','#ffd23f'); },
+  title(){ WAITQ.length=0; setPause(false,true); newRun(); save(); TITLE=true; ttlUI(); },
   /* 無料の反応。コメント＝バナナの皮（同じ人は20秒に1回、先にあるバナナは3個まで）、いいね1000回ごと＝水たまり、フォロー＝ひと押し */
-  comment(n){ if(S.mode!=='ride') return; const now=performance.now(), k=String(n||''); if(CMT[k] && now-CMT[k]<20000) return; if(S.ents.filter(e=>e.k==='banana' && !e.dead).length>=3) return; CMT[k]=now; Game.banana(n); },
+  comment(n){ if(S.mode==='clear') return; const now=performance.now(), k=String(n||''); if(CMT[k] && now-CMT[k]<20000) return; if(S.ents.filter(e=>e.k==='banana' && !e.dead).length>=3) return; CMT[k]=now; Game.banana(n); },
   like(c,n){ likeAcc+=Math.max(1,c|0); let k=0; while(likeAcc>=1000 && k<3){ likeAcc-=1000; k++; Game.puddle(n); } if(likeAcc>=1000) likeAcc=likeAcc%1000; },
   follow(n){ Game.push(n); }
 };
@@ -342,6 +342,7 @@ function update(dt){ T+=dt;
   S.wanim=S.wanim.filter(a=>a.t<(a.k==='up'?WINFX.up:WINFX.down)); if(S.cheerT>0) S.cheerIn=Math.min(1,S.cheerIn+dt*2.5); else S.cheerIn=Math.max(0,S.cheerIn-dt*2.5); { const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.ArrowLeft||KEYS.a?1:0); if(kx) S.tx=clamp(S.tx+kx*MOVE.key*dt,MOVE.min,MOVE.max); S.ox+=(S.tx-S.ox)*Math.min(1,dt*14); } if(S.flash>0) S.flash-=dt; if(S.shake>0) S.shake-=dt; if(S.red>0) S.red-=dt; if(S.winFx>0) S.winFx-=dt; if(S.fallFx>0) S.fallFx-=dt; if(S.banner){ S.banner.at+=dt; if(S.banner.at>2.2) S.banner=null; } if(S.mileFx){ S.mileFx.t+=dt; if(S.mileFx.t>2) S.mileFx=null; }
   for(const p of S.parts){ p.t-=dt; p.vy+=(p.g||0)*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; } S.parts=S.parts.filter(p=>p.t>0);
   if(S.mode==='ride'){
+    if(WAITQ.length){ waitT-=dt; if(waitT<=0){ waitT=.3; const fn=WAITQ.shift(); try{ fn(); }catch(e){} } } else waitT=.15;
     if(S.holdT>0){ S.holdT-=dt; }
     let mul=1; if(S.rocketT>0){ S.rocketT-=dt; mul=T_.rocketMul; } else { if(S.windT>0){ S.windT-=dt; mul*=T_.windMul; } if(S.assistT>0){ S.assistT-=dt; mul*=T_.assistMul; } if(S.cheerT>0){ S.cheerT-=dt; mul*=CHEER.mul+CHEER.add*(S.cheerN-1); if(S.cheerT<=0){ S.cheerT=0; S.cheerN=0; logAdd('応援団が帰っていった','#fff'); } } if(S.headT>0){ S.headT-=dt; mul*=T_.headMul; } if(S.puddleT>0){ S.puddleT-=dt; mul*=T_.puddleMul; } if(S.punkT>0){ S.punkT-=dt; mul*=T_.punkMul; } mul=Math.max(.35,mul); if(S.hillNeed>0){ S.tapPow=Math.max(0,S.tapPow-HILL.decay*dt); mul*=HILL.base+Math.min(1,S.tapPow)*.9; } }
     S.tilt+=((S.hillNeed>0?HILL.tilt:0)-S.tilt)*Math.min(1,dt*5);
@@ -670,6 +671,9 @@ cv.addEventListener('pointermove',e=>{ if(!drag) return; const r=cv.getBoundingC
 for(const ev of ['pointerup','pointercancel']) cv.addEventListener(ev,()=>{ drag=null; });
 window.addEventListener('keydown',e=>{ KEYS[e.key]=true; if(e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return; if(e.code==='Space' || e.code==='ArrowUp'){ e.preventDefault(); if(!TITLE && !PAUSE) Game.jump(); } if(e.key.indexOf('Arrow')===0) e.preventDefault(); });
 window.addEventListener('keyup',e=>{ KEYS[e.key]=false; });
+/* こけている間・スタートにもどされている間に届いたギフトは、消さずにためておき、走り出したら順番に出す（その間は効果の時間も進まない） */
+const WAITQ=[]; let waitT=0;
+for(const k of ['heart','push','helmet','cheer','ramp','big','rocket','god','winUp','banana','puddle','block','dog','bird','pit','rock','cloud','hill','giant','bone','spear','winDown']){ const f=Game[k]; if(typeof f!=='function') continue; Game[k]=function(n){ if(S.mode==='crash' || S.mode==='back'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
 const tp=document.getElementById('tp'), NAMES=['たぬ吉','ぽんた','みけ','そら','りく','はな','こてつ','もも','ゆず','まる'];
 document.getElementById('testBtn').onclick=()=>{ tp.hidden=!tp.hidden; };
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'), t=document.getElementById('optTrack'); b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); t.innerHTML='BGMの曲<br>'+(OPTS.track==='bgm2'?'2：エナジー':'1：夏休みの探検'); try{ localStorage.setItem('bike_snd',JSON.stringify(OPTS)); }catch(_){} };
@@ -868,7 +872,7 @@ document.getElementById('ttl').addEventListener('click',e=>{ const b=e.target.cl
   else if(b.id==='ttlGo'){ Game.start(); return; } else if(b.id==='ttlGift'){ document.getElementById('cfgBtn').click(); return; } ttlUI(); });
 if(/[?&]notitle=1/.test(location.search)) TITLE=false;
 ttlUI();
-window.BikeGame=Game; window.__dbg={ get S(){ return S; }, Game, CFG, T_, BONE, update, draw, get wins(){ return wins; }, get falls(){ return falls; }, get tries(){ return tries; }, get TITLE(){ return TITLE; }, set TITLE(v){ TITLE=v; ttlUI(); }, get PAUSE(){ return PAUSE; }, get SPD(){ return SPD; }, setPause };
+window.BikeGame=Game; window.__dbg={ get S(){ return S; }, Game, CFG, T_, BONE, update, draw, get wins(){ return wins; }, get falls(){ return falls; }, get tries(){ return tries; }, get TITLE(){ return TITLE; }, set TITLE(v){ TITLE=v; ttlUI(); }, get PAUSE(){ return PAUSE; }, WAITQ, get SPD(){ return SPD; }, setPause };
 Promise.all([document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()].concat(Object.values(IMG).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.onload=r; im.onerror=r; } })))).then(()=>{ window.__ready=true; requestAnimationFrame(loop); });
 </script>
 </body>
