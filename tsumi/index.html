@@ -87,7 +87,7 @@ canvas{width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/tsumi/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/tsumi/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/25 21:38</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/25 22:06</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -208,7 +208,7 @@ function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
 // 全画面の映像が流れているあいだは、テスト・ギフト・一時停止のボタンと下のギフト表を消して、映像だけを画面のまん中に見せる
 // 自動更新：公開先に新しい版が出ていたら、古い画面を持ったままにならないよう自動で読みこみ直す（スマホは古い画面を10分ほど覚えているため）
-const VER='1125-213839'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
+const VER='1125-220612'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
   const chk=()=>{ if(S && S.mode==='playing') return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('tsumi_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('tsumi_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); };
   setTimeout(chk,800); setInterval(chk,60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 let cutUi=false; function syncCutUi(){ const on=!!(S.cut && S.cut.vid); if(on===cutUi) return; cutUi=on; for(const id of ['testBtn','cfgBtn','pauseBtn','rot','gtbl','feed','viewers','memo','photo']){ const e=document.getElementById(id); if(e) e.style.visibility=on?'hidden':''; }
@@ -552,7 +552,7 @@ const Game = {
   randomAnimal(name,why){ if(S.mode!=='playing') return; startRoulette(name); if(DB()>1) startRoulette(name); logAdd(name+(why||'')+'：ランダム動物が落ちてくる','#ff9ac1'); },
   follow(name){ if(!OPT.followOn) return; Game.randomAnimal(name,' がフォロー'); },
   like(n){ if(S.mode!=='playing' || !OPT.likeOn) return; S.like+=n; while(S.like>=CFG.likeGoal){ S.like-=CFG.likeGoal; startRoulette('みんなのいいね'); if(DB()>1) startRoulette('みんなのいいね'); logAdd('いいね'+CFG.likeGoal+'達成！ランダム動物が落ちてくる','#ff9ac1'); sfx.good(); } },
-  witch(name){ if(S.mode!=='playing') return; if(GOAL_M>=CFG.goalMax){ logAdd(name+' の魔女：これ以上は上がらない','#d9b3ff'); return; } gUp=Math.min(gUp+CFG.witchM*DB(), CFG.goalMax-CFG.goalM+gDn); gUpT+=CFG.goalSec; setGoal(); S.purple=.8; WT.carry=witchSh.ok?2.6:0; play('witch'); if(!witchSh.ok) banner('ゴール '+GOAL_M+'m！','#d9b3ff',name+' の魔女'); logAdd(name+' の魔女がゴールを+'+CFG.witchM*DB()+'m','#d9b3ff'); sfx.bad(); },
+  witch(name){ if(S.mode!=='playing') return; if(GOAL_M>=CFG.goalMax){ logAdd(name+' の魔女：これ以上は上がらない','#d9b3ff'); return; } gUp=Math.min(gUp+CFG.witchM*DB(), CFG.goalMax-CFG.goalM+gDn); gUpT=0; setGoal(); S.purple=.8; WT.carry=witchSh.ok?2.6:0; play('witch'); if(!witchSh.ok) banner('ゴール '+GOAL_M+'m！','#d9b3ff',name+' の魔女'); logAdd(name+' の魔女がゴールを+'+CFG.witchM*DB()+'m','#d9b3ff'); sfx.bad(); },
   grip(name){ if(S.mode!=='playing') return; addGrip(name); },
   ungrip(name){ if(S.mode!=='playing') return; cutGrip(name); },
   speed(d,name){ if(S.mode!=='playing') return; addSpeed(d>0?1:-1,name); },
@@ -575,7 +575,7 @@ const Game = {
   winGacha(name){ if(S.mode!=='playing') return; logAdd(name+' がWINガチャを回した','#ffe680'); if(vOK(caveVid)) startCut('cave','',name,()=>{ if(S.mode==='playing') startWinGacha(name); }); else { startWinGacha(name); sfx.good(); } },
   manGacha(name){ if(S.mode!=='playing') return; if(stGuard()){ guarded(name,'タイツガチャ'); return; } const go=()=>startBigGacha(name,MANKEYS,'タイツガチャ',['#0c2a3a','#1f7a8c','#1f7a8c','#06303a']); go(); if(DB()>1) go(); logAdd(name+' がタイツガチャを回した','#ff9aa8'); sfx.bad(); },
   bigGacha(name){ if(S.mode!=='playing') return; if(stGuard()){ guarded(name,'巨大ガチャ'); return; } startBigGacha(name); if(DB()>1) startBigGacha(name); logAdd(name+' が巨大ガチャを回した','#ff9aa8'); sfx.bad(); },
-  angel(name){ if(S.mode!=='playing') return; gDn=Math.min(gDn+CFG.angelM*DB(), Math.max(0,CFG.goalM+gUp-CFG.goalMin)); gDnT+=CFG.goalSec; setGoal(); S.holy=1.6; AN.carry=angelSh.ok?2.6:0; play('angel'); if(!angelSh.ok) banner('ゴール '+GOAL_M+'m！','#fff3b0',name+' の天使'); logAdd(name+' の天使がゴールを'+GOAL_M+'mに','#fff3b0'); sfx.good(); },
+  angel(name){ if(S.mode!=='playing') return; gDn=Math.min(gDn+CFG.angelM*DB(), Math.max(0,CFG.goalM+gUp-CFG.goalMin)); gDnT=0; setGoal(); S.holy=1.6; AN.carry=angelSh.ok?2.6:0; play('angel'); if(!angelSh.ok) banner('ゴール '+GOAL_M+'m！','#fff3b0',name+' の天使'); logAdd(name+' の天使がゴールを'+GOAL_M+'mに','#fff3b0'); sfx.good(); },
   jam(size,name,kind){ if(S.mode!=='playing') return;   // kind はテスト用（'wind' か 'big' を指定。ふだんは半々でランダム）
     if(size===1){ if(!kind) kind=pick(['wind','big','ant','quake','ink','giant','crow']);
       if(kind==='crow'){ Game.crow(name); return; }
@@ -1355,7 +1355,7 @@ function drawHUD(){
   drawStock();
   let sx=40, ty=410; const tag=(t,c)=>{ if(CPT){ g.font='900 22px '+FONT; const w=g.measureText(t).width+24; g.fillStyle=c; rr(14,ty,w,34,17); g.fill(); txt(t,14+w/2,ty+18,22,'#101828','center'); ty+=40; return; } g.font='900 28px '+FONT; const w=g.measureText(t).width+30; g.fillStyle=c; rr(sx,1650,w,44,22); g.fill(); txt(t,sx+w/2,1673,28,'#101828','center'); sx+=w+12; };
   if(tableT>0 && curse) tag('ドラゴンの呪い　'+(tableT>=60?Math.ceil(tableT/60)+'分':Math.ceil(tableT)+'秒'),'#ff9aa8'); if(tableT>0 && bless) tag('世界樹の加護　'+(tableT>=60?Math.ceil(tableT/60)+'分':Math.ceil(tableT)+'秒'),'#9dffb8');
-  if(gripT>0) tag('タコ吸着中','#9dffb8'); if(gUpT>0) tag('魔女：ゴール ＋'+gUp+'m　'+Math.ceil(gUpT)+'秒','#d9b3ff'); if(gDnT>0) tag('天使：ゴール −'+gDn+'m　'+Math.ceil(gDnT)+'秒','#fff3b0'); if(miniT>0) tag('ちび化　'+Math.ceil(miniT)+'秒','#c9ffb0'); if(bigT>0) tag('巨大化　'+Math.ceil(bigT)+'秒','#ff9aa8'); if(baseSpd!==1) tag('ゲーム速度 ×'+baseSpd,'#ffe680'); if(spLv>0) tag('ウサギ：早送り ×'+CFG.fastMult+'　'+Math.ceil(spT)+'秒','#ffb38a'); if(spLv<0) tag('カメ：スロー ×'+CFG.slowMult+'　'+Math.ceil(spT)+'秒','#9bd0ff'); if(statue>0) tag('天使像：このラウンドを守る','#fff3b0'); if(S.windPre>0) tag('風の精霊が息を吸ってる…','#9be9ff'); if(S.wind>0) tag('突風 '+Math.ceil(S.wind)+'秒','#9be9ff'); if(S.quake>0) tag('ゆれ '+Math.ceil(S.quake)+'秒','#ffb020'); if(walls) tag((wallSkin==='vine'?'ツルの壁 ':'ゴーレムの壁 ')+Math.ceil(wallT)+'秒',wallSkin==='vine'?'#9dffb8':'#e0c98a'); if(S.glue>0) tag('のり '+Math.ceil(S.glue)+'秒','#ffd400'); if(bless) tag('世界樹：台が広い（ずっと）','#ffe680'); if(S.seq) tag('ドラゴン襲来中','#ff5c5c'); if(S.ghost>0) tag('見えない　あと'+S.ghost+'匹置くと戻る','#c79bff'); if(curse) tag('ドラゴン：台が小さい（ずっと）','#c79bff');
+  if(gripT>0) tag('タコ吸着中','#9dffb8'); if(gUp>0) tag('魔女：ゴール ＋'+gUp+'m','#d9b3ff'); if(gDn>0) tag('天使：ゴール −'+gDn+'m','#fff3b0'); if(miniT>0) tag('ちび化　'+Math.ceil(miniT)+'秒','#c9ffb0'); if(bigT>0) tag('巨大化　'+Math.ceil(bigT)+'秒','#ff9aa8'); if(baseSpd!==1) tag('ゲーム速度 ×'+baseSpd,'#ffe680'); if(spLv>0) tag('ウサギ：早送り ×'+CFG.fastMult+'　'+Math.ceil(spT)+'秒','#ffb38a'); if(spLv<0) tag('カメ：スロー ×'+CFG.slowMult+'　'+Math.ceil(spT)+'秒','#9bd0ff'); if(statue>0) tag('天使像：このラウンドを守る','#fff3b0'); if(S.windPre>0) tag('風の精霊が息を吸ってる…','#9be9ff'); if(S.wind>0) tag('突風 '+Math.ceil(S.wind)+'秒','#9be9ff'); if(S.quake>0) tag('ゆれ '+Math.ceil(S.quake)+'秒','#ffb020'); if(walls) tag((wallSkin==='vine'?'ツルの壁 ':'ゴーレムの壁 ')+Math.ceil(wallT)+'秒',wallSkin==='vine'?'#9dffb8':'#e0c98a'); if(S.glue>0) tag('のり '+Math.ceil(S.glue)+'秒','#ffd400'); if(bless) tag('世界樹：台が広い（ずっと）','#ffe680'); if(S.seq) tag('ドラゴン襲来中','#ff5c5c'); if(S.ghost>0) tag('見えない　あと'+S.ghost+'匹置くと戻る','#c79bff'); if(curse) tag('ドラゴン：台が小さい（ずっと）','#c79bff');
   if(CPT){ txt('順番待ち '+S.names.length+'人',22,274,22,'#fff','left','#0b1226',900);                      // 左上：順番待ち／一時停止ボタンの右にお知らせ（新しい3つ）
     for(let i=0;i<S.log.length;i++){ const L=S.log[i]; txt(L.text,138,312+i*32,23,L.color,'left','#0b1226',900); }
     g.fillStyle='#101a30'; g.fillRect(0,1570,W,CP_STRIP); txt('ゴールを超えて5秒キープで WIN+1　1匹でも落としたら WIN−1',540,1570+CP_STRIP/2+1,27,'#ffd23f','center'); }
