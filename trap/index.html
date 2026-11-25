@@ -61,7 +61,12 @@ const STAGES=[
  mk('でこぼこ道',60,s=>{ s.gap(10,2); s.box(16,8,3,1); s.gap(24,3); s.box(30,9,1,1); s.box(31,8,1,2); s.box(32,7,1,3); s.row(36,9,2,'^'); s.gap(44,2); s.e('goal',56,9); }),
  mk('あなぼこ',62,s=>{ s.gap(9,2); s.gap(14,2); s.gap(20,3); s.box(27,7,4,1); s.gap(33,3); s.p(40,9,'^'); s.gap(45,2); s.gap(50,2); s.e('goal',58,9); }),
  mk('かいだん',64,s=>{ s.box(10,9,1,1); s.box(11,8,1,2); s.box(12,7,1,3); s.box(13,6,6,1); s.gap(22,3); s.gap(30,8); s.box(28,8,2,1); s.box(33,7,2,1); s.p(44,9,'^'); s.p(50,9,'^'); s.e('goal',60,9); }),
- mk('さいごの道',70,s=>{ s.p(9,9,'^'); s.gap(13,3); s.box(19,9,1,1); s.box(20,8,1,2); s.p(22,9,'^'); s.gap(27,2); s.gap(31,2); s.box(37,7,3,1); s.row(37,9,3,'^'); s.gap(46,3); s.row(52,9,2,'^'); s.gap(58,2); s.e('goal',66,9); }) ];
+ mk('まんなか',70,s=>{ s.p(9,9,'^'); s.gap(13,3); s.box(19,9,1,1); s.box(20,8,1,2); s.p(22,9,'^'); s.gap(27,2); s.gap(31,2); s.box(37,7,3,1); s.row(37,9,3,'^'); s.gap(46,3); s.row(52,9,2,'^'); s.gap(58,2); s.e('goal',66,9); }),
+ mk('とびうつれ',66,s=>{ s.box(7,9,1,1); s.box(8,7,1,3); s.gap(13,3); s.row(19,9,10,'^'); s.box(19,8,2,1); s.box(23,6,2,1); s.box(27,8,2,1); s.gap(34,3); s.p(40,9,'^'); s.gap(44,2); s.row(49,9,2,'^'); s.gap(54,3); s.e('goal',62,9); }),
+ mk('とびいし',70,s=>{ s.gap(8,22); s.box(11,10,2,2,'#'); s.box(16,10,2,2,'#'); s.box(21,10,1,2,'#'); s.box(25,10,2,2,'#'); s.p(34,9,'^'); s.row(38,9,3,'^'); s.box(38,7,3,1); s.gap(45,3); s.gap(50,6); s.box(52,10,2,2,'#'); s.row(60,9,2,'^'); s.e('goal',66,9); }),
+ mk('のぼりくだり',72,s=>{ s.box(8,9,1,1); s.box(9,8,1,2); s.box(10,7,1,3); s.box(11,6,1,4); s.box(12,5,4,5); s.p(14,4,'^'); s.gap(17,3); s.gap(24,18); s.box(24,8,2,1); s.box(28,6,2,1); s.box(32,4,2,1); s.box(36,6,2,1); s.box(40,8,2,1); s.row(46,9,2,'^'); s.gap(51,3); s.p(56,9,'^'); s.p(58,9,'^'); s.gap(62,3); s.e('goal',68,9); }),
+ mk('トゲの道',74,s=>{ s.row(8,9,2,'^'); s.row(13,9,3,'^'); s.p(18,9,'^'); s.p(21,9,'^'); s.p(24,9,'^'); s.gap(28,3); s.row(33,9,6,'^'); s.box(34,7,3,1); s.gap(43,2); s.row(46,9,2,'^'); s.gap(50,3); s.row(54,9,3,'^'); s.box(60,9,1,1); s.box(61,8,1,2); s.row(62,9,2,'^'); s.e('goal',70,9); }),
+ mk('さいごの試練',84,s=>{ s.row(7,9,2,'^'); s.gap(11,3); s.box(16,7,2,1); s.gap(18,6); s.box(20,10,2,2,'#'); s.p(26,9,'^'); s.box(29,9,1,1); s.box(30,8,1,2); s.box(31,7,1,3); s.gap(33,3); s.row(36,9,2,'^'); s.gap(41,14); s.box(43,8,2,1); s.box(47,6,2,1); s.box(51,8,2,1); s.row(58,9,3,'^'); s.gap(64,3); s.p(69,9,'^'); s.p(72,9,'^'); s.gap(75,3); s.e('goal',80,9); }) ];
 
 /* ===== 状態 ===== */
 let S, deaths=0, stageI=0, T=0, playT=0, saveT=0;   /* playT＝はじめてからの時間（秒）。全ステージをクリアするまで続く */
@@ -182,7 +187,7 @@ function update(dt){ T+=dt; S.t+=dt; const p=S.p;
   if(S.wall){ const w=S.wall; if(w.t>0){ w.t-=dt; w.x=Math.max(w.x+T_.wallV*dt,S.cam-200); if(p.x-PH.w/2<w.x+70) die('トゲ壁'); if(w.t<=0) logAdd('トゲ壁が帰っていった','#fff'); } else { w.out+=dt; w.x-=600*dt; if(w.out>1) S.wall=null; } }
   /* 置いてあるもの */
   for(const e of S.ents){ e.t+=dt;
-    if(e.k==='goal'){ if(hitRect(e.px-16,e.py-150,36,150)) clearStage(); }
+    if(e.k==='goal'){ if(p.x>=e.px-16) clearStage(); }   /* 旗の上を跳びこえても、通りすぎたらクリア */
     else if(e.k==='fake'){ if(e.st==='wait' && hitRect(e.px-14,e.py-104,30,104)){ e.st='hit'; e.t=0; S.fakeHit={x:e.px,y:e.py,t:0}; play('bad',.6); die('ニセのゴール'); } }
     else if(e.k==='check'){ if(e.st==='wait' && Math.abs(p.x-e.px)<34 && Math.abs(p.y-e.py)<70){ e.st='on'; S.cp={x:e.px,y:e.py}; play('bless',.6); burst(e.px,e.py-60,['#5dffb0','#fff'],12,280); logAdd('中間ポイント！ やられてもここから','#5dffb0'); } }
     else if(e.k==='crusher'){ if(e.st==='wait'){ if(Math.abs(p.x-e.px)<TS*1.15 && p.y>e.py) { e.st='fall'; e.vy=0; play('swing',.6); } } else if(e.st==='fall'){ e.vy=Math.min(1600,e.vy+2800*dt); e.py+=e.vy*dt; if(hitRect(e.px-28,e.py-TS,56,TS)) die('落ちてきたブロック'); const ty=Math.floor(e.py/TS); if(solid(e.x,ty)){ if(tile(e.x,ty-1)==='.' ) setT(e.x,ty-1,'r'); e.dead=true; S.shake=Math.max(S.shake,.3); play('rockhit',.6); burst(e.px,ty*TS,['#8a8f9a','#fff'],8,260); } else if(e.py>ROWS*TS+100) e.dead=true; } }
