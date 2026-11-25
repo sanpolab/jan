@@ -26,13 +26,13 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
   <button id="testBtn" class="hb" type="button">テスト</button>
   <div id="tp" hidden>
     <h3>お助け</h3>
-    <button class="h" data-a="push">ひと押し<br>大きな手が押す（＋40m）</button><button class="h" data-a="cheer">応援団<br>10秒 1.3倍速（連打で人が増える）</button><button class="h" data-a="ramp">ジャンプ台<br>大ジャンプで ＋200m</button>
+    <button class="h" data-a="winUp">WIN ＋1</button><button class="h" data-a="push">ひと押し<br>大きな手が押す（＋40m）</button><button class="h" data-a="cheer">応援団<br>10秒 1.3倍速（連打で人が増える）</button><button class="h" data-a="ramp">ジャンプ台<br>大ジャンプで ＋200m</button>
     <button class="h" data-a="helmet">ヘルメット<br>1回こけない（3個まで）</button><button class="h" data-a="heart">ハート<br>体力 ＋1</button><button class="h" data-a="heal">全回復<br>体力まんたん</button>
     <button class="h" data-a="big">でかタイヤ<br>10秒 穴・岩・振動・バナナが効かない</button><button class="h" data-a="rocket">ロケット自転車<br>5秒 ぶっ飛ばす</button>
     <h3>妨害</h3>
     <button class="j" data-a="banana">バナナの皮<br>ふむとこける</button><button class="j" data-a="puddle">水たまり<br>3秒 おそくなる</button>
     <button class="j" data-a="dog">犬<br>追いつかれるとこける</button><button class="j" data-a="rock">奥から岩<br>前後に動いてよける</button><button class="j" data-a="pit">落とし穴<br>落ちるとこける</button>
-    <button class="j" data-a="block">ストップの手<br>ずがががっと押しもどす（−60m・連打で続く）</button><button class="j" data-a="bird">鳥<br>3羽（ジャンプするとぶつかる）</button><button class="j" data-a="hill">坂道<br>20回こぐまで終わらない（重ねると増える）</button><button class="j" data-a="cloud">カミナリ雲<br>前後に動いてよける</button><button class="j" data-a="bone">骨ドラゴン<br>下レーザー・上レーザー・落とし穴（でたらめに4回）</button><button class="j" data-a="giant">巨人<br>ハンマー3回（ジャンプでよける）</button><button class="j" data-a="punk">パンク<br>6秒 おそくなる</button>
+    <button class="j" data-a="winDown">WIN −1</button><button class="j" data-a="block">ストップの手<br>ずがががっと押しもどす（−60m・連打で続く）</button><button class="j" data-a="bird">鳥<br>3羽（ジャンプするとぶつかる）</button><button class="j" data-a="hill">坂道<br>20回こぐまで終わらない（重ねると増える）</button><button class="j" data-a="cloud">カミナリ雲<br>前後に動いてよける</button><button class="j" data-a="bone">骨ドラゴン<br>下レーザー・上レーザー・落とし穴（でたらめに4回）</button><button class="j" data-a="giant">巨人<br>ハンマー3回（ジャンプでよける）</button><button class="j" data-a="punk">パンク<br>6秒 おそくなる</button>
     <h3>その他</h3>
     <button class="g" data-a="g5000">目標 5,000m</button><button class="g" data-a="g20000">目標 20,000m</button><button class="g" data-a="g50000">目標 50,000m</button>
     <button class="g" data-a="reset">さいしょから</button><button class="g" data-a="close">とじる</button>
@@ -101,6 +101,8 @@ const Game={
     if(S.mode!=='ride' || S.air || S.rocketT>0) return; S.air=true; S.vy=CFG.jumpV; dust(8); },
   push(n){ if(S.mode!=='ride') return; S.pushQ=Math.min(30,S.pushQ+1); logAdd((n||'だれか')+' がうしろから押してくれた（＋'+PUSH.gain+'m）','#5dffb0'); },
   block(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.blockLeft+=BLOCK.back; if(!S.block) S.block={t:0,st:'in',tick:0}; else if(S.block.st==='out'){ S.block.st='in'; S.block.t=BLOCK.inT*(1-Math.min(1,S.block.t/BLOCK.outT)); } logAdd((n||'だれか')+' の手が押しもどした（−'+BLOCK.back+'m）','#ff9aa8'); },
+  winUp(n){ if(S.mode==='clear') return; wins++; save(); S.winFx=2.4; S.winSign=1; S.flash=.3; play('fanfare',.6); logAdd((n||'だれか')+' が WIN を＋1 してくれた','#5dffb0'); },
+  winDown(n){ if(S.mode==='clear') return; wins--; save(); S.winFx=2.4; S.winSign=-1; S.red=.4; S.shake=Math.max(S.shake,.4); play('bad',.7); logAdd((n||'だれか')+' が WIN を−1 した','#ff9aa8'); },
   cheer(n){ if(S.mode!=='ride') return; S.cheerT=Math.min(CHEER.maxSec,S.cheerT+CHEER.sec); S.cheerN=Math.min(CHEER.maxN,S.cheerN+1); if(S.cheerN===1) S.cheerIn=0; play('levelup',.5); logAdd((n||'だれか')+' が応援団を呼んだ（'+CHEER.sec+'秒 スピードアップ・'+S.cheerN+'組め）','#5dffb0'); },
   ramp(n){ if(S.mode!=='ride') return; S.ents.push({k:'ramp',x:ahead(),by:n}); logAdd((n||'だれか')+' がジャンプ台を置いた','#5dffb0'); },
   helmet(n){ if(S.mode!=='ride') return; S.helmet=Math.min(T_.helmetMax,S.helmet+1); play('bless',.6); logAdd((n||'だれか')+' がヘルメットをくれた（あと'+S.helmet+'回こけない）','#5dffb0'); },
@@ -209,9 +211,9 @@ function update(dt){ T+=dt; if(S.cheerT>0) S.cheerIn=Math.min(1,S.cheerIn+dt*2.5
   else if(S.mode==='crash'){ S.crashT+=dt; S.spd=lerp(S.spd,0,clamp(dt*6,0,1)); const gyb=gy0(camX()+BXX())-10;
     for(const o of [S.rider,S.bikeP]){ o.vy+=2200*dt; o.x+=o.vx*dt; o.y+=o.vy*dt; o.rot+=o.vr*dt; const fl=S.pitFall?H+300:gyb-(o===S.rider?60:WR); if(o.y>fl){ o.y=fl; o.vy*=-.42; o.vx*=.6; o.vr*=.5; if(Math.abs(o.vy)<90){ o.vy=0; o.vr*=.3; } } }
     if(S.crashT>=T_.crash){ S.pitFall=false; if(S.afterPit){ S.x=Math.max(S.x,(S.afterPit-BXX())/PPM); S.afterPit=0; }
-      if(S.hp<=0){ S.mode='back'; S.backT=0; S.backFrom=S.x; tries++; falls++; const lost=falls>=FALLS_PER; if(lost){ falls=0; wins--; S.winFx=2.2; } S.fallFx=1.2; save(); play('bad',.7); banner('スタートにもどる…','#ff5c5c',lost?FALLS_PER+'回もどされた（WIN −1）':''); logAdd('体力が0になった。スタートからやり直し（'+tries+'回目）','#ff5c5c'); }
+      if(S.hp<=0){ S.mode='back'; S.backT=0; S.backFrom=S.x; tries++; falls++; const lost=falls>=FALLS_PER; if(lost){ falls=0; wins--; S.winFx=2.2; S.winSign=-1; } S.fallFx=1.2; save(); play('bad',.7); banner('スタートにもどる…','#ff5c5c',lost?FALLS_PER+'回もどされた（WIN −1）':''); logAdd('体力が0になった。スタートからやり直し（'+tries+'回目）','#ff5c5c'); }
       else { S.mode='ride'; S.invT=T_.inv; S.holdT=.25; S.rider=null; S.bikeP=null; } } }
-  else if(S.mode==='back'){ S.backT+=dt; const u=clamp(S.backT/T_.back,0,1), e=u*u*(3-2*u); S.x=lerp(S.backFrom,0,e); S.wheel-=dt*40; if(u>=1){ const wf=S.winFx, ff=S.fallFx; newRun(); S.winFx=wf; S.fallFx=ff; S.invT=1.5; } }
+  else if(S.mode==='back'){ S.backT+=dt; const u=clamp(S.backT/T_.back,0,1), e=u*u*(3-2*u); S.x=lerp(S.backFrom,0,e); S.wheel-=dt*40; if(u>=1){ const wf=S.winFx, ff=S.fallFx, ws=S.winSign; newRun(); S.winFx=wf; S.fallFx=ff; S.winSign=ws; S.invT=1.5; } }
   else if(S.mode==='clear'){ S.clearT+=dt; if(Math.random()<dt*40) S.parts.push({x:rand(0,W),y:150,vx:rand(-80,80),vy:rand(100,400),g:300,t:rand(1,2),r:rand(8,14),c:pick(['#ffd400','#fff','#4cc3ff','#ff5c8a','#5dffb0'])}); if(S.clearT>4){ tries=1; best=0; newRun(); save(); logAdd(fmt(CFG.goal)+'m まで走るまで終われません！','#ffd23f'); } }
 }
 
@@ -358,7 +360,8 @@ function drawHud(){
   { const tags=[]; if(S.rocketT>0) tags.push('ロケット あと'+Math.ceil(S.rocketT)+'秒'); if(S.cheerT>0) tags.push('応援団 あと'+Math.ceil(S.cheerT)+'秒'); if(S.bigT>0) tags.push('でかタイヤ あと'+Math.ceil(S.bigT)+'秒'); if(S.helmet>0) tags.push('ヘルメット ×'+S.helmet); if(S.headT>0) tags.push('向かい風 あと'+Math.ceil(S.headT)+'秒'); if(S.puddleT>0) tags.push('びしょぬれ あと'+Math.ceil(S.puddleT)+'秒'); if(S.punkT>0) tags.push('パンク あと'+Math.ceil(S.punkT)+'秒');
     let y=276; for(const t of tags){ g.font='900 24px '+FONT; const tw=g.measureText(t).width+36; rr(34,y-20,tw,40,20); g.fillStyle='#fff'; g.fill(); g.lineWidth=3; g.strokeStyle=INK; g.stroke(); txt(t,34+tw/2,y+1,24,INK,'center'); y+=48; } }
   /* WIN */
-  { const bx=W-224, by=8, bw=120, bh=156, cx0=bx+bw/2; txt('WIN',cx0,by+26,26,INK,'center'); txt(''+(wins<0?'−'+(-wins):wins),cx0,by+80,70,INK,'center',null,FONTD); if(S.winFx>0){ g.globalAlpha=clamp(S.winFx,0,1); txt('−1',bx-10,by+80-(2.2-S.winFx)*18,44,INK,'right'); g.globalAlpha=1; }
+  { const bx=W-224, by=8, bw=120, bh=156, cx0=bx+bw/2; txt('WIN',cx0,by+26,26,INK,'center'); { const wf=S.winFx>0, up=S.winSign>0, k=wf?1+.5*Math.pow(clamp((S.winFx-1.9)/.5,0,1),2):1, col=wf?(up?'#2ea44f':'#e23a3a'):INK; txt(''+(wins<0?'−'+(-wins):wins),cx0,by+80,70*k,col,'center','#fff',FONTD); if(wf){ g.globalAlpha=clamp(S.winFx,0,1); txt(up?'＋1':'−1',bx-14,by+84-(2.4-S.winFx)*(up?26:-10),64,col,'right','#fff',FONTD); g.globalAlpha=1; } }
+    if(S.winFx>1.5){ const up=S.winSign>0, a=clamp((S.winFx-1.5)/.4,0,1)*clamp((2.4-S.winFx)/.15,0,1); g.globalAlpha=a; txt('WIN '+(up?'＋1':'−1'),W/2,300,92,up?'#2ea44f':'#e23a3a','center','#fff',FONTD); g.globalAlpha=1; }
     for(let i=0;i<FALLS_PER;i++) ring(cx0+(i-(FALLS_PER-1)/2)*24,by+136,8,3,i<falls?INK:'#fff'); }
   /* 下：道のりの物差しと、できごとの記録 */
   g.fillStyle='#fff'; g.fillRect(0,930,W,150); line([[0,930],[W,930]],4); const pr=clamp(S.x/CFG.goal,0,1); line([[60,962],[W-120,962]],4); line([[60,950],[60,974]],4); line([[W-120,950],[W-120,974]],4); { const bx=60+(W-180)*clamp(best/CFG.goal,0,1); line([[bx,952],[bx,972]],3); } ring(60+(W-180)*pr,962,12,5,INK);
