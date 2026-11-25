@@ -256,8 +256,7 @@ function drawPush(){ const h=S.push; if(!h) return; const p=bikePose(), e=x=>x*x
 function drawBlock(){ const h=S.block; if(!h || !ok('hand')) return; const p=bikePose(), e=x=>x*x*(3-2*x), push=h.st==='push', u=h.st==='in'?e(clamp(h.t/BLOCK.inT,0,1)):(push?1:1-e(clamp(h.t/BLOCK.outT,0,1))), jx=push?Math.sin(T*70)*9:0, jy=push?Math.cos(T*53)*5:0, tipX=BXX()+WB/2+WR*S.bigK-10, x1=lerp(W+40,tipX,u)+jx, im=IMG.hand, sc=BLOCK.h/im.naturalHeight, w=im.naturalWidth*sc, y0=p.y-70-BLOCK.h*.49+jy;
   g.drawImage(im,x1,y0,w,BLOCK.h); if(x1+w<W+30) g.drawImage(im,im.naturalWidth-40,0,40,im.naturalHeight,x1+w-1,y0,W+40-(x1+w),BLOCK.h);
   if(push){ for(let i=0;i<5;i++){ const yy=y0+30+i*58+Math.sin(T*40+i)*8, L=60+((i*37+Math.floor(T*30)*13)%70); line([[tipX-26,yy],[tipX-26-L,yy-10]],6,'#e23a3a'); }
-    for(let i=0;i<7;i++){ const xx=tipX+60+i*120-((T*900)%120); if(xx<W) line([[xx,y0+BLOCK.h*.62],[xx+60,y0+BLOCK.h*.62]],5,'#111'); }
-    txt('ズガガガガ',BXX()-10+Math.sin(T*60)*6,p.y-250+Math.cos(T*47)*5,54,'#e23a3a','center','#fff',FONTD); } }
+    for(let i=0;i<7;i++){ const xx=tipX+60+i*120-((T*900)%120); if(xx<W) line([[xx,y0+BLOCK.h*.62],[xx+60,y0+BLOCK.h*.62]],5,'#111'); } } }
 /* 応援団：道の向こう側（足もとは道にかくれる）にならんで、ぴょんぴょんはねる。絵（img/fan0〜3）があればそれを使い、無ければ線で描く */
 function drawFans(cx){ if(S.cheerIn<=0) return; const L=Math.max(1,S.cheerN), i0=Math.floor((cx-200)/CHEER.gap), i1=Math.floor((cx+W+200)/CHEER.gap);
   for(let i=i0;i<=i1;i++){ const hsh=((i*2654435761)>>>0)%997; if(hsh%CHEER.maxN>=L) continue; const wx=i*CHEER.gap+(hsh%60), x=wx-cx, gy=gy0(wx), hop=Math.abs(Math.sin(T*9+hsh))*26, h=CHEER.h*(.9+(hsh%20)/100), y=gy+34+(1-S.cheerIn)*(h+40)-hop, k=hsh%4;
