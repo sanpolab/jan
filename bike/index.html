@@ -32,7 +32,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
     <h3>妨害</h3>
     <button class="j" data-a="banana">バナナの皮<br>ふむとこける</button><button class="j" data-a="puddle">水たまり<br>3秒 おそくなる</button>
     <button class="j" data-a="dog">犬<br>追いつかれるとこける</button><button class="j" data-a="rock">奥から岩<br>前後に動いてよける</button><button class="j" data-a="pit">落とし穴<br>落ちるとこける</button>
-    <button class="j" data-a="block">ストップの手<br>ずがががっと押しもどす（−60m・連打で続く）</button><button class="j" data-a="bird">鳥<br>3羽（ジャンプするとぶつかる）</button><button class="j" data-a="hill">坂道<br>20回こぐまで終わらない（重ねると増える）</button><button class="j" data-a="cloud">カミナリ雲<br>前後に動いてよける</button><button class="j" data-a="bone">骨ドラゴン<br>下レーザー・上レーザー・落とし穴</button><button class="j" data-a="giant">巨人<br>ハンマー3回（ジャンプでよける）</button><button class="j" data-a="punk">パンク<br>6秒 おそくなる</button>
+    <button class="j" data-a="block">ストップの手<br>ずがががっと押しもどす（−60m・連打で続く）</button><button class="j" data-a="bird">鳥<br>3羽（ジャンプするとぶつかる）</button><button class="j" data-a="hill">坂道<br>20回こぐまで終わらない（重ねると増える）</button><button class="j" data-a="cloud">カミナリ雲<br>前後に動いてよける</button><button class="j" data-a="bone">骨ドラゴン<br>下レーザー・上レーザー・落とし穴（すばやく3回）</button><button class="j" data-a="giant">巨人<br>ハンマー3回（ジャンプでよける）</button><button class="j" data-a="punk">パンク<br>6秒 おそくなる</button>
     <h3>その他</h3>
     <button class="g" data-a="g5000">目標 5,000m</button><button class="g" data-a="g20000">目標 20,000m</button><button class="g" data-a="g50000">目標 50,000m</button>
     <button class="g" data-a="reset">さいしょから</button><button class="g" data-a="close">とじる</button>
@@ -61,7 +61,7 @@ const BX=340, WR=46, WB=150;        /* 自転車の画面上の位置、タイ�
 const FALLS_PER=5;
 /* 骨ドラゴン（強い妨害）：右はしから頭が出てきて、3種類のこうげきを、ばらばらの順番で1回ずつ出す。
    low＝足もとのレーザー（ジャンプでよける）、high＝頭の上のレーザー（ジャンプするとあたる）、pit＝落とし穴（ジャンプでこえる）。全画面の映像は使わない */
-const BONE={inT:1.1,warn:1.15,beam:.42,gap:.55,outT:.9,x:W-150,lowY:74,highY:372,beamH:64,pitWait:2.1};
+const BONE={first:.5,pop:.2,warn:.55,beam:.36,back:.18,gap:.12,pitHold:.5,pitWait:1.25,mx:700,lowY:74,highY:372,beamH:64,w:820,ax:27/820,ay:337/393};   /* すばやく：頭を出す→ねらう→撃つ→引っこめる、をくり返す。mx＝口の横位置、ax/ay＝絵の中の口の位置 */
 /* ひと押し：画面の左から大きな手が出てきて、自転車のうしろをポンと押す（少しだけ前へ進む）。安いギフト向き。連打された分は順番に押す */
 const PUSH={gain:40,inT:.28,hold:.12,outT:.35,w:520};
 /* ストップの手（妨害）：画面の右はしから大きな手が出てきて、自転車を前から押しもどす（少しだけ後ろへ下がる）。安いギフト向き。連打された分は順番に押す */
@@ -119,7 +119,7 @@ const Game={
   cloud(n){ if(S.mode!=='ride') return; if(S.clouds.length>=CLOUD.max) return; { let sl=0; while(S.clouds.some(c=>c.sl===sl)) sl++; S.clouds.push({t:0,x:W+200,by:n,st:'follow',sl,off:CLOUD.offs[sl%CLOUD.offs.length]}); } play('don',.4); logAdd((n||'だれか')+' がカミナリ雲を呼んだ（前後に動いてよけろ）','#ff9aa8'); },
   bone(n){ if(S.mode!=='ride') return; const sh=()=>{ const a=['low','high','pit']; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
     if(S.bone && S.bone.st!=='out'){ S.bone.seq.push(...sh()); logAdd((n||'だれか')+' が骨ドラゴンをもっとあばれさせた','#ff9aa8'); return; }
-    S.bone={t:0,st:'in',seq:sh(),i:0,by:n,y:0,hit:false,mouth:0}; play('dragon',.7); banner('骨ドラゴンが出た！','#111',n); logAdd((n||'だれか')+' が骨ドラゴンを呼んだ（こうげき3回）','#ff9aa8'); },
+    S.bone={t:0,st:'first',seq:sh(),i:0,by:n,hit:false,slide:1}; play('dragon',.7); logAdd((n||'だれか')+' が骨ドラゴンを呼んだ（こうげき3回）','#ff9aa8'); },
   giant(n){ if(S.mode!=='ride') return; if(S.giant){ S.giant.left+=GIANT.n; logAdd((n||'だれか')+' が巨人をもっとあばれさせた（あと'+S.giant.left+'回）','#ff9aa8'); return; } S.giant={t:0,st:'in',left:GIANT.n,by:n,tc:0,hit:false,hitFx:0}; play('don',.6); banner('巨人が出た！','#111',n); logAdd((n||'だれか')+' が巨人を呼んだ（ハンマー'+GIANT.n+'回・ジャンプでよけろ）','#ff9aa8'); },
   punk(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.punkT=Math.min(18,S.punkT+T_.punk); S.assistT=0; play('hit',.5); logAdd((n||'だれか')+' がタイヤをパンクさせた（'+T_.punk+'秒 おそくなる）','#ff9aa8'); },
   setGoal(v){ CFG.goal=v; best=0; newRun(); save(); logAdd('目標を '+fmt(v)+'m にした','#ffd23f'); },
@@ -188,12 +188,12 @@ function update(dt){ T+=dt; if(S.cheerT>0) S.cheerIn=Math.min(1,S.cheerIn+dt*2.5
         if(Math.abs(r.tx-BXX())<ROCK.hit && !(S.rocketT>0)){ if(S.bigT>0){ r.smash=true; logAdd('でかタイヤが岩をくだいた','#5dffb0'); } else crash('岩',r.by); } else if(S.mode==='ride') logAdd('岩をよけた！','#5dffb0'); } }
     S.rocks=S.rocks.filter(r=>r.t<ROCK.T+ROCK.out && !r.smash);
     /* 骨ドラゴン */
-    if(S.bone){ const d=S.bone; d.t+=dt; const kind=d.seq[d.i], gyb=gy0(camX()+BXX()), aim=kind==='high'?BONE.highY:(kind==='low'?BONE.lowY:210);
-      if(d.st==='in'){ d.y+=(210-d.y)*Math.min(1,dt*4); if(d.t>=BONE.inT){ d.st='warn'; d.t=0; d.hit=false; if(d.seq[d.i]==='pit'){ S.pits.push({x:ahead()+60,w:560,by:d.by}); play('don',.6); } } }
-      else if(d.st==='warn'){ d.y+=(aim-d.y)*Math.min(1,dt*6); d.mouth=clamp(d.t/BONE.warn,0,1); if(d.t>=(kind==='pit'?BONE.pitWait:BONE.warn)){ if(kind==='pit'){ d.st='gap'; d.t=0; } else { d.st='beam'; d.t=0; S.shake=Math.max(S.shake,.5); S.flash=.2; play('zap',.7); play('boom',.4); } } }
-      else if(d.st==='beam'){ d.mouth=1; if(!d.hit && !(S.rocketT>0)){ const low=kind==='low'; if(low?S.jy>-(BONE.lowY+BONE.beamH*.5-WR*.4):S.jy<-64){ d.hit=true; crash(low?'骨ドラゴンのレーザー':'頭の上のレーザー',d.by); } } if(d.t>=BONE.beam){ if(!d.hit && S.mode==='ride') logAdd(kind==='low'?'レーザーをジャンプでよけた！':'頭の上のレーザーをやりすごした！','#5dffb0'); d.st='gap'; d.t=0; } }
-      else if(d.st==='gap'){ d.mouth=Math.max(0,d.mouth-dt*3); if(d.t>=BONE.gap){ d.i++; d.t=0; d.hit=false; if(d.i>=d.seq.length){ d.st='out'; } else { d.st='warn'; if(d.seq[d.i]==='pit'){ S.pits.push({x:ahead()+60,w:560,by:d.by}); play('don',.6); } } } }
-      else if(d.st==='out'){ if(d.t>=BONE.outT) S.bone=null; } }
+    if(S.bone){ const d=S.bone; d.t+=dt; const kind=d.seq[d.i], e=x=>x*x*(3-2*x);
+      if(d.st==='first'){ d.slide=1; if(d.t>=BONE.first){ d.st='pop'; d.t=0; } }
+      else if(d.st==='pop'){ d.slide=1-e(clamp(d.t/BONE.pop,0,1)); if(d.t>=BONE.pop){ d.st='warn'; d.t=0; d.hit=false; play('dragon',.35); if(kind==='pit'){ S.pits.push({x:camX()+W+380,w:520,by:d.by}); play('don',.6); S.shake=Math.max(S.shake,.3); } } }
+      else if(d.st==='warn'){ d.slide=0; if(d.t>=(kind==='pit'?BONE.pitHold:BONE.warn)){ d.t=0; if(kind==='pit'){ d.st='back'; d.wait=BONE.pitWait; } else { d.st='beam'; S.shake=Math.max(S.shake,.5); S.flash=.18; play('zap',.7); play('boom',.35); } } }
+      else if(d.st==='beam'){ if(!d.hit && !(S.rocketT>0)){ const low=kind==='low'; if(low?S.jy>-(BONE.lowY+BONE.beamH*.5-WR*.4):S.jy<-64){ d.hit=true; crash(low?'骨ドラゴンのレーザー':'頭の上のレーザー',d.by); } } if(d.t>=BONE.beam){ if(!d.hit && S.mode==='ride') logAdd(kind==='low'?'レーザーをジャンプでよけた！':'頭の上のレーザーをやりすごした！','#5dffb0'); d.st='back'; d.t=0; d.wait=BONE.gap; } }
+      else if(d.st==='back'){ d.slide=e(clamp(d.t/BONE.back,0,1)); if(d.t>=BONE.back+d.wait){ d.i++; d.t=0; d.hit=false; if(d.i>=d.seq.length) S.bone=null; else d.st='pop'; } } }
     /* 巨人と振動 */
     if(S.giant){ const d=S.giant; d.t+=dt; if(d.hitFx>0) d.hitFx-=dt; const cyc=GIANT.nf/GIANT.fps, gw=GIANT.h*GIANT.fw/GIANT.fh, hx=GIANT.x+GIANT.hx*gw;
       if(d.st==='in'){ if(d.t>=GIANT.inT){ d.st='act'; d.tc=0; d.hit=false; } }
@@ -217,7 +217,7 @@ function update(dt){ T+=dt; if(S.cheerT>0) S.cheerIn=Math.min(1,S.cheerIn+dt*2.5
 }
 
 /* ===== 描く：白い紙に黒い線。妨害だけは色つきの絵（img/ に絵があればそれを使い、無ければ線で描く） ===== */
-const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','fan0','fan1','fan2','fan3','hand','zlines','impact','bone']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
+const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','fan0','fan1','fan2','fan3','hand','zlines','impact','bone','beam','mflash']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 const INK='#111', LW=7;
 function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 function txt(s,x,y,size,color,align,stroke,font){ g.font=(font===FONTD?'400 ':'900 ')+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineWidth=Math.max(4,size*.16); g.strokeStyle=stroke; g.lineJoin='round'; g.strokeText(s,x,y); } g.fillStyle=color; g.fillText(s,x,y); }
@@ -274,16 +274,15 @@ function drawBlock(){ const h=S.block; if(!h || !ok('hand')) return; const p=bik
     /* 手が当たっている所の衝撃マーク：大きさと向きをコマごとに変えて、チカチカさせる */
     if(ok('impact')){ const im=IMG.impact, sz=230+((fr*53)%90), ix=tipX-8+((fr*29)%24)-12, iy=cy+((fr*41)%60)-30; g.save(); g.translate(ix,iy); g.rotate((fr%4)*.5); g.drawImage(im,-sz/2,-sz/2,sz,sz*im.naturalHeight/im.naturalWidth); g.restore(); } } }
 /* 骨ドラゴンの頭（仮の線の絵。あとで動画から作った絵に差し替える）と、レーザー。ねらっている高さには、撃つ前に細い線と知らせを出す */
-function drawBone(cx){ const d=S.bone; if(!d) return; const e=x=>x*x*(3-2*x), slide=d.st==='in'?1-e(clamp(d.t/BONE.inT,0,1)):(d.st==='out'?e(clamp(d.t/BONE.outT,0,1)):0), gyb=gy0(cx+BXX()), hx=BONE.x+slide*420, hy=gyb-d.y+Math.sin(T*3)*6, kind=d.seq[d.i], mx=hx-150, my=hy+26;
-  if(d.st==='warn' && kind!=='pit'){ const bl=Math.floor(T*10)%2, a=clamp(d.t/BONE.warn,0,1); g.globalAlpha=.25+.5*a; line([[0,my],[mx,my]],4+a*8,bl?'#b14cff':'#e23a3a'); g.globalAlpha=1; txt(kind==='low'?'レーザー！ ジャンプでよけろ':'頭の上にレーザー！ ジャンプするな',W/2-60,262,38,bl?'#e23a3a':INK,'center','#fff'); }
-  if(d.st==='warn' && kind==='pit'){ const bl=Math.floor(T*10)%2; txt('落とし穴！ ジャンプでこえろ',W/2-60,262,38,bl?'#e23a3a':INK,'center','#fff'); }
-  if(d.st==='beam'){ const k=1-clamp(d.t/BONE.beam,0,1), hh=BONE.beamH*(.5+.5*k)+Math.sin(T*90)*6; g.fillStyle='#111'; g.fillRect(-20,my-hh/2-6,mx+20,hh+12); g.fillStyle='#b14cff'; g.fillRect(-20,my-hh/2,mx+20,hh); g.fillStyle='#fff'; g.fillRect(-20,my-hh*.2,mx+20,hh*.4); g.fillStyle='#b14cff'; g.beginPath(); g.arc(mx,my,hh*.9,0,7); g.fill(); g.fillStyle='#fff'; g.beginPath(); g.arc(mx,my,hh*.45,0,7); g.fill(); }
-  if(ok('bone')){ const im=IMG.bone, B=BONEIMG, f=clamp(Math.round(d.mouth*(B.nf-1)),0,B.nf-1), w=B.w, hh=w*B.fh/B.fw; g.drawImage(im,(f%B.cols)*B.fw,Math.floor(f/B.cols)*B.fh,B.fw,B.fh,hx-w*B.ax,hy-hh*B.ay,w,hh); }
-  else { g.save(); g.translate(hx,hy); const jaw=d.mouth*.5; g.fillStyle='#fffbe8'; g.strokeStyle=INK; g.lineWidth=LW; g.lineJoin='round';
-    g.beginPath(); g.moveTo(260,-70); g.lineTo(40,-96); g.lineTo(10,-150); g.lineTo(-30,-92); g.lineTo(-150,-40); g.lineTo(-176,4); g.lineTo(-60,18); g.lineTo(40,30); g.lineTo(260,40); g.closePath(); g.fill(); g.stroke();
-    g.save(); g.translate(30,34); g.rotate(-jaw); g.beginPath(); g.moveTo(0,0); g.lineTo(-190,6); g.lineTo(-160,44); g.lineTo(20,60); g.closePath(); g.fill(); g.stroke(); for(let i=0;i<5;i++) line([[-40-i*30,4],[-50-i*30,-14],[-60-i*30,4]],5); g.restore();
-    for(let i=0;i<5;i++) line([[-40-i*26,16],[-50-i*26,34],[-60-i*26,14]],5); g.fillStyle='#111'; g.beginPath(); g.ellipse(-40,-34,30,22,-.2,0,7); g.fill(); g.fillStyle='#b14cff'; g.beginPath(); g.arc(-44,-34,10+d.mouth*6,0,7); g.fill(); g.restore(); } }
-const BONEIMG={fw:1,fh:1,cols:1,nf:1,w:560,ax:.5,ay:.5};
+function drawBone(cx){ const d=S.bone; if(!d || d.st==='first') return; const kind=d.seq[d.i], gyb=gy0(cx+BXX()), aim=kind==='high'?BONE.highY:(kind==='low'?BONE.lowY:230), mx=BONE.mx+d.slide*520, my=gyb-aim+(d.st==='warn'?Math.sin(T*40)*3:0), fr=Math.floor(T*20), bl=fr%2;
+  if(d.st==='warn' && kind!=='pit'){ const a=clamp(d.t/BONE.warn,0,1); g.globalAlpha=.3+.6*a; line([[0,my],[mx,my]],5+a*12,bl?'#b14cff':'#e23a3a'); g.globalAlpha=1; txt(kind==='low'?'ジャンプ！':'飛ぶな！',W/2-120,278,72,bl?'#e23a3a':INK,'center','#fff',FONTD); if(ok('mflash')){ const sz=60+a*130+bl*20; g.save(); g.translate(mx+10,my); g.rotate(fr*.4); g.drawImage(IMG.mflash,-sz/2,-sz/2,sz,sz); g.restore(); } }
+  if((d.st==='warn' || d.st==='pop') && kind==='pit') txt('落とし穴！',W/2-120,278,72,bl?'#e23a3a':INK,'center','#fff',FONTD);
+  if(d.st==='beam'){ const k=1-clamp(d.t/BONE.beam,0,1), hh=BONE.beamH*(.75+.35*k)+bl*8;
+    if(ok('beam')){ const im=IMG.beam, dh=hh*135/70, tw=520, off=(T*2600)%tw; g.save(); g.beginPath(); g.rect(-10,my-dh,mx+10,dh*2); g.clip(); for(let x=mx-tw+off;x>-tw;x-=tw-2){ g.save(); g.translate(x,my); if(bl) g.scale(1,-1); g.drawImage(im,0,-dh/2,tw,dh); g.restore(); } g.restore(); }
+    else { g.fillStyle='#111'; g.fillRect(-20,my-hh/2-6,mx+20,hh+12); g.fillStyle='#b14cff'; g.fillRect(-20,my-hh/2,mx+20,hh); g.fillStyle='#fff'; g.fillRect(-20,my-hh*.2,mx+20,hh*.4); }
+    if(ok('mflash')){ const sz=250+bl*60; g.save(); g.translate(mx+6,my); g.rotate(fr*.5); g.drawImage(IMG.mflash,-sz/2,-sz/2,sz,sz); g.restore(); } }
+  if(ok('bone')){ const im=IMG.bone, w=BONE.w, hh=w*im.naturalHeight/im.naturalWidth, rc=d.st==='beam'?14+bl*6:0; g.drawImage(im,mx-w*BONE.ax+rc,my-hh*BONE.ay,w,hh); if(mx-w*BONE.ax+rc+w<W+20) g.drawImage(im,im.naturalWidth-30,0,30,im.naturalHeight,mx-w*BONE.ax+rc+w-1,my-hh*BONE.ay,W+40-(mx-w*BONE.ax+rc+w),hh); }
+  else { g.fillStyle='#fffbe8'; g.strokeStyle=INK; g.lineWidth=LW; g.beginPath(); g.moveTo(mx,my+20); g.lineTo(mx+150,my-70); g.lineTo(W+40,my-90); g.lineTo(W+40,my+60); g.lineTo(mx+140,my+50); g.closePath(); g.fill(); g.stroke(); } }
 /* 応援団：道の向こう側（足もとは道にかくれる）にならんで、ぴょんぴょんはねる。絵（img/fan0〜3）があればそれを使い、無ければ線で描く */
 function drawFans(cx){ if(S.cheerIn<=0) return; const L=Math.max(1,S.cheerN), i0=Math.floor((cx-200)/CHEER.gap), i1=Math.floor((cx+W+200)/CHEER.gap);
   for(let i=i0;i<=i1;i++){ const hsh=((i*2654435761)>>>0)%997; if(hsh%CHEER.maxN>=L) continue; const wx=i*CHEER.gap+(hsh%60), x=wx-cx, gy=gy0(wx), hop=Math.abs(Math.sin(T*9+hsh))*26, h=CHEER.h*(.9+(hsh%20)/100), y=gy+34+(1-S.cheerIn)*(h+40)-hop, k=hsh%4;
