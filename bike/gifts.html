@@ -37,7 +37,7 @@ html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku G
 <script>
 /* チャリで行けのギフト表。ゲームの「ギフト」画面で登録した割り当てをそのまま表示する。
    URLの後ろに ?cols=9（1段の数）や ?all=1（未登録の効果も出す）を付けられる */
-const FX=[['heart','help','体力＋1'],['push','help','＋40m'],['helmet','help','ヘルメット'],['cheer','help','応援団'],['ramp','help','＋200m'],['big','help','でかタイヤ'],['rocket','help','ロケット'],['god','help','妨害を全消し'],['winUp','help','WIN＋1'],['banana','jam','バナナ'],['puddle','jam','水たまり'],['block','jam','−60m'],['dog','jam','犬'],['bird','jam','鳥'],['pit','jam','落とし穴'],['rock','jam','岩'],['cloud','jam','カミナリ'],['hill','jam','坂道'],['giant','jam','巨人'],['bone','jam','骨ドラゴン'],['winDown','jam','WIN−1']];
+const FX=[['heart','help','体力＋1'],['push','help','＋40m'],['helmet','help','ヘルメット'],['cheer','help','応援団'],['ramp','help','＋200m'],['big','help','でかタイヤ'],['rocket','help','ロケット'],['god','help','妨害を全消し'],['winUp','help','WIN＋1'],['banana','jam','バナナ'],['puddle','jam','水たまり'],['block','jam','−60m'],['dog','jam','犬'],['bird','jam','鳥'],['pit','jam','落とし穴'],['rock','jam','岩'],['cloud','jam','カミナリ'],['hill','jam','坂道'],['giant','jam','巨人'],['bone','jam','骨ドラゴン'],['spear','jam','槍の雨'],['winDown','jam','WIN−1']];
 const q=new URLSearchParams(location.search), cols=Math.max(3,Math.min(13,parseInt(q.get('cols'),10)||9)), showAll=q.get('all')==='1';
 document.documentElement.style.setProperty('--cols',cols);
 let last='', CATN=0, CATL=null; const nrm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.'); fetch('./gifts_cat.json').then(r=>r.json()).then(j=>{ CATL=j; CATN=j.length; last=''; build(); }).catch(()=>{});
