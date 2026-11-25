@@ -26,7 +26,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
   <button id="testBtn" class="hb" type="button">テスト</button>
   <div id="tp" hidden>
     <h3>お助け</h3>
-    <button class="h" data-a="wind">追い風<br>10秒 2倍速</button><button class="h" data-a="assist">電動アシスト<br>15秒 1.5倍速</button><button class="h" data-a="ramp">ジャンプ台<br>大ジャンプで ＋200m</button>
+    <button class="h" data-a="cheer">応援団<br>10秒 1.3倍速（連打で人が増える）</button><button class="h" data-a="assist">電動アシスト<br>15秒 1.5倍速</button><button class="h" data-a="ramp">ジャンプ台<br>大ジャンプで ＋200m</button>
     <button class="h" data-a="helmet">ヘルメット<br>1回こけない（3個まで）</button><button class="h" data-a="heart">ハート<br>体力 ＋1</button><button class="h" data-a="heal">全回復<br>体力まんたん</button>
     <button class="h" data-a="big">でかタイヤ<br>10秒 穴・岩・振動・バナナが効かない</button><button class="h" data-a="rocket">ロケット自転車<br>5秒 ぶっ飛ばす</button>
     <h3>妨害</h3>
@@ -59,6 +59,8 @@ const PPM=40;                       /* 1m＝画面の40ドット */
 const CFG={goal:20000, speed:28, hp:5, jumpV:-930, grav:2500};
 const BX=340, WR=46, WB=150;        /* 自転車の画面上の位置、タイヤの半径、前後のタイヤの間隔 */
 const FALLS_PER=5;
+/* 応援団：道の向こう側に観客がならんで、スピードが上がる。連打されるほど観客が増えて、少しずつ速くなる */
+const CHEER={sec:10,maxSec:60,maxN:6,mul:1.3,add:.06,gap:150,h:230};
 /* 岩：画面の奥（道の向こう）から、はねながらだんだん大きくなって転がってくる。ねらった場所（赤いしるし）に落ちるので、前後に動いてよける。ジャンプではよけられない */
 const ROCK={T:2.6,out:.55,hit:158,max:5,w:280};
 /* 鳥：頭より少し高いところを3羽つづけて飛んでくる。ジャンプするとぶつかる（飛ばずにくぐる）
@@ -71,7 +73,7 @@ const T_={wind:10,windMul:2,assist:15,assistMul:1.5,rocket:5,rocketMul:3,headwin
 let S, best=0, tries=1, wins=0, falls=0, T=0;
 try{ const o=JSON.parse(localStorage.getItem('bike_save')||'{}'); best=o.best||0; tries=o.tries||1; wins=o.wins||0; falls=o.falls||0; if(o.g3) CFG.goal=o.g3; }catch(e){}
 function save(){ try{ localStorage.setItem('bike_save',JSON.stringify({best,tries,wins,falls,g3:CFG.goal})); }catch(e){} }
-function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, bigT:0, bigK:1, birds:[], birdQ:0, birdT:0, hillNeed:0, hillAll:0, tapPow:0, tilt:0, clouds:[], bolts:[], rocks:[], ox:(S?S.ox:0), tx:(S?S.tx:0), mileI:0, mileFx:null, giant:null, waves:[], bursts:[] }; }
+function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, cheerT:0, cheerN:0, cheerIn:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, bigT:0, bigK:1, birds:[], birdQ:0, birdT:0, hillNeed:0, hillAll:0, tapPow:0, tilt:0, clouds:[], bolts:[], rocks:[], ox:(S?S.ox:0), tx:(S?S.tx:0), mileI:0, mileFx:null, giant:null, waves:[], bursts:[] }; }
 function logAdd(t,c){ S.log.push({t,c:c||'#fff',at:T}); if(S.log.length>3) S.log.shift(); }
 function banner(t,c,sub){ S.banner={t,c,sub:sub||'',at:0}; }
 
@@ -90,7 +92,7 @@ const ahead=()=>camX()+W+rand(1500,1900);   /* 速いので、物は画面のず
 const Game={
   jump(){ if(S.mode==='ride' && S.hillNeed>0 && S.rocketT<=0){ S.tapPow=Math.min(1.25,S.tapPow+HILL.tap); dust(2); S.hillNeed--; if(S.hillNeed<=0){ S.hillNeed=0; S.hillAll=0; play('levelup',.6); logAdd('坂道をのぼりきった！','#5dffb0'); } }   /* 坂道の間は、タップ＝ひとこぎ。ジャンプもふつうにできる（空中で押しても、こいだ数に入る） */
     if(S.mode!=='ride' || S.air || S.rocketT>0) return; S.air=true; S.vy=CFG.jumpV; dust(8); },
-  wind(n){ if(S.mode!=='ride') return; S.windT=Math.min(30,S.windT+T_.wind); S.headT=0; play('gust',.6); play('speed',.6); logAdd((n||'だれか')+' が追い風を吹かせた（'+T_.wind+'秒 2倍速）','#5dffb0'); },
+  cheer(n){ if(S.mode!=='ride') return; S.cheerT=Math.min(CHEER.maxSec,S.cheerT+CHEER.sec); S.cheerN=Math.min(CHEER.maxN,S.cheerN+1); if(S.cheerN===1) S.cheerIn=0; play('levelup',.5); logAdd((n||'だれか')+' が応援団を呼んだ（'+CHEER.sec+'秒 スピードアップ・'+S.cheerN+'組め）','#5dffb0'); },
   assist(n){ if(S.mode!=='ride') return; S.assistT=Math.min(45,S.assistT+T_.assist); S.punkT=0; play('boost',.6); logAdd((n||'だれか')+' が電動アシストをつけた（'+T_.assist+'秒 1.5倍速）','#5dffb0'); },
   ramp(n){ if(S.mode!=='ride') return; S.ents.push({k:'ramp',x:ahead(),by:n}); logAdd((n||'だれか')+' がジャンプ台を置いた','#5dffb0'); },
   helmet(n){ if(S.mode!=='ride') return; S.helmet=Math.min(T_.helmetMax,S.helmet+1); play('bless',.6); logAdd((n||'だれか')+' がヘルメットをくれた（あと'+S.helmet+'回こけない）','#5dffb0'); },
@@ -121,11 +123,11 @@ function crash(what,by){ if(S.mode!=='ride' || inv()) return false; if(S.helmet>
   logAdd(what+'でこけた！（体力−1）','#ff9aa8'); return true; }
 
 /* ===== 進める ===== */
-function update(dt){ T+=dt; { const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.ArrowLeft||KEYS.a?1:0); if(kx) S.tx=clamp(S.tx+kx*MOVE.key*dt,MOVE.min,MOVE.max); S.ox+=(S.tx-S.ox)*Math.min(1,dt*14); } if(S.flash>0) S.flash-=dt; if(S.shake>0) S.shake-=dt; if(S.red>0) S.red-=dt; if(S.winFx>0) S.winFx-=dt; if(S.fallFx>0) S.fallFx-=dt; if(S.banner){ S.banner.at+=dt; if(S.banner.at>2.2) S.banner=null; } if(S.mileFx){ S.mileFx.t+=dt; if(S.mileFx.t>2) S.mileFx=null; }
+function update(dt){ T+=dt; if(S.cheerT>0) S.cheerIn=Math.min(1,S.cheerIn+dt*2.5); else S.cheerIn=Math.max(0,S.cheerIn-dt*2.5); { const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.ArrowLeft||KEYS.a?1:0); if(kx) S.tx=clamp(S.tx+kx*MOVE.key*dt,MOVE.min,MOVE.max); S.ox+=(S.tx-S.ox)*Math.min(1,dt*14); } if(S.flash>0) S.flash-=dt; if(S.shake>0) S.shake-=dt; if(S.red>0) S.red-=dt; if(S.winFx>0) S.winFx-=dt; if(S.fallFx>0) S.fallFx-=dt; if(S.banner){ S.banner.at+=dt; if(S.banner.at>2.2) S.banner=null; } if(S.mileFx){ S.mileFx.t+=dt; if(S.mileFx.t>2) S.mileFx=null; }
   for(const p of S.parts){ p.t-=dt; p.vy+=(p.g||0)*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; } S.parts=S.parts.filter(p=>p.t>0);
   if(S.mode==='ride'){
     if(S.holdT>0){ S.holdT-=dt; }
-    let mul=1; if(S.rocketT>0){ S.rocketT-=dt; mul=T_.rocketMul; } else { if(S.windT>0){ S.windT-=dt; mul*=T_.windMul; } if(S.assistT>0){ S.assistT-=dt; mul*=T_.assistMul; } if(S.headT>0){ S.headT-=dt; mul*=T_.headMul; } if(S.puddleT>0){ S.puddleT-=dt; mul*=T_.puddleMul; } if(S.punkT>0){ S.punkT-=dt; mul*=T_.punkMul; } mul=Math.max(.35,mul); if(S.hillNeed>0){ S.tapPow=Math.max(0,S.tapPow-HILL.decay*dt); mul*=HILL.base+Math.min(1,S.tapPow)*.9; } }
+    let mul=1; if(S.rocketT>0){ S.rocketT-=dt; mul=T_.rocketMul; } else { if(S.windT>0){ S.windT-=dt; mul*=T_.windMul; } if(S.assistT>0){ S.assistT-=dt; mul*=T_.assistMul; } if(S.cheerT>0){ S.cheerT-=dt; mul*=CHEER.mul+CHEER.add*(S.cheerN-1); if(S.cheerT<=0){ S.cheerT=0; S.cheerN=0; logAdd('応援団が帰っていった','#fff'); } } if(S.headT>0){ S.headT-=dt; mul*=T_.headMul; } if(S.puddleT>0){ S.puddleT-=dt; mul*=T_.puddleMul; } if(S.punkT>0){ S.punkT-=dt; mul*=T_.punkMul; } mul=Math.max(.35,mul); if(S.hillNeed>0){ S.tapPow=Math.max(0,S.tapPow-HILL.decay*dt); mul*=HILL.base+Math.min(1,S.tapPow)*.9; } }
     S.tilt+=((S.hillNeed>0?HILL.tilt:0)-S.tilt)*Math.min(1,dt*5);
     if(S.invT>0) S.invT-=dt; if(S.bigT>0){ S.bigT-=dt; if(S.bigT<=0){ S.bigT=0; logAdd('タイヤが元の大きさにもどった','#fff'); } } S.bigK+=((S.bigT>0?T_.bigK:1)-S.bigK)*Math.min(1,dt*7);
     const v=S.holdT>0?0:CFG.speed*mul; S.spd=lerp(S.spd,v,clamp(dt*4,0,1)); S.x+=S.spd*dt; S.wheel+=S.spd*PPM*dt/WR; if(S.x>best) best=S.x;
@@ -185,7 +187,7 @@ function update(dt){ T+=dt; { const kx=(KEYS.ArrowRight||KEYS.d?1:0)-(KEYS.Arrow
 }
 
 /* ===== 描く：白い紙に黒い線。妨害だけは色つきの絵（img/ に絵があればそれを使い、無ければ線で描く） ===== */
-const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
+const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','fan0','fan1','fan2','fan3']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 const INK='#111', LW=7;
 function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 function txt(s,x,y,size,color,align,stroke,font){ g.font=(font===FONTD?'400 ':'900 ')+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineWidth=Math.max(4,size*.16); g.strokeStyle=stroke; g.lineJoin='round'; g.strokeText(s,x,y); } g.fillStyle=color; g.fillText(s,x,y); }
@@ -229,6 +231,11 @@ function drawGiant(cx){ const d=S.giant; if(!d || !ok('giant')) return; const gy
 function drawWaves(cx){ for(const b of S.bursts){ if(!ok('burst')) break; const im=IMG.burst, u=b.t/.55, k=.55+.75*Math.min(1,u*3), w=420*k, h=w*im.naturalHeight/im.naturalWidth, y=gy0(cx+b.x); g.globalAlpha=clamp((1-u)*2.2,0,1); g.drawImage(im,b.x-w/2,y-h+8,w,h); g.globalAlpha=1; }
   for(const w of S.waves){ const y=gy0(cx+w.x); if(ok('wave')){ const im=IMG.wave, fw=320, fh=212, f=Math.floor(T*12)%40, dw=380, dh=dw*fh/fw; g.save(); g.translate(w.x,y); if(w.dir>0) g.scale(-1,1); g.drawImage(im,(f%8)*fw,Math.floor(f/8)*fh,fw,fh,-70,-dh+14,dw,dh); g.restore(); }
     else line([[w.x-70,y],[w.x-10,y-96],[w.x+26,y-40],[w.x+60,y-70],[w.x+110,y]],LW+2,'#e23a3a'); } }
+/* 応援団：道の向こう側（足もとは道にかくれる）にならんで、ぴょんぴょんはねる。絵（img/fan0〜3）があればそれを使い、無ければ線で描く */
+function drawFans(cx){ if(S.cheerIn<=0) return; const L=Math.max(1,S.cheerN), i0=Math.floor((cx-200)/CHEER.gap), i1=Math.floor((cx+W+200)/CHEER.gap);
+  for(let i=i0;i<=i1;i++){ const hsh=((i*2654435761)>>>0)%997; if(hsh%CHEER.maxN>=L) continue; const wx=i*CHEER.gap+(hsh%60), x=wx-cx, gy=gy0(wx), hop=Math.abs(Math.sin(T*9+hsh))*26, h=CHEER.h*(.9+(hsh%20)/100), y=gy+34+(1-S.cheerIn)*(h+40)-hop, k=hsh%4;
+    if(ok('fan'+k)){ const im=IMG['fan'+k], w=h*im.naturalWidth/im.naturalHeight; g.drawImage(im,x-w/2,y-h,w,h); }
+    else { const wv=Math.sin(T*12+hsh)*.5, col=['#e23a3a','#ffb000','#2a7de1','#e84393'][k]; line([[x,y-h*.62],[x,y]],LW); line([[x,y-h*.55],[x-34,y-h*.78-wv*22]],LW); line([[x,y-h*.55],[x+34,y-h*.78+wv*22]],LW); ring(x,y-h*.62-22,22,LW,'#fff'); g.fillStyle=col; g.strokeStyle=INK; g.lineWidth=4; for(const sx of [-34,34]){ g.beginPath(); g.arc(x+sx,y-h*.78-(sx<0?wv:-wv)*22-10,13,0,7); g.fill(); g.stroke(); } } } }
 /* 奥から来る岩。front=false は道より向こうにいる間（道の線にかくれる）、true は道に乗ってから。落ちる場所には赤いしるしと影を出す */
 function rockPos(r,cx){ const u=clamp(r.t/ROCK.T,0,1), gy=gy0(cx+r.tx), sc=.1+1.05*Math.pow(u,1.7), x=lerp(r.x0,r.tx,u*u*(3-2*u)), base=lerp(gy-250,gy-ROCK.w*.47*sc,Math.pow(u,1.5)), hop=Math.abs(Math.sin(u*Math.PI*3))*150*(1-u)*(.3+u); if(r.t<=ROCK.T) return {x,y:base-hop,sc,u}; const o=(r.t-ROCK.T)/ROCK.out; return {x:x-o*60,y:gy-ROCK.w*.47*sc+o*o*620,sc:sc*(1+o*1.1),u:1}; }
 function drawRocks(cx,front){ for(const r of S.rocks){ const p=rockPos(r,cx), isFront=p.u>.62; if(isFront!==front) continue; const gy=gy0(cx+r.tx);
@@ -276,7 +283,7 @@ function drawDog(d){ const y=gy0(camX()+d.x)-4, run=Math.sin(T*22); g.save(); g.
   if(d.st==='run' && d.t>T_.dog-.7) txt('ガウ！',40,-140,36,INK,'center'); g.restore(); }
 function draw(){ const cx=camX(); g.fillStyle='#fff'; g.fillRect(0,0,W,H); g.save(); if(S.shake>0) g.translate(rand(-1,1)*S.shake*16,rand(-1,1)*S.shake*16);
   if(S.tilt>.002){ g.translate(BXX(),gy0(cx+BXX())); g.rotate(-S.tilt); g.translate(-BXX(),-gy0(cx+BXX())); }   /* 坂道：画面ごとかたむける */
-  drawFar(cx); drawGiant(cx); drawRocks(cx,false); drawGround(cx); drawWaves(cx); drawRocks(cx,true); drawEnts(cx); drawSpeed(); drawWarn(cx);
+  drawFar(cx); drawFans(cx); drawGiant(cx); drawRocks(cx,false); drawGround(cx); drawWaves(cx); drawRocks(cx,true); drawEnts(cx); drawSpeed(); drawWarn(cx);
   /* 風のすじ */
   if(S.windT>0 || S.headT>0 || S.rocketT>0){ const back=S.headT>0 && !(S.rocketT>0); for(let i=0;i<10;i++){ const sp=back?900:-1500, x=(((i*197+T*sp)%1300)+1300)%1300-110, y=330+i*38, L=back?90:150; line([[x,y],[x+L,y]],4); } }
   if(S.dog) drawDog(S.dog); drawSky(cx);
@@ -296,7 +303,7 @@ function drawHud(){
   line([[0,172],[W,172]],4);
   for(let i=0;i<CFG.hp;i++) heart(56+i*52,216,.9,i<S.hp);
   /* 効果の札 */
-  { const tags=[]; if(S.rocketT>0) tags.push('ロケット あと'+Math.ceil(S.rocketT)+'秒'); if(S.windT>0) tags.push('追い風 あと'+Math.ceil(S.windT)+'秒'); if(S.assistT>0) tags.push('アシスト あと'+Math.ceil(S.assistT)+'秒'); if(S.bigT>0) tags.push('でかタイヤ あと'+Math.ceil(S.bigT)+'秒'); if(S.helmet>0) tags.push('ヘルメット ×'+S.helmet); if(S.headT>0) tags.push('向かい風 あと'+Math.ceil(S.headT)+'秒'); if(S.puddleT>0) tags.push('びしょぬれ あと'+Math.ceil(S.puddleT)+'秒'); if(S.punkT>0) tags.push('パンク あと'+Math.ceil(S.punkT)+'秒');
+  { const tags=[]; if(S.rocketT>0) tags.push('ロケット あと'+Math.ceil(S.rocketT)+'秒'); if(S.cheerT>0) tags.push('応援団 あと'+Math.ceil(S.cheerT)+'秒'); if(S.assistT>0) tags.push('アシスト あと'+Math.ceil(S.assistT)+'秒'); if(S.bigT>0) tags.push('でかタイヤ あと'+Math.ceil(S.bigT)+'秒'); if(S.helmet>0) tags.push('ヘルメット ×'+S.helmet); if(S.headT>0) tags.push('向かい風 あと'+Math.ceil(S.headT)+'秒'); if(S.puddleT>0) tags.push('びしょぬれ あと'+Math.ceil(S.puddleT)+'秒'); if(S.punkT>0) tags.push('パンク あと'+Math.ceil(S.punkT)+'秒');
     let y=276; for(const t of tags){ g.font='900 24px '+FONT; const tw=g.measureText(t).width+36; rr(34,y-20,tw,40,20); g.fillStyle='#fff'; g.fill(); g.lineWidth=3; g.strokeStyle=INK; g.stroke(); txt(t,34+tw/2,y+1,24,INK,'center'); y+=48; } }
   /* WIN */
   { const bx=W-224, by=8, bw=120, bh=156, cx0=bx+bw/2; txt('WIN',cx0,by+26,26,INK,'center'); txt(''+(wins<0?'−'+(-wins):wins),cx0,by+80,70,INK,'center',null,FONTD); if(S.winFx>0){ g.globalAlpha=clamp(S.winFx,0,1); txt('−1',bx-10,by+80-(2.2-S.winFx)*18,44,INK,'right'); g.globalAlpha=1; }
