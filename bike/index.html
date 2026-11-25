@@ -26,7 +26,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
   <button id="testBtn" class="hb" type="button">テスト</button>
   <div id="tp" hidden>
     <h3>お助け</h3>
-    <button class="h" data-a="push">ひと押し<br>大きな手が押す（＋40m）</button><button class="h" data-a="cheer">応援団<br>10秒 1.3倍速（連打で人が増える）</button><button class="h" data-a="assist">電動アシスト<br>15秒 1.5倍速</button><button class="h" data-a="ramp">ジャンプ台<br>大ジャンプで ＋200m</button>
+    <button class="h" data-a="push">ひと押し<br>大きな手が押す（＋40m）</button><button class="h" data-a="cheer">応援団<br>10秒 1.3倍速（連打で人が増える）</button><button class="h" data-a="ramp">ジャンプ台<br>大ジャンプで ＋200m</button>
     <button class="h" data-a="helmet">ヘルメット<br>1回こけない（3個まで）</button><button class="h" data-a="heart">ハート<br>体力 ＋1</button><button class="h" data-a="heal">全回復<br>体力まんたん</button>
     <button class="h" data-a="big">でかタイヤ<br>10秒 穴・岩・振動・バナナが効かない</button><button class="h" data-a="rocket">ロケット自転車<br>5秒 ぶっ飛ばす</button>
     <h3>妨害</h3>
@@ -102,7 +102,6 @@ const Game={
   push(n){ if(S.mode!=='ride') return; S.pushQ=Math.min(30,S.pushQ+1); logAdd((n||'だれか')+' がうしろから押してくれた（＋'+PUSH.gain+'m）','#5dffb0'); },
   block(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.blockLeft+=BLOCK.back; if(!S.block) S.block={t:0,st:'in',tick:0}; else if(S.block.st==='out'){ S.block.st='in'; S.block.t=BLOCK.inT*(1-Math.min(1,S.block.t/BLOCK.outT)); } logAdd((n||'だれか')+' の手が押しもどした（−'+BLOCK.back+'m）','#ff9aa8'); },
   cheer(n){ if(S.mode!=='ride') return; S.cheerT=Math.min(CHEER.maxSec,S.cheerT+CHEER.sec); S.cheerN=Math.min(CHEER.maxN,S.cheerN+1); if(S.cheerN===1) S.cheerIn=0; play('levelup',.5); logAdd((n||'だれか')+' が応援団を呼んだ（'+CHEER.sec+'秒 スピードアップ・'+S.cheerN+'組め）','#5dffb0'); },
-  assist(n){ if(S.mode!=='ride') return; S.assistT=Math.min(45,S.assistT+T_.assist); S.punkT=0; play('boost',.6); logAdd((n||'だれか')+' が電動アシストをつけた（'+T_.assist+'秒 1.5倍速）','#5dffb0'); },
   ramp(n){ if(S.mode!=='ride') return; S.ents.push({k:'ramp',x:ahead(),by:n}); logAdd((n||'だれか')+' がジャンプ台を置いた','#5dffb0'); },
   helmet(n){ if(S.mode!=='ride') return; S.helmet=Math.min(T_.helmetMax,S.helmet+1); play('bless',.6); logAdd((n||'だれか')+' がヘルメットをくれた（あと'+S.helmet+'回こけない）','#5dffb0'); },
   heart(n){ if(S.mode!=='ride') return; if(S.hp<CFG.hp){ S.hp++; play('heal',.6); } logAdd((n||'だれか')+' のハートで体力 ＋1','#5dffb0'); },
@@ -356,7 +355,7 @@ function drawHud(){
   line([[0,172],[W,172]],4);
   for(let i=0;i<CFG.hp;i++) heart(56+i*52,216,.9,i<S.hp);
   /* 効果の札 */
-  { const tags=[]; if(S.rocketT>0) tags.push('ロケット あと'+Math.ceil(S.rocketT)+'秒'); if(S.cheerT>0) tags.push('応援団 あと'+Math.ceil(S.cheerT)+'秒'); if(S.assistT>0) tags.push('アシスト あと'+Math.ceil(S.assistT)+'秒'); if(S.bigT>0) tags.push('でかタイヤ あと'+Math.ceil(S.bigT)+'秒'); if(S.helmet>0) tags.push('ヘルメット ×'+S.helmet); if(S.headT>0) tags.push('向かい風 あと'+Math.ceil(S.headT)+'秒'); if(S.puddleT>0) tags.push('びしょぬれ あと'+Math.ceil(S.puddleT)+'秒'); if(S.punkT>0) tags.push('パンク あと'+Math.ceil(S.punkT)+'秒');
+  { const tags=[]; if(S.rocketT>0) tags.push('ロケット あと'+Math.ceil(S.rocketT)+'秒'); if(S.cheerT>0) tags.push('応援団 あと'+Math.ceil(S.cheerT)+'秒'); if(S.bigT>0) tags.push('でかタイヤ あと'+Math.ceil(S.bigT)+'秒'); if(S.helmet>0) tags.push('ヘルメット ×'+S.helmet); if(S.headT>0) tags.push('向かい風 あと'+Math.ceil(S.headT)+'秒'); if(S.puddleT>0) tags.push('びしょぬれ あと'+Math.ceil(S.puddleT)+'秒'); if(S.punkT>0) tags.push('パンク あと'+Math.ceil(S.punkT)+'秒');
     let y=276; for(const t of tags){ g.font='900 24px '+FONT; const tw=g.measureText(t).width+36; rr(34,y-20,tw,40,20); g.fillStyle='#fff'; g.fill(); g.lineWidth=3; g.strokeStyle=INK; g.stroke(); txt(t,34+tw/2,y+1,24,INK,'center'); y+=48; } }
   /* WIN */
   { const bx=W-224, by=8, bw=120, bh=156, cx0=bx+bw/2; txt('WIN',cx0,by+26,26,INK,'center'); txt(''+(wins<0?'−'+(-wins):wins),cx0,by+80,70,INK,'center',null,FONTD); if(S.winFx>0){ g.globalAlpha=clamp(S.winFx,0,1); txt('−1',bx-10,by+80-(2.2-S.winFx)*18,44,INK,'right'); g.globalAlpha=1; }
