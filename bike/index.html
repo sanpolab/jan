@@ -254,11 +254,10 @@ function drawPush(){ const h=S.push; if(!h) return; const p=bikePose(), e=x=>x*x
   if(h.hit && h.t<PUSH.inT+.3){ for(let i=0;i<3;i++) line([[tipX+30,y-50+i*50],[tipX+70,y-64+i*64]],6); } }
 /* ストップの手：右はしから出てきて、自転車の前で止まり、押しもどして引っこむ。腕は画面の右はしまでのばす */
 function drawBlock(){ const h=S.block; if(!h || !ok('hand')) return; const p=bikePose(), e=x=>x*x*(3-2*x), push=h.st==='push', u=h.st==='in'?e(clamp(h.t/BLOCK.inT,0,1)):(push?1:1-e(clamp(h.t/BLOCK.outT,0,1))), jx=push?Math.sin(T*70)*9:0, jy=push?Math.cos(T*53)*5:0, tipX=BXX()+WB/2+WR*S.bigK-10, x1=lerp(W+40,tipX,u)+jx, im=IMG.hand, sc=BLOCK.h/im.naturalHeight, w=im.naturalWidth*sc, y0=p.y-70-BLOCK.h*.49+jy;
+  /* 勢いの線は手につける：手のうしろ（腕にそって右）へ流す。手にくっついた側が太く、右へ行くほど細い。コマごとに上下を入れかえ・少しずらして、ばたつかせる */
+  if((push || h.st==='in') && ok('zlines')){ const zl=IMG.zlines, fr=Math.floor(T*16), zw=640, zh=BLOCK.h*1.25, zx=x1+50-((fr*37)%40); g.save(); g.globalAlpha=h.st==='in'?.9*u:.9; g.translate(zx,y0+BLOCK.h*.5); g.scale(-1,(fr%2)?-1:1); g.drawImage(zl,-zw,-zh/2,zw,zh); g.restore(); }
   g.drawImage(im,x1,y0,w,BLOCK.h); if(x1+w<W+30) g.drawImage(im,im.naturalWidth-40,0,40,im.naturalHeight,x1+w-1,y0,W+40-(x1+w),BLOCK.h);
   if(push){ const fr=Math.floor(T*16), cy=y0+BLOCK.h*.5;
-    /* 押されている勢いの線：自転車のうしろへ流す（コマごとに上下を入れかえ・少しずらして、ばたつかせる） */
-    if(ok('zlines')){ const im=IMG.zlines, w=620, hh=330, xr=BXX()-30+((fr*37)%50); g.save(); g.globalAlpha=.9; g.translate(xr-w,cy); if(fr%2) g.scale(1,-1); g.drawImage(im,0,-hh/2,w,hh); g.restore(); }
-    else for(let i=0;i<5;i++){ const yy=y0+30+i*58+Math.sin(T*40+i)*8, L=60+((i*37+fr*13)%70); line([[tipX-26,yy],[tipX-26-L,yy-10]],6,'#e23a3a'); }
     /* 手が当たっている所の衝撃マーク：大きさと向きをコマごとに変えて、チカチカさせる */
     if(ok('impact')){ const im=IMG.impact, sz=230+((fr*53)%90), ix=tipX-8+((fr*29)%24)-12, iy=cy+((fr*41)%60)-30; g.save(); g.translate(ix,iy); g.rotate((fr%4)*.5); g.drawImage(im,-sz/2,-sz/2,sz,sz*im.naturalHeight/im.naturalWidth); g.restore(); } } }
 /* 応援団：道の向こう側（足もとは道にかくれる）にならんで、ぴょんぴょんはねる。絵（img/fan0〜3）があればそれを使い、無ければ線で描く */
