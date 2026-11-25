@@ -131,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 02:22</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 02:29</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -192,7 +192,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <h3>妨害</h3>
     <button class="j" data-a="meteor">隕石<br>耐久 −1</button><button class="j" data-a="stall">エンジン停止<br>3秒 落ちていく</button>
     <button class="j" data-a="hole">ブラックホール<br>−1,000m</button><button class="j" data-a="crash">撃墜（機械クジラ）<br>飲みこまれて即ついらく＋セーブ消去</button><button class="j" data-a="dragonAtk">ドラゴン襲来<br>火球4発（当たれば耐久−1）</button>
-    <!-- 減速板はいったんお休み（絵 img/pad_dn.webp と Game.slowpad は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="vamp">吸血鬼<br>15秒 コウモリの嵐（連打で3体まで）</button><button class="j" data-a="unsave">セーブ解除（魔女）<br>セーブ地点を消す</button><button class="j" data-a="tengu">天狗<br>うちわの大風 3回（横に強く流される）</button><button class="j" data-a="maou">魔王<br>WIN −50</button><button class="j" data-a="kama">宇宙カマキリ<br>斬撃6発 上下左右から</button><button class="j" data-a="akuma">悪魔降臨<br>20秒 光る輪へ逃げる</button><button class="j" data-a="roulDown">ゴール＋ルーレット<br>ゴールが 100〜1,000m 遠ざかる</button><button class="j" data-a="jelly">クラゲの群れ<br>30秒 9匹がいすわる（連打で増える）</button><button class="j" data-a="storm">雷雲<br>落雷を8回（予告あり・1本はねらってくる）</button><button class="j" data-a="spike">トゲ鉄球<br>10秒 振り子（当たると耐久−1）</button><button class="j" data-a="blackout">チョウチンアンコウ<br>10秒 まっ暗（ライトの先だけ見える）</button><button class="j" data-a="ufo">UFO<br>15秒 操作が上下左右とも逆（必ず当たる）</button><button class="j" data-a="garg">ガーゴイル<br>しがみつかれると落ちていく（振り落とせる）</button><button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−2,000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法2発（耐久−1）</button>
+    <!-- 減速板はいったんお休み（絵 img/pad_dn.webp と Game.slowpad は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="vamp">吸血鬼<br>15秒 コウモリの嵐（連打で3体まで）</button><button class="j" data-a="unsave">セーブ解除（魔女）<br>セーブ地点を消す</button><button class="j" data-a="tengu">天狗<br>うちわの大風 3回（横に強く流される）</button><button class="j" data-a="maou">魔王<br>WIN −50</button><button class="j" data-a="kama">宇宙カマキリ<br>斬撃12発 上下左右から</button><button class="j" data-a="akuma">悪魔降臨<br>20秒 光る輪へ逃げる</button><button class="j" data-a="roulDown">ゴール＋ルーレット<br>ゴールが 100〜1,000m 遠ざかる</button><button class="j" data-a="jelly">クラゲの群れ<br>30秒 9匹がいすわる（連打で増える）</button><button class="j" data-a="storm">雷雲<br>落雷を8回（予告あり・1本はねらってくる）</button><button class="j" data-a="spike">トゲ鉄球<br>10秒 振り子（当たると耐久−1）</button><button class="j" data-a="blackout">チョウチンアンコウ<br>10秒 まっ暗（ライトの先だけ見える）</button><button class="j" data-a="ufo">UFO<br>15秒 操作が上下左右とも逆（必ず当たる）</button><button class="j" data-a="garg">ガーゴイル<br>しがみつかれると落ちていく（振り落とせる）</button><button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−2,000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法2発（耐久−1）</button>
     <h3>目標の高さ（変えると0からやり直し）</h3>
     <button class="g" data-g="1000">1,000m</button><button class="g" data-g="5000">5,000m</button><button class="g" data-g="10000">10,000m</button>
     <button class="g" data-g="50000">50,000m</button><button class="g" data-g="100000">100,000m</button><button class="n" data-a="reset">記録を消す</button><button class="n" data-a="title">タイトルに戻る</button>
@@ -231,7 +231,7 @@ function mkVid(name){ const v=document.createElement('video'); v.preload='auto';
 const VID={icebird:{v:mkVid('icebird'),dur:5.8},phoenix:{v:mkVid('phoenix'),dur:4.3},hole:{v:mkVid('hole'),dur:4.9},whale:{v:mkVid('whale'),dur:5.5},astro:{v:mkVid('astro'),dur:8.9},vamp:{v:mkVid('vamp'),dur:5.0},stop:{v:mkVid('stop'),dur:5.0},goal:{v:mkVid('goal'),dur:9.9},samurai:{v:mkVid('samurai'),dur:4.7},storm:{v:mkVid('storm'),dur:5.0},jelly:{v:mkVid('jelly'),dur:5.0},maou:{v:mkVid('maou'),dur:9.8},hero:{v:mkVid('hero'),dur:9.9},comet:{v:mkVid('comet'),dur:5.0},double:{v:mkVid('double'),dur:5.0},akuma:{v:mkVid('akuma'),dur:7.3},kama:{v:mkVid('kama'),dur:3.85}};
 img('hslash','hslash.webp'); const heSh=mkSheet('hero',{n:30,cols:8,fw:260,fh:379,fps:10});   /* 正面向きの勇者の全身（剣をかかげる→振り下ろす→かまえる） */
 /* 宇宙カマキリ：1発目は右はしから体ごと身を乗り出して斬る。2発目からは、上下左右のどこかのはしから鎌の腕だけが出てきて斬る（向きは毎回ランダム）。横向きの斬撃は上下に、たて向きの斬撃は左右によける。当たると耐久−1 */
-const KAMA={n:6,inT:.8,warn:.85,pre:.42,gap:.5,outT:.6,vx:[250,540,830],lanes:[615,815,1015],top:200,bot:1300,armH:640,armW:359,armPx:.5,band:92,v:2500,sw:620,sh:259,w:1180,cols:5,fw:800,fh:450,nf:14,fps:12,by:.78,
+const KAMA={n:12,inT:.8,warn:.85,pre:.42,gap:.5,outT:.6,vx:[250,540,830],lanes:[615,815,1015],top:200,bot:1300,armH:640,armW:359,armPx:.5,band:92,v:2500,sw:620,sh:259,w:1180,cols:5,fw:800,fh:450,nf:14,fps:12,by:.78,
   D:{R:{dx:-1,dy:0,rot:-Math.PI/2,sr:0},L:{dx:1,dy:0,rot:Math.PI/2,sr:Math.PI},D:{dx:0,dy:-1,rot:0,sr:Math.PI/2},U:{dx:0,dy:1,rot:Math.PI,sr:-Math.PI/2}}};
 img('kama','kama.webp'); img('kama_slash','kama_slash.webp'); img('kama_face','kama_face.jpg'); img('kama_arm','kama_arm.webp');
 /* 悪魔降臨：画面の奥に槍の羽の悪魔が浮かび、10秒のあいだ何度も槍を降らせる。毎回1か所だけ光る丸い輪（助かる場所）が出て、その外にいると耐久−1 */
@@ -246,7 +246,7 @@ img('jzap','jzap.webp'); const jfSh=mkSheet('jelly',{n:24,cols:8,fw:224,fh:216,f
 function jellyCv(i){ if(!jfSh.ok) return null; if(jfCv[i]) return jfCv[i]; if(i===0) return jfCv[0]=jfSh.cv; const c=document.createElement('canvas'); c.width=jfSh.cv.width; c.height=jfSh.cv.height; const x=c.getContext('2d'); x.drawImage(jfSh.cv,0,0); try{ const d=x.getImageData(0,0,c.width,c.height), q=d.data; for(let k=0;k<q.length;k+=4){ const r=q[k], gg=q[k+1], b=q[k+2]; if(i===1){ q[k]=b; q[k+1]=r; q[k+2]=gg; } else { q[k]=gg; q[k+1]=b; q[k+2]=r*.6+b*.4; } } x.putImageData(d,0,0); }catch(e){} return jfCv[i]=c; }   /* 色ちがい：0＝水色、1＝ピンク、2＝黄みどり */
 const JELLY={n:9,maxN:36,get sec(){ return DIFFS[DIFF].jelly; },inT:1.3,outT:1.1,w:205,hx:66,hy:52,by:.3};   /* クラゲ：数、いすわる秒数、来る・帰る秒数、絵の横幅、傘の当たり幅と高さの半分、傘の中心が絵の上からどこか */
 for(const k of ['scloud','sbolt','sspark']) img(k,k+'.webp');
-const STORM={inT:.8,get vol(){ return DIFFS[DIFF].storm; },per:4,warn:1.0,zap:.38,gap:.5,hw:62,min:210,outT:.8,cy:150};   /* 雷雲：雲が広がる秒数、落とす回数、1回の本数、予告の秒数、光る秒数、次までの間、雷の当たり幅の半分、雷どうしの最小間かく、雲が消える秒数、雲の高さの位置 */
+const STORM={inT:.8,get vol(){ return DIFFS[DIFF].storm; },per:5,warn:1.0,zap:.38,gap:.5,hw:62,min:210,outT:.8,cy:150};   /* 雷雲：雲が広がる秒数、落とす回数、1回の本数、予告の秒数、光る秒数、次までの間、雷の当たり幅の半分、雷どうしの最小間かく、雲が消える秒数、雲の高さの位置 */
 function stormAim(){ const xs=[clamp(RXw()+rand(-30,30),XL+90,XL+XW-90)]; let guard=0; while(xs.length<STORM.per && guard++<200){ const x=rand(XL+90,XL+XW-90); if(xs.every(q=>Math.abs(q-x)>=STORM.min)) xs.push(x); } return xs; }
 img('slash','slash.webp'); const samSh=mkSheet('sam',{n:40,cols:8,fw:480,fh:273,fps:12});   /* 正面向きの侍（コマ0＝振り抜いた姿、33あたりで刀を納めきる） */
 const SAM={kill:1.72,life:2.6,rate:1.6,w:640,y:460,cx:.31};   /* 侍：刀を納めて敵が消える時刻、いる秒数、コマ送りの速さ、絵の横幅と位置、体の中心が絵の左からどこにあるか */
@@ -791,7 +791,7 @@ const FREE={likePer:1000,likes:0,last:new Map(),get commentGap(){ return DIFFS[D
 const GACHA={spin:1.9,show:1.0,sec:30,list:['gold','dragon','mega'],gap:330};   /* 機体ガチャ：回る秒数、結果を見せる秒数、変身が続く秒数、出る機体、絵の間隔 */
 function ring(x,y,c,big){ S.rings.push({x:RXw()+(x-W/2)*RS,y:RYw()+(y-RY)*RS,c,t:0,big:!!big}); }
 /* カットインが出る妨害は、カットインが消えるまで攻撃を始めない（見えないうちにやられないように）。カットインを出してから、消えたあとで中身を動かす */
-const CUTW={blackout:'angler',unsave:'unsave',stall:'stall',vamp:'vamp',tengu:'tengu',ufo:'ufo',garg:'garg',wizard:'wizard'}, CUTP=[];
+const CUTW={blackout:'angler',unsave:'unsave',stall:'stall',vamp:'vamp',tengu:'tengu',ufo:'ufo',garg:'garg',wizard:'wizard',dome:'dome',save:'save',buddy:'buddy'}, CUTP=[];
 for(const [m,k] of Object.entries(CUTW)){ const f=Game[m]; if(typeof f!=='function') continue; Game[m]=function(n){ const pend=CUTP.find(p=>p.k===k); if(pend){ pend.fns.push({n,q:QUIET}); return; } const last=cutLast[k]===undefined?-99:cutLast[k]; if(S.mode!=='fly' || QUIET || inv() || (T-last<8 && T>=last) || !cutOnce(k,n)) return f.call(Game,n); CUTP.push({k,f,t:0,seen:false,fns:[{n,q:false}]}); }; }
 function cutWaitTick(dt){ if(!CUTP.length) return; for(const p of CUTP){ p.t+=dt; const on=!!(S.cutin && S.cutin.k===p.k), queued=!!(S.cutQ && S.cutQ.some(c=>c.k===p.k)); if(on) p.seen=true; if((p.seen && !on) || (!on && !queued) || p.t>6 || S.mode!=='fly'){ p.done=true; if(S.mode==='fly') for(const c of p.fns){ const q0=QUIET; QUIET=c.q; try{ p.f.call(Game,c.n); }catch(e){} QUIET=q0; } } } for(let i=CUTP.length-1;i>=0;i--) if(CUTP[i].done) CUTP.splice(i,1); }
 function damage(n){ if(inv()) return; S.hp-=1; S.red=.5; if(S.hp<=0){ S.hp=0; logAdd('耐久が0になった！','#ff5c5c'); startFall(); } }
@@ -1197,7 +1197,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ update(dt); } draw(); } requestAnimationFrame(loop); }
-const VER='1126-022215'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1126-022919'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1244,7 +1244,7 @@ const FX_LIST=[
  ['ice','jam','氷の怪鳥','凍って−2,000m＋30秒 速さ半分',n=>Game.ice(n)],
  ['crash','jam','機械クジラ','飲みこまれて即ついらく＋セーブ消去',n=>Game.crash(n)],
  ['maou','jam','魔王','WIN −50＋赤いカミナリ（当たると一発で墜落）',n=>Game.maou(n)],
- ['kama','jam','宇宙カマキリ','斬撃6発 上下左右から（当たると耐久−1）',n=>Game.kama(n)],
+ ['kama','jam','宇宙カマキリ','斬撃12発 上下左右から（当たると耐久−1）',n=>Game.kama(n)],
  ['akuma','jam','悪魔降臨','20秒 光る輪の外は槍が降る（当たると耐久−2）',n=>Game.akuma(n)]];
 /* スマホ用のつなぎ先（tik.tools）。オンの間はTikFinityのかわりに、ネット経由で同じ形の知らせを受け取る。キーはこの端末にだけ保存 */
 const HOME_URL='https://sanpolab.github.io/jan/rocket/', EMBED=!/(^|\.)github\.io$|^localhost$|^127\./.test(location.hostname);   // EMBED：Claudeの共有ページなど、正式なアドレス以外で開いている
