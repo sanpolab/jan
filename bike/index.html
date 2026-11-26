@@ -146,7 +146,7 @@ canvas{touch-action:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/bike/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/bike/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/25 17:21</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 10:55</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -217,7 +217,7 @@ const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.ge
 const W=1080, H=1080, FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, rand=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.floor(Math.random()*a.length)];
 const fmt=n=>Math.floor(n).toLocaleString('ja-JP');
-const VER='1125-172140';
+const VER='1126-105515';
 let SPD=1, TITLE=true, PAUSE=false; const PENDQ=[], SPD_OPTS=[1,1.25,1.5,2];   /* SPD＝タイトルでえらぶ速さ。PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 try{ const o=JSON.parse(localStorage.getItem('bike_cfg')||'{}'); if(SPD_OPTS.includes(o.spd)) SPD=o.spd; }catch(e){}
 function cfgSave(){ try{ localStorage.setItem('bike_cfg',JSON.stringify({spd:SPD})); }catch(e){} }
@@ -250,7 +250,8 @@ const ANG={cols:9,fw:452,fh:400,h:330,flap:19,act:[19,20,21,22,23,24,25,26,31,32
    low＝足もとのレーザー（ジャンプでよける）、high＝頭の上のレーザー（ジャンプするとあたる）、pit＝落とし穴（ジャンプでこえる）。全画面の映像は使わない */
 const BONE={n:4,first:.5,pop:.2,warn:.55,beam:.36,back:.18,gap:.12,pitHold:.5,pitWait:1.25,mx:760,lowY:74,highY:372,beamH:64,w:860,ax:.284,ay:.589,fw:576,fh:324,cols:6,nf:23};   /* 動画から作った23コマ（口を開けて光をためる）。ax/ay は、口の中の光の中心 */   /* すばやく：頭を出す→ねらう→撃つ→引っこめる、をくり返す。mx＝口の横位置、ax/ay＝絵の中の口の位置 */
 /* ひと押し：画面の左から大きな手が出てきて、自転車のうしろをポンと押す（少しだけ前へ進む）。安いギフト向き。連打された分は順番に押す */
-const PUSH={gain:40,inT:.28,hold:.12,outT:.35,w:520};
+const PUSH={gain:40,inT:.24,per:.4,outT:.35,w:520};   /* ひと押し：ストップの手と同じ絵（色ちがい）が左から出て、ためた分をずがががっと前へ押す */
+function handRate(left,base){ return Math.max(base,left/3); }   /* たくさんたまっている時は、そのぶん速く押す（100個でも十数秒で全部きく） */
 /* ストップの手（妨害）：画面の右はしから大きな手が出てきて、自転車を前から押しもどす（少しだけ後ろへ下がる）。安いギフト向き。連打された分は順番に押す */
 const BLOCK={back:60,inT:.24,per:.6,outT:.35,h:300};   /* 1回ぶん（60m）を per 秒かけて、ずがががっと押しもどす。連打された分は、手が出たまま続けて押す */
 /* 応援団：道の向こう側に観客がならんで、スピードが上がる。連打されるほど観客が増えて、少しずつ速くなる */
@@ -267,7 +268,7 @@ const T_={wind:10,windMul:2,assist:15,assistMul:1.5,rocket:5,rocketMul:3,headwin
 let S, best=0, tries=1, wins=0, falls=0, T=0, likeAcc=0; const CMT={};
 try{ const o=JSON.parse(localStorage.getItem('bike_save')||'{}'); best=o.best||0; tries=o.tries||1; wins=o.wins||0; falls=o.falls||0; if(o.g3) CFG.goal=o.g3; }catch(e){}
 function save(){ try{ localStorage.setItem('bike_save',JSON.stringify({best,tries,wins,falls,g3:CFG.goal})); }catch(e){} }
-function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, cheerT:0, cheerN:0, cheerIn:0, push:null, pushQ:0, pushGain:0, block:null, blockLeft:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, bigT:0, bigK:1, birds:[], birdQ:0, birdT:0, hillNeed:0, hillAll:0, tapPow:0, tilt:0, clouds:[], bolts:[], rocks:[], bone:null, god:null, wanim:[], ox:(S?S.ox:0), tx:(S?S.tx:0), mileI:0, mileFx:null, giant:null, waves:[], bursts:[], spear:null, spears:[], spearFl:[], rocketAge:0, junk:null }; }
+function newRun(){ const lg=S?S.log:[]; S={ mode:'ride', x:0, hp:CFG.hp, jy:0, vy:0, air:false, wheel:0, ents:[], pits:[], parts:[], log:lg, windT:0, cheerT:0, cheerN:0, cheerIn:0, push:null, pushLeft:0, block:null, blockLeft:0, assistT:0, rocketT:0, headT:0, puddleT:0, punkT:0, helmet:0, invT:0, crashT:0, backT:0, backFrom:0, clearT:0, dog:null, flash:0, shake:0, red:0, banner:null, winFx:0, fallFx:0, spd:0, lean:0, rider:null, bikeP:null, holdT:.6, bigT:0, bigK:1, birds:[], birdQ:0, birdT:0, hillNeed:0, hillAll:0, tapPow:0, tilt:0, clouds:[], bolts:[], rocks:[], bone:null, god:null, wanim:[], ox:(S?S.ox:0), tx:(S?S.tx:0), mileI:0, mileFx:null, giant:null, waves:[], bursts:[], spear:null, spears:[], spearFl:[], rocketAge:0, junk:null }; }
 function logAdd(t,c){ S.log.push({t,c:c||'#fff',at:T}); if(S.log.length>3) S.log.shift(); }
 function banner(t,c,sub){ S.banner={t,c,sub:sub||'',at:0}; }
 
@@ -286,8 +287,8 @@ const ahead=()=>camX()+W+rand(1500,1900);   /* 速いので、物は画面のず
 const Game={
   jump(){ if(S.mode==='ride' && S.hillNeed>0 && S.rocketT<=0){ S.tapPow=Math.min(1.25,S.tapPow+HILL.tap); dust(2); S.hillNeed--; if(S.hillNeed<=0){ S.hillNeed=0; S.hillAll=0; play('bell',.35); play('levelup',.5); logAdd('坂道をのぼりきった！','#5dffb0'); } }   /* 坂道の間は、タップ＝ひとこぎ。ジャンプもふつうにできる（空中で押しても、こいだ数に入る） */
     if(S.mode!=='ride' || S.air || S.rocketT>0) return; S.air=true; S.vy=CFG.jumpV; dust(8); play('jump',.25); },
-  push(n){ if(S.mode!=='ride') return; S.pushQ=Math.min(30,S.pushQ+1); logAdd((n||'だれか')+' がうしろから押してくれた（＋'+PUSH.gain+'m）','#5dffb0'); },
-  block(n){ if(S.mode!=='ride' || S.rocketT>0) return; S.blockLeft+=BLOCK.back; if(!S.block) S.block={t:0,st:'in',tick:0}; else if(S.block.st==='out'){ S.block.st='in'; S.block.t=BLOCK.inT*(1-Math.min(1,S.block.t/BLOCK.outT)); } logAdd((n||'だれか')+' の手が押しもどした（−'+BLOCK.back+'m）','#ff9aa8'); },
+  push(n,c){ c=Math.max(1,c|0); if(S.mode!=='ride') return; S.pushLeft+=PUSH.gain*c; if(!S.push) S.push={t:0,st:'in',tick:0}; else if(S.push.st==='out'){ S.push.st='in'; S.push.t=PUSH.inT*(1-Math.min(1,S.push.t/PUSH.outT)); } logAdd((n||'だれか')+' がうしろから押してくれた（＋'+fmt(PUSH.gain*c)+'m）','#5dffb0'); },
+  block(n,c){ c=Math.max(1,c|0); if(S.mode!=='ride') return; S.blockLeft+=BLOCK.back*c; if(S.rocketT<=0){ if(!S.block) S.block={t:0,st:'in',tick:0}; else if(S.block.st==='out'){ S.block.st='in'; S.block.t=BLOCK.inT*(1-Math.min(1,S.block.t/BLOCK.outT)); } }   /* ロケット中は、終わってから押しもどす（消えない） */ logAdd((n||'だれか')+' の手が押しもどした（−'+fmt(BLOCK.back*c)+'m）','#ff9aa8'); },
   winUp(n){ if(S.mode==='clear') return; S.wanim.push({k:'up',t:0,by:n,done:false,x0:BXX(),y0:bikePose().y-150}); play('harp',.75); logAdd((n||'だれか')+' が WIN を＋1 してくれた','#5dffb0'); },
   winDown(n){ if(S.mode==='clear') return; S.wanim.push({k:'down',t:0,by:n,done:false}); play('dark',.6); play('wing',.7); logAdd((n||'だれか')+' の悪魔が WIN を−1 しに来た','#ff9aa8'); },
   god(n){ if(S.mode!=='ride' || S.god) return; S.god={t:0,by:n,done:false}; play('holy',.7); play('gust',.5); logAdd((n||'だれか')+' が神の手を呼んだ（妨害をぜんぶはらう）','#ffd23f'); },
@@ -370,13 +371,15 @@ function update(dt){ T+=dt;
     if(S.dog){ const d=S.dog; d.t+=dt; const fast=S.spd>CFG.speed*1.3; if(d.st==='run'){ d.x=lerp(d.x,fast?-260:BXX()-150,clamp(dt*(fast?1.2:1.6),0,1)); if(fast && d.t>1.5){ d.st='out'; logAdd('犬は追いつけなかった','#5dffb0'); } else if(d.t>=T_.dog){ if(S.jy<-60){ d.st='miss'; d.t=0; logAdd('犬のかみつきをジャンプでよけた！','#5dffb0'); } else { d.st='out'; play('bite',.7); crash('犬',d.by); } } }
       else if(d.st==='miss'){ d.x+=520*dt; if(d.x>W+200) S.dog=null; } else { d.x-=420*dt; if(d.x<-260) S.dog=null; } }
     /* ひと押し */
-    if(!S.push && S.pushQ>0){ S.pushQ--; S.push={t:0,hit:false}; }
-    if(S.push){ const h=S.push; h.t+=dt; if(!h.hit && h.t>=PUSH.inT){ h.hit=true; S.pushGain+=PUSH.gain; S.shake=Math.max(S.shake,.18); play('pon',.7); play('swing',.7); dust(6); } if(h.t>=PUSH.inT+PUSH.hold+PUSH.outT) S.push=null; }
-    if(S.pushGain>0){ const d=Math.min(S.pushGain,PUSH.gain*dt/.45); S.pushGain-=d; S.x+=d; }
+    if(S.push){ const h=S.push; h.t+=dt;
+      if(h.st==='in'){ if(h.t>=PUSH.inT){ h.st='push'; h.t=0; S.shake=Math.max(S.shake,.3); play('pon',.7); play('swing',.7); } }
+      else if(h.st==='push'){ const d=Math.min(S.pushLeft,handRate(S.pushLeft,PUSH.gain/PUSH.per)*dt); S.pushLeft-=d; S.x+=d; S.shake=Math.max(S.shake,.16); h.tick-=dt; if(h.tick<=0){ h.tick=.13; play('punch',.3); dust(2); } if(S.pushLeft<=0){ S.pushLeft=0; h.st='out'; h.t=0; } }
+      else if(h.t>=PUSH.outT) S.push=null; }
+    if(!S.block && S.blockLeft>0 && S.rocketT<=0) S.block={t:0,st:'in',tick:0}; if(!S.push && S.pushLeft>0) S.push={t:0,st:'in',tick:0};
     /* ストップの手：出てくる → 残りの距離がなくなるまで押しもどし続ける → 引っこむ */
     if(S.block){ const h=S.block; h.t+=dt;
       if(h.st==='in'){ if(h.t>=BLOCK.inT){ h.st='push'; h.t=0; S.shake=Math.max(S.shake,.5); play('block',.8); } }
-      else if(h.st==='push'){ const d=Math.min(S.blockLeft,BLOCK.back/BLOCK.per*dt); S.blockLeft-=d; S.x=Math.max(0,S.x-d); S.spd=0; S.wheel-=d*PPM/WR; S.shake=Math.max(S.shake,.28); h.tick-=dt; if(h.tick<=0){ h.tick=.11; play('punch',.4); }
+      else if(h.st==='push'){ const d=Math.min(S.blockLeft,handRate(S.blockLeft,BLOCK.back/BLOCK.per)*dt); S.blockLeft-=d; S.x=Math.max(0,S.x-d); S.spd=0; S.wheel-=d*PPM/WR; S.shake=Math.max(S.shake,.28); h.tick-=dt; if(h.tick<=0){ h.tick=.11; play('punch',.4); }
         if(!S.air){ const p=bikePose(); for(let i=0;i<2;i++) S.parts.push({x:BXX()+rand(-90,90),y:p.y+WR*S.bigK+rand(-8,2),vx:rand(260,620),vy:rand(-260,-40),g:900,t:rand(.2,.45),r:rand(8,18),c:'#111'}); }
         if(S.blockLeft<=0 || S.x<=0){ S.blockLeft=0; h.st='out'; h.t=0; } }
       else if(h.t>=BLOCK.outT) S.block=null; }
@@ -433,7 +436,7 @@ function update(dt){ T+=dt;
 }
 
 /* ===== 描く：白い紙に黒い線。妨害だけは色つきの絵（img/ に絵があればそれを使い、無ければ線で描く） ===== */
-const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','hand','zlines','impact','bone','beam','mflash','boneanim','god0','god1','angel','devil','fxstar','fxcrack','fxwind','spear','lancer','engine','flame']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
+const IMG={}; for(const k of ['banana','puddle','rock','dog0','dog1','giant','wave','burst','bird0','bird1','cloud','rockroll','hand','hand2','zlines','impact','bone','beam','mflash','boneanim','god0','god1','angel','devil','fxstar','fxcrack','fxwind','spear','lancer','engine','flame']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 const INK='#111', LW=7;
 function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 function txt(s,x,y,size,color,align,stroke,font){ g.font=(font===FONTD?'400 ':'900 ')+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineWidth=Math.max(4,size*.16); g.strokeStyle=stroke; g.lineJoin='round'; g.strokeText(s,x,y); } g.fillStyle=color; g.fillText(s,x,y); }
@@ -494,9 +497,9 @@ function drawWaves(cx){ for(const b of S.bursts){ if(!ok('burst')) break; const 
   for(const w of S.waves){ const y=gy0(cx+w.x); if(ok('wave')){ const im=IMG.wave, fw=320, fh=212, f=Math.floor(T*12)%40, dw=380, dh=dw*fh/fw; g.save(); g.translate(w.x,y); if(w.dir>0) g.scale(-1,1); g.drawImage(im,(f%8)*fw,Math.floor(f/8)*fh,fw,fh,-70,-dh+14,dw,dh); g.restore(); }
     else line([[w.x-70,y],[w.x-10,y-96],[w.x+26,y-40],[w.x+60,y-70],[w.x+110,y]],LW+2,'#e23a3a'); } }
 /* 押してくれる手：左はしから出てきて、自転車のうしろで止まり、引っこむ。絵（img/hand）があればそれを使う */
-function drawPush(){ const h=S.push; if(!h) return; const p=bikePose(), e=x=>x*x*(3-2*x), u=h.t<PUSH.inT?e(h.t/PUSH.inT):(h.t<PUSH.inT+PUSH.hold?1:1-e(clamp((h.t-PUSH.inT-PUSH.hold)/PUSH.outT,0,1))), tipX=BXX()-WB/2-WR*S.bigK-6, x1=lerp(-80,tipX+(h.t>=PUSH.inT&&h.t<PUSH.inT+PUSH.hold?16:0),u), y=p.y-40;
-  { line([[-40,y],[x1-70,y]],34,'#111'); line([[-40,y],[x1-70,y]],22,'#fff'); g.fillStyle='#fff'; g.strokeStyle=INK; g.lineWidth=LW; g.lineJoin='round'; g.beginPath(); g.moveTo(x1-78,y-34); g.lineTo(x1-22,y-92); g.lineTo(x1,y-84); g.lineTo(x1,y+70); g.lineTo(x1-40,y+78); g.lineTo(x1-78,y+34); g.closePath(); g.fill(); g.stroke(); for(const dy of [-46,-8,30]) line([[x1-34,y+dy],[x1-2,y+dy]],4); }
-  if(h.hit && h.t<PUSH.inT+.3){ for(let i=0;i<3;i++) line([[tipX+30,y-50+i*50],[tipX+70,y-64+i*64]],6); } }
+function drawPush(){ const h=S.push; if(!h || !ok('hand2')) return; const p=bikePose(), e=x=>x*x*(3-2*x), push=h.st==='push', u=h.st==='in'?e(clamp(h.t/PUSH.inT,0,1)):(push?1:1-e(clamp(h.t/PUSH.outT,0,1))), jx=push?Math.sin(T*70)*9:0, jy=push?Math.cos(T*53)*5:0, tipX=BXX()-WB/2-WR*S.bigK+10, im=IMG.hand2, sc=BLOCK.h/im.naturalHeight, w=im.naturalWidth*sc, x1=lerp(-40-w,tipX-w,u)+jx, y0=p.y-70-BLOCK.h*.49+jy;
+  if((push || h.st==='in') && ok('zlines')){ const zl=IMG.zlines, fr=Math.floor(T*16), zw=640, zh=BLOCK.h*1.25, zx=x1+w-50+((fr*37)%40); g.save(); g.globalAlpha=h.st==='in'?.9*u:.9; g.translate(zx,y0+BLOCK.h*.5); g.scale(1,(fr%2)?-1:1); g.drawImage(zl,-zw,-zh/2,zw,zh); g.restore(); }
+  g.drawImage(im,x1,y0,w,BLOCK.h); if(x1>-30) g.drawImage(im,0,0,40,im.naturalHeight,-40,y0,x1+41,BLOCK.h); }
 /* ストップの手：右はしから出てきて、自転車の前で止まり、押しもどして引っこむ。腕は画面の右はしまでのばす */
 function drawBlock(){ const h=S.block; if(!h || !ok('hand')) return; const p=bikePose(), e=x=>x*x*(3-2*x), push=h.st==='push', u=h.st==='in'?e(clamp(h.t/BLOCK.inT,0,1)):(push?1:1-e(clamp(h.t/BLOCK.outT,0,1))), jx=push?Math.sin(T*70)*9:0, jy=push?Math.cos(T*53)*5:0, tipX=BXX()+WB/2+WR*S.bigK-10, x1=lerp(W+40,tipX,u)+jx, im=IMG.hand, sc=BLOCK.h/im.naturalHeight, w=im.naturalWidth*sc, y0=p.y-70-BLOCK.h*.49+jy;
   /* 勢いの線は手につける：手のうしろ（腕にそって右）へ流す。手にくっついた側が太く、右へ行くほど細い。コマごとに上下を入れかえ・少しずらして、ばたつかせる */
@@ -680,7 +683,7 @@ window.addEventListener('keydown',e=>{ KEYS[e.key]=true; if(e.target && /INPUT|T
 window.addEventListener('keyup',e=>{ KEYS[e.key]=false; });
 /* こけている間・スタートにもどされている間に届いたギフトは、消さずにためておき、走り出したら順番に出す（その間は効果の時間も進まない） */
 const WAITQ=[]; let waitT=0;
-for(const k of ['heart','push','helmet','cheer','ramp','big','rocket','god','winUp','banana','puddle','block','dog','bird','pit','rock','cloud','hill','giant','bone','spear','winDown']){ const f=Game[k]; if(typeof f!=='function') continue; Game[k]=function(n){ if(S.mode==='crash' || S.mode==='back'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
+for(const k of ['heart','push','helmet','cheer','ramp','big','rocket','god','winUp','banana','puddle','block','dog','bird','pit','rock','cloud','hill','giant','bone','spear','winDown']){ const f=Game[k]; if(typeof f!=='function') continue; Game[k]=function(n,c){ if(S.mode==='crash' || S.mode==='back'){ if(k==='block' || k==='push'){ const cc=Math.max(1,c|0); if(k==='block') S.blockLeft+=BLOCK.back*cc; else S.pushLeft+=PUSH.gain*cc; return; } if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n,c); }; }
 const tp=document.getElementById('tp'), NAMES=['たぬ吉','ぽんた','みけ','そら','りく','はな','こてつ','もも','ゆず','まる'];
 document.getElementById('testBtn').onclick=()=>{ tp.hidden=!tp.hidden; };
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'), t=document.getElementById('optTrack'); b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); t.innerHTML='BGMの曲<br>'+(OPTS.track==='bgm2'?'2：エナジー':'1：夏休みの探検'); try{ localStorage.setItem('bike_snd',JSON.stringify(OPTS)); }catch(_){} };
@@ -797,7 +800,7 @@ function tfConnect(){ clearTimeout(TF.timer); try{ if(TF.ws){ TF.ws.onclose=null
 function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.data||m||{}, u=d.user||{}, name=d.nickname||u.nickname||d.uniqueId||u.uniqueId||'だれか';
   if(ev==='gift'){ const gd=d.giftDetails||d.extendedGiftInfo||d.gift||{}, id=d.giftId!=null?d.giftId:(gd.id!=null?gd.id:gd.giftId), gname=d.giftName||gd.giftName||gd.name||('ID'+id), coins=d.diamondCount!=null?d.diamondCount:(gd.diamondCount!=null?gd.diamondCount:gd.diamond_count), pic=d.giftPictureUrl||gd.giftPictureUrl||gd.pictureUrl||(gd.icon&&gd.icon.url_list&&gd.icon.url_list[0])||(gd.image&&gd.image.url_list&&gd.image.url_list[0])||null, gtype=d.giftType!=null?d.giftType:gd.giftType, rc=Math.max(1,parseInt(d.repeatCount,10)||1), end=!!d.repeatEnd;
     let n=rc; if(gtype===1){ const k=(d.uniqueId||u.uniqueId||name)+'|'+id, last=TF.streak[k]||0; n=Math.max(0,rc-last); if(end) delete TF.streak[k]; else TF.streak[k]=rc; }
-    if(n<=0) return; feedAdd(name,'が '+gname+(n>1?' ×'+n:'')+' を贈った','gf'); tfGift({id,name:gname,coins,pic},name,Math.min(n,50)); }
+    if(n<=0) return; feedAdd(name,'が '+gname+(n>1?' ×'+n:'')+' を贈った','gf'); tfGift({id,name:gname,coins,pic},name,Math.min(n,5000)); }
   else if(ev==='roomuser'){ const vc=d.viewerCount!=null?d.viewerCount:(d.viewer_count!=null?d.viewer_count:(d.totalUser!=null?d.totalUser:d.total)); if(vc!=null) feedViewers(vc); }
   else if(ev==='chat'){ { const tx=d.comment!=null?d.comment:(d.text!=null?d.text:d.content); if(tx) feedAdd(name,tx); } if(OPT.chatOn && !TITLE && !PAUSE) Game.comment(name); tfLogAdd('コメント：'+name+(OPT.chatOn?'':'（オフ）')); }
   else if(ev==='like'){ const c=parseInt(d.likeCount!=null?d.likeCount:(d.count!=null?d.count:d.likes),10)||1; if(OPT.likeOn && !TITLE && !PAUSE) Game.like(c,name); }
@@ -811,7 +814,8 @@ function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン�
   if(!hit.length && gf.coins!=null){ const same=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(same.length===1){ hit=same; byCoin=true; } }
   { let ch=false; for(const f of hit){ const b=TF.map[f[0]]; if(byCoin) continue; if(b.id==null && gf.id!=null){ b.id=gf.id; ch=true; } if(b.coins==null && gf.coins!=null){ b.coins=gf.coins; ch=true; } if(!b.pic && gf.pic){ b.pic=gf.pic; ch=true; } } if(ch) tfSave(); }
   tfLogAdd('ギフト：'+name+' が '+gf.name+coin+' ×'+n+(hit.length?' → '+hit.map(f=>f[2]).join('・')+(byCoin?'（コイン数で判定）':''):' → 割り当てなし')); if(!hit.length) missAdd(gf);
-  for(let i=0;i<n;i++) for(const f of hit) setTimeout(()=>{ try{ runFx(()=>f[4](name)); }catch(e){} },i*350); }
+  /* 手（＋40m／−60m）は、まとめて投げられた数をぜんぶ一度に足す。ほかは多くても50回まで、順番に出す */
+  for(const f of hit){ if(f[0]==='block' || f[0]==='push'){ try{ runFx(()=>Game[f[0]](name,n)); }catch(e){} continue; } for(let i=0;i<Math.min(n,50);i++) setTimeout(()=>{ try{ runFx(()=>f[4](name)); }catch(e){} },i*350); } }
 const CAT={list:null,cols:24,img:'./img/giftcat.jpg'}; let pickFx=null, pickTab=0;
 const PICK_TABS=[['ぜんぶ',0,1e9],['1',1,1],['5〜30',5,30],['50〜199',50,199],['200〜499',200,499],['500〜999',500,999],['1000〜4999',1000,4999],['5000〜',5000,1e9]];
 function catLink(){ if(!CAT.list) return; let ch=false; for(const k in TF.map){ const b=TF.map[k]; if(!b || !b.name || b.ci!=null) continue; const i=CAT.list.findIndex(e=>tfNorm(e[0])===tfNorm(b.name)); if(i>=0){ b.ci=i; if(b.coins==null) b.coins=CAT.list[i][1]; ch=true; } } if(ch) tfSave(); }
