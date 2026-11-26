@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="ワナだらけ">
 <title>ワナだらけ</title>
 <style>
-@font-face{font-family:MPR;src:url(./font/mpr.woff2) format('woff2');font-weight:900;font-display:swap}
+@font-face{font-family:MPR;src:url(./font/mpr.woff2) format('woff2');font-weight:400;font-display:swap}   /* ドット文字（DotGothic16）。太さは1種類なので、太字はブラウザが太らせる */
 @font-face{font-family:DELA;src:url(./font/dela.woff2) format('woff2');font-display:swap}
 html,body{margin:0;height:100%;background:#10162b;overflow:hidden;font-family:MPR,'Hiragino Sans','Noto Sans JP',sans-serif;font-weight:900;color:#fff;-webkit-user-select:none;user-select:none}
 #stage{position:absolute;left:50%;top:0;transform:translateX(-50%);overflow:hidden}
@@ -146,7 +146,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/trap/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/trap/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 11:55</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 12:08</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -216,7 +216,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
    ギフトで罠（妨害）やお助けがその場に出る。キャラもステージもオリジナル ===== */
 const W=1080, H=1080, FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1126-115513';
+const VER='1126-120843';
 let TITLE=true, PAUSE=false, START='new'; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 const TS=60, ROWS=12, OY=210, TOPH=172, BOTY=930;   /* 1マス60。ゲームの世界は画面の y=210〜930 に12段 */
 const PH={run:330,acc:3200,air:2400,fric:3000,grav:2400,jump:-985,cut:.45,maxFall:1150,coyote:.09,buf:.12,w:36,h:50,spring:-1500};
@@ -487,7 +487,7 @@ function reveal(tx,ty){ if(tile(tx,ty)==='i'){ const gh=S.ghosts.find(q=>q.x===t
 /* ===== 描く：ドット絵ふうのカクカクした見た目 ===== */
 /* 絵（img/）：主人公・マス・トゲ・バネ・旗・背景。読みこめなかった時は、下の手描きのドット絵で代わりに描く */
 const IMG={}; for(const k of ['hero','tiles','spikes','spring','flag','check','bg']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; } const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
-function txt(s,x,y,size,color,align,stroke,font){ g.font=(font===FONTD?'400 ':'900 ')+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineWidth=Math.max(4,size*.16); g.strokeStyle=stroke; g.lineJoin='round'; g.strokeText(s,x,y); } g.fillStyle=color; g.fillText(s,x,y); }
+function txt(s,x,y,size,color,align,stroke,font){ g.font='900 '+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineWidth=Math.max(4,size*.16); g.strokeStyle=stroke; g.lineJoin='round'; g.strokeText(s,x,y); } g.fillStyle=color; g.fillText(s,x,y); }
 function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 /* 主人公「ずきん」：青いずきんと赤いマフラーの小さな子（オリジナル）。1マスを4ピクセルで描く */
 const PAL={B:'#2f6fe0',D:'#1d3f8f',S:'#ffd9a8',K:'#111',R:'#e23a3a',W:'#fff'};
@@ -717,11 +717,26 @@ function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.dat
   else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') feedAdd(name,'がフォローした','fl'); if(ev==='follow' && OPT.followOn) runFx(()=>Game.follow(name)); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
 const GIFT_EN={'rose':['バラ','ローズ'],'tiktok':['TikTok','ティックトック'],'gg':['GG'],'icecreamcone':['ソフトクリーム','アイスクリーム'],'fingerheart':['フィンガーハート','指ハート'],'heartme':['ハートミー'],'rosa':['ローザ'],'perfume':['香水'],'doughnut':['ドーナッツ','ドーナツ'],'donut':['ドーナッツ','ドーナツ'],'handhearts':['ハンドハート'],'handheart':['ハンドハート'],'hatandmustache':['帽子と口ひげ','帽子とひげ'],'papercrane':['折り鶴','折り稚'],'swan':['白鳥','スワン'],'train':['列車'],'corgi':['コーギー'],'confetti':['紙吹雪','コンフェッティ'],'goldenconfetti':['金の紙吹雪'],'lion':['ライオン'],'galaxy':['ギャラクシー','銀河'],'moneygun':['マネーガン'],'sunglasses':['サングラス'],'hearts':['ハート'],'heart':['ハート'],'cap':['キャップ'],'littlecrown':['小さな王冠'],'bubblegum':['風船ガム'],'friendshipnecklace':['友情ネックレス'],'loveyou':['愛してる'],'garlandheadpiece':['花冠'],'coral':['サンゴ'],'football':['サッカー'],'soccer':['サッカー'],'winkwink':['ウインク'],'wink':['ウインク'],'cheeryouup':['エール'],'whalediving':['ダイビングするクジラ','クジラダイビング'],'universe':['TikTok Universe','ユニバース'],'tiktokuniverse':['TikTok Universe','ユニバース'],'interstellar':['インターステラー'],'rocket':['ロケット'],'pegasus':['ペガサス'],'firephoenix':['不死鳥','フェニックス','火の鳥'],'phoenix':['不死鳥','フェニックス'],'feather':['羽根'],'featherstiara':['羽のティアラ'],'feathermask':['羽根のマスク'],'loveshelter':['ラブシェルター'],'superpopular':['スーパー人気'],'ilovepoyou':['大好き'],'ilyso':['大好き'],'youreawesome':['素晴らしい'],'acorn':['どんぐり'],'popsicle':['アイスバー'],'baseball':['野球'],'catpaws':['猫の足'],'glowstick':['ペンライト'],'fan':['うちわ'],'omamori':['おまもり'],'amulet':['おまもり'],'slowmotion':['スローモーション'],'bravo':['ブラボー！'],'genius':['天才'],'firstvisit':['初見です'],'mirrorbloom':['ミラーブルーム'],'butterfly':['蝶結び'],'chili':['チリ'],'starglasses':['スターメガネ'],'ramune':['ラムネ']};
 const enKey=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]/g,''), enHit=(b,gf)=>{ const c=GIFT_EN[enKey(gf.name)]; return !!(c && b.name && c.some(j=>tfNorm(j)===tfNorm(b.name))); };
+/* 名前が合わないギフト（スマホ用のつなぎ先は英語の名前で届く、など）を、絵で見分ける。
+   同じコイン数で、まだIDが決まっていない割り当てが2つ以上ある時だけ使う。届いたギフトの絵と、ギフト一覧の絵（img/giftcat.jpg）の色の分布をくらべて、
+   いちばん近いものがはっきり1つに決まれば、そのギフトのIDを覚える（次からはIDで一発で合う）。絵が読めない・決めきれない時は、今まで通り「分からなかったギフト」に出す */
+const PICM={cat:null,wait:null,sig:{}};
+function picHist(d,w,h,useAlpha){ const H=new Float32Array(64); let n=0; const bg=[d[0],d[1],d[2]]; let alphaSeen=false; if(useAlpha){ for(let i=3;i<d.length;i+=4) if(d[i]<200){ alphaSeen=true; break; } }
+  for(let i=0;i<d.length;i+=4){ const r=d[i], g=d[i+1], b=d[i+2]; if(alphaSeen){ if(d[i+3]<110) continue; } else if(Math.abs(r-bg[0])+Math.abs(g-bg[1])+Math.abs(b-bg[2])<70) continue; H[(r>>6)*16+(g>>6)*4+(b>>6)]++; n++; } if(n<12) return null; for(let i=0;i<64;i++) H[i]/=n; return H; }
+function picDist(a,b){ let s=0; for(let i=0;i<64;i++) s+=Math.min(a[i],b[i]); return 1-s; }
+function picCat(cb){ if(PICM.cat){ cb(PICM.cat); return; } if(PICM.wait){ PICM.wait.push(cb); return; } PICM.wait=[cb]; const im=new Image(); im.onload=()=>{ PICM.cat=im; const q=PICM.wait; PICM.wait=null; q.forEach(f=>f(im)); }; im.onerror=()=>{ const q=PICM.wait; PICM.wait=null; q.forEach(f=>f(null)); }; im.src=CAT.img; }
+function picCell(im,ci){ if(PICM.sig[ci]!==undefined) return PICM.sig[ci]; const rows=CAT.list?Math.ceil(CAT.list.length/CAT.cols):20, cw=im.naturalWidth/CAT.cols, ch=im.naturalHeight/rows, c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,(ci%CAT.cols)*cw,Math.floor(ci/CAT.cols)*ch,cw,ch,0,0,32,32); let s=null; try{ s=picHist(x.getImageData(0,0,32,32).data,32,32,false); }catch(e){} PICM.sig[ci]=s; return s; }
+function picMatch(url,cand,cb){ let done=false; const fin=v=>{ if(done) return; done=true; cb(v); }; setTimeout(()=>fin(null),3000);
+  picCat(cat=>{ if(!cat){ fin(null); return; } const im=new Image(); im.crossOrigin='anonymous'; im.referrerPolicy='no-referrer'; im.onerror=()=>fin(null);
+    im.onload=()=>{ try{ const c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,0,0,32,32); const hs=picHist(x.getImageData(0,0,32,32).data,32,32,true); if(!hs){ fin(null); return; }
+        const sc=cand.map(f=>{ const s=picCell(cat,TF.map[f[0]].ci); return {f,d:s?picDist(hs,s):9}; }).sort((a,b)=>a.d-b.d); window.__picm=sc.map(q=>[q.f[0],+q.d.toFixed(3)]); fin(sc[0].d<.72 && sc[1].d-sc[0].d>.07?sc[0].f:null); }catch(e){ fin(null); } };
+    im.src=url; }); }
 function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
   if(TF.learn){ const id=TF.learn; TF.learn=null; if(TF.seqLearn){ const k=FX_LIST.findIndex(f=>f[0]===id); let nx=null; for(let q=k+1;q<FX_LIST.length;q++){ if(TF.map[FX_LIST[q][0]] && TF.map[FX_LIST[q][0]].name){ nx=FX_LIST[q][0]; break; } } if(nx) TF.learn=nx; else { TF.seqLearn=false; tfLogAdd('順番に受信登録：ぜんぶ終わりました'); } } { const old=TF.map[id]||{}; TF.map[id]={id:gf.id,name:old.name||gf.name,rx:gf.name,coins:gf.coins!=null?gf.coins:old.coins,pic:gf.pic||null,ci:old.ci!=null?old.ci:null}; } tfSave(); cfgBuild(); tfLogAdd('登録：'+gf.name+coin+' → '+(FX_LIST.find(f=>f[0]===id)||[])[2]); return; }
   let hit=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && ((b.id!=null && gf.id!=null && String(b.id)===String(gf.id)) || (b.name && tfNorm(b.name)===tfNorm(gf.name)) || (b.rx && tfNorm(b.rx)===tfNorm(gf.name)) || (b.alt && b.alt.some(t=>tfNorm(t)===tfNorm(gf.name))) || enHit(b,gf)); }), byCoin=false;
   if(!hit.length && gf.coins!=null){ const same=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(same.length===1){ hit=same; byCoin=true; } }
   { let ch=false; for(const f of hit){ const b=TF.map[f[0]]; if(byCoin) continue; if(b.id==null && gf.id!=null){ b.id=gf.id; ch=true; } if(b.coins==null && gf.coins!=null){ b.coins=gf.coins; ch=true; } if(!b.pic && gf.pic){ b.pic=gf.pic; ch=true; } } if(ch) tfSave(); }
+  if(!hit.length && !gf._img && gf.coins!=null && gf.pic){ const cand=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.ci!=null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(cand.length>1){ picMatch(gf.pic,cand,f=>{ if(f){ const b=TF.map[f[0]]; if(gf.id!=null) b.id=gf.id; b.rx=gf.name; tfSave(); tfLogAdd('絵で見分けた：'+gf.name+' → '+f[2]); } tfGift(Object.assign({},gf,{_img:1}),name,n); }); return; } }
   tfLogAdd('ギフト：'+name+' が '+gf.name+coin+' ×'+n+(hit.length?' → '+hit.map(f=>f[2]).join('・')+(byCoin?'（コイン数で判定）':''):' → 割り当てなし')); if(!hit.length) missAdd(gf);
   for(const f of hit) for(let i=0;i<Math.min(n,50);i++) setTimeout(()=>{ try{ runFx(()=>f[4](name)); }catch(e){} },i*350); }
 const CAT={list:null,cols:24,img:'./img/giftcat.jpg'}; let pickFx=null, pickTab=0;
