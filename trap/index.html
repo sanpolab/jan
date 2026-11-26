@@ -30,7 +30,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;touch
   <button id="testBtn" type="button">テスト</button>
   <div id="tp" hidden>
     <h3>お助け</h3>
-    <button class="h" data-a="check">中間ポイント<br>今いる場所から再開</button><button class="h" data-a="barrier">バリア<br>1回だけ守る</button><button class="h" data-a="bridge">足場<br>この先の穴をふさぐ</button><button class="h" data-a="sweep">おそうじ<br>画面の罠を全部消す</button><button class="h" data-a="present">プレゼント箱<br>たたくと おにぎり</button>
+    <button class="h" data-a="check">中間ポイント<br>今いる場所から再開</button><button class="h" data-a="barrier">バリア<br>1回だけ守る</button><button class="h" data-a="bridge">足場<br>この先の穴をふさぐ</button><button class="h" data-a="sweep">おそうじ<br>画面の罠を全部消す</button><button class="h" data-a="present">プレゼント箱<br>たたくと おにぎり</button><button class="h" data-a="skip">1面スキップ<br>今のステージをとばす</button>
     <h3>妨害</h3>
     <button class="j" data-a="flee">逃げるゴール<br>近づくと先へ逃げる</button><button class="j" data-a="hole">動く穴<br>8秒 追ってくる</button><button class="j" data-a="cloud">落ちてくる雲<br>頭の上から</button><button class="j" data-a="fakespring">ニセのバネ<br>空のかなたへ</button><button class="j" data-a="fakebox">ニセの箱<br>たたくと ばくだん</button><button class="j" data-a="spike">トゲ<br>目の前に飛び出す</button><button class="j" data-a="crumble">床ぬけ<br>足元がくずれる</button><button class="j" data-a="drop">落石<br>頭の上から</button><button class="j" data-a="ghost">見えないブロック<br>頭の上に12秒</button><button class="j" data-a="bullet">矢<br>右から飛んでくる</button><button class="j" data-a="wall">せまるトゲ壁<br>6秒 左から追ってくる</button><button class="j" data-a="reverse">あべこべ<br>8秒 左右が逆</button><button class="j" data-a="fake">ニセのゴール<br>さわるとやられる</button><button class="j" data-a="dark">まっくら<br>8秒 まわりしか見えない</button><button class="j" data-a="flip">さかさま<br>6秒 上下がひっくり返る</button><!-- つるつる床・向かい風・おもりは不採用（Game.ice / wind / heavy は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="ball">トゲ玉<br>15秒 転がってくる</button>
     <h3>その他</h3>
@@ -118,6 +118,7 @@ const Game={
     S.ents=S.ents.filter(e=>{ const on=e.px>S.cam-80&&e.px<S.cam+W+80; if(on&&(e.k==='ball'||e.k==='crusher'||e.k==='fake')){ burst(e.px,e.py-30,['#fff','#ffd23f'],10,300); c++; return false; } return true; });
     S.flash=.35; play('harp2',.7); play('kick',.6); banner('おそうじ！','#ffd23f',(n||'だれか')+' が画面の罠を消した'); logAdd((n||'だれか')+' が罠を'+c+'こ消した','#5dffb0'); },
   present(n){ const {tx,ty}=pTile(); for(const dx of [S.p.face*2,S.p.face*3,S.p.face,0]){ const x=tx+dx, gy=groundBelow(x,ty); if(gy<4) continue; const y=gy-4; if(tile(x,y)==='.' && tile(x,y+1)==='.' && tile(x,y+2)==='.'){ setT(x,y,'B'); play('pon',.6); burst(x*TS+30,y*TS+30,['#ffd23f','#fff'],10,260); logAdd((n||'だれか')+' がプレゼント箱を置いた（下からたたく）','#5dffb0'); return; } } logAdd((n||'だれか')+' のプレゼント箱（置けなかった）','#5dffb0'); },
+  skip(n){ const last=stageI>=STAGES.length-1; burst(S.p.x,S.p.y-30,['#ffd23f','#fff','#5dffb0'],24,460); play('levelup',.7); logAdd((n||'だれか')+' がこのステージをスキップさせた','#5dffb0'); clearStage(); if(!last) banner('1面スキップ！','#5dffb0',(n||'だれか')+' のおかげで次のステージへ'); },
   /* 妨害 */
   flee(n){ S.flee++; play('pon',.5); logAdd((n||'だれか')+' がゴールに逃げ足をつけた（あと'+S.flee+'回逃げる）','#ff9aa8'); },
   hole(n){ const {tx}=pTile(), x=clamp(tx+S.p.face*7,2,S.n-8); S.holes.push({x,w:2,t:T_.holeT,acc:0}); play('crack',.7); S.shake=Math.max(S.shake,.25); logAdd((n||'だれか')+' が動く穴をあけた（'+T_.holeT+'秒 追ってくる）','#ff9aa8'); },
@@ -144,7 +145,7 @@ const Game={
   reset(){ deaths=0; playT=0; stageI=0; WAITQ.length=0; save(); newRun(false); } };
 /* やられている間・ゴール演出中に届いたギフトは、ためておいて動けるようになってから順番に出す */
 const WAITQ=[]; let waitT=0;
-for(const k of ['check','barrier','bridge','sweep','present','flee','hole','cloud','fakebox','fakespring','spike','crumble','drop','ghost','bullet','wall','reverse','fake','ice','dark','wind','flip','heavy','ball']){ const f=Game[k]; Game[k]=function(n){ if(S.mode!=='play'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
+for(const k of ['check','barrier','bridge','sweep','present','skip','flee','hole','cloud','fakebox','fakespring','spike','crumble','drop','ghost','bullet','wall','reverse','fake','ice','dark','wind','flip','heavy','ball']){ const f=Game[k]; Game[k]=function(n){ if(S.mode!=='play'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
 
 /* ===== やられる・ゴール ===== */
 function die(cause){ const p=S.p; if(S.mode!=='play') return;
