@@ -146,7 +146,7 @@ canvas{touch-action:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/bike/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/bike/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 12:08</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 21:21</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -217,7 +217,7 @@ const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.ge
 const W=1080, H=1080, FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, rand=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.floor(Math.random()*a.length)];
 const fmt=n=>Math.floor(n).toLocaleString('ja-JP');
-const VER='1126-120840';
+const VER='1126-212125';
 let SPD=1, TITLE=true, PAUSE=false; const PENDQ=[], SPD_OPTS=[1,1.25,1.5,2];   /* SPD＝タイトルでえらぶ速さ。PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 try{ const o=JSON.parse(localStorage.getItem('bike_cfg')||'{}'); if(SPD_OPTS.includes(o.spd)) SPD=o.spd; }catch(e){}
 function cfgSave(){ try{ localStorage.setItem('bike_cfg',JSON.stringify({spd:SPD})); }catch(e){} }
@@ -822,10 +822,15 @@ function picMatch(url,cand,cb){ let done=false; const fin=v=>{ if(done) return; 
     im.onload=()=>{ try{ const c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,0,0,32,32); const hs=picHist(x.getImageData(0,0,32,32).data,32,32,true); if(!hs){ fin(null); return; }
         const sc=cand.map(f=>{ const s=picCell(cat,TF.map[f[0]].ci); return {f,d:s?picDist(hs,s):9}; }).sort((a,b)=>a.d-b.d); window.__picm=sc.map(q=>[q.f[0],+q.d.toFixed(3)]); fin(sc[0].d<.72 && sc[1].d-sc[0].d>.07?sc[0].f:null); }catch(e){ fin(null); } };
     im.src=url; }); }
+function namePick(gf){ const k=enKey(gf.name); if(k.length<2) return null; const same=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.name && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(same.length<2) return null;
+  const lat=same.filter(f=>{ const bk=enKey(TF.map[f[0]].name); return bk.length>=2 && (k.includes(bk)||bk.includes(k)); }); if(lat.length===1) return [lat[0],true];
+  const known=nm=>Object.keys(GIFT_EN).some(e=>GIFT_EN[e].some(j=>tfNorm(j)===tfNorm(nm))); const rest=same.filter(f=>!known(TF.map[f[0]].name)); if(rest.length===1) return [rest[0],false]; return null; }
 function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
   if(TF.learn){ const id=TF.learn; TF.learn=null; if(TF.seqLearn){ const k=FX_LIST.findIndex(f=>f[0]===id); let nx=null; for(let q=k+1;q<FX_LIST.length;q++){ if(TF.map[FX_LIST[q][0]] && TF.map[FX_LIST[q][0]].name){ nx=FX_LIST[q][0]; break; } } if(nx) TF.learn=nx; else { TF.seqLearn=false; tfLogAdd('順番に受信登録：ぜんぶ終わりました'); } } { const old=TF.map[id]||{}; TF.map[id]={id:gf.id,name:old.name||gf.name,rx:gf.name,coins:gf.coins!=null?gf.coins:old.coins,pic:gf.pic||null,ci:old.ci!=null?old.ci:null}; } tfSave(); cfgBuild(); tfLogAdd('登録：'+gf.name+coin+' → '+(FX_LIST.find(f=>f[0]===id)||[])[2]); return; }
   let hit=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && ((b.id!=null && gf.id!=null && String(b.id)===String(gf.id)) || (b.name && tfNorm(b.name)===tfNorm(gf.name)) || (b.rx && tfNorm(b.rx)===tfNorm(gf.name)) || (b.alt && b.alt.some(t=>tfNorm(t)===tfNorm(gf.name))) || enHit(b,gf)); }), byCoin=false;
   if(!hit.length && gf.coins!=null){ const same=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(same.length===1){ hit=same; byCoin=true; } }
+  /* 英語の名前で届いて、同じコイン数の候補が2つ以上ある時：①英数字の部分が合うもの（G.O.A.T. Busker ⇔ G.O.A.T.バスカー）②英語名が分かっている別のギフトを外して1つに決まるもの、を自動でえらぶ */
+  if(!hit.length && gf.coins!=null){ const r=namePick(gf); if(r){ hit=[r[0]]; if(r[1]){ const b=TF.map[r[0][0]]; if(gf.id!=null) b.id=gf.id; b.rx=gf.name; tfSave(); tfLogAdd('名前で見分けた：'+gf.name+' → '+r[0][2]); } else byCoin=true; } }
   { let ch=false; for(const f of hit){ const b=TF.map[f[0]]; if(byCoin) continue; if(b.id==null && gf.id!=null){ b.id=gf.id; ch=true; } if(b.coins==null && gf.coins!=null){ b.coins=gf.coins; ch=true; } if(!b.pic && gf.pic){ b.pic=gf.pic; ch=true; } } if(ch) tfSave(); }
   if(!hit.length && !gf._img && gf.coins!=null && gf.pic){ const cand=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.ci!=null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(cand.length>1){ picMatch(gf.pic,cand,f=>{ if(f){ const b=TF.map[f[0]]; if(gf.id!=null) b.id=gf.id; b.rx=gf.name; tfSave(); tfLogAdd('絵で見分けた：'+gf.name+' → '+f[2]); } tfGift(Object.assign({},gf,{_img:1}),name,n); }); return; } }
   tfLogAdd('ギフト：'+name+' が '+gf.name+coin+' ×'+n+(hit.length?' → '+hit.map(f=>f[2]).join('・')+(byCoin?'（コイン数で判定）':''):' → 割り当てなし')); if(!hit.length) missAdd(gf);
