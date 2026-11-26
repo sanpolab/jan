@@ -87,7 +87,7 @@ canvas{width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/tsumi/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/tsumi/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 22:36</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 22:41</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -208,7 +208,7 @@ function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
 // 全画面の映像が流れているあいだは、テスト・ギフト・一時停止のボタンと下のギフト表を消して、映像だけを画面のまん中に見せる
 // 自動更新：公開先に新しい版が出ていたら、古い画面を持ったままにならないよう自動で読みこみ直す（スマホは古い画面を10分ほど覚えているため）
-const VER='1126-223654'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
+const VER='1126-224152'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
   const chk=()=>{ if(S && S.mode==='playing') return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('tsumi_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('tsumi_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); };
   setTimeout(chk,800); setInterval(chk,60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 let cutUi=false; function syncCutUi(){ const on=!!(S.cut && S.cut.vid); if(on===cutUi) return; cutUi=on; for(const id of ['testBtn','cfgBtn','pauseBtn','rot','gtbl','feed','viewers','memo','photo']){ const e=document.getElementById(id); if(e) e.style.visibility=on?'hidden':''; }
@@ -1513,7 +1513,7 @@ function tfConnect(){ clearTimeout(TF.timer); try{ if(TF.ws){ TF.ws.onclose=null
   TF.ws=ws; ws.onopen=()=>{ TF.ok=true; TF.tries=0; TF.why=''; TF.wait=3000; tfUI(); tfLogAdd(srcName()+'につながった'); };
   ws.onclose=ev=>{ if(TF.ws!==ws) return; const was=TF.ok; TF.ok=false; if(cloudOn() && ev){ const c=ev.code, r=String(ev.reason||''), q=r.toLowerCase(); TF.why=/not currently live|not live|offline/.test(q)?'いまは配信していないようです。TikTokで配信を始めてから、上の「つなぎ直す」を押してください':
       (/expired|evaluation|trial/.test(q)?'APIキーの期限が切れています（無料のおためしは7日間）':/limit|too many|concurrent|quota|rate/.test(q)||c===1013||c===4429?'同時につなげる数か回数の上限に当たっています。同じキーをほかの人が使っているとつながりません':/key|unauthor|forbidden|auth|invalid/.test(q)||c===4401||c===4403?'APIキーがちがうようです（前後の空白や、文字の抜けがないか見てください）':/not found|no such|user|unique/.test(q)?'ユーザー名がちがうようです（表示名ではなく、@のあとの英数字）':c===1006&&!r?'つなぎ先に届いていません（通信がわるいか、アドレスをブロックされています）':'')+((c||r)&&!/not currently live|not live/.test(q)?'　［'+c+' '+r.slice(0,70)+'］':''); }
-    tfUI(); if(was) tfLogAdd(srcName()+'との接続が切れた'); if(cloudOn() && ev && (ev.code||ev.reason) && !TF.offline) tfLogAdd('切れた理由：'+ev.code+' '+String(ev.reason||'').slice(0,80)); if(cloudOn() && TF.offline){ TF.waitOff=true; } TF.wait=Math.min(20000,TF.wait*1.5); if(cloudOn() && TF.offline) TF.wait=60000; TF.timer=setTimeout(tfConnect,TF.wait); tfUI(); };
+    tfUI(); if(was) tfLogAdd(srcName()+'との接続が切れた'); if(cloudOn() && ev && (ev.code||ev.reason) && !TF.offline) tfLogAdd('切れた理由：'+ev.code+' '+String(ev.reason||'').slice(0,80)); if(cloudOn() && TF.offline){ TF.waitOff=true; } TF.wait=Math.min(20000,TF.wait*1.5); if(cloudOn() && TF.offline) TF.wait=60000; { const mm=/retry after (\d+)\s*s/i.exec(String((ev&&ev.reason)||'')); if(cloudOn() && mm){ const sec=Math.min(600,(+mm[1])+3); TF.wait=sec*1000; TF.why='つなぎ先が「いまは配信していない」と答えています。'+sec+'秒後に自動でつなぎ直します（それまで何回押しても同じ答えが返ってきます）。配信中なのにこう出る時は、ユーザー名（@のあとの英数字）が合っているか見てください'; } } TF.timer=setTimeout(tfConnect,TF.wait); tfUI(); };
   ws.onerror=()=>{}; ws.onmessage=e=>{ let m=null; TF.rawN=(TF.rawN||0)+1; try{ const t=String(e.data); if(!/"event"\s*:\s*"(like|roomUser|member|chat)"/.test(t) || !TF.raw.length){ TF.raw.unshift(t.slice(0,700)); if(TF.raw.length>6) TF.raw.length=6; } const el=document.getElementById('tfRaw'); if(el) el.textContent='受信 '+TF.rawN+' 件\n'+TF.raw.join('\n---\n'); }catch(_){} try{ m=JSON.parse(e.data); }catch(_){ return; } { const kk=String(m.event||m.type||'?').toLowerCase(); TF.kinds[kk]=(TF.kinds[kk]||0)+1; if(kk==='streamend') TF.offline=true; else if(kk!=='roominfo') TF.offline=false; tfDiag(); } try{ tfEvent(m); }catch(err){ tfLogAdd('読み取りエラー：'+err.message); } }; }
 function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.data||m||{}, u=d.user||{}, name=d.nickname||u.nickname||d.uniqueId||u.uniqueId||'だれか';
   if(ev==='gift' && S.mode==='title'){ tfLogAdd('ギフトが届いたけど、タイトル画面なので何も起きません（スタートを押してください）'); }
