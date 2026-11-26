@@ -127,7 +127,8 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 #testBtn{top:.6em}#cfgBtn{top:2.9em}#pauseBtn{top:5.2em}
 #testBtn,#cfgBtn,#pauseBtn{background:rgba(8,10,34,.85);color:#fff;border-color:#fff}
 #ttl{background:linear-gradient(#2a1d5c,#4a2378 55%,#141033)}
-#ttl h1{font-size:9.5em;color:#ffd23f;text-shadow:0 .08em 0 #3a1d00,0 0 .35em rgba(0,10,40,.9)}
+@font-face{font-family:POP;src:url(./font/pop.woff2) format('woff2');font-weight:100 900;font-display:swap}
+#ttl h1{font-family:POP,DELA,sans-serif;font-size:8em;color:#ffd23f;text-shadow:0 .08em 0 #3a1d00,0 0 .35em rgba(0,10,40,.9)}
 </style>
 </head>
 <body>
@@ -151,7 +152,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/gmerge/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/gmerge/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 22:42</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 22:51</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -216,14 +217,14 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 <script>
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1126-224200';
+const VER='1126-225132';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== ギフトがっちゃんこ：同じギフト同士がくっつくと、ひとつ上のギフトに進化する「くっつけ落としゲーム」。
    配信者が左右に動かして落とす。視聴者がギフトを投げると、そのギフトのコマが箱の中にふってくる。箱からあふれたら終わり。WINはなく、スコアとベストスコアだけ ===== */
-const W=1080, H=1080, FONT="MPR,'Hiragino Maru Gothic ProN','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
+const W=1080, H=1080, FONT="MPR,'Hiragino Maru Gothic ProN','Noto Sans JP',sans-serif", FONTD="POP,DELA,"+FONT;
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, pick=a=>a[Math.floor(Math.random()*a.length)], fmt=n=>Math.round(n).toLocaleString('en-US');
 /* 箱の位置。line＝この線より上にコマが2.2秒はみ出したままだと終わり */
-const BOX={x0:300,x1:780,top:250,bot:1010,line:318};
+const BOX={x0:220,x1:860,top:420,bot:990,line:482};
 /* コマ（11段階）。r＝半径、pts＝この段階ができた時にもらえる点 */
 const LV=[
  {name:'バラ',coins:1,r:27,pts:1,col:'#ff5c7a'},{name:'ローザ',coins:10,r:37,pts:3,col:'#ff7ad1'},{name:'歌うキノコ',coins:99,r:49,pts:6,col:'#ff6b5c'},{name:'コーギー',coins:299,r:61,pts:10,col:'#ffb347'},{name:'マネーガン',coins:1016,r:75,pts:15,col:'#ff8ad8'},{name:'銀河',coins:1000,r:91,pts:21,col:'#7aa2ff'},{name:'クジラのダイビング',coins:2150,r:108,pts:28,col:'#8fd3ff'},{name:'子猫のレオン',coins:4888,r:127,pts:36,col:'#ffb300'},{name:'ハヤブサ',coins:10999,r:148,pts:45,col:'#c98a4a'},{name:'ライオン',coins:29999,r:171,pts:55,col:'#ffb300'},{name:'TikTok Universe',coins:44999,r:196,pts:66,col:'#6fd8ff'}];
@@ -249,7 +250,7 @@ Events.on(engine,'collisionStart',ev=>{ for(const p of ev.pairs){ const a=p.body
 function doMerges(){ while(mergeQ.length){ const [a,b]=mergeQ.shift(); const lv=a.lv, x=(a.position.x+b.position.x)/2, y=(a.position.y+b.position.y)/2, by=a.by||b.by; Composite.remove(engine.world,a); Composite.remove(engine.world,b);
     if(lv<LV.length-1){ const n=spawn(lv+1,x,y,null); n.born=T-9; Body.setVelocity(n,{x:(a.velocity.x+b.velocity.x)/2,y:(a.velocity.y+b.velocity.y)/2}); S.score+=LV[lv+1].pts; S.biggest=Math.max(S.biggest,lv+1); burst(x,y,LV[lv+1].col,10+lv*2,260+lv*30); S.rings.push({x,y,r:LV[lv+1].r,t:.35,c:LV[lv+1].col}); play(lv>=6?'levelup':lv>=3?'harp2':'pon',.5+lv*.04);
       if(lv+1>=8){ banner(LV[lv+1].name+' ができた！',LV[lv+1].col,'＋'+LV[lv+1].pts+'点'); S.flash=.25; play('cheer',.6); } }
-    else { S.score+=CFG.lionBonus; burst(x,y,'#ffb300',60,700); S.rings.push({x,y,r:260,t:.6,c:'#ffd23f'}); S.flash=.5; S.shake=.6; banner('ユニバース同士がくっついた！','#ffd23f','ボーナス ＋'+CFG.lionBonus+'点'); play('cheer',.9); play('levelup',.8); }
+    else { S.score+=CFG.lionBonus; burst(x,y,'#ffb300',60,700); S.rings.push({x,y,r:260,t:.6,c:'#ffd23f'}); S.flash=.5; S.shake=.6; banner('ユニバース同士がくっついた！','#ffd23f','ボーナス +'+CFG.lionBonus+'点'); play('cheer',.9); play('levelup',.8); }
     if(S.score>best){ if(!S.newBest && best>0){ S.newBest=true; logAdd('ベストスコア更新中！','#ffd23f'); } best=S.score; } } }
 
 /* ===== 音（効果音は効果音ラボ、BGMは甘茶の音楽工房） ===== */
@@ -322,16 +323,14 @@ function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*18:0, sy=S.shake>0?rand(-
   for(const q of S.rings){ g.globalAlpha=clamp(q.t/.35,0,1); g.strokeStyle=q.c; g.lineWidth=8; g.beginPath(); g.arc(q.x,q.y,q.r*(1.5-q.t),0,7); g.stroke(); g.globalAlpha=1; }
   for(const q of S.parts){ g.globalAlpha=clamp(q.t*3,0,1); g.fillStyle=q.c; g.fillRect(q.x-q.s/2,q.y-q.s/2,q.s,q.s); } g.globalAlpha=1;
   g.restore();
-  /* 左：スコア */
-  g.fillStyle='rgba(8,10,34,.72)'; rr(24,150,244,300,28); g.fill(); txt('スコア',146,196,36,'#ffd23f','center'); txt(fmt(S.score),146,270,S.score>=100000?56:74,'#fff','center','#111',FONTD); txt('ベスト',146,348,28,'#c9d2ff','center'); txt(fmt(best),146,396,44,'#ffd23f','center','#111',FONTD);
-  /* 右：つぎ */
-  g.fillStyle='rgba(8,10,34,.72)'; rr(812,150,244,240,28); g.fill(); txt('つぎ',934,196,36,'#ffd23f','center'); piece(S.next,934,296,Math.min(72,LV[S.next].r*1.4),0);
-  /* 右下：進化の順番 */
-  g.fillStyle='rgba(8,10,34,.72)'; rr(812,412,244,596,28); g.fill(); txt('進化の順番',934,452,30,'#ffd23f','center');
-  for(let i=0;i<LV.length;i++){ const col=i%2, row=Math.floor(i/2), x=876+col*116, y=524+row*86, last=i===LV.length-1; piece(i,last?934:x,y,36,0,S.biggest>=i||i<=CFG.nextMax?1:.55); if(i<LV.length-1 && col===0) txt('→',934,y,26,'#9aa3b5','center'); }
-  /* 左下：あそびかた */
-  g.fillStyle='rgba(8,10,34,.72)'; rr(24,472,244,536,28); g.fill(); txt('あそびかた',146,512,30,'#ffd23f','center');
-  { const L=['同じギフトを','くっつけると','進化する','','ギフトを投げると','そのギフトが','箱にふってくる','','線をこえたら','おしまい']; for(let i=0;i<L.length;i++) txt(L[i],146,566+i*42,27,'#fff','center'); }
+  /* 左：スコアとベスト（丸い泡） */
+  const bub=(x,y,r)=>{ g.fillStyle='rgba(255,255,255,.10)'; g.strokeStyle='rgba(255,255,255,.55)'; g.lineWidth=5; g.beginPath(); g.arc(x,y,r,0,7); g.fill(); g.stroke(); };
+  bub(110,550,98); txt('スコア',110,500,30,'#ffd23f','center','#111',FONTD); txt(fmt(S.score),110,566,S.score>=100000?40:S.score>=10000?48:60,'#fff','center','#111',FONTD);
+  bub(110,790,74); txt('ベスト',110,760,24,'#c9d2ff','center','#111',FONTD); txt(fmt(best),110,806,best>=100000?28:36,'#ffd23f','center','#111',FONTD);
+  /* 右：ネクスト */
+  bub(970,540,98); txt('ネクスト',970,480,28,'#ffd23f','center','#111',FONTD); piece(S.next,970,558,Math.min(56,LV[S.next].r*1.3),0);
+  /* 右下：進化の輪（上から時計まわりに大きくなる） */
+  bub(970,800,104); for(let i=0;i<LV.length;i++){ const a=-Math.PI/2+i/LV.length*Math.PI*2; piece(i,970+Math.cos(a)*76,800+Math.sin(a)*76,19+i*.5,0,S.biggest>=i||i<=CFG.nextMax?1:.5); } txt('シンカ',970,800,24,'#ffd23f','center','#111',FONTD);
   /* 上：タイトルとログ */
   txt('ギフトがっちゃんこ',W/2,62,58,'#ffd23f','center','#111',FONTD);
   for(let i=0;i<S.log.length;i++){ const l=S.log[i]; g.globalAlpha=clamp(l.t,0,1)*(1-i*.2); txt(l.s,W/2,124+i*34,26,l.c,'center','#111'); } g.globalAlpha=1;
