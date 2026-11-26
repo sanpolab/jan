@@ -111,7 +111,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 #pauseBtn.on{background:#111;color:#fff}
 #tp{touch-action:pan-y;top:6em;left:2em;right:2em;max-height:96em}
 #cfg,#pick,#pickGrid{touch-action:pan-y}
-#ttl{background:linear-gradient(rgba(10,20,50,.10),rgba(10,20,50,.38)),url(./img/ttl.jpg) center/cover #84d9f4}
+#ttl{background:url(./img/ttl.jpg) center/cover #0fb4ff;justify-content:flex-start;padding-top:6em;box-sizing:border-box}
 #ttl h1{font-size:10.5em;color:#ffd23f;text-shadow:0 .08em 0 #3a1d00,0 0 .35em rgba(0,10,40,.9)}
 #ttl h1 small{font-size:.34em;margin-top:.4em}
 #ttl .rec{font-size:2.8em;color:#fff;background:rgba(6,12,36,.62);padding:.3em .9em;border-radius:.8em;white-space:nowrap}
@@ -146,7 +146,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/trap/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/trap/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 11:52</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 11:55</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -216,7 +216,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
    ギフトで罠（妨害）やお助けがその場に出る。キャラもステージもオリジナル ===== */
 const W=1080, H=1080, FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1126-115223';
+const VER='1126-115513';
 let TITLE=true, PAUSE=false, START='new'; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 const TS=60, ROWS=12, OY=210, TOPH=172, BOTY=930;   /* 1マス60。ゲームの世界は画面の y=210〜930 に12段 */
 const PH={run:330,acc:3200,air:2400,fric:3000,grav:2400,jump:-985,cut:.45,maxFall:1150,coyote:.09,buf:.12,w:36,h:50,spring:-1500};
