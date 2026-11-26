@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ギフトがっちゃんこ">
+<title>ギフトがっちゃんこ</title>
+<style>
+@font-face{font-family:MPR;src:url(./font/mpr.woff2) format('woff2');font-weight:400;font-display:swap}   /* ドット文字（DotGothic16）。太さは1種類なので、太字はブラウザが太らせる */
+@font-face{font-family:DELA;src:url(./font/dela.woff2) format('woff2');font-display:swap}
+html,body{margin:0;height:100%;background:#10162b;overflow:hidden;font-family:MPR,'Hiragino Sans','Noto Sans JP',sans-serif;font-weight:900;color:#fff;-webkit-user-select:none;user-select:none}
+#stage{position:absolute;left:50%;top:0;transform:translateX(-50%);overflow:hidden}
+/* スマホの縦画面：ゲームを上につめて、下の空きに「視聴者数と文字」「コメントらん」「ギフト表（空きに写真）」を出す */
+#below{position:absolute;display:none;flex-direction:column;overflow:hidden;background:#03060f;font-weight:900}
+#binfo{flex:0 0 auto;display:flex;align-items:center;gap:calc(var(--u)*1.6);padding:calc(var(--u)*1.6) calc(var(--u)*2.4);box-sizing:border-box;min-height:calc(var(--u)*8.4);background:#0a1730;border-top:calc(var(--u)*.35) solid #b8964a}
+#viewers{flex:0 0 auto;padding:.3em .9em;border-radius:999px;background:#16264a;font-size:calc(var(--u)*3.2);white-space:nowrap}
+#viewers small{font-size:.8em;color:#9fd0ff;margin-right:.5em}
+#memo{flex:1 1 auto;min-width:0;text-align:center;white-space:pre-wrap;word-break:break-all;line-height:1.2;color:#ffd23f;max-height:calc(var(--u)*7.4);overflow:hidden;cursor:text;min-height:calc(var(--u)*5)}
+#memo.empty{color:#56658f}
+#memo input{width:100%;box-sizing:border-box;font:inherit;font-size:calc(var(--u)*3.4);color:#ffd23f;background:#101c3c;border:calc(var(--u)*.3) solid #ffd23f;border-radius:calc(var(--u)*1.2);padding:.25em .5em;text-align:center}
+#frow{flex:0 0 auto;height:calc(var(--u)*25);display:flex;align-items:stretch;gap:calc(var(--u)*1.5);padding:calc(var(--u)*1.6) calc(var(--u)*2.4);box-sizing:border-box;background:#070d1f;margin-bottom:calc(var(--u)*1.2)}
+#feed{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:calc(var(--u)*.6);overflow:hidden}
+#feed .ln{font-size:calc(var(--u)*3.3);line-height:1.25;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:0 0 auto}
+#feed .ln b{color:#a9dcff;margin-right:.45em}#feed .ln.gf{color:#ffe27a}#feed .ln.gf b{color:#ffd23f}#feed .ln.fl{color:#ffc2dc}#feed .ln.fl b{color:#ff8fc0}
+#feed .ln.hint{color:#6f7da6;font-size:calc(var(--u)*2.8)}
+#gtbl{flex:1 1 auto;min-height:0;width:100%;border:0;background:#000;pointer-events:none;display:block}
+#photo{flex:0 0 auto;display:none;height:100%;max-width:30%;overflow:hidden;background:center center no-repeat;pointer-events:none;border-radius:calc(var(--u)*1.4)}
+#cfg #phPrev{max-width:40%;max-height:6em;border-radius:.4em;display:block;margin:.4em 0}
+#cfg textarea#memoTx{width:100%;box-sizing:border-box;height:4.2em;font:inherit;background:#0c1436;color:#fff;border:1px solid #6677aa;border-radius:.4em}
+canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+#testBtn{position:absolute;right:1em;top:.7em;font:inherit;font-size:2em;padding:.25em .9em;border-radius:1.2em;border:.12em solid #fff;background:#0a1730;color:#fff;z-index:8;cursor:pointer}
+#tp{grid-template-columns:repeat(4,1fr) !important;position:absolute;left:3em;right:3em;top:9em;max-height:92em;overflow:auto;box-sizing:border-box;background:rgba(8,16,40,.95);border:.3em solid #2c4a86;border-radius:2em;padding:2em;z-index:9;display:grid;grid-template-columns:repeat(3,1fr);gap:1.2em}
+#tp[hidden]{display:none}
+#tp button{font:inherit;font-size:2em;padding:.45em .2em;border-radius:.6em;border:0;color:#fff;cursor:pointer;line-height:1.25}
+#tp .j{background:#c0392b}#tp .h{background:#1f9a55}#tp .n{background:#42558a}#tp .g{background:#8a6d1f}
+#tp .on{outline:.18em solid #ffd23f}
+/* ギフト設定の画面（つみつみアニマルと同じ作り） */
+#cfgBtn{position:absolute;right:1em;top:2.5em;font:inherit;font-size:2em;padding:.25em .7em;border-radius:1.2em;border:.12em solid #fff;background:#0a1730;color:#fff;z-index:8;cursor:pointer}
+#cfgBtn .dot{display:inline-block;width:.7em;height:.7em;border-radius:50%;background:#888;margin-right:.35em;vertical-align:middle}
+#cfgBtn.on .dot{background:#3ddc6a;box-shadow:0 0 .5em #3ddc6a}
+#cfg{position:absolute;inset:0;background:rgba(8,12,30,.96);color:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;font-size:calc(var(--u)*2.6);padding:calc(var(--u)*3);box-sizing:border-box;z-index:20;-webkit-user-select:text;user-select:text}
+#cfg[hidden]{display:none}
+#cfg h2{font-size:1.5em;margin:.2em 0 .5em}
+#cfg h3{font-size:1.1em;margin:1.1em 0 .4em;color:#ffd23f}
+#cfg p{margin:.4em 0;line-height:1.5;color:#cfd8f5}
+#cfg .st{padding:.6em .8em;border-radius:.6em;background:#3a1420;border:2px solid #ff5c7a;font-weight:900}
+#cfg .st.on{background:#123a22;border-color:#3ddc6a}
+#cfg .row{display:flex;align-items:center;gap:.4em;padding:.35em 0;border-bottom:1px solid rgba(255,255,255,.12)}
+#cfg .row .nm{flex:0 0 38%;font-weight:900}
+#cfg .row .nm small{display:block;font-weight:700;opacity:.7;font-size:.72em}
+#cfg button.tc.on{background:#ffd23f;color:#201400}
+#cfg .row input{flex:1 1 auto;min-width:0;font:inherit;padding:.35em .5em;border-radius:.4em;border:1px solid #6677aa;background:#0c1436;color:#fff}
+#cfg button{font:inherit;font-weight:900;padding:.4em .8em;border-radius:.5em;border:0;background:#3d6fd1;color:#fff}
+#cfg .gsel{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:.5em;background:#0c1436;border:1px solid #6677aa;border-radius:.5em;padding:.25em .5em;color:#fff;font-weight:900;text-align:left}
+#cfg .gsel .gi,#pick .gi{flex:0 0 auto;width:2.6em;height:2.6em;border-radius:.4em;background-color:#13141c;background-repeat:no-repeat}
+#cfg .gsel .gt{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#cfg .gsel .gt small{display:block;opacity:.75;font-size:.75em;color:#ffd23f}
+#cfg button.x{flex:0 0 auto;background:#553;padding:.4em .6em}
+#pick{position:absolute;inset:0;background:rgba(6,9,24,.98);color:#fff;z-index:21;display:flex;flex-direction:column;font-size:calc(var(--u)*2.6);padding:calc(var(--u)*2.5);box-sizing:border-box}
+#pick[hidden]{display:none}
+#pick .top{display:flex;gap:.5em;align-items:center;margin-bottom:.5em}
+#pick .top b{flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#pick input{flex:1 1 auto;min-width:0;font:inherit;padding:.4em .6em;border-radius:.4em;border:1px solid #6677aa;background:#0c1436;color:#fff}
+#pick button{font:inherit;font-weight:900;padding:.4em .7em;border-radius:.5em;border:0;background:#3d6fd1;color:#fff}
+#pick .tabs{display:flex;gap:.35em;margin:.5em 0;flex-wrap:wrap}
+#pick .tabs button{background:#2a3358;font-size:.9em}
+#pick .tabs button.on{background:#ffd23f;color:#201400}
+#pickGrid{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;display:grid;grid-template-columns:repeat(5,1fr);gap:.4em;align-content:start}
+#pickGrid .it{background:#10162f;border:1px solid #2c3766;border-radius:.5em;padding:.3em .1em;display:flex;flex-direction:column;align-items:center;min-width:0;color:#fff;font-weight:900}
+#pickGrid .it .gi{width:3.4em;height:3.4em}
+#pickGrid .it span{font-size:.62em;line-height:1.2;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#pickGrid .it em{font-style:normal;font-size:.72em;color:#ffd23f}
+#cfg button.lr{flex:0 0 auto;background:#555}
+#cfg button.lr.wait{background:#d1457a}
+#cfg .jam .nm{color:#ff9aa8}
+#cfg .help .nm{color:#9dffb8}
+#cfg .both .nm{color:#9be9ff}
+#cfg #tfLog{font-size:.82em;line-height:1.5;background:#060a20;border-radius:.5em;padding:.6em;min-height:4em;max-height:14em;overflow:auto;white-space:pre-wrap;color:#bcd}
+#cfg textarea{width:100%;box-sizing:border-box;height:5em;font:inherit;font-size:.8em;background:#0c1436;color:#fff;border:1px solid #6677aa;border-radius:.4em}
+#cfg .top{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:rgba(8,12,30,.96);padding-bottom:.4em;z-index:1}
+#cfg .top{flex-wrap:wrap;gap:.4em}
+#cfg .top h2{flex:1 1 auto;white-space:nowrap;margin:.2em 0}
+#cfg #missBox{order:3;flex:1 1 100%}
+#cfg #embedNote{flex:1 1 100%}
+#pauseBtn{position:absolute;right:1em;top:4.3em;font:inherit;font-size:2em;padding:.25em .7em;border-radius:1.2em;border:.12em solid #fff;background:#0a1730;color:#fff;z-index:8;cursor:pointer}
+#pauseBtn.on{background:#d1457a}
+#pauseBtn[hidden],#pauseTag[hidden]{display:none}
+#pauseTag{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);z-index:7;font-family:DELA,MPR,sans-serif;font-size:8em;color:#fff;background:rgba(6,10,30,.82);border:.06em solid #ffd23f;border-radius:.4em;padding:.3em .8em;text-align:center;white-space:nowrap;pointer-events:none}
+#pauseTag small{display:block;font-family:MPR,sans-serif;font-size:.28em;color:#cfd8f5;margin-top:.4em}
+#ttl{gap:1em !important;position:absolute;inset:0;z-index:15;background:linear-gradient(rgba(6,12,36,.18),rgba(4,8,24,.42)),url(./img/ttl.jpg) center/cover #0b2a6a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.15em;text-align:center}
+#ttl[hidden]{display:none}
+#ttl h1{font-family:DELA,MPR,sans-serif;font-size:8.6em;margin:0;line-height:1.15;color:#ffd23f;text-shadow:0 .08em 0 #3a1d00,0 0 .4em rgba(0,10,40,.9)}
+#ttl h1 small{display:block;font-size:.5em;color:#fff;text-shadow:0 .1em 0 #0a1730,0 0 .5em rgba(0,10,40,.9)}
+#ttl .ln{display:flex;align-items:center;gap:.6em;font-size:2.6em;white-space:nowrap;background:rgba(6,12,36,.62);padding:.28em .7em;border-radius:.8em}
+#ttl .ln>span{min-width:5.2em;text-align:right;color:#cfe0ff}
+#ttl .ln b{min-width:3.4em;font-size:1.3em;color:#ffd23f}
+#ttl button{white-space:nowrap;font:inherit;padding:.3em .8em;border-radius:.6em;border:.1em solid rgba(255,255,255,.35);background:#1b2c58;color:#fff;cursor:pointer}
+#ttl button.on{background:#ffd23f;color:#201400;border-color:#fff}
+#ttl #ttlGo{font-size:4.6em;padding:.25em 1.6em;border-radius:1em;background:#1f9a55;border:.08em solid #fff;font-family:DELA,MPR,sans-serif;box-shadow:0 .12em 0 #0b4a26}
+#ttl .sub{font-size:2em;color:#9fb6e6;display:flex;gap:1em}
+#tp h3{grid-column:1/-1;margin:.2em 0 -.3em;font-size:2.4em;color:#9fb6e6}
+/* ギフトがっちゃんこ用 */
+canvas{touch-action:none;user-select:none;-webkit-user-select:none}
+#testBtn,#cfgBtn,#pauseBtn{font-size:1.75em;background:#fff;color:#111;border:.12em solid #111;right:.7em;padding:.2em .7em;border-radius:2em}
+#testBtn{top:.6em}#cfgBtn{top:10.2em}#pauseBtn{top:12.4em}
+#testBtn,#cfgBtn,#pauseBtn{right:.5em}
+#cfgBtn .dot{background:#999}#cfgBtn.on .dot{background:#1f9a55}
+#pauseBtn.on{background:#111;color:#fff}
+#tp{touch-action:pan-y;top:6em;left:2em;right:2em;max-height:96em}
+#cfg,#pick,#pickGrid{touch-action:pan-y}
+#ttl{background:url(./img/ttl.jpg) center/cover #0fb4ff;justify-content:flex-start;padding-top:6em;box-sizing:border-box}
+#ttl h1{font-size:10.5em;color:#ffd23f;text-shadow:0 .08em 0 #3a1d00,0 0 .35em rgba(0,10,40,.9)}
+#ttl h1 small{font-size:.34em;margin-top:.4em}
+#ttl .rec{font-size:2.8em;color:#fff;background:rgba(6,12,36,.62);padding:.3em .9em;border-radius:.8em;white-space:nowrap}
+#ttl .rec b{color:#ffd23f;margin:0 .2em}
+/* 操作ボタン：スマホの縦画面ではゲームのすぐ下に大きく出す。それ以外は、ゲームの下の帯に重ねる（左に ← →、右にジャンプ。2本の指で同時に押せる） */
+#pads{position:fixed;z-index:4;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#pads[hidden]{display:none}
+.pad{box-sizing:border-box;position:absolute;top:0;height:100%;border-radius:1.6em;border:.4em solid #fff;background:rgba(255,255,255,.14);color:#fff;font-family:DELA,MPR,sans-serif;font-weight:400;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-tap-highlight-color:transparent}
+.pad.on{background:#ffd23f;color:#111;border-color:#ffd23f}
+#bL{left:2%;width:19%;font-size:6em}#bR{left:23%;width:19%;font-size:6em}#bJ{right:2%;width:34%;font-size:4.6em}
+
+/* ギフトがっちゃんこ用 */
+#testBtn{top:.6em}#cfgBtn{top:2.9em}#pauseBtn{top:5.2em}
+#testBtn,#cfgBtn,#pauseBtn{background:rgba(8,10,34,.85);color:#fff;border-color:#fff}
+#ttl{background:linear-gradient(#2a1d5c,#4a2378 55%,#141033)}
+#ttl h1{font-size:9.5em;color:#ffd23f;text-shadow:0 .08em 0 #3a1d00,0 0 .35em rgba(0,10,40,.9)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" width="1080" height="1080"></canvas>
+  <button id="testBtn" type="button">テスト</button>
+  <button id="pauseBtn" type="button" hidden>一時停止</button>
+  <div id="pauseTag" hidden>一時停止中<small>届いたギフトは、再開したら順番に出ます</small></div>
+  <div id="ttl">
+    <h1>ギフトがっちゃんこ<small>同じギフトをくっつけて進化させよう</small></h1>
+    <div class="rec" id="ttlRec"></div>
+    <button id="ttlGo" type="button">スタート</button>
+    <div class="sub"><button id="ttlGift" type="button">ギフト設定</button><span id="ttlNote"></span></div>
+  </div>
+  <button id="cfgBtn" type="button"><span class="dot"></span>ギフト</button>
+  <div id="pick" hidden>
+    <div class="top"><b id="pickTitle">ギフトをえらぶ</b><button id="pickClose" type="button">もどる</button></div>
+    <div class="top"><input id="pickQ" type="text" placeholder="名前かコイン数でさがす"></div>
+    <div class="tabs" id="pickTabs"></div>
+    <div id="pickGrid"></div>
+  </div>
+  <div id="cfg" hidden>
+    <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/gmerge/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/gmerge/</a></div>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 20:21</small></h2>
+    <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
+    <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
+    <div id="missList"></div></div>
+<button id="cfgClose" type="button">とじる</button></div>
+    <div id="tfSt" class="st">TikFinity：つながっていません</div>
+    <div id="tfDiag" style="white-space:pre-wrap;line-height:1.6;background:#060a20;border:1px solid #6677aa;border-radius:.5em;padding:.6em;margin-top:.5em;font-size:.9em"></div>
+    <p>このPCでTikFinity（デスクトップ版）を開いて配信につなぐと、自動でつながります。つながらない時は <button id="tfRe" type="button">つなぎ直す</button></p>
+  <h3>スマホだけで配信する時（パソコンなし）</h3>
+  <p>TikFinityのかわりに、ネット経由でギフトを受け取ります。tik.tools で取った「APIキー」と、自分のTikTokのユーザー名（@のあとの英数字）を入れて「つなぐ」を押してください。キーはこの端末の中にだけ保存されます。</p>
+  <div class="row"><input id="clUser" type="text" placeholder="TikTokのユーザー名（@なし）" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
+  <div class="row"><input id="clKey" type="password" placeholder="tik.tools のAPIキー" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
+  <p><button id="clOn" type="button">つなぐ</button> <span id="clSt"></span></p>
+    <h3>どのギフトで何が起きるか</h3>
+    <p>緑の「ON」を押すと「OFF」になり、そのギフトは来ても何も起きず、ギフト表からも消えます（割り当ては残るので、もう一度押せば元に戻ります）。</p> <p>効果の名前の下のらんに文字を入れると、ギフト表に出る名前を変えられます（空にすると元の名前に戻ります）。</p> <p>左のわくを押して一覧からギフトをえらびます。「受信で登録」は、押してからそのギフトを1個投げてもらうと確実に結びつきます。未設定の効果はギフトでは起きません。</p>
+    <p><button id="seqLearn" type="button">上から順に受信で登録</button> <span id="seqNote"></span></p>
+    <div id="cfgRows"></div>
+    <h3>ギフト表（配信にのせる用）</h3>
+    <p>下のURLがギフト表です。ギフトを変えると、URLも表も自動で変わります。</p>
+    <div class="row"><input id="tblUrl" type="text" readonly></div>
+    <p>1段の数 <button class="tc" type="button" data-c="6">6</button> <button class="tc" type="button" data-c="7">7</button> <button class="tc" type="button" data-c="9">9</button>　<button id="tblCopy" type="button">URLをコピー</button> <button id="cfgTable" type="button">ひらく</button></p>
+    <p id="tblNote">このChromeで開いた表は、ギフトを変えると数秒で自動で変わります。配信ソフトにURLを貼る場合は、ギフトを変えたあとにもう一度コピーして貼り直してください。</p>
+    <h3>ギフト以外</h3>
+    <div class="row jam"><div class="nm">コメント<small>バラが1個ふってくる（同じ人は20秒に1回）</small></div><button id="optChat" type="button"></button></div>
+    <div class="row jam"><div class="nm">いいね1000回<small>フィンガーハートが1個ふってくる</small></div><button id="optLike" type="button"></button></div>
+    <div class="row help"><div class="nm">フォロー<small>ローザが1個ふってくる</small></div><button id="optFollow" type="button"></button></div>
+    <div class="row both"><div class="nm">ギフト表のコイン数<small>オフにすると、ギフト表のギフトの絵にコイン数を出さない</small></div><button id="optCoin" type="button"></button></div>
+    <h3>画面にのせる文字と写真（スマホの縦画面）</h3>
+    <p>文字はゲームのすぐ下（視聴者数の右）に、写真はコメントらんの右に小さく出ます。この端末にだけ保存されます。</p>
+    <textarea id="memoTx" maxlength="40" placeholder="例：初見さん歓迎！ギフトで妨害できるよ"></textarea>
+    <img id="phPrev" alt="" hidden>
+    <div class="row" style="border:0"><input id="phFile" type="file" accept="image/*" hidden><button id="phPick" type="button">写真をえらぶ</button><button id="phDel" type="button" class="x">写真を消す</button><span id="phSt" style="font-size:.85em;color:#ffb0b8"></span></div>
+    <div class="row" style="border:0"><button id="phMinus" type="button">写真を小さく</button><button id="phPlus" type="button">写真を大きく</button><button id="phReset" type="button">元の大きさ</button><span id="phZ" style="font-size:.9em"></span></div>
+    <p>大きくして、わくからはみ出した分は切れます。</p>
+    <h3>届いたもの（新しい順）</h3>
+    <div id="tfLog">まだ何も届いていません</div>
+    <p id="viewDbg" style="font-size:.7em;color:#6f7fa8"></p>
+    <h3>調査用：TikFinityから届いた生データ</h3>
+    <p>ギフトが反応しない時は、ここをスクショして送ってください。</p>
+    <div id="tfRaw" style="font-size:.7em;line-height:1.4;background:#060a20;border-radius:.5em;padding:.6em;min-height:3em;max-height:22em;overflow:auto;white-space:pre-wrap;word-break:break-all;color:#9ab">まだ何も届いていません</div>
+    <h3>設定の持ち運び</h3>
+    <p><b>人に配る時：</b>下のボタンでリンクを作って送ると、相手はそのリンクを開くだけで、あなたと同じギフトの割り当てになります（APIキーとユーザー名は入りません）。</p>
+    <p><button id="shareMk" type="button" style="background:#1f8f3c">配る用のリンクを作る</button> <span id="shareSt" style="font-size:.85em;color:#9dffb8"></span></p>
+    <p>下の文字をコピーして別の端末のここに貼り、「読みこむ」を押すと同じ設定になります。</p>
+    <textarea id="cfgIO"></textarea>
+    <p><button id="cfgExp" type="button">書き出す</button> <button id="cfgImp" type="button">読みこむ</button></p>
+  </div>
+  <div id="tp" hidden>
+    <h3>ギフトのコマをふらせる</h3>
+    <button class="j" data-a="drop0">バラ<br>1コイン</button><button class="j" data-a="drop1">フィンガーハート<br>5コイン</button><button class="j" data-a="drop2">ローザ<br>10コイン</button><button class="j" data-a="drop3">香水<br>20コイン</button><button class="j" data-a="drop4">ドーナッツ<br>30コイン</button><button class="j" data-a="drop5">ハンドハート<br>100コイン</button><button class="j" data-a="drop6">愛してる<br>199コイン</button><button class="j" data-a="drop7">うっとりペンギン<br>299コイン</button><button class="j" data-a="drop8">だいすき<br>500コイン</button><button class="j" data-a="drop9">銀河<br>1,000コイン</button><button class="j" data-a="drop10">ライオン<br>29,999コイン</button>
+    <h3>そのほかの効果</h3>
+    <button class="j" data-a="shake">ゆらす<br>箱をガタガタゆらす</button><button class="h" data-a="clean">おそうじ<br>小さいコマをぜんぶ消す</button>
+    <h3>無料（コメント・いいね・フォロー）</h3>
+    <button class="j" data-a="comment">コメント<br>バラ1個</button><button class="j" data-a="like">いいね×1000<br>フィンガーハート1個</button><button class="j" data-a="follow">フォロー<br>ローザ1個</button>
+    <h3>音</h3>
+    <button class="g" id="optBgm">BGM</button><button class="g" id="optSe">効果音</button><button class="g" id="optTrack">曲</button>
+    <h3>その他</h3>
+    <button class="n" data-a="reset">最初からやり直す</button><button class="n" data-a="title">タイトルに戻る</button><button class="n" data-a="close">とじる</button>
+  </div>
+</div>
+<div id="below"><div id="binfo"><div id="viewers"><small>視聴</small><span id="viewN">–</span></div><div id="memo"></div></div><div id="frow"><div id="feed"><div class="ln hint">ここにコメント・ギフト・フォローが流れます</div></div><div id="photo"></div></div><iframe id="gtbl" title="ギフト表"></iframe></div>
+<script src="./lib/matter.min.js"></script>
+<script>
+'use strict';
+const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
+const VER='1126-202131';
+let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
+/* ===== ギフトがっちゃんこ：同じギフト同士がくっつくと、ひとつ上のギフトに進化する「くっつけ落としゲーム」。
+   配信者が左右に動かして落とす。視聴者がギフトを投げると、そのギフトのコマが箱の中にふってくる。箱からあふれたら終わり。WINはなく、スコアとベストスコアだけ ===== */
+const W=1080, H=1080, FONT="MPR,'Hiragino Maru Gothic ProN','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
+const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, pick=a=>a[Math.floor(Math.random()*a.length)], fmt=n=>Math.round(n).toLocaleString('en-US');
+/* 箱の位置。line＝この線より上にコマが2.2秒はみ出したままだと終わり */
+const BOX={x0:300,x1:780,top:250,bot:1010,line:318};
+/* コマ（11段階）。r＝半径、pts＝この段階ができた時にもらえる点 */
+const LV=[
+ {name:'バラ',coins:1,r:27,pts:1,col:'#ff5c7a'},{name:'フィンガーハート',coins:5,r:37,pts:3,col:'#ffb347'},{name:'ローザ',coins:10,r:49,pts:6,col:'#ff7ad1'},{name:'香水',coins:20,r:61,pts:10,col:'#ff5fa2'},
+ {name:'ドーナッツ',coins:30,r:75,pts:15,col:'#6fd8ff'},{name:'ハンドハート',coins:100,r:91,pts:21,col:'#c08bff'},{name:'愛してる',coins:199,r:108,pts:28,col:'#ff8ad8'},{name:'うっとりペンギン',coins:299,r:127,pts:36,col:'#8fd3ff'},
+ {name:'だいすき',coins:500,r:148,pts:45,col:'#ffd23f'},{name:'銀河',coins:1000,r:171,pts:55,col:'#7aa2ff'},{name:'ライオン',coins:29999,r:196,pts:66,col:'#ffb300'}];
+const CFG={dropCd:.55, nextMax:4, overSec:2.2, graceSec:1.3, maxBodies:140, lionBonus:300, shakeSec:1.6, overWait:6};
+const IMG={}; for(let i=0;i<LV.length;i++){ const im=new Image(); im.src='./img/g'+i+'.webp'; IMG['g'+i]=im; }
+const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
+
+/* ===== 物理（Matter.js）：丸いコマと、箱の左右と底の壁 ===== */
+const {Engine,Bodies,Body,Composite,Events}=Matter;
+const engine=Engine.create({positionIterations:8,velocityIterations:6}); engine.gravity.y=1.35;
+{ const t=80, o={isStatic:true,friction:.3,restitution:.1}; Composite.add(engine.world,[Bodies.rectangle(BOX.x0-t/2,(BOX.top+BOX.bot)/2-400,t,BOX.bot-BOX.top+1000,o),Bodies.rectangle(BOX.x1+t/2,(BOX.top+BOX.bot)/2-400,t,BOX.bot-BOX.top+1000,o),Bodies.rectangle((BOX.x0+BOX.x1)/2,BOX.bot+t/2,BOX.x1-BOX.x0+2*t,t,o)]); }
+let S, T=0, best=0, likeAcc=0; const CMT={}; try{ best=+(localStorage.getItem('gmerge_best')||0)||0; }catch(e){}
+const pieces=()=>Composite.allBodies(engine.world).filter(b=>b.lv!=null);
+function spawn(lv,x,y,by){ const r=LV[lv].r, b=Bodies.circle(clamp(x,BOX.x0+r+1,BOX.x1-r-1),y,r,{restitution:.12,friction:.4,frictionAir:.004,density:.0012}); b.lv=lv; b.born=T; b.by=by||null; b.pop=.25; Composite.add(engine.world,b); return b; }
+function randNext(){ const w=[5,4,3,2,1]; let s=0; for(let i=0;i<=CFG.nextMax;i++) s+=w[i]; let r=Math.random()*s; for(let i=0;i<=CFG.nextMax;i++){ r-=w[i]; if(r<=0) return i; } return 0; }
+function reset(){ for(const b of pieces()) Composite.remove(engine.world,b); S={mode:'play',score:0,cur:{lv:randNext(),x:(BOX.x0+BOX.x1)/2},next:randNext(),cd:0,over:0,overT:0,parts:[],rings:[],log:[],shakeT:0,shake:0,flash:0,ban:null,newBest:false,biggest:0}; }
+function logAdd(s,c){ S.log.unshift({s,c:c||'#fff',t:6}); if(S.log.length>4) S.log.length=4; }
+function banner(a,c,b){ S.ban={a,c:c||'#fff',b:b||'',t:2}; }
+function burst(x,y,col,n,v){ for(let i=0;i<n;i++){ const a=rand(0,6.28), sp=rand(v*.3,v); S.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-80,t:rand(.4,.8),s:rand(6,14),c:pick([col,'#fff','#ffd23f'])}); } }
+/* 同じ段階のコマがぶつかったら、まとめて1つ上にする */
+const mergeQ=[];
+Events.on(engine,'collisionStart',ev=>{ for(const p of ev.pairs){ const a=p.bodyA, b=p.bodyB; if(a.lv!=null && a.lv===b.lv && !a.gone && !b.gone){ a.gone=b.gone=true; mergeQ.push([a,b]); } } });
+function doMerges(){ while(mergeQ.length){ const [a,b]=mergeQ.shift(); const lv=a.lv, x=(a.position.x+b.position.x)/2, y=(a.position.y+b.position.y)/2, by=a.by||b.by; Composite.remove(engine.world,a); Composite.remove(engine.world,b);
+    if(lv<LV.length-1){ const n=spawn(lv+1,x,y,null); n.born=T-9; Body.setVelocity(n,{x:(a.velocity.x+b.velocity.x)/2,y:(a.velocity.y+b.velocity.y)/2}); S.score+=LV[lv+1].pts; S.biggest=Math.max(S.biggest,lv+1); burst(x,y,LV[lv+1].col,10+lv*2,260+lv*30); S.rings.push({x,y,r:LV[lv+1].r,t:.35,c:LV[lv+1].col}); play(lv>=6?'levelup':lv>=3?'harp2':'pon',.5+lv*.04);
+      if(lv+1>=8){ banner(LV[lv+1].name+' ができた！',LV[lv+1].col,'＋'+LV[lv+1].pts+'点'); S.flash=.25; play('cheer',.6); } }
+    else { S.score+=CFG.lionBonus; burst(x,y,'#ffb300',60,700); S.rings.push({x,y,r:260,t:.6,c:'#ffd23f'}); S.flash=.5; S.shake=.6; banner('ライオン同士がくっついた！','#ffd23f','ボーナス ＋'+CFG.lionBonus+'点'); play('cheer',.9); play('levelup',.8); }
+    if(S.score>best){ if(!S.newBest && best>0){ S.newBest=true; logAdd('ベストスコア更新中！','#ffd23f'); } best=S.score; } } }
+
+/* ===== 音（効果音は効果音ラボ、BGMは甘茶の音楽工房） ===== */
+const SND=['pon','boyon','glass','levelup','harp','harp2','bell','don','bad','lose','cheer','clap','swing','heavy','crack'], sndBuf={}; let actx=null, seGain=null, bgmGain=null, bgmSrc=null, bgmNow='';
+/* 音の設定（この端末に保存）。bgm＝BGMを鳴らすか、se＝効果音を鳴らすか、track＝BGMの曲（bgm1＝ハッピータイム、bgm2＝うずまき。どちらも甘茶の音楽工房） */
+const OPTS=(()=>{ try{ return Object.assign({bgm:1,se:1,track:'bgm1'},JSON.parse(localStorage.getItem('gmerge_snd')||'{}')); }catch(e){ return {bgm:1,se:1,track:'bgm1'}; } })(); if(OPTS.track!=='bgm1' && OPTS.track!=='bgm2') OPTS.track='bgm1';
+function audioInit(){ if(actx) return; try{ actx=new (window.AudioContext||window.webkitAudioContext)(); seGain=actx.createGain(); seGain.gain.value=.8; const hs=actx.createBiquadFilter(); hs.type='highshelf'; hs.frequency.value=5000; hs.gain.value=-6; seGain.connect(hs); hs.connect(actx.destination); bgmGain=actx.createGain(); bgmGain.gain.value=0; bgmGain.connect(actx.destination);
+  for(const k of SND) fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>actx.decodeAudioData(b)).then(b=>{ sndBuf[k]=b; }).catch(()=>{}); bgmLoad(OPTS.track); }catch(e){} }
+function bgmLoad(k){ if(!actx) return; if(sndBuf[k]){ bgmStart(); return; } fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>actx.decodeAudioData(b)).then(b=>{ sndBuf[k]=b; bgmStart(); }).catch(()=>{}); }
+function bgmStart(){ const k=OPTS.track; if(!actx || !sndBuf[k] || bgmNow===k) return; try{ if(bgmSrc){ bgmSrc.stop(); bgmSrc.disconnect(); } }catch(e){} bgmSrc=actx.createBufferSource(); bgmSrc.buffer=sndBuf[k]; bgmSrc.loop=true; bgmSrc.connect(bgmGain); bgmSrc.start(); bgmNow=k; }
+setInterval(()=>{ if(!bgmGain) return; const tg=OPTS.bgm?(PAUSE?.08:.2):0; bgmGain.gain.value+=(tg-bgmGain.gain.value)*.15; window.__bgm={tg,g:+bgmGain.gain.value.toFixed(3),now:bgmNow}; },50);
+const SE_LAST={};   /* 同じ音が一度にたくさん重なって、うるさくならないようにする（同じ音は0.05秒あける） */
+function play(k,v){ if(!actx || !sndBuf[k] || !OPTS.se) return; const now=actx.currentTime; if(SE_LAST[k] && now-SE_LAST[k]<.05) return; SE_LAST[k]=now; try{ const s=actx.createBufferSource(), gn=actx.createGain(); s.buffer=sndBuf[k]; gn.gain.value=v==null?.7:v; s.connect(gn); gn.connect(seGain); s.start(); }catch(e){} }
+window.addEventListener('pointerdown',()=>{ audioInit(); if(actx && actx.state==='suspended') actx.resume(); },{passive:true});
+
+/* ===== 操作：指やマウスで左右に動かして、はなすと落ちる。キーボードは ←→ と スペース ===== */
+const KEYS={};
+function setX(clientX){ const r=cv.getBoundingClientRect(); S.cur.x=clamp((clientX-r.left)/r.width*W,BOX.x0+LV[S.cur.lv].r+2,BOX.x1-LV[S.cur.lv].r-2); }
+function dropNow(){ if(TITLE || PAUSE) return; if(S.mode==='over'){ if(S.overT>1.5) reset(); return; } if(S.cd>0) return; audioInit(); const lv=S.cur.lv; spawn(lv,S.cur.x,BOX.top-LV[lv].r-8,null); play('swing',.35); S.cd=CFG.dropCd; S.cur={lv:S.next,x:clamp(S.cur.x,BOX.x0+LV[S.next].r+2,BOX.x1-LV[S.next].r-2)}; S.next=randNext(); }
+{ let down=false; cv.addEventListener('pointerdown',e=>{ if(TITLE || PAUSE) return; down=true; try{ cv.setPointerCapture(e.pointerId); }catch(_){} if(S.mode==='play') setX(e.clientX); e.preventDefault(); });
+  cv.addEventListener('pointermove',e=>{ if(TITLE || PAUSE || S.mode!=='play') return; if(down || e.pointerType==='mouse') setX(e.clientX); });
+  const up=e=>{ if(!down) return; down=false; dropNow(); }; cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',()=>{ down=false; }); }
+window.addEventListener('keydown',e=>{ if(e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return; KEYS[e.code]=true; if(e.code==='Space' || e.code==='Enter' || e.code==='ArrowDown'){ if(!e.repeat) dropNow(); e.preventDefault(); } if(e.code==='ArrowLeft' || e.code==='ArrowRight') e.preventDefault(); });
+window.addEventListener('keyup',e=>{ KEYS[e.code]=false; });
+
+/* ===== ギフトで起きること ===== */
+function giftDrop(lv,n){ if(S.mode!=='play') return; if(pieces().length>=CFG.maxBodies){ logAdd((n||'だれか')+' の'+LV[lv].name+'（いっぱいで入らなかった）','#9aa3b5'); return; } const r=LV[lv].r; spawn(lv,rand(BOX.x0+r+4,BOX.x1-r-4),BOX.top-r-rand(60,260),n||null); play(lv>=7?'heavy':'boyon',.5); if(lv>=7){ S.shake=Math.max(S.shake,.3); banner(LV[lv].name+' がふってきた！',LV[lv].col,(n||'だれか')+' から'); } logAdd((n||'だれか')+' が '+LV[lv].name+' をふらせた',LV[lv].col); }
+const Game={
+  start(){ audioInit(); play('bell',.5); reset(); TITLE=false; ttlUI(); },
+  title(){ setPause(false,true); reset(); TITLE=true; ttlUI(); },
+  reset(){ reset(); },
+  /* ゆらす：箱の中のコマをぜんぶガタガタゆらす */
+  shake(n){ if(S.mode!=='play') return; S.shakeT=CFG.shakeSec; S.shake=Math.max(S.shake,.5); play('heavy',.7); play('don',.6); logAdd((n||'だれか')+' が箱をゆらした','#ff9aa8'); },
+  /* おそうじ：いちばん小さい2段階（バラ・フィンガーハート）をぜんぶ消す */
+  clean(n){ if(S.mode!=='play') return; let c=0; for(const b of pieces()){ if(b.lv<=1 && !b.gone){ b.gone=true; burst(b.position.x,b.position.y,'#5dffb0',6,220); Composite.remove(engine.world,b); c++; } } play('harp',.7); S.flash=.2; logAdd((n||'だれか')+' のおそうじ：小さいコマを'+c+'個消した','#5dffb0'); },
+  /* 無料の反応。コメント＝バラ1個（同じ人は20秒に1回）、いいね1000回ごと＝フィンガーハート1個、フォロー＝ローザ1個 */
+  comment(n){ const now=performance.now(), k=String(n||''); if(CMT[k] && now-CMT[k]<20000) return; CMT[k]=now; giftDrop(0,n); },
+  like(c,n){ likeAcc+=Math.max(1,c|0); let k=0; while(likeAcc>=1000 && k<3){ likeAcc-=1000; k++; giftDrop(1,n); } if(likeAcc>=1000) likeAcc=likeAcc%1000; },
+  follow(n){ giftDrop(2,n); } };
+for(let i=0;i<LV.length;i++) Game['drop'+i]=n=>giftDrop(i,n);
+
+/* ===== 進める ===== */
+function update(dt){ T+=dt; if(S.cd>0) S.cd-=dt; if(S.shake>0) S.shake=Math.max(0,S.shake-dt); if(S.flash>0) S.flash=Math.max(0,S.flash-dt); if(S.ban){ S.ban.t-=dt; if(S.ban.t<=0) S.ban=null; }
+  for(const l of S.log) l.t-=dt; S.log=S.log.filter(l=>l.t>0);
+  for(const q of S.parts){ q.t-=dt; q.vy+=900*dt; q.x+=q.vx*dt; q.y+=q.vy*dt; } S.parts=S.parts.filter(q=>q.t>0); for(const q of S.rings) q.t-=dt; S.rings=S.rings.filter(q=>q.t>0);
+  if(S.mode==='over'){ S.overT+=dt; if(S.overT>CFG.overWait) reset(); return; }
+  const mv=(KEYS.ArrowRight?1:0)-(KEYS.ArrowLeft?1:0); if(mv) S.cur.x=clamp(S.cur.x+mv*520*dt,BOX.x0+LV[S.cur.lv].r+2,BOX.x1-LV[S.cur.lv].r-2);
+  if(S.shakeT>0){ S.shakeT-=dt; for(const b of pieces()) Body.applyForce(b,b.position,{x:rand(-1,1)*.005*b.mass,y:-rand(0,.007)*b.mass}); }
+  for(const b of pieces()){ if(b.pop>0) b.pop-=dt; }
+  Engine.update(engine,dt*1000); doMerges();
+  /* あふれたか：落としてから少したったコマが、線より上にはみ出したままなら数える */
+  let out=false; for(const b of pieces()){ if(T-b.born>CFG.graceSec && b.position.y-LV[b.lv].r<BOX.line && Math.abs(b.velocity.y)<2.2) { out=true; break; } }
+  if(out){ S.over+=dt; if(S.over>=CFG.overSec){ S.mode='over'; S.overT=0; S.shake=.6; play('lose',.8); play('glass',.6); try{ localStorage.setItem('gmerge_best',String(Math.round(best))); }catch(e){} } } else S.over=Math.max(0,S.over-dt*2); }
+
+/* ===== 描く ===== */
+function txt(s,x,y,size,color,align,stroke,font){ g.font='900 '+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineJoin='round'; g.lineWidth=Math.max(6,size*.22); g.strokeStyle=stroke; g.strokeText(s,x,y); } g.fillStyle=color||'#fff'; g.fillText(s,x,y); }
+function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+function piece(lv,x,y,r,rot,a){ g.save(); g.translate(x,y); g.rotate(rot||0); if(a!=null) g.globalAlpha=a; if(ok('g'+lv)) g.drawImage(IMG['g'+lv],-r,-r,r*2,r*2); else { g.fillStyle='#14151f'; g.beginPath(); g.arc(0,0,r,0,7); g.fill(); g.strokeStyle=LV[lv].col; g.lineWidth=Math.max(3,r*.08); g.stroke(); } g.restore(); }
+function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*18:0, sy=S.shake>0?rand(-1,1)*S.shake*12:0; g.setTransform(1,0,0,1,0,0);
+  const bg=g.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#231a4a'); bg.addColorStop(.55,'#3a1f63'); bg.addColorStop(1,'#141033'); g.fillStyle=bg; g.fillRect(0,0,W,H);
+  for(let i=0;i<46;i++){ const x=(i*197+((T*8)|0)*0)%W, y=(i*331)%H, a=.25+.25*Math.sin(T*1.3+i); g.fillStyle='rgba(255,255,255,'+a.toFixed(2)+')'; g.fillRect(x,y,3+(i%3),3+(i%3)); }
+  g.save(); g.translate(sx,sy);
+  /* 箱 */
+  g.fillStyle='rgba(255,255,255,.07)'; rr(BOX.x0-14,BOX.top-10,BOX.x1-BOX.x0+28,BOX.bot-BOX.top+24,26); g.fill(); g.strokeStyle='rgba(255,255,255,.75)'; g.lineWidth=8; g.beginPath(); g.moveTo(BOX.x0-6,BOX.top); g.lineTo(BOX.x0-6,BOX.bot+6); g.lineTo(BOX.x1+6,BOX.bot+6); g.lineTo(BOX.x1+6,BOX.top); g.stroke();
+  { const warn=S.over>0 && S.mode==='play'; g.setLineDash([18,14]); g.strokeStyle=warn?(Math.floor(T*8)%2?'#ff3355':'#ffd23f'):'rgba(255,120,150,.6)'; g.lineWidth=warn?7:4; g.beginPath(); g.moveTo(BOX.x0,BOX.line); g.lineTo(BOX.x1,BOX.line); g.stroke(); g.setLineDash([]); }
+  /* 落とす前のコマと、落ちる場所の線 */
+  if(S.mode==='play'){ const r=LV[S.cur.lv].r, y=BOX.top-r-8; g.strokeStyle='rgba(255,255,255,.28)'; g.lineWidth=4; g.beginPath(); g.moveTo(S.cur.x,y+r); g.lineTo(S.cur.x,BOX.bot); g.stroke(); piece(S.cur.lv,S.cur.x,y,r,0,S.cd>0?.35:1); }
+  for(const b of pieces()){ const r=LV[b.lv].r*(b.pop>0?1+b.pop*.5:1); piece(b.lv,b.position.x,b.position.y,r,b.angle); }
+  for(const b of pieces()){ if(b.by && T-b.born<2.6){ g.globalAlpha=clamp((2.6-(T-b.born))*2,0,1); txt(b.by,clamp(b.position.x,BOX.x0+60,BOX.x1-60),b.position.y-LV[b.lv].r-20,26,'#fff','center','#111'); g.globalAlpha=1; } }
+  for(const q of S.rings){ g.globalAlpha=clamp(q.t/.35,0,1); g.strokeStyle=q.c; g.lineWidth=8; g.beginPath(); g.arc(q.x,q.y,q.r*(1.5-q.t),0,7); g.stroke(); g.globalAlpha=1; }
+  for(const q of S.parts){ g.globalAlpha=clamp(q.t*3,0,1); g.fillStyle=q.c; g.fillRect(q.x-q.s/2,q.y-q.s/2,q.s,q.s); } g.globalAlpha=1;
+  g.restore();
+  /* 左：スコア */
+  g.fillStyle='rgba(8,10,34,.72)'; rr(24,150,244,300,28); g.fill(); txt('スコア',146,196,36,'#ffd23f','center'); txt(fmt(S.score),146,270,S.score>=100000?56:74,'#fff','center','#111',FONTD); txt('ベスト',146,348,28,'#c9d2ff','center'); txt(fmt(best),146,396,44,'#ffd23f','center','#111',FONTD);
+  /* 右：つぎ */
+  g.fillStyle='rgba(8,10,34,.72)'; rr(812,150,244,240,28); g.fill(); txt('つぎ',934,196,36,'#ffd23f','center'); piece(S.next,934,296,Math.min(72,LV[S.next].r*1.4),0);
+  /* 右下：進化の順番 */
+  g.fillStyle='rgba(8,10,34,.72)'; rr(812,412,244,596,28); g.fill(); txt('進化の順番',934,452,30,'#ffd23f','center');
+  for(let i=0;i<LV.length;i++){ const col=i%2, row=Math.floor(i/2), x=876+col*116, y=524+row*86, last=i===LV.length-1; piece(i,last?934:x,y,36,0,S.biggest>=i||i<=CFG.nextMax?1:.55); if(i<LV.length-1 && col===0) txt('→',934,y,26,'#9aa3b5','center'); }
+  /* 左下：あそびかた */
+  g.fillStyle='rgba(8,10,34,.72)'; rr(24,472,244,536,28); g.fill(); txt('あそびかた',146,512,30,'#ffd23f','center');
+  { const L=['同じギフトを','くっつけると','進化する','','ギフトを投げると','そのギフトが','箱にふってくる','','線をこえたら','おしまい']; for(let i=0;i<L.length;i++) txt(L[i],146,566+i*42,27,'#fff','center'); }
+  /* 上：タイトルとログ */
+  txt('ギフトがっちゃんこ',W/2,62,58,'#ffd23f','center','#111',FONTD);
+  for(let i=0;i<S.log.length;i++){ const l=S.log[i]; g.globalAlpha=clamp(l.t,0,1)*(1-i*.2); txt(l.s,W/2,124+i*34,26,l.c,'center','#111'); } g.globalAlpha=1;
+  if(S.ban){ const k=clamp(S.ban.t*3,0,1); g.globalAlpha=k; g.fillStyle='rgba(8,10,34,.85)'; rr(190,560,700,150,30); g.fill(); txt(S.ban.a,W/2,612,48,S.ban.c,'center','#111',FONTD); if(S.ban.b) txt(S.ban.b,W/2,672,30,'#fff','center'); g.globalAlpha=1; }
+  if(S.flash>0){ g.fillStyle='rgba(255,255,255,'+(S.flash*1.4).toFixed(2)+')'; g.fillRect(0,0,W,H); }
+  if(S.mode==='over'){ g.fillStyle='rgba(6,6,24,.78)'; g.fillRect(0,0,W,H); txt('おしまい！',W/2,330,120,'#ff5c7a','center','#111',FONTD); txt('スコア',W/2,470,44,'#fff','center'); txt(fmt(S.score),W/2,570,130,'#ffd23f','center','#111',FONTD); txt(S.newBest||S.score>=best?'ベストスコア更新！':'ベスト '+fmt(best),W/2,690,46,S.newBest||S.score>=best?'#5dffb0':'#c9d2ff','center','#111'); txt(Math.max(0,Math.ceil(CFG.overWait-S.overT))+'秒後にもう一回（タップですぐ）',W/2,790,34,'#fff','center'); }
+}
+
+/* ===== 画面に合わせる・テスト・ループ ===== */
+var TALL=false; /* 本当に見えている高さ。ホーム画面から開いたiPhoneは、時計の段のぶん画面が下にずれるのに高さは画面いっぱいで返ってくることがあり、そのままだと下がはみ出して切れる。下のホームバーのぶんも空ける */
+let SAFE=null; function safeIn(){ if(!SAFE){ SAFE=document.createElement('div'); SAFE.style.cssText='position:fixed;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)'; document.body.appendChild(SAFE); } const cs=getComputedStyle(SAFE); return {t:parseFloat(cs.paddingTop)||0,b:parseFloat(cs.paddingBottom)||0}; }
+function viewH(){ const vv=window.visualViewport, de=document.documentElement; let h=Math.min(window.innerHeight,(de&&de.clientHeight)||1e9,(vv&&vv.height)||1e9); const sf=safeIn(), alone=window.navigator.standalone===true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  if(alone && sf.t<1 && screen.height>=700 && h>=screen.height-1) h-=(screen.height>=850?59:47);   /* 時計の段のぶん（画面が下にずれているのに高さに入っている時だけ引く） */
+  window.__viewH={inner:window.innerHeight,client:de&&de.clientHeight,vv:vv&&vv.height,screen:screen.height,safeT:sf.t,safeB:sf.b,alone,use:h-sf.b}; return h-sf.b; }
+function fit(){ const iw=window.innerWidth, ih=viewH(), w=Math.min(iw,ih), left=ih-w; TALL=iw<=ih && left>=200; const top=TALL?0:(ih-w)/2; stage.style.width=w+'px'; stage.style.height=w+'px'; stage.style.top=top+'px'; stage.style.fontSize=(w/108)+'px'; stage.style.setProperty('--u',(w/150)+'px');
+  const bl=document.getElementById('below'), tb=document.getElementById('gtbl'); if(bl){ bl.style.display=TALL?'flex':'none'; if(TALL){ bl.style.left=((iw-w)/2)+'px'; bl.style.top=w+'px'; bl.style.width=w+'px'; bl.style.height=left+'px'; bl.style.setProperty('--u',(w/100)+'px'); try{ if(tb && !tb.getAttribute('src')) tb.setAttribute('src','./gifts.html?fit=1&pg=2&cols=7&v='+VER); }catch(e){} } } try{ memoUI(); photoFit(); }catch(e){} }
+fit(); window.addEventListener('resize',fit); setTimeout(fit,0); setTimeout(fit,600); if(window.visualViewport) window.visualViewport.addEventListener('resize',fit);
+const tp=document.getElementById('tp'), NAMES=['たぬ吉','ぽんた','みけ','そら','りく','はな','こてつ','もも','ゆず','まる'];
+document.getElementById('testBtn').onclick=()=>{ tp.hidden=!tp.hidden; };
+{ const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'), t=document.getElementById('optTrack'); b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); t.innerHTML='BGMの曲<br>'+(OPTS.track==='bgm2'?'2：うずまき':'1：ハッピータイム'); try{ localStorage.setItem('gmerge_snd',JSON.stringify(OPTS)); }catch(_){} };
+  document.getElementById('optBgm').addEventListener('click',ev=>{ ev.stopPropagation(); OPTS.bgm=OPTS.bgm?0:1; up(); }); document.getElementById('optSe').addEventListener('click',ev=>{ ev.stopPropagation(); OPTS.se=OPTS.se?0:1; up(); }); document.getElementById('optTrack').addEventListener('click',ev=>{ ev.stopPropagation(); OPTS.track=OPTS.track==='bgm1'?'bgm2':'bgm1'; up(); audioInit(); bgmLoad(OPTS.track); }); up(); }
+tp.addEventListener('click',ev=>{ const b=ev.target.closest('button'); if(!b || !b.dataset.a) return; const a=b.dataset.a; tp.hidden=true; if(a==='close') return; if(a==='title'){ Game.title(); return; } if(TITLE || PAUSE) return; const n=pick(NAMES); if(a==='reset'){ Game.reset(); return; } if(a==='like'){ Game.like(1000,n); return; } if(a==='comment') feedAdd(n,'テストのコメントです'); else if(a==='follow') feedAdd(n,'がフォローした','fl'); if(Game[a]) Game[a](n); });
+reset();
+let last=performance.now(); window.__ready=false;
+function loop(now){ let dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ const n=Math.max(1,Math.ceil(dt/(1/120))); for(let i=0;i<n;i++) update(dt/n); } draw(); } requestAnimationFrame(loop); }
+/* 新しい版が出ていたら、タイトル画面にいる時だけ読みこみ直す */
+(function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(!TITLE) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('gmerge_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('gmerge_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+
+/* ===== TikTokとの接続とギフトの割り当て（ほかのゲームと同じ仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
+const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('gmerge_opts')||'{}')); }catch(e){}
+function optSave(){ try{ localStorage.setItem('gmerge_opts',JSON.stringify(OPT)); }catch(e){} }
+function runFx(fn){ if(TITLE){ tfLogAdd('タイトル画面なので何も起きません（スタートを押してください）'); return; } if(PAUSE){ PENDQ.push(fn); return; } fn(); }
+const FX_LIST=[
+ ['drop0','jam','バラ','このギフトのコマが箱にふってくる',n=>Game.drop0(n)],
+ ['drop1','jam','フィンガーハート','このギフトのコマが箱にふってくる',n=>Game.drop1(n)],
+ ['drop2','jam','ローザ','このギフトのコマが箱にふってくる',n=>Game.drop2(n)],
+ ['drop3','jam','香水','このギフトのコマが箱にふってくる',n=>Game.drop3(n)],
+ ['drop4','jam','ドーナッツ','このギフトのコマが箱にふってくる',n=>Game.drop4(n)],
+ ['drop5','jam','ハンドハート','このギフトのコマが箱にふってくる',n=>Game.drop5(n)],
+ ['drop6','jam','愛してる','このギフトのコマが箱にふってくる',n=>Game.drop6(n)],
+ ['drop7','jam','うっとりペンギン','このギフトのコマが箱にふってくる',n=>Game.drop7(n)],
+ ['drop8','jam','だいすき','このギフトのコマが箱にふってくる',n=>Game.drop8(n)],
+ ['drop9','jam','銀河','このギフトのコマが箱にふってくる',n=>Game.drop9(n)],
+ ['drop10','jam','ライオン','このギフトのコマが箱にふってくる',n=>Game.drop10(n)],
+ ['shake','jam','ゆらす','箱の中をガタガタゆらす',n=>Game.shake(n)],
+ ['clean','help','おそうじ','小さいコマ（バラ・フィンガーハート）をぜんぶ消す',n=>Game.clean(n)]];
+/* スマホ用のつなぎ先（tik.tools）。オンの間はTikFinityのかわりに、ネット経由で同じ形の知らせを受け取る。キーはこの端末にだけ保存 */
+const HOME_URL='https://sanpolab.github.io/jan/gmerge/', EMBED=!/(^|\.)github\.io$|^localhost$|^127\./.test(location.hostname);   // EMBED：Claudeの共有ページなど、正式なアドレス以外で開いている
+let CLOUD={on:false,user:'',key:''}; try{ Object.assign(CLOUD,JSON.parse(localStorage.getItem('gmerge_cloud')||'{}')); }catch(e){}
+/* まだギフトがっちゃんこにキーを入れていない時は、月まで届け・つみつみアニマル・チャリで行け・ワナだらけに入れたキーとユーザー名をそのまま引き継ぐ（同じサイトなので読める。入れ直さなくていいように） */
+if(!CLOUD.key){ for(const src of ['rocket_cloud','tsumi_cloud','bike_cloud','trap_cloud']){ try{ const t=JSON.parse(localStorage.getItem(src)||'{}'); if(t && t.key && t.user){ CLOUD={on:!!t.on,user:String(t.user),key:String(t.key)}; localStorage.setItem('gmerge_cloud',JSON.stringify(CLOUD)); break; } }catch(e){} } }
+const cloudOn=()=>!!(CLOUD.on && CLOUD.user && CLOUD.key), srcName=()=>cloudOn()?'スマホ用のつなぎ先':'TikFinity';
+const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://127.0.0.1:21213/'],url:'ws://localhost:21213/',ws:null,ok:false,wait:3000,timer:null,streak:{},log:[],learn:null,map:{}};
+try{ TF.map=JSON.parse(localStorage.getItem('gmerge_gifts')||'{}')||{}; }catch(e){ TF.map={}; }
+const tfNorm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.');
+/* はじめて開いた時だけ、ギフトの割り当てのたたき台を入れる（あとから自由に変えられる） */
+if(!localStorage.getItem('gmerge_gdef')){ try{ localStorage.setItem('gmerge_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"drop0": {"id": null, "name": "バラ", "coins": 1, "ci": 1, "pic": null}, "drop1": {"id": null, "name": "フィンガーハート", "coins": 5, "ci": 28, "pic": null}, "drop2": {"id": null, "name": "ローザ", "coins": 10, "ci": 37, "pic": null}, "drop3": {"id": null, "name": "香水", "coins": 20, "ci": 55, "pic": null}, "drop4": {"id": null, "name": "ドーナッツ", "coins": 30, "ci": 58, "pic": null}, "drop5": {"id": null, "name": "ハンドハート", "coins": 100, "ci": 87, "pic": null}, "drop6": {"id": null, "name": "愛してる", "coins": 199, "ci": 107, "pic": null}, "drop7": {"id": null, "name": "うっとりペンギン", "coins": 299, "ci": 174, "pic": null}, "drop8": {"id": null, "name": "だいすき", "coins": 500, "ci": 310, "pic": null}, "drop9": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}, "drop10": {"id": null, "name": "ライオン", "coins": 29999, "ci": 464, "pic": null}}; try{ localStorage.setItem('gmerge_gifts',JSON.stringify(TF.map)); }catch(e){} } }
+function tfSave(){ try{ localStorage.setItem('gmerge_gifts',JSON.stringify(TF.map)); }catch(e){} }
+// 名前が合わずに「割り当てなし」になったギフトを覚えておき、設定画面で「どの効果か」を1回えらべば、届いた名前とIDをその効果に結びつける
+let MISS=[]; try{ MISS=JSON.parse(localStorage.getItem('gmerge_miss')||'[]')||[]; }catch(e){}
+const missSave=()=>{ try{ localStorage.setItem('gmerge_miss',JSON.stringify(MISS.slice(0,30))); }catch(e){} };
+function missAdd(gf){ if(!gf.name && gf.id==null) return; const k=m=>(m.id!=null&&gf.id!=null)?String(m.id)===String(gf.id):tfNorm(m.name)===tfNorm(gf.name); let m=MISS.find(k); if(m) m.n=(m.n||1)+1; else MISS.unshift({id:gf.id!=null?gf.id:null,name:gf.name||'',coins:gf.coins!=null?gf.coins:null,pic:gf.pic||null,n:1}); missSave(); missBuild(); }
+function missBind(i,fx){ const m=MISS[i], b=TF.map[fx]; if(!m || !b) return; if(m.id!=null) b.id=m.id; b.rx=m.name; if(b.coins==null && m.coins!=null) b.coins=m.coins; if(!b.pic && m.pic) b.pic=m.pic; tfSave(); MISS.splice(i,1); missSave(); tfLogAdd('登録：'+m.name+' → '+(FX_LIST.find(f=>f[0]===fx)||[])[2]+'（次から自動で反応します）'); try{ cfgBuild(); }catch(e){} missBuild(); }
+function missBuild(){ const box=document.getElementById('missBox'), el=document.getElementById('missList'), cb=document.getElementById('cfgBtn'); if(cb) cb.style.boxShadow=MISS.length?'0 0 0 3px #ff4f6a, 0 0 14px #ff4f6a':''; if(!box || !el) return; box.hidden=!MISS.length; el.innerHTML='';
+  MISS.forEach((m,i)=>{ const row=document.createElement('div'); row.style.cssText='background:#1a1030;border:2px solid #ff6a80;border-radius:.6em;padding:.5em .6em;margin:.4em 0'; const t=document.createElement('div'); t.style.cssText='font-weight:900;margin-bottom:.35em'; t.textContent=m.name+(m.coins!=null?'（'+m.coins+'コイン）':'')+(m.n>1?'　×'+m.n+'回届いた':''); row.appendChild(t);
+    const all=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && b.name && !b.off; }), same=all.filter(f=>m.coins!=null && TF.map[f[0]].coins!=null && Number(TF.map[f[0]].coins)===Number(m.coins)), free=same.filter(f=>TF.map[f[0]].id==null), list=free.length?free:(same.length?same:all);
+    if(!list.length){ const n=document.createElement('div'); n.textContent='割り当てているギフトがありません'; row.appendChild(n); }
+    const wrap=document.createElement('div'); wrap.style.cssText='display:flex;flex-wrap:wrap;gap:.4em'; for(const f of list){ const bt=document.createElement('button'); bt.type='button'; bt.style.cssText='font:inherit;font-weight:900;font-size:.85em;padding:.45em .7em;border-radius:.6em;border:0;color:#fff;background:'+(f[1]==='help'?'#1f8f3c':f[1]==='jam'?'#b3262e':'#8a6a00'); bt.textContent=TF.map[f[0]].name+' → '+f[2]; bt.addEventListener('click',()=>missBind(i,f[0])); wrap.appendChild(bt); }
+    const del=document.createElement('button'); del.type='button'; del.style.cssText='font:inherit;font-size:.8em;padding:.45em .7em;border-radius:.6em;border:1px solid #778;background:transparent;color:#aab'; del.textContent='使わない（消す）'; del.addEventListener('click',()=>{ MISS.splice(i,1); missSave(); missBuild(); }); wrap.appendChild(del); row.appendChild(wrap); el.appendChild(row); }); }
+setTimeout(()=>{ const cb=document.getElementById('cfgBtn'); if(cb) cb.addEventListener('click',()=>setTimeout(()=>{ const bx=document.getElementById('missBox'); if(MISS.length && bx && !bx.hidden) bx.scrollIntoView({block:'center'}); },80)); missBuild(); },0);   // 分からなかったギフトがある時は、ギフト画面を開いたらそこまで自動で進む
+/* スマホの縦画面で、ゲームの下に出すもの：コメントらん（コメント・ギフト・フォローを下から足す）、視聴者数、自分で入れる文字、ギフト表の空きに出す写真。文字と写真はこの端末にだけ保存する */
+const FEED_MAX=5;
+function feedAdd(name,text,kind){ const el=document.getElementById('feed'); if(!el) return; const h=el.querySelector('.hint'); if(h) el.removeChild(h); const ln=document.createElement('div'); ln.className='ln'+(kind?' '+kind:''); const b=document.createElement('b'); b.textContent=String(name||'').slice(0,16); ln.appendChild(b); ln.appendChild(document.createTextNode(String(text||'').slice(0,60))); el.appendChild(ln); while(el.children.length>FEED_MAX) el.removeChild(el.firstChild); }
+function feedViewers(n){ n=parseInt(n,10); if(!(n>=0)) return; const e=document.getElementById('viewN'); if(e) e.textContent=n.toLocaleString('ja-JP')+'人'; }
+const PHIMG=new Image(); let PHZ=1;   /* PHZ＝写真の大きさ（1がわくにぴったり。大きくしてわくからはみ出た分は切れる） */
+try{ const z=parseFloat(localStorage.getItem('gmerge_photoz')); if(z>=.3 && z<=5) PHZ=z; }catch(e){}
+let MEMO='', PHOTO=''; try{ MEMO=localStorage.getItem('gmerge_memo')||''; PHOTO=localStorage.getItem('gmerge_photo')||''; }catch(e){}
+function memoUI(){ const m=document.getElementById('memo'); if(!m || m.querySelector('input')) return; const t=MEMO.trim(); m.classList.toggle('empty',!t); m.textContent=t||'ここを押すと文字を書けます'; const lines=t.split('\n'), longest=Math.max.apply(null,lines.map(l=>l.length)), two=lines.length>1 || longest>18; m.style.fontSize='calc(var(--u)*'+(two?2.9:Math.max(2.9,Math.min(4.4,62/Math.max(1,longest)))).toFixed(2)+')'; }
+function photoFit(){ const im=document.getElementById('photo'); if(!im) return; const on=!!PHOTO && PHIMG.naturalWidth>0; im.style.display=on?'block':'none'; if(!on) return; const row=im.parentElement.getBoundingClientRect(); if(row.height<4) return; const a=PHIMG.naturalWidth/PHIMG.naturalHeight, maxW=row.width*.30, cw=Math.min(maxW,row.height*a), iw=cw*PHZ, ih=cw/a*PHZ; im.style.width=Math.min(maxW,iw)+'px'; im.style.backgroundSize=iw+'px '+ih+'px'; }   /* わく＝コメントらんの右（横はばの3割まで・高さいっぱい）。写真はわくに収まる大きさ×PHZ で、はみ出た分は切れる */
+window.addEventListener('resize',()=>setTimeout(photoFit,50));
+function photoSet(u){ PHOTO=u||''; const im=document.getElementById('photo'), pv=document.getElementById('phPrev'); if(pv){ pv.hidden=!PHOTO; if(PHOTO) pv.src=PHOTO; else pv.removeAttribute('src'); } if(im){ if(PHOTO){ PHIMG.onload=photoFit; PHIMG.src=PHOTO; im.style.backgroundImage='url("'+PHOTO+'")'; } else { PHIMG.removeAttribute('src'); im.style.backgroundImage='none'; im.style.display='none'; } } phzUI(); }
+function phzUI(){ const t=document.getElementById('phZ'); if(t) t.textContent='大きさ '+Math.round(PHZ*100)+'%'; }
+function phzSet(z){ PHZ=Math.max(.3,Math.min(5,z)); try{ localStorage.setItem('gmerge_photoz',String(PHZ)); }catch(e){} phzUI(); photoFit(); }
+setTimeout(()=>{ const tx=document.getElementById('memoTx'), fl=document.getElementById('phFile'), st=document.getElementById('phSt'); if(!tx || !fl) return; tx.value=MEMO; tx.addEventListener('input',()=>{ MEMO=tx.value.slice(0,40); try{ localStorage.setItem('gmerge_memo',MEMO); }catch(e){} memoUI(); }); for(const ev of ['pointerdown','keydown','keyup']) tx.addEventListener(ev,e=>e.stopPropagation());
+  document.getElementById('phMinus').addEventListener('click',()=>phzSet(PHZ/1.15)); document.getElementById('phPlus').addEventListener('click',()=>phzSet(PHZ*1.15)); document.getElementById('phReset').addEventListener('click',()=>phzSet(1));
+  document.getElementById('phPick').addEventListener('click',()=>fl.click()); document.getElementById('phDel').addEventListener('click',()=>{ try{ localStorage.removeItem('gmerge_photo'); }catch(e){} st.textContent=''; photoSet(''); });
+  fl.addEventListener('change',()=>{ const f=fl.files && fl.files[0]; fl.value=''; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ const i=new Image(); i.onload=()=>{ const k=Math.min(1,720/Math.max(i.naturalWidth,i.naturalHeight)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(i.naturalWidth*k)); c.height=Math.max(1,Math.round(i.naturalHeight*k)); c.getContext('2d').drawImage(i,0,0,c.width,c.height); let u=c.toDataURL('image/webp',.86); if(u.indexOf('data:image/webp')!==0 && u.length>900000) u=c.toDataURL('image/jpeg',.86); try{ localStorage.setItem('gmerge_photo',u); st.textContent=''; }catch(e){ st.textContent='保存できませんでした（開き直すと消えます）'; } photoSet(u); }; i.onerror=()=>{ st.textContent='この写真は読みこめませんでした'; }; i.src=rd.result; }; rd.readAsDataURL(f); });
+  /* 画面の文字のところを直接押して書けるようにする（設定画面のらんと同じ中身） */
+  { const m=document.getElementById('memo'); if(m) m.addEventListener('click',()=>{ if(m.querySelector('input')) return; const i=document.createElement('input'); i.type='text'; i.maxLength=40; i.value=MEMO; i.placeholder='例：初見さん歓迎！'; i.enterKeyHint='done'; m.classList.remove('empty'); m.textContent=''; m.style.fontSize=''; m.appendChild(i); for(const ev of ['pointerdown','keydown','keyup']) i.addEventListener(ev,e=>e.stopPropagation());
+      const done=()=>{ MEMO=i.value.slice(0,40); try{ localStorage.setItem('gmerge_memo',MEMO); }catch(e){} tx.value=MEMO; i.remove(); memoUI(); }; i.addEventListener('blur',done); i.addEventListener('keydown',e=>{ if(e.key==='Enter') i.blur(); }); i.focus(); }); }
+  photoSet(PHOTO); memoUI(); setInterval(photoFit,700); },0);
+function tfLogAdd(t){ TF.log.unshift(t); if(TF.log.length>40) TF.log.length=40; const el=document.getElementById('tfLog'); if(el) el.textContent=TF.log.join('\n'); }
+function tfUI(){ const b=document.getElementById('cfgBtn'), st=document.getElementById('tfSt'); if(b) b.classList.toggle('on',TF.ok); if(st){ st.classList.toggle('on',TF.ok); st.textContent=srcName()+(TF.ok?'：つながっています':(cloudOn()&&TF.offline?'：配信が始まるのを待っています':'：つながっていません')); } { const cu=document.getElementById('clUser'), ck=document.getElementById('clKey'), cb=document.getElementById('clOn'), cs=document.getElementById('clSt'); if(cb){ if(document.activeElement!==cu && !cu.dataset.d) cu.value=CLOUD.user; if(document.activeElement!==ck && !ck.dataset.d) ck.value=CLOUD.key; cb.textContent=CLOUD.on?'やめる（TikFinityに戻す）':'つなぐ'; cb.style.background=CLOUD.on?'#d1457a':''; cs.textContent=CLOUD.on?(TF.ok?'つながっています':(TF.offline?'キーとユーザー名は通りました。いまは配信していないので待っています（配信を始めたら、上の「つなぎ直す」を押すとすぐつながります）':(EMBED?'このページ（Claudeの共有ページ）からは、つなぐことができません。Safariで '+HOME_URL+' を開いて、そちらでユーザー名とキーを入れてください':TF.why?'つながりません：'+TF.why:'つなぎ中…（つながらない時は、ユーザー名・キー・配信中かどうかを確かめてください）'))):''; } } tfDiag(); }
+function tfDiag(){ const el=document.getElementById('tfDiag'); if(!el) return; const L=[]; const n=TF.rawN||0, kinds=Object.keys(TF.kinds||{}).map(k=>k+'×'+TF.kinds[k]).join('、');
+  if(cloudOn()){ el.textContent='① ゲーム → スマホ用のつなぎ先：'+(TF.ok?'○ つながっている':'✕ つながっていない（'+(TF.tries||0)+'回ためした）')+'\n② 届いた知らせの数：'+n+' 件'+(kinds?'（'+kinds+'）':'')+(TF.offline?'\n→ キーとユーザー名は通りました。いまは配信していません。配信を始めると自動でつながります（1分おきに確かめます）。':(TF.ok&&n===0?'\n→ つながっていますが、まだ何も届いていません。配信中かどうか、ユーザー名が合っているかを確かめてください。':'')); return; }
+  L.push('① ゲーム → TikFinity：'+(TF.ok?'○ つながっている':'✕ つながっていない（'+(TF.tries||0)+'回ためした）'));
+  L.push('② ChromeのPC内アクセス許可：'+(TF.lna==='granted'?'○ 許可':TF.lna==='denied'?'✕ ブロック中 → アドレスバー左のマーク →「サイトの設定」→「ローカル ネットワークへのアクセス」を許可':TF.lna==='prompt'?'△ まだ聞かれていない（聞かれたら「許可」）':'― （このChromeでは調べられない）'));
+  L.push('③ TikFinityから届いた数：'+n+' 件'+(kinds?'（'+kinds+'）':''));
+  let v; if(!TF.ok) v=TF.lna==='denied'?'→ ②を許可にして、Ctrl+Shift+R で読みこみ直してください。':'→ TikFinityのデスクトップ版を開いてください（ブラウザ版ではつながりません）。開いているのにダメなら②の許可を見てください。';
+  else if(n===0) v='→ つながっていますが、TikFinityが何も送ってきていません。TikFinityを最新版にして、開き直してください。';
+  else if(!(TF.kinds.gift||TF.kinds.chat||TF.kinds.like)) v='→ つながっていますが、配信の中身（コメント・ギフト）がまだ1つも来ていません。配信を始めてから、TikFinityで自分のアカウントに接続し直してください。TikFinityの Event Simulator でも試せます。';
+  else v='→ ちゃんと届いています。';
+  L.push(v); el.textContent=L.join('\n'); }
+try{ navigator.permissions.query({name:'local-network-access'}).then(r=>{ TF.lna=r.state; r.onchange=()=>{ TF.lna=r.state; tfDiag(); }; tfDiag(); },()=>{ navigator.permissions.query({name:'loopback-network'}).then(r=>{ TF.lna=r.state; tfDiag(); },()=>{}); }); }catch(e){}
+function tfConnect(){ clearTimeout(TF.timer); try{ if(TF.ws){ TF.ws.onclose=null; TF.ws.close(); } }catch(e){}
+  TF.tries++; TF.url=cloudOn()?'wss://api.tik.tools?uniqueId='+encodeURIComponent(CLOUD.user.replace(/^@/,''))+'&apiKey='+encodeURIComponent(CLOUD.key):TF.urls[TF.tries%2]; let ws; try{ ws=new WebSocket(TF.url); }catch(e){ TF.ok=false; tfUI(); TF.wait=Math.min(20000,TF.wait*1.5); TF.timer=setTimeout(tfConnect,TF.wait); return; }
+  TF.ws=ws; ws.onopen=()=>{ TF.ok=true; TF.tries=0; TF.why=''; TF.wait=3000; tfUI(); tfLogAdd(srcName()+'につながった'); };
+  ws.onclose=ev=>{ if(TF.ws!==ws) return; const was=TF.ok; TF.ok=false; if(cloudOn() && ev){ const c=ev.code, r=String(ev.reason||''), q=r.toLowerCase(); TF.why=/not currently live|not live|offline/.test(q)?'いまは配信していないようです。TikTokで配信を始めてから、上の「つなぎ直す」を押してください':
+      (/expired|evaluation|trial/.test(q)?'APIキーの期限が切れています（無料のおためしは7日間）':/limit|too many|concurrent|quota|rate/.test(q)||c===1013||c===4429?'同時につなげる数か回数の上限に当たっています。同じキーをほかの人が使っているとつながりません':/key|unauthor|forbidden|auth|invalid/.test(q)||c===4401||c===4403?'APIキーがちがうようです（前後の空白や、文字の抜けがないか見てください）':/not found|no such|user|unique/.test(q)?'ユーザー名がちがうようです（表示名ではなく、@のあとの英数字）':c===1006&&!r?'つなぎ先に届いていません（通信がわるいか、アドレスをブロックされています）':'')+((c||r)&&!/not currently live|not live/.test(q)?'　［'+c+' '+r.slice(0,70)+'］':''); }
+    tfUI(); if(was) tfLogAdd(srcName()+'との接続が切れた'); if(cloudOn() && ev && (ev.code||ev.reason) && !TF.offline) tfLogAdd('切れた理由：'+ev.code+' '+String(ev.reason||'').slice(0,80)); if(cloudOn() && TF.offline){ TF.waitOff=true; } TF.wait=Math.min(20000,TF.wait*1.5); if(cloudOn() && TF.offline) TF.wait=60000; TF.timer=setTimeout(tfConnect,TF.wait); tfUI(); };
+  ws.onerror=()=>{}; ws.onmessage=e=>{ let m=null; TF.rawN=(TF.rawN||0)+1; try{ const t=String(e.data); if(!/"event"\s*:\s*"(like|roomUser|member|chat)"/.test(t) || !TF.raw.length){ TF.raw.unshift(t.slice(0,700)); if(TF.raw.length>6) TF.raw.length=6; } const el=document.getElementById('tfRaw'); if(el) el.textContent='受信 '+TF.rawN+' 件\n'+TF.raw.join('\n---\n'); }catch(_){} try{ m=JSON.parse(e.data); }catch(_){ return; } { const kk=String(m.event||m.type||'?').toLowerCase(); TF.kinds[kk]=(TF.kinds[kk]||0)+1; if(kk==='streamend') TF.offline=true; else if(kk!=='roominfo') TF.offline=false; tfDiag(); } try{ tfEvent(m); }catch(err){ tfLogAdd('読み取りエラー：'+err.message); } }; }
+function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.data||m||{}, u=d.user||{}, name=d.nickname||u.nickname||d.uniqueId||u.uniqueId||'だれか';
+  if(ev==='gift'){ const gd=d.giftDetails||d.extendedGiftInfo||d.gift||{}, id=d.giftId!=null?d.giftId:(gd.id!=null?gd.id:gd.giftId), gname=d.giftName||gd.giftName||gd.name||('ID'+id), coins=d.diamondCount!=null?d.diamondCount:(gd.diamondCount!=null?gd.diamondCount:gd.diamond_count), pic=d.giftPictureUrl||gd.giftPictureUrl||gd.pictureUrl||(gd.icon&&gd.icon.url_list&&gd.icon.url_list[0])||(gd.image&&gd.image.url_list&&gd.image.url_list[0])||null, gtype=d.giftType!=null?d.giftType:gd.giftType, rc=Math.max(1,parseInt(d.repeatCount,10)||1), end=!!d.repeatEnd;
+    let n=rc; if(gtype===1){ const k=(d.uniqueId||u.uniqueId||name)+'|'+id, last=TF.streak[k]||0; n=Math.max(0,rc-last); if(end) delete TF.streak[k]; else TF.streak[k]=rc; }
+    if(n<=0) return; feedAdd(name,'が '+gname+(n>1?' ×'+n:'')+' を贈った','gf'); tfGift({id,name:gname,coins,pic},name,Math.min(n,5000)); }
+  else if(ev==='roomuser'){ const vc=d.viewerCount!=null?d.viewerCount:(d.viewer_count!=null?d.viewer_count:(d.totalUser!=null?d.totalUser:d.total)); if(vc!=null) feedViewers(vc); }
+  else if(ev==='chat'){ { const tx=d.comment!=null?d.comment:(d.text!=null?d.text:d.content); if(tx) feedAdd(name,tx); } if(OPT.chatOn && !TITLE && !PAUSE) Game.comment(name); tfLogAdd('コメント：'+name+(OPT.chatOn?'':'（オフ）')); }
+  else if(ev==='like'){ const c=parseInt(d.likeCount!=null?d.likeCount:(d.count!=null?d.count:d.likes),10)||1; if(OPT.likeOn && !TITLE && !PAUSE) Game.like(c,name); }
+  else if(ev==='error'||ev==='disconnected'||ev==='streamend'){ tfLogAdd('つなぎ先から：'+ev+' '+JSON.stringify(d).slice(0,140)); }
+  else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') feedAdd(name,'がフォローした','fl'); if(ev==='follow' && OPT.followOn) runFx(()=>Game.follow(name)); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
+const GIFT_EN={'rose':['バラ','ローズ'],'tiktok':['TikTok','ティックトック'],'gg':['GG'],'icecreamcone':['ソフトクリーム','アイスクリーム'],'fingerheart':['フィンガーハート','指ハート'],'heartme':['ハートミー'],'rosa':['ローザ'],'perfume':['香水'],'doughnut':['ドーナッツ','ドーナツ'],'donut':['ドーナッツ','ドーナツ'],'handhearts':['ハンドハート'],'handheart':['ハンドハート'],'hatandmustache':['帽子と口ひげ','帽子とひげ'],'papercrane':['折り鶴','折り稚'],'swan':['白鳥','スワン'],'train':['列車'],'corgi':['コーギー'],'confetti':['紙吹雪','コンフェッティ'],'goldenconfetti':['金の紙吹雪'],'lion':['ライオン'],'galaxy':['ギャラクシー','銀河'],'moneygun':['マネーガン'],'sunglasses':['サングラス'],'hearts':['ハート'],'heart':['ハート'],'cap':['キャップ'],'littlecrown':['小さな王冠'],'bubblegum':['風船ガム'],'friendshipnecklace':['友情ネックレス'],'loveyou':['愛してる'],'garlandheadpiece':['花冠'],'coral':['サンゴ'],'football':['サッカー'],'soccer':['サッカー'],'winkwink':['ウインク'],'wink':['ウインク'],'cheeryouup':['エール'],'whalediving':['ダイビングするクジラ','クジラダイビング'],'universe':['TikTok Universe','ユニバース'],'tiktokuniverse':['TikTok Universe','ユニバース'],'interstellar':['インターステラー'],'rocket':['ロケット'],'pegasus':['ペガサス'],'firephoenix':['不死鳥','フェニックス','火の鳥'],'phoenix':['不死鳥','フェニックス'],'feather':['羽根'],'featherstiara':['羽のティアラ'],'feathermask':['羽根のマスク'],'loveshelter':['ラブシェルター'],'superpopular':['スーパー人気'],'ilovepoyou':['大好き'],'ilyso':['大好き'],'youreawesome':['素晴らしい'],'acorn':['どんぐり'],'popsicle':['アイスバー'],'baseball':['野球'],'catpaws':['猫の足'],'glowstick':['ペンライト'],'fan':['うちわ'],'omamori':['おまもり'],'amulet':['おまもり'],'slowmotion':['スローモーション'],'bravo':['ブラボー！'],'genius':['天才'],'firstvisit':['初見です'],'mirrorbloom':['ミラーブルーム'],'butterfly':['蝶結び'],'chili':['チリ'],'starglasses':['スターメガネ'],'ramune':['ラムネ']};
+const enKey=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]/g,''), enHit=(b,gf)=>{ const c=GIFT_EN[enKey(gf.name)]; return !!(c && b.name && c.some(j=>tfNorm(j)===tfNorm(b.name))); };
+/* 名前が合わないギフト（スマホ用のつなぎ先は英語の名前で届く、など）を、絵で見分ける。
+   同じコイン数で、まだIDが決まっていない割り当てが2つ以上ある時だけ使う。届いたギフトの絵と、ギフト一覧の絵（img/giftcat.jpg）の色の分布をくらべて、
+   いちばん近いものがはっきり1つに決まれば、そのギフトのIDを覚える（次からはIDで一発で合う）。絵が読めない・決めきれない時は、今まで通り「分からなかったギフト」に出す */
+const PICM={cat:null,wait:null,sig:{}};
+function picHist(d,w,h,useAlpha){ const H=new Float32Array(64); let n=0; const bg=[d[0],d[1],d[2]]; let alphaSeen=false; if(useAlpha){ for(let i=3;i<d.length;i+=4) if(d[i]<200){ alphaSeen=true; break; } }
+  for(let i=0;i<d.length;i+=4){ const r=d[i], g=d[i+1], b=d[i+2]; if(alphaSeen){ if(d[i+3]<110) continue; } else if(Math.abs(r-bg[0])+Math.abs(g-bg[1])+Math.abs(b-bg[2])<70) continue; H[(r>>6)*16+(g>>6)*4+(b>>6)]++; n++; } if(n<12) return null; for(let i=0;i<64;i++) H[i]/=n; return H; }
+function picDist(a,b){ let s=0; for(let i=0;i<64;i++) s+=Math.min(a[i],b[i]); return 1-s; }
+function picCat(cb){ if(PICM.cat){ cb(PICM.cat); return; } if(PICM.wait){ PICM.wait.push(cb); return; } PICM.wait=[cb]; const im=new Image(); im.onload=()=>{ PICM.cat=im; const q=PICM.wait; PICM.wait=null; q.forEach(f=>f(im)); }; im.onerror=()=>{ const q=PICM.wait; PICM.wait=null; q.forEach(f=>f(null)); }; im.src=CAT.img; }
+function picCell(im,ci){ if(PICM.sig[ci]!==undefined) return PICM.sig[ci]; const rows=CAT.list?Math.ceil(CAT.list.length/CAT.cols):20, cw=im.naturalWidth/CAT.cols, ch=im.naturalHeight/rows, c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,(ci%CAT.cols)*cw,Math.floor(ci/CAT.cols)*ch,cw,ch,0,0,32,32); let s=null; try{ s=picHist(x.getImageData(0,0,32,32).data,32,32,false); }catch(e){} PICM.sig[ci]=s; return s; }
+function picMatch(url,cand,cb){ let done=false; const fin=v=>{ if(done) return; done=true; cb(v); }; setTimeout(()=>fin(null),3000);
+  picCat(cat=>{ if(!cat){ fin(null); return; } const im=new Image(); im.crossOrigin='anonymous'; im.referrerPolicy='no-referrer'; im.onerror=()=>fin(null);
+    im.onload=()=>{ try{ const c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,0,0,32,32); const hs=picHist(x.getImageData(0,0,32,32).data,32,32,true); if(!hs){ fin(null); return; }
+        const sc=cand.map(f=>{ const s=picCell(cat,TF.map[f[0]].ci); return {f,d:s?picDist(hs,s):9}; }).sort((a,b)=>a.d-b.d); window.__picm=sc.map(q=>[q.f[0],+q.d.toFixed(3)]); fin(sc[0].d<.72 && sc[1].d-sc[0].d>.07?sc[0].f:null); }catch(e){ fin(null); } };
+    im.src=url; }); }
+function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
+  if(TF.learn){ const id=TF.learn; TF.learn=null; if(TF.seqLearn){ const k=FX_LIST.findIndex(f=>f[0]===id); let nx=null; for(let q=k+1;q<FX_LIST.length;q++){ if(TF.map[FX_LIST[q][0]] && TF.map[FX_LIST[q][0]].name){ nx=FX_LIST[q][0]; break; } } if(nx) TF.learn=nx; else { TF.seqLearn=false; tfLogAdd('順番に受信登録：ぜんぶ終わりました'); } } { const old=TF.map[id]||{}; TF.map[id]={id:gf.id,name:old.name||gf.name,rx:gf.name,coins:gf.coins!=null?gf.coins:old.coins,pic:gf.pic||null,ci:old.ci!=null?old.ci:null}; } tfSave(); cfgBuild(); tfLogAdd('登録：'+gf.name+coin+' → '+(FX_LIST.find(f=>f[0]===id)||[])[2]); return; }
+  let hit=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && ((b.id!=null && gf.id!=null && String(b.id)===String(gf.id)) || (b.name && tfNorm(b.name)===tfNorm(gf.name)) || (b.rx && tfNorm(b.rx)===tfNorm(gf.name)) || (b.alt && b.alt.some(t=>tfNorm(t)===tfNorm(gf.name))) || enHit(b,gf)); }), byCoin=false;
+  if(!hit.length && gf.coins!=null){ const same=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(same.length===1){ hit=same; byCoin=true; } }
+  { let ch=false; for(const f of hit){ const b=TF.map[f[0]]; if(byCoin) continue; if(b.id==null && gf.id!=null){ b.id=gf.id; ch=true; } if(b.coins==null && gf.coins!=null){ b.coins=gf.coins; ch=true; } if(!b.pic && gf.pic){ b.pic=gf.pic; ch=true; } } if(ch) tfSave(); }
+  if(!hit.length && !gf._img && gf.coins!=null && gf.pic){ const cand=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.ci!=null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(cand.length>1){ picMatch(gf.pic,cand,f=>{ if(f){ const b=TF.map[f[0]]; if(gf.id!=null) b.id=gf.id; b.rx=gf.name; tfSave(); tfLogAdd('絵で見分けた：'+gf.name+' → '+f[2]); } tfGift(Object.assign({},gf,{_img:1}),name,n); }); return; } }
+  tfLogAdd('ギフト：'+name+' が '+gf.name+coin+' ×'+n+(hit.length?' → '+hit.map(f=>f[2]).join('・')+(byCoin?'（コイン数で判定）':''):' → 割り当てなし')); if(!hit.length) missAdd(gf);
+  for(const f of hit) for(let i=0;i<Math.min(n,50);i++) setTimeout(()=>{ try{ runFx(()=>f[4](name)); }catch(e){} },i*350); }
+const CAT={list:null,cols:24,img:'./img/giftcat.jpg'}; let pickFx=null, pickTab=0;
+const PICK_TABS=[['ぜんぶ',0,1e9],['1',1,1],['5〜30',5,30],['50〜199',50,199],['200〜499',200,499],['500〜999',500,999],['1000〜4999',1000,4999],['5000〜',5000,1e9]];
+function catLink(){ if(!CAT.list) return; let ch=false; for(const k in TF.map){ const b=TF.map[k]; if(!b || !b.name || b.ci!=null) continue; const i=CAT.list.findIndex(e=>tfNorm(e[0])===tfNorm(b.name)); if(i>=0){ b.ci=i; if(b.coins==null) b.coins=CAT.list[i][1]; ch=true; } } if(ch) tfSave(); }
+function catLoad(cb){ if(CAT.list){ catLink(); cb(); return; } fetch('./gifts_cat.json').then(r=>r.json()).then(j=>{ CAT.list=j; catLink(); cb(); }).catch(()=>{ CAT.list=[]; cb(); }); }
+function catIcon(el,ci){ const rows=CAT.list?Math.ceil(CAT.list.length/CAT.cols):20; el.style.backgroundImage='url('+CAT.img+')'; el.style.backgroundSize=(CAT.cols*100)+'% '+(rows*100)+'%'; el.style.backgroundPosition=((ci%CAT.cols)/(CAT.cols-1)*100)+'% '+(rows>1?(Math.floor(ci/CAT.cols)/(rows-1)*100):0)+'%'; }
+function pickOpen(f){ pickFx=f; catLoad(()=>{ document.getElementById('pickTitle').textContent=f[2]+' に使うギフト'; document.getElementById('pickQ').value=''; pickDraw(); document.getElementById('pick').hidden=false; }); }
+function pickDraw(){ const tb=document.getElementById('pickTabs'); tb.innerHTML=''; PICK_TABS.forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t[0]; if(i===pickTab) b.className='on'; b.addEventListener('click',()=>{ pickTab=i; pickDraw(); }); tb.appendChild(b); });
+  const g=document.getElementById('pickGrid'), qv=tfNorm(document.getElementById('pickQ').value), t=PICK_TABS[pickTab]; g.innerHTML=''; const fr=document.createDocumentFragment();
+  CAT.list.forEach((e,i)=>{ if(qv){ if(!(tfNorm(e[0]).includes(qv) || String(e[1])===qv)) return; } else if(e[1]<t[1] || e[1]>t[2]) return;
+    const b=document.createElement('button'); b.type='button'; b.className='it'; const gi=document.createElement('div'); gi.className='gi'; catIcon(gi,i); const sp=document.createElement('span'); sp.textContent=e[0]; const em=document.createElement('em'); em.textContent=e[1];
+    b.appendChild(gi); b.appendChild(sp); b.appendChild(em); b.addEventListener('click',()=>{ TF.map[pickFx[0]]={id:null,name:e[0],coins:e[1],ci:i,pic:null}; tfSave(); document.getElementById('pick').hidden=true; cfgBuild(); }); fr.appendChild(b); });
+  g.appendChild(fr); if(!g.children.length){ const d=document.createElement('p'); d.textContent='見つかりませんでした'; g.appendChild(d); } }
+/* ギフト表に出す名前（自分で変えた分だけ入る）。TBL_NAME=元の名前 */
+const TBL_NAME={"drop0": "バラ", "drop1": "フィンガーハート", "drop2": "ローザ", "drop3": "香水", "drop4": "ドーナッツ", "drop5": "ハンドハート", "drop6": "愛してる", "drop7": "うっとりペンギン", "drop8": "だいすき", "drop9": "銀河", "drop10": "ライオン", "shake": "箱をゆらす", "clean": "小さいの消す"}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('gmerge_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('gmerge_lbl',JSON.stringify(LBL)); }catch(e){} }
+let tblCols=7; try{ tblCols=parseInt(localStorage.getItem('gmerge_tblcols'),10)||7; }catch(e){}
+function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name || b.off) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
+  const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+(OPT.coinOn?1:0)+(OPT.chatOn?1:0)+'&g='+parts.join(',')+(()=>{ const l=Object.keys(LBL).filter(k=>LBL[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LBL[k]))); return l.length?'&l='+l.join(','):''; })(); }
+function tblUI(){ const el=document.getElementById('tblUrl'); if(el) el.value=tblUrl(); document.querySelectorAll('#cfg button.tc').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.c,10)===tblCols)); }
+function cfgBuild(){ tblUI(); missBuild(); { const en=document.getElementById('embedNote'); if(en) en.hidden=!EMBED; } { const sb=document.getElementById('seqLearn'), sn=document.getElementById('seqNote'); if(sb){ sb.textContent=TF.seqLearn?'順番登録をやめる':'上から順に受信で登録'; sb.style.background=TF.seqLearn?'#d1457a':''; const f=TF.seqLearn&&FX_LIST.find(x=>x[0]===TF.learn); sn.textContent=f?'いま待っているのは「'+f[2]+'」（'+((TF.map[f[0]]||{}).name||'')+'）。このギフトを1個流してください':''; } } const box=document.getElementById('cfgRows'); if(!box) return; box.innerHTML='';
+  for(const f of FX_LIST){ const b=TF.map[f[0]]||{}, row=document.createElement('div'); row.className='row '+f[1];
+    const nm=document.createElement('div'); nm.className='nm'; nm.textContent=(f[1]==='jam'?'妨害｜':f[1]==='help'?'お助け｜':'')+f[2]; const sm=document.createElement('small'); sm.textContent=f[3]+(b.coins!=null?'　'+b.coins+'コイン':''); nm.appendChild(sm); { const li=document.createElement('input'); li.type='text'; li.maxLength=14; li.value=LBL[f[0]]||''; li.placeholder='表の名前：'+(TBL_NAME[f[0]]||f[2]); li.style.cssText='display:block;width:100%;box-sizing:border-box;font-size:.8em;margin-top:.25em;padding:.25em .4em'; const sv=()=>{ const v=li.value.trim(); if(v) LBL[f[0]]=v; else delete LBL[f[0]]; lblSave(); tblUI(); }; li.addEventListener('input',sv); li.addEventListener('pointerdown',e=>e.stopPropagation()); li.addEventListener('keydown',e=>e.stopPropagation()); nm.appendChild(li); } 
+    const inp=document.createElement('button'); inp.type='button'; inp.className='gsel'; const gi=document.createElement('div'); gi.className='gi'; if(b.ci!=null) catIcon(gi,b.ci); else if(b.pic){ gi.style.backgroundImage='url('+b.pic+')'; gi.style.backgroundSize='contain'; gi.style.backgroundPosition='center'; }
+    const gt=document.createElement('div'); gt.className='gt'; gt.textContent=b.name||'未設定（押してえらぶ）'; if(b.name){ const sm2=document.createElement('small'); sm2.textContent=(b.coins!=null?b.coins+'コイン':'')+(b.id!=null?'　受信ずみ':''); gt.appendChild(sm2); }
+    inp.appendChild(gi); inp.appendChild(gt); inp.addEventListener('click',()=>pickOpen(f));
+    const lr=document.createElement('button'); lr.type='button'; lr.className='lr'+(TF.learn===f[0]?' wait':''); lr.textContent=TF.learn===f[0]?'ギフト待ち…':'受信で登録'; lr.addEventListener('click',()=>{ TF.learn=TF.learn===f[0]?null:f[0]; cfgBuild(); });
+    const xb=document.createElement('button'); xb.type='button'; xb.className='x'; xb.textContent='×'; xb.addEventListener('click',()=>{ delete TF.map[f[0]]; tfSave(); cfgBuild(); });
+    const sw=document.createElement('button'); sw.type='button'; sw.className='lr'; sw.textContent=b.off?'OFF':'ON'; sw.style.cssText='flex:0 0 auto;min-width:3.6em;font-weight:900;color:#fff;background:'+(b.off?'#5b6478':'#1fa45a'); sw.addEventListener('click',()=>{ const e=TF.map[f[0]]; if(!e) return; if(e.off) delete e.off; else e.off=true; tfSave(); cfgBuild(); });   // ON/OFF：OFFの間は、このギフトが来ても何も起きず、ギフト表にも出ない（割り当ては残る）
+    if(b.off){ inp.style.opacity='.45'; nm.style.opacity='.6'; }
+    row.appendChild(nm); row.appendChild(inp); if(b.name) row.appendChild(sw); row.appendChild(lr); if(b.name) row.appendChild(xb); box.appendChild(row); } }
+{ const cfg=document.getElementById('cfg'); document.getElementById('cfgBtn').addEventListener('click',()=>{ catLoad(()=>{ cfgBuild(); }); cfgBuild(); tfUI(); cfg.hidden=false; tp.hidden=true; try{ const v=window.__viewH||{}; document.getElementById('viewDbg').textContent='画面の高さ（調査用）：'+[v.inner,v.client,Math.round(v.vv||0),v.screen,v.safeT,v.safeB,v.alone?'ホーム':'ブラウザ',Math.round(v.use||0)].join(' / '); }catch(e){} }); document.getElementById('cfgClose').addEventListener('click',()=>{ TF.learn=null; TF.seqLearn=false; cfg.hidden=true; }); for(const id of ['clUser','clKey']) document.getElementById(id).addEventListener('input',e=>{ e.target.dataset.d='1'; CLOUD.user=document.getElementById('clUser').value.trim().replace(/^@/,''); CLOUD.key=document.getElementById('clKey').value.trim(); try{ localStorage.setItem('gmerge_cloud',JSON.stringify(CLOUD)); }catch(err){} });   /* 打ったその場で保存する（「つなぐ」を押す前に読みこみ直しても消えないように）。キーはこの端末の中だけ */
+  document.getElementById('clOn').addEventListener('click',()=>{ const u=document.getElementById('clUser').value.trim().replace(/^@/,''), k=document.getElementById('clKey').value.trim(); if(!CLOUD.on && (!u || !k)){ document.getElementById('clSt').textContent='ユーザー名とキーの両方を入れてください'; return; } CLOUD={on:!CLOUD.on,user:u,key:k}; delete document.getElementById('clUser').dataset.d; delete document.getElementById('clKey').dataset.d; try{ localStorage.setItem('gmerge_cloud',JSON.stringify(CLOUD)); }catch(e){} TF.tries=0; TF.wait=3000; TF.ok=false; tfConnect(); tfUI(); });
+  document.getElementById('pickClose').addEventListener('click',()=>{ document.getElementById('pick').hidden=true; }); document.getElementById('pickQ').addEventListener('input',pickDraw);
+  document.getElementById('cfgTable').addEventListener('click',()=>{ window.open(tblUrl(),'_blank'); });
+  document.querySelectorAll('#cfg button.tc').forEach(b=>b.addEventListener('click',()=>{ tblCols=parseInt(b.dataset.c,10); try{ localStorage.setItem('gmerge_tblcols',String(tblCols)); }catch(e){} tblUI(); }));
+  document.getElementById('tblCopy').addEventListener('click',()=>{ const el=document.getElementById('tblUrl'), bt=document.getElementById('tblCopy'); el.select(); const done=()=>{ bt.textContent='コピーしました'; setTimeout(()=>{ bt.textContent='URLをコピー'; },1500); }; try{ navigator.clipboard.writeText(el.value).then(done,()=>{ document.execCommand('copy'); done(); }); }catch(e){ try{ document.execCommand('copy'); done(); }catch(_){} } });
+  document.getElementById('seqLearn').addEventListener('click',()=>{ if(TF.seqLearn){ TF.seqLearn=false; TF.learn=null; } else { const f=FX_LIST.find(x=>TF.map[x[0]] && TF.map[x[0]].name); if(f){ TF.seqLearn=true; TF.learn=f[0]; } else tfLogAdd('先にギフトをえらんでください'); } cfgBuild(); });
+  document.getElementById('tfRe').addEventListener('click',()=>{ TF.wait=3000; tfConnect(); });
+  // 配る用のリンク：ギフトの割り当て（名前・コイン・届いた名前とID・ON/OFF・表の名前）を短くまとめてアドレスの後ろに付ける。キーは入れない
+  const b64e=t=>btoa(unescape(encodeURIComponent(t))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''), b64d=t=>decodeURIComponent(escape(atob(t.replace(/-/g,'+').replace(/_/g,'/'))));
+  const sharePack=()=>{ const g=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name) continue; g.push([f[0],b.name,b.coins!=null?b.coins:null,b.ci!=null?b.ci:null,b.id!=null?b.id:null,b.rx||null,b.off?1:0,b.alt||null]); } return b64e(JSON.stringify({g,l:LBL})); };
+  const shareApply=o=>{ const m={}; for(const a of (o.g||[])){ if(!FX_LIST.some(f=>f[0]===a[0])) continue; const e={id:a[4]!=null?a[4]:null,name:String(a[1]||''),coins:a[2]!=null?a[2]:null,pic:null,ci:a[3]!=null?a[3]:null}; if(a[5]) e.rx=String(a[5]); if(a[6]) e.off=true; if(Array.isArray(a[7])) e.alt=a[7].map(String); m[a[0]]=e; } TF.map=m; tfSave(); if(o.l && typeof o.l==='object'){ LBL=o.l; lblSave(); } try{ cfgBuild(); }catch(e){} tfLogAdd('受け取ったギフトの割り当てを読みこんだ（'+Object.keys(m).length+'個）'); };
+  document.getElementById('shareMk').addEventListener('click',()=>{ const url=(EMBED?HOME_URL:location.origin+location.pathname)+'#set='+sharePack(), st=document.getElementById('shareSt'), io=document.getElementById('cfgIO'); io.value=url; const copied=()=>{ st.textContent='リンクをコピーしました。LINEなどに貼って送ってください'; };
+    if(navigator.share){ navigator.share({title:'ギフトがっちゃんこ',url}).then(()=>{ st.textContent='送りました'; }).catch(()=>{ if(navigator.clipboard) navigator.clipboard.writeText(url).then(copied).catch(()=>{ st.textContent='下の箱の文字をコピーして送ってください'; io.select(); }); }); }
+    else if(navigator.clipboard) navigator.clipboard.writeText(url).then(copied).catch(()=>{ st.textContent='下の箱の文字をコピーして送ってください'; io.select(); }); else { st.textContent='下の箱の文字をコピーして送ってください'; io.select(); } });
+  { const m=/[#&]set=([A-Za-z0-9_-]+)/.exec(location.hash||''); if(m){ try{ const o=JSON.parse(b64d(m[1])), has=Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name && !/^(dragonAtk)$/.test(k)) ; if(o && Array.isArray(o.g) && o.g.length && (!has || window.confirm('受け取ったギフトの割り当てに入れかえますか？（今の割り当ては消えます）'))) shareApply(o); }catch(e){ tfLogAdd('受け取った設定を読みこめませんでした'); } try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} } }
+  document.getElementById('cfgExp').addEventListener('click',()=>{ const t=document.getElementById('cfgIO'); t.value=JSON.stringify(Object.keys(LBL).length?Object.assign({},TF.map,{__lbl:LBL}):TF.map); t.select(); });
+  // 読みこむ：そのままの文字のほか、「配る用のリンク」を貼った時、前後に余計な文が付いた時、メッセージアプリで「”」などに変わった時でも読めるようにする
+  document.getElementById('cfgImp').addEventListener('click',()=>{ const raw=String(document.getElementById('cfgIO').value||''), st=document.getElementById('shareSt'); const say=t=>{ tfLogAdd(t); if(st) st.textContent=t; };
+    try{ const flat=raw.replace(/\s+/g,''), m=/set=([A-Za-z0-9_-]{20,})/.exec(flat)||/^()?([A-Za-z0-9_-]{40,})$/.exec(flat); if(m && !m[1]) m[1]=m[2]; if(m){ const o=JSON.parse(b64d(m[1])); if(o && Array.isArray(o.g) && o.g.length){ shareApply(o); say('読みこみました（'+o.g.length+'個）'); return; } } }catch(e){}
+    let t=raw.replace(/[\u201C\u201D\u201E\u201F\u2033\uFF02]/g,'"').replace(/[\u2018\u2019\u2032\uFF07]/g,"'").replace(/\uFF1A/g,':').replace(/\uFF0C/g,',').replace(/[\u200B\uFEFF]/g,''); const i=t.indexOf('{'), j=t.lastIndexOf('}'); if(i<0 || j<=i){ say(raw.trim()?'読みこめません：文字が途中で切れているか、ちがう文字です。「配る用のリンク」を送ってもらうのが確実です':'箱が空です。もらった文字を貼ってから押してください'); return; }
+    try{ const o=JSON.parse(t.slice(i,j+1)); if(o && typeof o==='object'){ if(Array.isArray(o.g)){ shareApply(o); say('読みこみました（'+o.g.length+'個）'); return; } if(o.__lbl && typeof o.__lbl==='object'){ LBL=o.__lbl; lblSave(); } delete o.__lbl; TF.map=o; tfSave(); cfgBuild(); say('読みこみました（'+Object.keys(o).length+'個）'); } }
+    catch(e){ say('読みこめません：文字が途中で切れているようです（'+raw.length+'文字）。「配る用のリンク」を送ってもらうのが確実です'); } }); }
+function optUI(){ for(const [id,k] of [['optChat','chatOn'],['optLike','likeOn'],['optFollow','followOn'],['optCoin','coinOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
+for(const [id,k] of [['optChat','chatOn'],['optLike','likeOn'],['optFollow','followOn'],['optCoin','coinOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); tblUI(); }); optUI();
+catLoad(()=>{});
+window.MergeTF={ TF, simulate:m=>tfEvent(m), connect:tfConnect };
+tfConnect();
+/* タイトル画面と一時停止 */
+function setPause(v,drop){ if(v && TITLE) return; PAUSE=!!v; const b=document.getElementById('pauseBtn'), t=document.getElementById('pauseTag'); b.textContent=PAUSE?'再開':'一時停止'; b.classList.toggle('on',PAUSE); t.hidden=!PAUSE; if(!PAUSE){ last=performance.now(); const q=PENDQ.splice(0); if(!drop) q.forEach((fn,i)=>setTimeout(()=>{ try{ if(!TITLE) fn(); }catch(e){} },i*350)); } }
+document.getElementById('pauseBtn').addEventListener('click',()=>setPause(!PAUSE));
+function ttlUI(){ const el=document.getElementById('ttl'); el.hidden=!TITLE; document.getElementById('pauseBtn').hidden=TITLE; if(!TITLE) return; document.getElementById('ttlRec').innerHTML=best>0?'ベストスコア<b>'+fmt(best)+'</b>点':'左右に動かして、はなすと落ちる'; }
+document.getElementById('ttl').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.id==='ttlGo'){ Game.start(); return; } if(b.id==='ttlGift'){ document.getElementById('cfgBtn').click(); return; } });
+if(/[?&]notitle=1/.test(location.search)) TITLE=false;
+ttlUI();
+window.MergeGame=Game; window.__dbg={ get S(){ return S; }, Game, LV, CFG, BOX, update, draw, pieces, spawn, reset, dropNow, get best(){ return best; }, get TITLE(){ return TITLE; }, set TITLE(v){ TITLE=v; ttlUI(); }, get PAUSE(){ return PAUSE; }, setPause };
+Promise.all([document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()].concat(Object.values(IMG).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.onload=r; im.onerror=r; } })))).then(()=>{ window.__ready=true; requestAnimationFrame(loop); });
+</script>
+</body>
+</html>
