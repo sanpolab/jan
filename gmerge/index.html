@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="ギフトがっちゃんこ">
-<title>ギフトがっちゃんこ</title>
+<meta name="apple-mobile-web-app-title" content="ユニバゲーム">
+<title>ユニバゲーム</title>
 <style>
 @font-face{font-family:MPR;src:url(./font/mpr.woff2) format('woff2');font-weight:400;font-display:swap}   /* ドット文字（DotGothic16）。太さは1種類なので、太字はブラウザが太らせる */
 @font-face{font-family:DELA;src:url(./font/dela.woff2) format('woff2');font-display:swap}
@@ -102,7 +102,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 #ttl #ttlGo{font-size:4.6em;padding:.25em 1.6em;border-radius:1em;background:#1f9a55;border:.08em solid #fff;font-family:DELA,MPR,sans-serif;box-shadow:0 .12em 0 #0b4a26}
 #ttl .sub{font-size:2em;color:#9fb6e6;display:flex;gap:1em}
 #tp h3{grid-column:1/-1;margin:.2em 0 -.3em;font-size:2.4em;color:#9fb6e6}
-/* ギフトがっちゃんこ用 */
+/* ユニバゲーム用 */
 canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 #testBtn,#cfgBtn,#pauseBtn{font-size:1.75em;background:#fff;color:#111;border:.12em solid #111;right:.7em;padding:.2em .7em;border-radius:2em}
 #testBtn{top:.6em}#cfgBtn{top:10.2em}#pauseBtn{top:12.4em}
@@ -123,22 +123,22 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 .pad.on{background:#ffd23f;color:#111;border-color:#ffd23f}
 #bL{left:2%;width:19%;font-size:6em}#bR{left:23%;width:19%;font-size:6em}#bJ{right:2%;width:34%;font-size:4.6em}
 
-/* ギフトがっちゃんこ用 */
+/* ユニバゲーム用 */
 #testBtn{top:.6em}#cfgBtn{top:2.9em}#pauseBtn{top:5.2em}
 #testBtn,#cfgBtn,#pauseBtn{background:rgba(8,10,34,.85);color:#fff;border-color:#fff}
-#ttl{background:linear-gradient(#2a1d5c,#4a2378 55%,#141033)}
+#ttl{background:linear-gradient(#2a1d5c,#4a2378 55%,#141033);justify-content:center !important;padding-top:0 !important}
 @font-face{font-family:POP;src:url(./font/pop.woff2) format('woff2');font-weight:100 900;font-display:swap}
 #ttl h1{font-family:POP,DELA,sans-serif;font-size:8em;color:#ffd23f;text-shadow:0 .08em 0 #3a1d00,0 0 .35em rgba(0,10,40,.9)}
 </style>
 </head>
 <body>
 <div id="stage">
-  <canvas id="cv" width="1080" height="1080"></canvas>
+  <canvas id="cv" width="1920" height="1080"></canvas>
   <button id="testBtn" type="button">テスト</button>
   <button id="pauseBtn" type="button" hidden>一時停止</button>
   <div id="pauseTag" hidden>一時停止中<small>届いたギフトは、再開したら順番に出ます</small></div>
   <div id="ttl">
-    <h1>ギフトがっちゃんこ<small>同じギフトをくっつけて進化させよう</small></h1>
+    <h1>ユニバゲーム<small>ギフトをくっつけて TikTok Universe をめざせ</small></h1>
     <div class="rec" id="ttlRec"></div>
     <button id="ttlGo" type="button">スタート</button>
     <div class="sub"><button id="ttlGift" type="button">ギフト設定</button><span id="ttlNote"></span></div>
@@ -152,7 +152,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/gmerge/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/gmerge/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 22:52</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 01:49</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -202,8 +202,12 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   <div id="tp" hidden>
     <h3>ギフトのコマをふらせる</h3>
     <button class="j" data-a="drop0">バラ<br>1コイン</button><button class="j" data-a="drop1">ローザ<br>10コイン</button><button class="j" data-a="drop2">歌うキノコ<br>99コイン</button><button class="j" data-a="drop3">コーギー<br>299コイン</button><button class="j" data-a="drop4">マネーガン<br>1,016コイン</button><button class="j" data-a="drop5">銀河<br>1,000コイン</button><button class="j" data-a="drop6">クジラのダイビング<br>2,150コイン</button><button class="j" data-a="drop7">子猫のレオン<br>4,888コイン</button><button class="j" data-a="drop8">ハヤブサ<br>10,999コイン</button><button class="j" data-a="drop9">ライオン<br>29,999コイン</button><button class="j" data-a="drop10">TikTokUniverse<br>44,999コイン</button>
-    <h3>そのほかの効果</h3>
-    <button class="j" data-a="shake">ゆらす<br>箱をガタガタゆらす</button><button class="h" data-a="clean">おそうじ<br>小さいコマをぜんぶ消す</button>
+    <h3>持ちコマを交換</h3>
+    <button class="j" data-a="chg0">バラ</button><button class="j" data-a="chg1">ローザ</button><button class="j" data-a="chg2">歌うキノコ</button><button class="j" data-a="chg3">コーギー</button><button class="j" data-a="chg4">マネーガン</button><button class="j" data-a="chg5">銀河</button><button class="j" data-a="chg6">クジラのダイビング</button><button class="j" data-a="chg7">子猫のレオン</button><button class="j" data-a="chg8">ハヤブサ</button><button class="j" data-a="chg9">ライオン</button><button class="j" data-a="chg10">TikTokUniverse</button>
+    <h3>ネクストを変更</h3>
+    <button class="j" data-a="next0">バラ</button><button class="j" data-a="next1">ローザ</button><button class="j" data-a="next2">歌うキノコ</button><button class="j" data-a="next3">コーギー</button><button class="j" data-a="next4">マネーガン</button><button class="j" data-a="next5">銀河</button><button class="j" data-a="next6">クジラのダイビング</button><button class="j" data-a="next7">子猫のレオン</button><button class="j" data-a="next8">ハヤブサ</button><button class="j" data-a="next9">ライオン</button><button class="j" data-a="next10">TikTokUniverse</button>
+    <h3>そのほかのスキル</h3>
+    <button class="j" data-a="rain5">バラ×5</button><button class="j" data-a="rain125">バラ×125</button><button class="j" data-a="rain200">バラ×200</button><button class="j" data-a="gacha">ランダムガチャ</button><button class="j" data-a="toss">投げ飛ばす</button><button class="j" data-a="shake">ゆらす</button><button class="j" data-a="rock">おじゃま玉</button><button class="h" data-a="clean">おそうじ<br>小さいコマを消す</button><button class="h" data-a="allclear">全消し</button>
     <h3>無料（コメント・いいね・フォロー）</h3>
     <button class="j" data-a="comment">コメント<br>バラ1個</button><button class="j" data-a="like">いいね×1000<br>ローザ1個</button><button class="j" data-a="follow">フォロー<br>ローザ1個</button>
     <h3>音</h3>
@@ -217,18 +221,18 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 <script>
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1126-225245';
+const VER='1127-014925';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
-/* ===== ギフトがっちゃんこ：同じギフト同士がくっつくと、ひとつ上のギフトに進化する「くっつけ落としゲーム」。
+/* ===== ユニバゲーム：同じギフト同士がくっつくと、ひとつ上のギフトに進化する「くっつけ落としゲーム」。
    配信者が左右に動かして落とす。視聴者がギフトを投げると、そのギフトのコマが箱の中にふってくる。箱からあふれたら終わり。WINはなく、スコアとベストスコアだけ ===== */
-const W=1080, H=1080, FONT="MPR,'Hiragino Maru Gothic ProN','Noto Sans JP',sans-serif", FONTD="POP,DELA,"+FONT;
+const W=1920, H=1080, FONT="MPR,'Hiragino Maru Gothic ProN','Noto Sans JP',sans-serif", FONTD="POP,DELA,"+FONT;
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, pick=a=>a[Math.floor(Math.random()*a.length)], fmt=n=>Math.round(n).toLocaleString('en-US');
 /* 箱の位置。line＝この線より上にコマが2.2秒はみ出したままだと終わり */
-const BOX={x0:220,x1:860,top:420,bot:990,line:482};
+const BOX={x0:660,x1:1260,top:270,bot:990,line:340};
 /* コマ（11段階）。r＝半径、pts＝この段階ができた時にもらえる点 */
 const LV=[
  {name:'バラ',coins:1,r:27,pts:1,col:'#ff5c7a'},{name:'ローザ',coins:10,r:37,pts:3,col:'#ff7ad1'},{name:'歌うキノコ',coins:99,r:49,pts:6,col:'#ff6b5c'},{name:'コーギー',coins:299,r:61,pts:10,col:'#ffb347'},{name:'マネーガン',coins:1016,r:75,pts:15,col:'#ff8ad8'},{name:'銀河',coins:1000,r:91,pts:21,col:'#7aa2ff'},{name:'クジラのダイビング',coins:2150,r:108,pts:28,col:'#8fd3ff'},{name:'子猫のレオン',coins:4888,r:127,pts:36,col:'#ffb300'},{name:'ハヤブサ',coins:10999,r:148,pts:45,col:'#c98a4a'},{name:'ライオン',coins:29999,r:171,pts:55,col:'#ffb300'},{name:'TikTok Universe',coins:44999,r:196,pts:66,col:'#6fd8ff'}];
-const CFG={dropCd:.55, nextMax:4, overSec:2.2, graceSec:1.3, maxBodies:140, lionBonus:300, shakeSec:1.6, overWait:6};
+const CFG={dropCd:.55, nextMax:4, overSec:2.2, graceSec:1.3, maxBodies:260, rockSec:45, rockR:46, lionBonus:300, shakeSec:1.6, overWait:6};
 const IMG={}; for(let i=0;i<LV.length;i++){ const im=new Image(); im.src='./img/g'+i+'.webp'; IMG['g'+i]=im; }
 const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 
@@ -237,11 +241,11 @@ const {Engine,Bodies,Body,Composite,Events}=Matter;
 const engine=Engine.create({positionIterations:8,velocityIterations:6}); engine.gravity.y=1.35;
 { const t=80, o={isStatic:true,friction:.3,restitution:.1}; Composite.add(engine.world,[Bodies.rectangle(BOX.x0-t/2,(BOX.top+BOX.bot)/2-400,t,BOX.bot-BOX.top+1000,o),Bodies.rectangle(BOX.x1+t/2,(BOX.top+BOX.bot)/2-400,t,BOX.bot-BOX.top+1000,o),Bodies.rectangle((BOX.x0+BOX.x1)/2,BOX.bot+t/2,BOX.x1-BOX.x0+2*t,t,o)]); }
 let S, T=0, best=0, likeAcc=0; const CMT={}; try{ best=+(localStorage.getItem('gmerge_best')||0)||0; }catch(e){}
-const pieces=()=>Composite.allBodies(engine.world).filter(b=>b.lv!=null);
+const pieces=()=>Composite.allBodies(engine.world).filter(b=>b.lv!=null), rocks=()=>Composite.allBodies(engine.world).filter(b=>b.rock);
 function spawn(lv,x,y,by){ const r=LV[lv].r, b=Bodies.circle(clamp(x,BOX.x0+r+1,BOX.x1-r-1),y,r,{restitution:.12,friction:.4,frictionAir:.004,density:.0012}); b.lv=lv; b.born=T; b.by=by||null; b.pop=.25; Composite.add(engine.world,b); return b; }
 function randNext(){ const w=[5,4,3,2,1]; let s=0; for(let i=0;i<=CFG.nextMax;i++) s+=w[i]; let r=Math.random()*s; for(let i=0;i<=CFG.nextMax;i++){ r-=w[i]; if(r<=0) return i; } return 0; }
-function reset(){ for(const b of pieces()) Composite.remove(engine.world,b); S={mode:'play',score:0,cur:{lv:randNext(),x:(BOX.x0+BOX.x1)/2},next:randNext(),cd:0,over:0,overT:0,parts:[],rings:[],log:[],shakeT:0,shake:0,flash:0,ban:null,newBest:false,biggest:0}; }
-function logAdd(s,c){ S.log.unshift({s,c:c||'#fff',t:6}); if(S.log.length>4) S.log.length=4; }
+function reset(){ for(const b of pieces().concat(rocks())) Composite.remove(engine.world,b); S={rainQ:0,rainT:0,rainBy:null,mode:'play',score:0,cur:{lv:randNext(),x:(BOX.x0+BOX.x1)/2},next:randNext(),cd:0,over:0,overT:0,parts:[],rings:[],log:[],shakeT:0,shake:0,flash:0,ban:null,newBest:false,biggest:0}; }
+function logAdd(s,c){ S.log.unshift({s,c:c||'#fff',t:30}); if(S.log.length>9) S.log.length=9; }
 function banner(a,c,b){ S.ban={a,c:c||'#fff',b:b||'',t:2}; }
 function burst(x,y,col,n,v){ for(let i=0;i<n;i++){ const a=rand(0,6.28), sp=rand(v*.3,v); S.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-80,t:rand(.4,.8),s:rand(6,14),c:pick([col,'#fff','#ffd23f'])}); } }
 /* 同じ段階のコマがぶつかったら、まとめて1つ上にする */
@@ -284,13 +288,27 @@ const Game={
   reset(){ reset(); },
   /* ゆらす：箱の中のコマをぜんぶガタガタゆらす */
   shake(n){ if(S.mode!=='play') return; S.shakeT=CFG.shakeSec; S.shake=Math.max(S.shake,.5); play('heavy',.7); play('don',.6); logAdd((n||'だれか')+' が箱をゆらした','#ff9aa8'); },
+  /* バラの雨：バラが count 個、つぎつぎにふってくる */
+  rain(count,n){ if(S.mode!=='play') return; S.rainQ=Math.min(400,S.rainQ+count); S.rainBy=n||null; play('boyon',.5); logAdd((n||'だれか')+' が バラ×'+count+' をふらせた','#ff5c7a'); if(count>=100) banner('バラ ×'+count+'！','#ff5c7a',(n||'だれか')+' から'); },
+  rain5(n){ Game.rain(5,n); }, rain125(n){ Game.rain(125,n); }, rain200(n){ Game.rain(200,n); },
+  /* ランダムガチャ：何が出るか分からないコマが1個ふってくる */
+  gacha(n){ const w=[30,24,18,12,8,5,3]; let r=Math.random()*100, lv=0; for(let i=0;i<w.length;i++){ r-=w[i]; if(r<=0){ lv=i; break; } } giftDrop(lv,n); },
+  /* 投げ飛ばす：箱の中のコマをぜんぶ上にはね上げる */
+  toss(n){ if(S.mode!=='play') return; for(const b of pieces().concat(rocks())){ Body.setVelocity(b,{x:rand(-7,7),y:-rand(15,23)}); b.born=T; } S.shake=Math.max(S.shake,.5); play('heavy',.7); play('swing',.6); logAdd((n||'だれか')+' が ぜんぶ投げ飛ばした','#ff9aa8'); },
+  /* おじゃま玉：くっつかない玉がふってくる。しばらくすると消える */
+  rock(n){ if(S.mode!=='play') return; const r=CFG.rockR, b=Bodies.circle(rand(BOX.x0+r+4,BOX.x1-r-4),BOX.top-r-rand(60,200),r,{restitution:.1,friction:.5,frictionAir:.004,density:.002}); b.rock=true; b.born=T; Composite.add(engine.world,b); play('heavy',.6); logAdd((n||'だれか')+' が おじゃま玉 をふらせた','#b8c0d0'); },
+  /* 全消し：箱の中をからっぽにする */
+  allclear(n){ if(S.mode!=='play') return; for(const b of pieces().concat(rocks())){ b.gone=true; burst(b.position.x,b.position.y,'#5dffb0',4,260); Composite.remove(engine.world,b); } S.rainQ=0; S.flash=.4; play('harp',.8); play('cheer',.6); banner('全消し！','#5dffb0',(n||'だれか')+' から'); logAdd((n||'だれか')+' が 全消し','#5dffb0'); },
+  /* 交換：いま持っているコマを、そのギフトに変える。ネクスト変更：つぎのコマを、そのギフトに変える */
+  chg(lv,n){ if(S.mode!=='play') return; S.cur.lv=lv; S.cur.x=clamp(S.cur.x,BOX.x0+LV[lv].r+2,BOX.x1-LV[lv].r-2); play('pon',.6); logAdd((n||'だれか')+' が 持ちコマを '+LV[lv].name+' に交換',LV[lv].col); },
+  nextSet(lv,n){ if(S.mode!=='play') return; S.next=lv; play('pon',.6); logAdd((n||'だれか')+' が ネクストを '+LV[lv].name+' に変更',LV[lv].col); },
   /* おそうじ：いちばん小さい2段階（バラ・ローザ）をぜんぶ消す */
   clean(n){ if(S.mode!=='play') return; let c=0; for(const b of pieces()){ if(b.lv<=1 && !b.gone){ b.gone=true; burst(b.position.x,b.position.y,'#5dffb0',6,220); Composite.remove(engine.world,b); c++; } } play('harp',.7); S.flash=.2; logAdd((n||'だれか')+' のおそうじ：小さいコマを'+c+'個消した','#5dffb0'); },
   /* 無料の反応。コメント＝バラ1個（同じ人は20秒に1回）、いいね1000回ごと＝ローザ1個、フォロー＝ローザ1個 */
   comment(n){ const now=performance.now(), k=String(n||''); if(CMT[k] && now-CMT[k]<20000) return; CMT[k]=now; giftDrop(0,n); },
   like(c,n){ likeAcc+=Math.max(1,c|0); let k=0; while(likeAcc>=1000 && k<3){ likeAcc-=1000; k++; giftDrop(1,n); } if(likeAcc>=1000) likeAcc=likeAcc%1000; },
   follow(n){ giftDrop(2,n); } };
-for(let i=0;i<LV.length;i++) Game['drop'+i]=n=>giftDrop(i,n);
+for(let i=0;i<LV.length;i++){ Game['drop'+i]=n=>giftDrop(i,n); Game['chg'+i]=n=>Game.chg(i,n); Game['next'+i]=n=>Game.nextSet(i,n); }
 
 /* ===== 進める ===== */
 function update(dt){ T+=dt; if(S.cd>0) S.cd-=dt; if(S.shake>0) S.shake=Math.max(0,S.shake-dt); if(S.flash>0) S.flash=Math.max(0,S.flash-dt); if(S.ban){ S.ban.t-=dt; if(S.ban.t<=0) S.ban=null; }
@@ -300,6 +318,8 @@ function update(dt){ T+=dt; if(S.cd>0) S.cd-=dt; if(S.shake>0) S.shake=Math.max(
   const mv=(KEYS.ArrowRight?1:0)-(KEYS.ArrowLeft?1:0); if(mv) S.cur.x=clamp(S.cur.x+mv*520*dt,BOX.x0+LV[S.cur.lv].r+2,BOX.x1-LV[S.cur.lv].r-2);
   if(S.shakeT>0){ S.shakeT-=dt; for(const b of pieces()) Body.applyForce(b,b.position,{x:rand(-1,1)*.005*b.mass,y:-rand(0,.007)*b.mass}); }
   for(const b of pieces()){ if(b.pop>0) b.pop-=dt; }
+  if(S.rainQ>0){ S.rainT-=dt; while(S.rainQ>0 && S.rainT<=0 && pieces().length<CFG.maxBodies){ S.rainT+=.05; S.rainQ--; spawn(0,rand(BOX.x0+30,BOX.x1-30),BOX.top-rand(40,420),null); } if(S.rainT<-1) S.rainT=0; }
+  for(const b of rocks()){ if(T-b.born>CFG.rockSec){ burst(b.position.x,b.position.y,'#b8c0d0',10,240); Composite.remove(engine.world,b); } }
   Engine.update(engine,dt*1000); doMerges();
   /* あふれたか：落としてから少したったコマが、線より上にはみ出したままなら数える */
   let out=false; for(const b of pieces()){ if(T-b.born>CFG.graceSec && b.position.y-LV[b.lv].r<BOX.line && Math.abs(b.velocity.y)<2.2) { out=true; break; } }
@@ -319,22 +339,22 @@ function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*18:0, sy=S.shake>0?rand(-
   /* 落とす前のコマと、落ちる場所の線 */
   if(S.mode==='play'){ const r=LV[S.cur.lv].r, y=BOX.top-r-8; g.strokeStyle='rgba(255,255,255,.28)'; g.lineWidth=4; g.beginPath(); g.moveTo(S.cur.x,y+r); g.lineTo(S.cur.x,BOX.bot); g.stroke(); piece(S.cur.lv,S.cur.x,y,r,0,S.cd>0?.35:1); }
   for(const b of pieces()){ const r=LV[b.lv].r*(b.pop>0?1+b.pop*.5:1); piece(b.lv,b.position.x,b.position.y,r,b.angle); }
+  for(const b of rocks()){ const r=CFG.rockR, left=CFG.rockSec-(T-b.born); g.save(); g.translate(b.position.x,b.position.y); g.rotate(b.angle); g.globalAlpha=left<4?(Math.floor(T*8)%2?.45:1):1; g.fillStyle='#5b6170'; g.strokeStyle='#c9cfdd'; g.lineWidth=5; g.beginPath(); g.arc(0,0,r-3,0,7); g.fill(); g.stroke(); g.fillStyle='#3d4250'; g.beginPath(); g.arc(-12,-8,9,0,7); g.arc(14,10,7,0,7); g.arc(-6,18,5,0,7); g.fill(); g.restore(); txt('じゃま',b.position.x,b.position.y-2,20,'#fff','center','#111'); }
   for(const b of pieces()){ if(b.by && T-b.born<2.6){ g.globalAlpha=clamp((2.6-(T-b.born))*2,0,1); txt(b.by,clamp(b.position.x,BOX.x0+60,BOX.x1-60),b.position.y-LV[b.lv].r-20,26,'#fff','center','#111'); g.globalAlpha=1; } }
   for(const q of S.rings){ g.globalAlpha=clamp(q.t/.35,0,1); g.strokeStyle=q.c; g.lineWidth=8; g.beginPath(); g.arc(q.x,q.y,q.r*(1.5-q.t),0,7); g.stroke(); g.globalAlpha=1; }
   for(const q of S.parts){ g.globalAlpha=clamp(q.t*3,0,1); g.fillStyle=q.c; g.fillRect(q.x-q.s/2,q.y-q.s/2,q.s,q.s); } g.globalAlpha=1;
   g.restore();
-  /* 左：スコアとベスト（丸い泡） */
-  const bub=(x,y,r)=>{ g.fillStyle='rgba(255,255,255,.10)'; g.strokeStyle='rgba(255,255,255,.55)'; g.lineWidth=5; g.beginPath(); g.arc(x,y,r,0,7); g.fill(); g.stroke(); };
-  bub(110,550,98); txt('スコア',110,500,30,'#ffd23f','center','#111',FONTD); txt(fmt(S.score),110,566,S.score>=100000?40:S.score>=10000?48:60,'#fff','center','#111',FONTD);
-  bub(110,790,74); txt('ベスト',110,760,24,'#c9d2ff','center','#111',FONTD); txt(fmt(best),110,806,best>=100000?28:36,'#ffd23f','center','#111',FONTD);
-  /* 右：ネクスト */
-  bub(970,540,98); txt('ネクスト',970,480,28,'#ffd23f','center','#111',FONTD); piece(S.next,970,558,Math.min(56,LV[S.next].r*1.3),0);
+  /* 左上：スコアとベスト（丸い泡） */
+  const bub=(x,y,r)=>{ g.fillStyle='rgba(255,255,255,.10)'; g.strokeStyle='rgba(255,255,255,.55)'; g.lineWidth=6; g.beginPath(); g.arc(x,y,r,0,7); g.fill(); g.stroke(); };
+  bub(330,270,190); txt('スコア',330,150,54,'#ffd23f','center','#111',FONTD); txt(fmt(S.score),330,258,S.score>=100000?72:S.score>=10000?86:104,'#fff','center','#111',FONTD); txt('ベスト',330,340,30,'#c9d2ff','center','#111',FONTD); txt(fmt(best),330,388,46,'#ffd23f','center','#111',FONTD);
+  /* 左下：ギフトのログ */
+  g.fillStyle='rgba(255,255,255,.10)'; g.strokeStyle='rgba(255,255,255,.55)'; g.lineWidth=6; rr(70,510,520,500,44); g.fill(); g.stroke(); txt('ギフトログ',330,560,40,'#ffd23f','center','#111',FONTD);
+  g.save(); g.beginPath(); g.rect(84,590,492,410); g.clip(); for(let i=0;i<S.log.length;i++){ const l=S.log[i]; g.globalAlpha=clamp(l.t,0,1)*(i===0?1:.82); let fs=26; g.font='900 '+fs+'px '+FONT; const wd=g.measureText(l.s).width; if(wd>470) fs=Math.max(15,Math.floor(26*470/wd)); txt(l.s,330,622+i*44,fs,l.c,'center','#111'); } g.globalAlpha=1; g.restore();
+  /* 右上：ネクスト */
+  bub(1590,270,170); txt('ネクスト',1590,150,50,'#ffd23f','center','#111',FONTD); piece(S.next,1590,300,Math.min(100,LV[S.next].r*1.5),0);
   /* 右下：進化の輪（上から時計まわりに大きくなる） */
-  bub(970,800,104); for(let i=0;i<LV.length;i++){ const a=-Math.PI/2+i/LV.length*Math.PI*2; piece(i,970+Math.cos(a)*76,800+Math.sin(a)*76,19+i*.5,0,S.biggest>=i||i<=CFG.nextMax?1:.5); } txt('シンカ',970,800,24,'#ffd23f','center','#111',FONTD);
-  /* 上：タイトルとログ */
-  txt('ギフトがっちゃんこ',W/2,62,58,'#ffd23f','center','#111',FONTD);
-  for(let i=0;i<S.log.length;i++){ const l=S.log[i]; g.globalAlpha=clamp(l.t,0,1)*(1-i*.2); txt(l.s,W/2,124+i*34,26,l.c,'center','#111'); } g.globalAlpha=1;
-  if(S.ban){ const k=clamp(S.ban.t*3,0,1); g.globalAlpha=k; g.fillStyle='rgba(8,10,34,.85)'; rr(190,560,700,150,30); g.fill(); txt(S.ban.a,W/2,612,48,S.ban.c,'center','#111',FONTD); if(S.ban.b) txt(S.ban.b,W/2,672,30,'#fff','center'); g.globalAlpha=1; }
+  bub(1590,750,230); for(let i=0;i<LV.length;i++){ const a=-Math.PI/2+i/LV.length*Math.PI*2; piece(i,1590+Math.cos(a)*166,750+Math.sin(a)*166,38+i*1.2,0,S.biggest>=i||i<=CFG.nextMax?1:.5); } txt('進化の輪',1590,750,40,'#ffd23f','center','#111',FONTD);
+  if(S.ban){ const k=clamp(S.ban.t*3,0,1); g.globalAlpha=k; g.fillStyle='rgba(8,10,34,.85)'; rr(W/2-350,560,700,150,30); g.fill(); txt(S.ban.a,W/2,612,48,S.ban.c,'center','#111',FONTD); if(S.ban.b) txt(S.ban.b,W/2,672,30,'#fff','center'); g.globalAlpha=1; }
   if(S.flash>0){ g.fillStyle='rgba(255,255,255,'+(S.flash*1.4).toFixed(2)+')'; g.fillRect(0,0,W,H); }
   if(S.mode==='over'){ g.fillStyle='rgba(6,6,24,.78)'; g.fillRect(0,0,W,H); txt('おしまい！',W/2,330,120,'#ff5c7a','center','#111',FONTD); txt('スコア',W/2,470,44,'#fff','center'); txt(fmt(S.score),W/2,570,130,'#ffd23f','center','#111',FONTD); txt(S.newBest||S.score>=best?'ベストスコア更新！':'ベスト '+fmt(best),W/2,690,46,S.newBest||S.score>=best?'#5dffb0':'#c9d2ff','center','#111'); txt(Math.max(0,Math.ceil(CFG.overWait-S.overT))+'秒後にもう一回（タップですぐ）',W/2,790,34,'#fff','center'); }
 }
@@ -345,8 +365,8 @@ let SAFE=null; function safeIn(){ if(!SAFE){ SAFE=document.createElement('div');
 function viewH(){ const vv=window.visualViewport, de=document.documentElement; let h=Math.min(window.innerHeight,(de&&de.clientHeight)||1e9,(vv&&vv.height)||1e9); const sf=safeIn(), alone=window.navigator.standalone===true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
   if(alone && sf.t<1 && screen.height>=700 && h>=screen.height-1) h-=(screen.height>=850?59:47);   /* 時計の段のぶん（画面が下にずれているのに高さに入っている時だけ引く） */
   window.__viewH={inner:window.innerHeight,client:de&&de.clientHeight,vv:vv&&vv.height,screen:screen.height,safeT:sf.t,safeB:sf.b,alone,use:h-sf.b}; return h-sf.b; }
-function fit(){ const iw=window.innerWidth, ih=viewH(), w=Math.min(iw,ih), left=ih-w; TALL=iw<=ih && left>=200; const top=TALL?0:(ih-w)/2; stage.style.width=w+'px'; stage.style.height=w+'px'; stage.style.top=top+'px'; stage.style.fontSize=(w/108)+'px'; stage.style.setProperty('--u',(w/150)+'px');
-  const bl=document.getElementById('below'), tb=document.getElementById('gtbl'); if(bl){ bl.style.display=TALL?'flex':'none'; if(TALL){ bl.style.left=((iw-w)/2)+'px'; bl.style.top=w+'px'; bl.style.width=w+'px'; bl.style.height=left+'px'; bl.style.setProperty('--u',(w/100)+'px'); try{ if(tb && !tb.getAttribute('src')) tb.setAttribute('src','./gifts.html?fit=1&pg=2&cols=7&v='+VER); }catch(e){} } } try{ memoUI(); photoFit(); }catch(e){} }
+function fit(){ const iw=window.innerWidth, ih=viewH(), hh=Math.min(ih,iw*9/16), w=hh*16/9, left=ih-hh; TALL=iw<=ih && left>=200; const top=TALL?0:(ih-hh)/2; stage.style.width=w+'px'; stage.style.height=hh+'px'; stage.style.top=top+'px'; stage.style.fontSize=(hh/108)+'px'; stage.style.setProperty('--u',(hh/150)+'px');
+  const bl=document.getElementById('below'), tb=document.getElementById('gtbl'); if(bl){ bl.style.display=TALL?'flex':'none'; if(TALL){ bl.style.left=((iw-w)/2)+'px'; bl.style.top=hh+'px'; bl.style.width=w+'px'; bl.style.height=left+'px'; bl.style.setProperty('--u',(w/100)+'px'); try{ if(tb && !tb.getAttribute('src')) tb.setAttribute('src','./gifts.html?fit=1&pg=2&cols=7&v='+VER); }catch(e){} } } try{ memoUI(); photoFit(); }catch(e){} }
 fit(); window.addEventListener('resize',fit); setTimeout(fit,0); setTimeout(fit,600); if(window.visualViewport) window.visualViewport.addEventListener('resize',fit);
 const tp=document.getElementById('tp'), NAMES=['たぬ吉','ぽんた','みけ','そら','りく','はな','こてつ','もも','ゆず','まる'];
 document.getElementById('testBtn').onclick=()=>{ tp.hidden=!tp.hidden; };
@@ -364,23 +384,52 @@ const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assig
 function optSave(){ try{ localStorage.setItem('gmerge_opts',JSON.stringify(OPT)); }catch(e){} }
 function runFx(fn){ if(TITLE){ tfLogAdd('タイトル画面なので何も起きません（スタートを押してください）'); return; } if(PAUSE){ PENDQ.push(fn); return; } fn(); }
 const FX_LIST=[
- ['drop0','jam','バラ','このギフトのコマが箱にふってくる',n=>Game.drop0(n)],
- ['drop1','jam','ローザ','このギフトのコマが箱にふってくる',n=>Game.drop1(n)],
- ['drop2','jam','歌うキノコ','このギフトのコマが箱にふってくる',n=>Game.drop2(n)],
- ['drop3','jam','コーギー','このギフトのコマが箱にふってくる',n=>Game.drop3(n)],
- ['drop4','jam','マネーガン','このギフトのコマが箱にふってくる',n=>Game.drop4(n)],
- ['drop5','jam','銀河','このギフトのコマが箱にふってくる',n=>Game.drop5(n)],
- ['drop6','jam','クジラのダイビング','このギフトのコマが箱にふってくる',n=>Game.drop6(n)],
- ['drop7','jam','子猫のレオン','このギフトのコマが箱にふってくる',n=>Game.drop7(n)],
- ['drop8','jam','ハヤブサ','このギフトのコマが箱にふってくる',n=>Game.drop8(n)],
- ['drop9','jam','ライオン','このギフトのコマが箱にふってくる',n=>Game.drop9(n)],
- ['drop10','jam','TikTokUniverse','このギフトのコマが箱にふってくる',n=>Game.drop10(n)],
+ ['drop0','jam','落下：バラ','このギフトのコマが箱にふってくる',n=>Game.drop0(n)],
+ ['drop1','jam','落下：ローザ','このギフトのコマが箱にふってくる',n=>Game.drop1(n)],
+ ['drop2','jam','落下：歌うキノコ','このギフトのコマが箱にふってくる',n=>Game.drop2(n)],
+ ['drop3','jam','落下：コーギー','このギフトのコマが箱にふってくる',n=>Game.drop3(n)],
+ ['drop4','jam','落下：マネーガン','このギフトのコマが箱にふってくる',n=>Game.drop4(n)],
+ ['drop5','jam','落下：銀河','このギフトのコマが箱にふってくる',n=>Game.drop5(n)],
+ ['drop6','jam','落下：クジラのダイビング','このギフトのコマが箱にふってくる',n=>Game.drop6(n)],
+ ['drop7','jam','落下：子猫のレオン','このギフトのコマが箱にふってくる',n=>Game.drop7(n)],
+ ['drop8','jam','落下：ハヤブサ','このギフトのコマが箱にふってくる',n=>Game.drop8(n)],
+ ['drop9','jam','落下：ライオン','このギフトのコマが箱にふってくる',n=>Game.drop9(n)],
+ ['drop10','jam','落下：TikTokUniverse','このギフトのコマが箱にふってくる',n=>Game.drop10(n)],
+ ['chg0','jam','交換：バラ','いま持っているコマを、このギフトに変える',n=>Game.chg0(n)],
+ ['chg1','jam','交換：ローザ','いま持っているコマを、このギフトに変える',n=>Game.chg1(n)],
+ ['chg2','jam','交換：歌うキノコ','いま持っているコマを、このギフトに変える',n=>Game.chg2(n)],
+ ['chg3','jam','交換：コーギー','いま持っているコマを、このギフトに変える',n=>Game.chg3(n)],
+ ['chg4','jam','交換：マネーガン','いま持っているコマを、このギフトに変える',n=>Game.chg4(n)],
+ ['chg5','jam','交換：銀河','いま持っているコマを、このギフトに変える',n=>Game.chg5(n)],
+ ['chg6','jam','交換：クジラのダイビング','いま持っているコマを、このギフトに変える',n=>Game.chg6(n)],
+ ['chg7','jam','交換：子猫のレオン','いま持っているコマを、このギフトに変える',n=>Game.chg7(n)],
+ ['chg8','jam','交換：ハヤブサ','いま持っているコマを、このギフトに変える',n=>Game.chg8(n)],
+ ['chg9','jam','交換：ライオン','いま持っているコマを、このギフトに変える',n=>Game.chg9(n)],
+ ['chg10','jam','交換：TikTokUniverse','いま持っているコマを、このギフトに変える',n=>Game.chg10(n)],
+ ['next0','jam','ネクスト変更：バラ','つぎのコマを、このギフトに変える',n=>Game.next0(n)],
+ ['next1','jam','ネクスト変更：ローザ','つぎのコマを、このギフトに変える',n=>Game.next1(n)],
+ ['next2','jam','ネクスト変更：歌うキノコ','つぎのコマを、このギフトに変える',n=>Game.next2(n)],
+ ['next3','jam','ネクスト変更：コーギー','つぎのコマを、このギフトに変える',n=>Game.next3(n)],
+ ['next4','jam','ネクスト変更：マネーガン','つぎのコマを、このギフトに変える',n=>Game.next4(n)],
+ ['next5','jam','ネクスト変更：銀河','つぎのコマを、このギフトに変える',n=>Game.next5(n)],
+ ['next6','jam','ネクスト変更：クジラのダイビング','つぎのコマを、このギフトに変える',n=>Game.next6(n)],
+ ['next7','jam','ネクスト変更：子猫のレオン','つぎのコマを、このギフトに変える',n=>Game.next7(n)],
+ ['next8','jam','ネクスト変更：ハヤブサ','つぎのコマを、このギフトに変える',n=>Game.next8(n)],
+ ['next9','jam','ネクスト変更：ライオン','つぎのコマを、このギフトに変える',n=>Game.next9(n)],
+ ['next10','jam','ネクスト変更：TikTokUniverse','つぎのコマを、このギフトに変える',n=>Game.next10(n)],
+ ['rain5','jam','バラ×5','バラが5個ふってくる',n=>Game.rain5(n)],
+ ['rain125','jam','バラ×125','バラが125個ふってくる',n=>Game.rain125(n)],
+ ['rain200','jam','バラ×200','バラが200個ふってくる',n=>Game.rain200(n)],
+ ['gacha','jam','ランダムガチャ','何が出るか分からないコマが1個ふってくる',n=>Game.gacha(n)],
+ ['toss','jam','投げ飛ばす','箱の中のコマをぜんぶ上にはね上げる',n=>Game.toss(n)],
  ['shake','jam','ゆらす','箱の中をガタガタゆらす',n=>Game.shake(n)],
- ['clean','help','おそうじ','小さいコマ（バラ・ローザ）をぜんぶ消す',n=>Game.clean(n)]];
+ ['rock','jam','おじゃま玉','くっつかない玉がふってくる（45秒で消える）',n=>Game.rock(n)],
+ ['clean','help','おそうじ','小さいコマ（バラ・ローザ）をぜんぶ消す',n=>Game.clean(n)],
+ ['allclear','help','全消し','箱の中をからっぽにする',n=>Game.allclear(n)]];
 /* スマホ用のつなぎ先（tik.tools）。オンの間はTikFinityのかわりに、ネット経由で同じ形の知らせを受け取る。キーはこの端末にだけ保存 */
 const HOME_URL='https://sanpolab.github.io/jan/gmerge/', EMBED=!/(^|\.)github\.io$|^localhost$|^127\./.test(location.hostname);   // EMBED：Claudeの共有ページなど、正式なアドレス以外で開いている
 let CLOUD={on:false,user:'',key:''}; try{ Object.assign(CLOUD,JSON.parse(localStorage.getItem('gmerge_cloud')||'{}')); }catch(e){}
-/* まだギフトがっちゃんこにキーを入れていない時は、月まで届け・つみつみアニマル・チャリで行け・ワナだらけに入れたキーとユーザー名をそのまま引き継ぐ（同じサイトなので読める。入れ直さなくていいように） */
+/* まだユニバゲームにキーを入れていない時は、月まで届け・つみつみアニマル・チャリで行け・ワナだらけに入れたキーとユーザー名をそのまま引き継ぐ（同じサイトなので読める。入れ直さなくていいように） */
 if(!CLOUD.key){ for(const src of ['rocket_cloud','tsumi_cloud','bike_cloud','trap_cloud']){ try{ const t=JSON.parse(localStorage.getItem(src)||'{}'); if(t && t.key && t.user){ CLOUD={on:!!t.on,user:String(t.user),key:String(t.key)}; localStorage.setItem('gmerge_cloud',JSON.stringify(CLOUD)); break; } }catch(e){} } }
 const cloudOn=()=>!!(CLOUD.on && CLOUD.user && CLOUD.key), srcName=()=>cloudOn()?'スマホ用のつなぎ先':'TikFinity';
 const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://127.0.0.1:21213/'],url:'ws://localhost:21213/',ws:null,ok:false,wait:3000,timer:null,streak:{},log:[],learn:null,map:{}};
@@ -493,7 +542,7 @@ function pickDraw(){ const tb=document.getElementById('pickTabs'); tb.innerHTML=
     b.appendChild(gi); b.appendChild(sp); b.appendChild(em); b.addEventListener('click',()=>{ TF.map[pickFx[0]]={id:null,name:e[0],coins:e[1],ci:i,pic:null}; tfSave(); document.getElementById('pick').hidden=true; cfgBuild(); }); fr.appendChild(b); });
   g.appendChild(fr); if(!g.children.length){ const d=document.createElement('p'); d.textContent='見つかりませんでした'; g.appendChild(d); } }
 /* ギフト表に出す名前（自分で変えた分だけ入る）。TBL_NAME=元の名前 */
-const TBL_NAME={"drop0": "バラ", "drop1": "ローザ", "drop2": "歌うキノコ", "drop3": "コーギー", "drop4": "マネーガン", "drop5": "銀河", "drop6": "クジラのダイビング", "drop7": "子猫のレオン", "drop8": "ハヤブサ", "drop9": "ライオン", "drop10": "TikTokUniverse", "shake": "箱をゆらす", "clean": "小さいの消す"}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('gmerge_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('gmerge_lbl',JSON.stringify(LBL)); }catch(e){} }
+const TBL_NAME={"drop0": "バラ", "drop1": "ローザ", "drop2": "キノコ", "drop3": "コーギー", "drop4": "マネーガン", "drop5": "銀河", "drop6": "クジラ", "drop7": "レオン", "drop8": "ハヤブサ", "drop9": "ライオン", "drop10": "ユニバ", "chg0": "バラ", "next0": "バラ", "chg1": "ローザ", "next1": "ローザ", "chg2": "キノコ", "next2": "キノコ", "chg3": "コーギー", "next3": "コーギー", "chg4": "マネーガン", "next4": "マネーガン", "chg5": "銀河", "next5": "銀河", "chg6": "クジラ", "next6": "クジラ", "chg7": "レオン", "next7": "レオン", "chg8": "ハヤブサ", "next8": "ハヤブサ", "chg9": "ライオン", "next9": "ライオン", "chg10": "ユニバ", "next10": "ユニバ", "rain5": "バラ×5", "rain125": "バラ×125", "rain200": "バラ×200", "gacha": "ランダムガチャ", "toss": "投げ飛ばす", "shake": "箱をゆらす", "rock": "おじゃま玉", "clean": "小さいの消す", "allclear": "全消し"}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('gmerge_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('gmerge_lbl',JSON.stringify(LBL)); }catch(e){} }
 let tblCols=7; try{ tblCols=parseInt(localStorage.getItem('gmerge_tblcols'),10)||7; }catch(e){}
 function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name || b.off) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
   const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+(OPT.coinOn?1:0)+(OPT.chatOn?1:0)+'&g='+parts.join(',')+(()=>{ const l=Object.keys(LBL).filter(k=>LBL[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LBL[k]))); return l.length?'&l='+l.join(','):''; })(); }
@@ -522,7 +571,7 @@ function cfgBuild(){ tblUI(); missBuild(); { const en=document.getElementById('e
   const sharePack=()=>{ const g=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name) continue; g.push([f[0],b.name,b.coins!=null?b.coins:null,b.ci!=null?b.ci:null,b.id!=null?b.id:null,b.rx||null,b.off?1:0,b.alt||null]); } return b64e(JSON.stringify({g,l:LBL})); };
   const shareApply=o=>{ const m={}; for(const a of (o.g||[])){ if(!FX_LIST.some(f=>f[0]===a[0])) continue; const e={id:a[4]!=null?a[4]:null,name:String(a[1]||''),coins:a[2]!=null?a[2]:null,pic:null,ci:a[3]!=null?a[3]:null}; if(a[5]) e.rx=String(a[5]); if(a[6]) e.off=true; if(Array.isArray(a[7])) e.alt=a[7].map(String); m[a[0]]=e; } TF.map=m; tfSave(); if(o.l && typeof o.l==='object'){ LBL=o.l; lblSave(); } try{ cfgBuild(); }catch(e){} tfLogAdd('受け取ったギフトの割り当てを読みこんだ（'+Object.keys(m).length+'個）'); };
   document.getElementById('shareMk').addEventListener('click',()=>{ const url=(EMBED?HOME_URL:location.origin+location.pathname)+'#set='+sharePack(), st=document.getElementById('shareSt'), io=document.getElementById('cfgIO'); io.value=url; const copied=()=>{ st.textContent='リンクをコピーしました。LINEなどに貼って送ってください'; };
-    if(navigator.share){ navigator.share({title:'ギフトがっちゃんこ',url}).then(()=>{ st.textContent='送りました'; }).catch(()=>{ if(navigator.clipboard) navigator.clipboard.writeText(url).then(copied).catch(()=>{ st.textContent='下の箱の文字をコピーして送ってください'; io.select(); }); }); }
+    if(navigator.share){ navigator.share({title:'ユニバゲーム',url}).then(()=>{ st.textContent='送りました'; }).catch(()=>{ if(navigator.clipboard) navigator.clipboard.writeText(url).then(copied).catch(()=>{ st.textContent='下の箱の文字をコピーして送ってください'; io.select(); }); }); }
     else if(navigator.clipboard) navigator.clipboard.writeText(url).then(copied).catch(()=>{ st.textContent='下の箱の文字をコピーして送ってください'; io.select(); }); else { st.textContent='下の箱の文字をコピーして送ってください'; io.select(); } });
   { const m=/[#&]set=([A-Za-z0-9_-]+)/.exec(location.hash||''); if(m){ try{ const o=JSON.parse(b64d(m[1])), has=Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name && !/^(dragonAtk)$/.test(k)) ; if(o && Array.isArray(o.g) && o.g.length && (!has || window.confirm('受け取ったギフトの割り当てに入れかえますか？（今の割り当ては消えます）'))) shareApply(o); }catch(e){ tfLogAdd('受け取った設定を読みこめませんでした'); } try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} } }
   document.getElementById('cfgExp').addEventListener('click',()=>{ const t=document.getElementById('cfgIO'); t.value=JSON.stringify(Object.keys(LBL).length?Object.assign({},TF.map,{__lbl:LBL}):TF.map); t.select(); });
