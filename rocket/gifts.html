@@ -30,6 +30,15 @@ html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku G
 .sec.jam .hd{color:#ff8a90}.sec.help .hd{color:#8dffa6}
 .sec .gr{display:grid;gap:.7vw;justify-content:center}
 .g.txt{flex-direction:column;gap:.15vw}.g.txt .coin{position:static}
+.scr{display:flex!important;flex-direction:column;height:100vh;padding:.5vh!important;gap:.7vh;overflow:hidden;box-sizing:border-box}
+.strip{flex:1 1 0;min-height:0;display:flex;align-items:stretch;border-radius:1.6vh;overflow:hidden}
+.strip.jam{background:rgba(224,38,46,.20);box-shadow:0 0 0 .45vh rgba(224,38,46,.75) inset}
+.strip.help{background:rgba(47,191,79,.18);box-shadow:0 0 0 .45vh rgba(47,191,79,.75) inset}
+.strip .lb{flex:0 0 auto;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:upright;font-weight:900;letter-spacing:.05em;padding:0 .9vh;text-shadow:0 .25vh 0 #000;background:rgba(0,0,0,.45);white-space:nowrap}
+.strip.jam .lb{color:#ff8a90}.strip.help .lb{color:#8dffa6}
+.strip .vp{flex:1 1 0;min-width:0;overflow:hidden;position:relative;padding:.9vh 0}
+.strip .trk{height:100%;display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--r),1fr);gap:.8vh;width:max-content;will-change:transform;padding:0 .8vh;box-sizing:border-box}
+.scr .c{box-sizing:border-box;justify-content:center}
 </style>
 </head>
 <body>
@@ -38,6 +47,7 @@ html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku G
 /* 月まで届けのギフト表。ゲームの「ギフト」画面で登録した割り当てをそのまま表示する。
    URLの後ろに ?cols=9（1段の数）や ?all=1（未登録の効果も出す）を付けられる */
 const FX=[['fuel','help','全回復'],['boost','help','3倍速'],['shield','help','ガード'],['heart','help','耐久＋1'],['bomb','help','敵を1体消す'],['buddy','help','おとも'],['pad','help','加速板'],['crow','help','＋200m'],['fairy','help','小さくなる'],['dome','help','バリア'],['roulUp','help','ゴール−'],['gacha','help','機体ガチャ'],['stop','help','時間停止'],['save','help','セーブ'],['phoenix','help','＋2,000m'],['comet','help','＋3,000m'],['samurai','help','敵を全消し'],['astro','help','＋10,000m'],['hero','help','WIN＋50'],['double','help','5分間ぜんぶ2倍'],['dragonAtk','jam','火球4発'],['dragon3','jam','火球3発'],['meteor','jam','隕石'],['bird','jam','小鳥'],['wizard','jam','魔法使い'],['stall','jam','エンジン停止'],['garg','jam','ガーゴイル'],['tengu','jam','大風'],['spike','jam','トゲ鉄球'],['blackout','jam','まっ暗'],['roulDown','jam','ゴール＋'],['ufo','jam','操作が逆'],['unsave','jam','セーブ解除'],['hole','jam','−1,000m'],['jelly','jam','クラゲ'],['storm','jam','落雷'],['vamp','jam','コウモリ'],['ice','jam','−2,000m'],['crash','jam','即ついらく'],['maou','jam','WIN−50'],['akuma','jam','悪魔降臨'],['kama','jam','宇宙カマキリ']];
+const FREE_GRP=FX.some(f=>f[3])?FX[FX.length-1][3]:'';
 const q=new URLSearchParams(location.search), cols=Math.max(3,Math.min(13,parseInt(q.get('cols'),10)||9)), showAll=q.get('all')==='1';
 document.documentElement.style.setProperty('--cols',cols);
 let last='', CATN=0, CATL=null; const nrm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.'); fetch('./gifts_cat.json').then(r=>r.json()).then(j=>{ CATL=j; CATN=j.length; last=''; build(); }).catch(()=>{});
@@ -49,11 +59,11 @@ let SRC='local';
 function build(){ const m=load(); if(CATL) for(const k in m){ const b=m[k]; if(b && b.name && b.ci==null){ const i=CATL.findIndex(e=>nrm(e[0])===nrm(b.name)); if(i>=0){ b.ci=i; if(b.coins==null) b.coins=CATL[i][1]; } } } for(const k in m) if(m[k] && m[k].off) delete m[k]; let LB={}; if(SRC==='hash') LB=fromHash().lb; else { try{ LB=JSON.parse(localStorage.getItem('rocket_lbl')||'{}')||{}; }catch(e){} } const key=JSON.stringify(m)+JSON.stringify(LB)+CATN+(localStorage.getItem('rocket_opts')||'')+location.hash; if(key===last) return; last=key; const g=document.getElementById('grid'); g.innerHTML=''; const any=FX.some(f=>m[f[0]]&&m[f[0]].name);
   let op={likeOn:true,followOn:true,coinOn:true,chatOn:true}; if(SRC==='hash'){ const ho=fromHash().op; if(ho) op=ho; } else { try{ Object.assign(op,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){} }
   const COIN_ON=op.coinOn!==false;
-  const free=(svg,label,icon)=>{ const c=document.createElement('div'); c.className='c jam'; const pair=document.createElement('div'); pair.className='pair'; const gd=document.createElement('div'); gd.className='g'; gd.innerHTML=svg; const fx=document.createElement('div'); const fi=document.createElement('img'); fi.src='./img/fx/'+icon+'.webp'; fx.appendChild(fi); pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; nm.textContent=label; c.appendChild(pair); c.appendChild(nm); g.appendChild(c); };
+  const free=(svg,label,icon)=>{ const c=document.createElement('div'); c.className='c jam'; if(FREE_GRP) c.dataset.grp=FREE_GRP; const pair=document.createElement('div'); pair.className='pair'; const gd=document.createElement('div'); gd.className='g'; gd.innerHTML=svg; const fx=document.createElement('div'); const fi=document.createElement('img'); fi.src='./img/fx/'+icon+'.webp'; fx.appendChild(fi); pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; nm.textContent=label; c.appendChild(pair); c.appendChild(nm); g.appendChild(c); };
   if(op.chatOn!==false) free('<svg viewBox="0 0 100 100"><path d="M10 14h80a6 6 0 0 1 6 6v44a6 6 0 0 1-6 6H44L22 90V70H10a6 6 0 0 1-6-6V20a6 6 0 0 1 6-6z" fill="#58b8ff"/><circle cx="30" cy="42" r="6" fill="#fff"/><circle cx="50" cy="42" r="6" fill="#fff"/><circle cx="70" cy="42" r="6" fill="#fff"/></svg>','隕石','meteor');
   if(op.followOn) free('<svg viewBox="0 0 100 100"><circle cx="40" cy="30" r="20" fill="#3ddc6a"/><path d="M6 92c0-24 15-38 34-38s34 14 34 38z" fill="#3ddc6a"/><path d="M78 40v34M61 57h34" stroke="#3ddc6a" stroke-width="11" stroke-linecap="round"/></svg>','隕石','meteor');
   if(op.likeOn) free('<svg viewBox="0 0 100 100"><path d="M50 90C20 68 6 52 6 33 6 18 17 8 30 8c8 0 15 4 20 11 5-7 12-11 20-11 13 0 24 10 24 25 0 19-14 35-44 57z" fill="#ff3b5c"/><text x="50" y="57" text-anchor="middle" font-size="27" font-weight="900" fill="#fff" font-family="MPR,sans-serif">1000</text></svg>','魔法使い','wizard');
-  for(const f of FX){ const b=m[f[0]]; if(!showAll && any && !(b&&b.name)) continue; const c=document.createElement('div'); c.className='c '+f[1];
+  for(const f of FX){ const b=m[f[0]]; if(!showAll && any && !(b&&b.name)) continue; const c=document.createElement('div'); c.className='c '+f[1]; if(f[3]) c.dataset.grp=f[3];
     const pair=document.createElement('div'); pair.className='pair'; const gd=document.createElement('div'); gd.className='g';
     if(b&&b.ci!=null){ const d2=document.createElement('div'); d2.className='sp'; const rows=CATN?Math.ceil(CATN/24):20; d2.style.backgroundSize='2400% '+(rows*100)+'%'; d2.style.backgroundPosition=((b.ci%24)/23*100)+'% '+(rows>1?(Math.floor(b.ci/24)/(rows-1)*100):0)+'%'; gd.appendChild(d2); }
     else if(b&&b.pic){ const im=document.createElement('img'); im.src=b.pic; im.alt=b.name||''; im.referrerPolicy='no-referrer'; im.onerror=()=>{ gd.innerHTML=''; gd.classList.add('txt'); const t=document.createElement('div'); t.className='t'; t.textContent=b.name||'？'; gd.appendChild(t); }; gd.appendChild(im); }
@@ -61,7 +71,7 @@ function build(){ const m=load(); if(CATL) for(const k in m){ const b=m[k]; if(b
     else { const t=document.createElement('div'); t.className='q'; t.textContent='？'; gd.appendChild(t); }
     if(b&&b.coins!=null&&COIN_ON){ const cn=document.createElement('div'); cn.className='coin'; cn.textContent=b.coins; gd.appendChild(cn); }
     const fx=document.createElement('div'); const fi=document.createElement('img'); fi.src='./img/fx/'+f[0]+'.webp'; fi.alt=f[2]; fx.appendChild(fi);
-    pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; { const lab=LB[f[0]]||f[2]; nm.textContent=lab; if(LB[f[0]] && lab.length>8) nm.style.fontSize='calc('+(13.5*8/lab.length).toFixed(2)+'vw / var(--cols))'; } c.appendChild(pair); c.appendChild(nm); g.appendChild(c); } autoFit(); }
+    pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; { const lab=LB[f[0]]||f[2]; nm.textContent=lab; if(LB[f[0]] && lab.length>8) nm.style.fontSize='calc('+(13.5*8/lab.length).toFixed(2)+'vw / var(--cols))'; } c.appendChild(pair); c.appendChild(nm); g.appendChild(c); } autoFit(); scrollFit(); }
 // fit=1：窓の高さに全部おさまる中で、いちばん大きく見える列の数を自動でえらぶ（ゲームの下に出す時用）
 // fit=1（ゲームの下に出す時）：妨害とお助けを別のページにして、大きく見える数だけ並べ、5秒ごとに横へスライドして切りかえる
 let CELLS=null, PG=[], pgI=0, pgTm=0;
@@ -77,6 +87,21 @@ function autoFit(){ if(q.get('fit')!=='1') return; const gr=document.getElementB
   for(const k of ['jam','help']){ const a=CELLS[k], n=Math.ceil(a.length/best.cap); if(!n) continue; const per=Math.ceil(a.length/n); for(let i=0;i<n;i++) PG.push(mkSec(k,a.slice(i*per,(i+1)*per),best.c,n>1?(i+1)+' / '+n:'')); }
   for(const s of PG) gr.appendChild(s); if(pgI>=PG.length) pgI=0; showPg(); clearInterval(pgTm); if(PG.length>1) pgTm=setInterval(()=>{ pgI=(pgI+1)%PG.length; showPg(); },5000); }
 window.addEventListener('resize',autoFit);
+/* ふつうの表示：種類ごと（妨害・お助けなど）に段を分けて、入りきらない段は横にゆっくり流す。札を大きくできるので文字が読みやすい */
+let SCELLS=null, STRK=[], sRaf=0, sPrev=0;
+function scrollFit(){ if(q.get('fit')==='1' || q.get('scroll')==='0') return; const gr=document.getElementById('grid'); const fresh=[...gr.children].filter(c=>c.classList.contains('c')); if(fresh.length||!SCELLS) SCELLS=fresh; const all=SCELLS; gr.classList.add('scr'); gr.innerHTML=''; STRK=[]; if(!all.length) return;
+  const isH=c=>c.classList.contains('help')||c.classList.contains('both')||c.classList.contains('free'), groups=[]; for(const c of all){ const k=c.dataset.grp||(isH(c)?'お助け':'妨害'); let G=groups.find(x=>x.k===k); if(!G){ G={k,kind:isH(c)?'help':'jam',cells:[]}; groups.push(G); } G.cells.push(c); }
+  if(FREE_GRP){ const i=groups.findIndex(x=>x.k===FREE_GRP); if(i>=0){ const G=groups.splice(i,1)[0]; G.kind=G.cells.every(isH)?'help':'jam'; groups.push(G); } }
+  const probe=all[all.length-1], natH=w=>{ document.documentElement.style.setProperty('--cols',window.innerWidth/w); probe.style.width=w+'px'; probe.style.height='auto'; gr.appendChild(probe); const h=probe.offsetHeight; gr.removeChild(probe); return h; };
+  /* 札の高さ ch にぴったり入る札の幅をさがす */
+  const fitW=ch=>{ let w=ch*1.4; for(let i=0;i<6;i++){ const h=natH(w); if(Math.abs(h-ch)<.6) break; w*=ch/h; } while(natH(w)>ch+.5 && w>20) w*=.985; return w; };
+  const rowsQ=parseInt(q.get('rows'),10)||0, minCols=parseFloat(q.get('min'))||3.5; let R=rowsQ||1;
+  for(const G of groups){ const st=document.createElement('div'); st.className='strip '+G.kind; const lb=document.createElement('div'); lb.className='lb'; lb.textContent=G.k; const vp=document.createElement('div'); vp.className='vp'; const trk=document.createElement('div'); trk.className='trk'; trk.style.setProperty('--r',R); vp.appendChild(trk); st.appendChild(lb); st.appendChild(vp); gr.appendChild(st); G.vp=vp; G.trk=trk; G.lb=lb; }
+  const cs=getComputedStyle(groups[0].vp), vh=groups[0].vp.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom), gap=window.innerHeight*.008, vw0=groups[0].vp.clientWidth; let ch=0, cw=0; for(;;){ ch=Math.max(20,(vh-gap*(R-1))/R); cw=fitW(ch); if(rowsQ || R>=4 || vw0/cw>=minCols) break; R++; } for(const G of groups) G.trk.style.setProperty('--r',R); const sec=Math.max(.5,parseFloat(q.get('sec'))||3);
+  document.documentElement.style.setProperty('--cols',window.innerWidth/cw);
+  for(const G of groups){ G.lb.style.fontSize=Math.max(10,Math.min(vh*.2,vh/(G.k.length+.3)))+'px'; for(const c of G.cells){ c.style.width=cw+'px'; c.style.height=ch+'px'; G.trk.appendChild(c); } const full=G.trk.scrollWidth, over=full>G.vp.clientWidth+2; if(over){ for(const c of G.cells){ const d=c.cloneNode(true); G.trk.appendChild(d); } } else G.trk.style.margin='0 auto'; G.trk.style.transform='translate3d(0,0,0)'; STRK.push({el:G.trk,loop:over?full-gap:0,x:0,v:cw/sec}); }
+  if(!sRaf){ const step=t=>{ const dt=Math.min(.1,(t-(sPrev||t))/1000); sPrev=t; for(const k of STRK){ if(!k.loop) continue; k.x-=k.v*dt; if(k.x<=-k.loop) k.x+=k.loop; k.el.style.transform='translate3d('+k.x.toFixed(1)+'px,0,0)'; } sRaf=requestAnimationFrame(step); }; sRaf=requestAnimationFrame(step); } }
+window.addEventListener('resize',scrollFit);
 build(); window.addEventListener('storage',build); window.addEventListener('hashchange',build); setInterval(build,2000);
 </script>
 </body>
