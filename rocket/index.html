@@ -131,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 02:39</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 02:44</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -248,7 +248,12 @@ function jellyCv(i){ if(!jfSh.ok) return null; if(jfCv[i]) return jfCv[i]; if(i=
 const JELLY={n:9,maxN:36,get sec(){ return DIFFS[DIFF].jelly; },inT:1.3,outT:1.1,w:205,hx:66,hy:52,by:.3};   /* クラゲ：数、いすわる秒数、来る・帰る秒数、絵の横幅、傘の当たり幅と高さの半分、傘の中心が絵の上からどこか */
 for(const k of ['scloud','sbolt','sspark']) img(k,k+'.webp');
 const STORM={inT:.8,get vol(){ return DIFFS[DIFF].storm; },per:5,warn:1.0,zap:.38,gap:.5,hw:62,min:210,outT:.8,cy:150};   /* 雷雲：雲が広がる秒数、落とす回数、1回の本数、予告の秒数、光る秒数、次までの間、雷の当たり幅の半分、雷どうしの最小間かく、雲が消える秒数、雲の高さの位置 */
-const KING={inT:1.0,vol:5,per:3,warn:1.3,beam:.55,gap:.7,hw:74,min:230,outT:.9,cy:300};   /* 星喰いの王：出てくる秒数、降らせる回数、1回の本数、予告の秒数、柱が出ている秒数、次までの間、柱の半分の幅 */
+const KING={inT:1.0,vol:5,per:3,warn:1.3,beam:.55,gap:.7,hw:74,min:230,outT:.9,cy:300,hh:60,minY:300,gx:360,gy:420,gridWarn:1.9};   /* 星喰いの王：出てくる秒数、降らせる回数、1回の本数、予告の秒数、柱が出ている秒数、次までの間、柱の半分の幅 */
+/* 王の1回ぶんの柱を決める。たて→よこ→たて→十字…とくり返し、最後の1回は格子（たて・よこ全部）。xs＝たての柱のx、ys＝よこの柱のy、wt＝予告の秒数 */
+function kingWave(d){ const pickY=(n,aim)=>{ const ys=aim?[clamp(RYw()+rand(-20,20),520,1140)]:[]; let k=0; while(ys.length<n && k++<200){ const y=rand(520,1140); if(ys.every(q=>Math.abs(q-y)>=KING.minY)) ys.push(y); } return ys; };
+  d.n=(d.n||0)+1; d.xs=[]; d.ys=[]; d.wt=KING.warn; d.grid=false;
+  if(d.left<=1){ d.grid=true; d.wt=KING.gridWarn; const x0=XL+rand(40,KING.gx-40), y0=rand(420,420+KING.gy-10); for(let x=x0;x<XL+XW;x+=KING.gx) d.xs.push(x); for(let y=y0;y<H/K;y+=KING.gy) d.ys.push(y); return; }
+  const m=(d.n-1)%4; if(m===0 || m===2) d.xs=kingAim(); else if(m===1) d.ys=pickY(2,true); else { d.xs=kingAim().slice(0,2); d.ys=pickY(1,Math.random()<.5); } }
 function kingAim(){ const xs=[clamp(RXw()+rand(-20,20),XL+90,XL+XW-90)]; let guard=0; while(xs.length<KING.per && guard++<200){ const x=rand(XL+90,XL+XW-90); if(xs.every(q=>Math.abs(q-x)>=KING.min)) xs.push(x); } return xs; }
 function stormAim(){ const xs=[clamp(RXw()+rand(-30,30),XL+90,XL+XW-90)]; let guard=0; while(xs.length<STORM.per && guard++<200){ const x=rand(XL+90,XL+XW-90); if(xs.every(q=>Math.abs(q-x)>=STORM.min)) xs.push(x); } return xs; }
 img('slash','slash.webp'); const samSh=mkSheet('sam',{n:40,cols:8,fw:480,fh:273,fps:12});   /* 正面向きの侍（コマ0＝振り抜いた姿、33あたりで刀を納めきる） */
@@ -421,7 +426,7 @@ const Game={
   jelly(n){ if(S.mode!=='fly') return; if(inv()){ jamBlocked(n,'クラゲの群れ'); return; } logAdd((n||'だれか')+' がクラゲの群れを呼んだ（'+JELLY.sec+'秒 ふれるとビリビリ）','#9be9ff'); const mk=()=>{ const L=[], rx=RXw(), ry=RYw(); for(let i=0;i<JELLY.n;i++){ let x=W/2+(i%3-1)*380+rand(-90,90), y=[470,840,655][Math.floor(i/3)%3]+rand(-80,80); if(Math.hypot(x-rx,y-ry)<330){ x+=(x<rx?-1:1)*(330-Math.abs(x-rx)); } const sd=Math.floor(rand(0,4)); L.push({x,y,sx:sd===0?XL-200:(sd===1?XL+XW+200:x+rand(-200,200)),sy:sd<2?y+rand(-200,200):(sd===2?-260:H/K+260),ph:rand(0,6),c:i%3,dead:0,d:i*.12}); } return L; };
     if(S.jelly && !S.jelly.out){ const d=S.jelly, live=d.list.filter(j=>!j.dead), add=mk().slice(0,Math.max(0,JELLY.maxN-live.length)); add.forEach((j,i)=>{ j.d=d.t+i*.12; j.x=clamp(j.x+rand(-170,170),XL+150,XL+XW-150); j.y=clamp(j.y+rand(-150,150),360,1020); }); d.list=live.concat(add); d.until=d.t+JELLY.inT+JELLY.sec; d.by=n; return; }   /* 連打されたら、その分だけクラゲが増える（合わせて maxN 匹まで）。いすわる時間も数え直す */ const go=()=>{ if(S.mode!=='fly') return; S.jelly={t:0,by:n,list:mk(),out:0,until:JELLY.inT+JELLY.sec}; S.flash=Math.max(S.flash,.4); }; if(S.cine) go(); else startCine('jelly',go); },
   /* 星喰いの王：光の柱を降らせる。柱に当たると耐久に関係なく墜落（ガードや無敵なら防げる） */
-  king(n){ if(S.mode!=='fly') return; if(inv()){ jamBlocked(n,'星喰いの王'); return; } logAdd((n||'だれか')+' が星喰いの王を呼んだ（即死の光の柱 '+KING.vol+'回）','#fff2a8'); if(S.king){ S.king.left+=KING.vol; return; } const go=()=>{ if(S.mode!=='fly') return; S.king={t:0,by:n,left:KING.vol,g:-1,xs:[],hit:false,dead:false,out:0}; S.flash=Math.max(S.flash,.5); }; if(S.cine || !VID.king) go(); else startCine('king',go); },
+  king(n){ if(S.mode!=='fly') return; if(inv()){ jamBlocked(n,'星喰いの王'); return; } logAdd((n||'だれか')+' が星喰いの王を呼んだ（即死の光の柱 '+KING.vol+'回）','#fff2a8'); if(S.king){ S.king.left+=KING.vol; return; } const go=()=>{ if(S.mode!=='fly') return; S.king={t:0,by:n,left:KING.vol,g:-1,xs:[],ys:[],n:0,hit:false,dead:false,out:0}; S.flash=Math.max(S.flash,.5); }; if(S.cine || !VID.king) go(); else startCine('king',go); },
   storm(n){ if(S.mode!=='fly') return; if(inv()){ jamBlocked(n,'雷雲'); return; } logAdd((n||'だれか')+' が雷雲を呼んだ（落雷 '+STORM.vol+'回）','#c9a0ff'); if(S.storm){ S.storm.left+=STORM.vol; return; } const go=()=>{ if(S.mode!=='fly') return; S.storm={t:0,by:n,left:STORM.vol,g:-1,xs:[],hit:false,out:0}; S.flash=Math.max(S.flash,.5); }; if(S.cine) go(); else startCine('storm',go); },
   ufo(n){ if(S.mode!=='fly') return; if(inv()){ jamBlocked(n,'混乱ビーム'); return; } logAdd((n||'だれか')+' がUFOを呼んだ（'+UFO.sec+'秒 左右の操作が逆）','#c9a0ff'); if(S.ufo){ S.ufoQ=(S.ufoQ||0)+1; return; } cutOnce('ufo',n); S.ufo={t:-UFO.wait,by:n,x:W/2,y:-260,hit:false}; },
   garg(n){ if(S.mode!=='fly') return; logAdd((n||'だれか')+' がガーゴイルを呼んだ（しがみつかれると落ちていく）','#d9a8ff'); if(S.garg && S.garg.st!=='off'){ if(QUIET){ S.garg.x2=true; return; } S.garg.cnt=0; if(S.garg.st==='on') S.garg.t=0; S.garg.by=n; return; } cutOnce('garg',n); S.garg={t:-GARG.wait,st:'in',x:clamp(RXw()+rand(-300,300),W/2-480,W/2+480),y:-220,by:n,cnt:0,dir:0,ex:0,rot:0}; },
@@ -627,11 +632,13 @@ function drawKing(){ const d=S.king; if(!d) return; const e=x=>x*x*(3-2*x), a=d.
   /* 王：ふだんは 0〜26 コマを行ったり来たり。予告の間に手を上げ（27→38）、柱が落ちる時にふり下ろす（38→49）。そのあと元の姿勢へなめらかに戻す */
   if(ki && ki.naturalWidth){ const FW=400, FH=335, kw=XW*.4, kh=kw*FH/FW, kx=XL+XW/2-kw/2, ky=205-(1-a)*(kh+330)+Math.sin(T*1.6)*8; const fr=(n,al)=>{ n=clamp(Math.round(n),0,49); g.globalAlpha=al; g.drawImage(ki,(n%10)*FW,Math.floor(n/10)*FH,FW,FH,kx,ky,kw,kh); };
     const pp=(T*10)%52, idle=pp<26?pp:52-pp; let f=idle, mix=1;
-    if(d.g>=0 && d.out===0){ if(d.g<KING.warn){ f=27+11*e(d.g/KING.warn); mix=clamp(1-d.g/.25,0,1); } else if(d.g<KING.warn+KING.beam){ f=38+11*clamp((d.g-KING.warn)/(KING.beam*.8),0,1); mix=0; } else { f=49; mix=clamp((d.g-KING.warn-KING.beam)/KING.gap,0,1); } }
+    if(d.g>=0 && d.out===0){ if(d.g<(d.wt||KING.warn)){ f=27+11*e(d.g/(d.wt||KING.warn)); mix=clamp(1-d.g/.25,0,1); } else if(d.g<(d.wt||KING.warn)+KING.beam){ f=38+11*clamp((d.g-(d.wt||KING.warn))/(KING.beam*.8),0,1); mix=0; } else { f=49; mix=clamp((d.g-(d.wt||KING.warn)-KING.beam)/KING.gap,0,1); } }
     if(mix<1) fr(f,a*(1-mix)); if(mix>0) fr(idle,a*mix); g.globalAlpha=1; }
-  if(d.g>=0 && d.out===0){ const w=KING.hw*2;
-    if(d.g<KING.warn){ const u=d.g/KING.warn; for(const x of d.xs){ const gr=g.createLinearGradient(x-w/2,0,x+w/2,0); gr.addColorStop(0,'rgba(255,236,150,0)'); gr.addColorStop(.5,'rgba(255,236,150,'+(.16+.3*u+.1*Math.sin(d.g*30)).toFixed(3)+')'); gr.addColorStop(1,'rgba(255,236,150,0)'); g.fillStyle=gr; g.fillRect(x-w/2,0,w,bot); g.fillStyle='rgba(255,255,255,'+(.45+.45*u).toFixed(3)+')'; g.fillRect(x-2-u*5,0,4+u*10,bot); g.strokeStyle='rgba(255,236,150,'+(.5+.4*u).toFixed(3)+')'; g.lineWidth=4; g.setLineDash([18,14]); g.strokeRect(x-w/2,-10,w,bot+20); g.setLineDash([]); } }
-    else if(d.g<KING.warn+KING.beam){ const u=(d.g-KING.warn)/KING.beam, al=1-u*u*u, ww=w*(2.6-.9*u); g.globalCompositeOperation='lighter'; for(const x of d.xs){ if(bi && bi.naturalWidth){ g.globalAlpha=al; g.drawImage(bi,x-ww/2,-20,ww,bot+40); g.drawImage(bi,x-ww/2,-20,ww,bot+40); g.globalAlpha=1; } else { g.fillStyle='rgba(255,230,140,'+(.8*al).toFixed(3)+')'; g.fillRect(x-w/2,-20,w,bot+40); } g.fillStyle='rgba(255,255,255,'+(.85*al).toFixed(3)+')'; g.fillRect(x-w*.2,-20,w*.4,bot+40); } g.globalCompositeOperation='source-over'; } }
+  if(d.g>=0 && d.out===0){ const KW=d.wt||KING.warn, w=KING.hw*2, hh=KING.hh*2, L=XW+160, ys=d.ys||[];
+    /* 柱を1本描く。たては (x,0) から下へ、よこは場面を90度回して同じ絵を使う */
+    const each=fn=>{ for(const x of d.xs){ g.save(); g.translate(x,-20); fn(w,bot+40); g.restore(); } for(const y of ys){ g.save(); g.translate(XL-80,y); g.rotate(-Math.PI/2); fn(hh,L); g.restore(); } };
+    if(d.g<KW){ const u=d.g/KW; each((ww,len)=>{ const gr=g.createLinearGradient(-ww/2,0,ww/2,0); gr.addColorStop(0,'rgba(255,236,150,0)'); gr.addColorStop(.5,'rgba(255,236,150,'+(.16+.3*u+.1*Math.sin(d.g*30)).toFixed(3)+')'); gr.addColorStop(1,'rgba(255,236,150,0)'); g.fillStyle=gr; g.fillRect(-ww/2,0,ww,len); g.fillStyle='rgba(255,255,255,'+(.45+.45*u).toFixed(3)+')'; g.fillRect(-2-u*5,0,4+u*10,len); g.strokeStyle='rgba(255,236,150,'+(.5+.4*u).toFixed(3)+')'; g.lineWidth=4; g.setLineDash([18,14]); g.strokeRect(-ww/2,-10,ww,len+20); g.setLineDash([]); }); }
+    else if(d.g<KW+KING.beam){ const u=(d.g-KW)/KING.beam, al=1-u*u*u; g.globalCompositeOperation='lighter'; each((ww,len)=>{ const bw=ww*(2.6-.9*u); if(bi && bi.naturalWidth){ g.globalAlpha=al; g.drawImage(bi,-bw/2,0,bw,len); g.drawImage(bi,-bw/2,0,bw,len); g.globalAlpha=1; } else { g.fillStyle='rgba(255,230,140,'+(.8*al).toFixed(3)+')'; g.fillRect(-ww/2,0,ww,len); } g.fillStyle='rgba(255,255,255,'+(.85*al).toFixed(3)+')'; g.fillRect(-ww*.2,0,ww*.4,len); }); g.globalCompositeOperation='source-over'; } }
   g.restore(); }
 function drawStorm(){ const d=S.storm; if(!d) return; const e=x=>x*x*(3-2*x), a=d.out>0?1-e(clamp(d.out/STORM.outT,0,1)):e(clamp(d.t/STORM.inT,0,1)), ci=IMG.scloud, bi=IMG.sbolt, si=IMG.sspark, bot=H/K+40, cy=STORM.cy-(1-a)*420;
   g.save(); g.fillStyle='rgba(10,4,30,'+(.38*a)+')'; g.fillRect(XL-60,-60,XW+120,H/K+120);
@@ -931,7 +938,7 @@ function update(dt){ if(S.cine){ const c=S.cine; c.t+=dt; if(c.t>=c.dur){ try{ c
       else if(d.st==='fire'){ d.left-=dt; if(!d.hitDone && d.pt>=AKU.fly+.2){ d.hitDone=true; S.shake=Math.max(S.shake,.6); play('aku_land',.8); play('don',.6); if(!d.waveHit) logAdd('槍の雨をよけた！','#5dffb0'); }
         if(d.pt>=AKU.gap-AKU.warn){ if(d.left>0) wave(); else { d.st='out'; d.pt=0; logAdd('悪魔が帰っていった','#fff'); } } }
       else if(d.st==='out'){ if(d.pt>=.8) S.aku=null; } } }
-  if(S.akuFl && S.akuFl.length){ for(const f of S.akuFl){ f.t+=dt; if(!f.done && f.t>=AKU.fly){ f.done=true; if(S.mode==='fly' && !inv() && S.aku && !S.aku.waveHit && Math.hypot(RXw()-f.tx,RYw()-f.ty)<AKU.hit){ S.aku.waveHit=true; play('aku_hit',.9); play('hit',.7); S.shake=Math.max(S.shake,.8); S.rings.push({x:f.tx,y:f.ty,c:'#ff5c5c',t:0,big:true}); logAdd('悪魔の槍が当たった（耐久−'+AKU.dmg+'）','#ff5c5c'); for(let i=0;i<AKU.dmg && S.mode==='fly';i++) damage(S.aku.by); } } } S.akuFl=S.akuFl.filter(f=>f.t<AKU.fly*2.6); }
+  if(S.akuFl && S.akuFl.length){ for(const f of S.akuFl){ f.t+=dt; if(!f.done && f.t>=AKU.fly){ f.done=true; if(S.mode==='fly' && !inv() && S.aku && !S.aku.waveHit && Math.hypot(Math.max(0,Math.abs(RXw()-f.tx)-HITB.x),Math.max(0,Math.abs(RYw()-f.ty)-HITB.y))<AKU.r){ S.aku.waveHit=true;   /* 黄色い丸（半径 AKU.r）にロケットが少しでもかかっていたら当たり */ play('aku_hit',.9); play('hit',.7); S.shake=Math.max(S.shake,.8); S.rings.push({x:f.tx,y:f.ty,c:'#ff5c5c',t:0,big:true}); logAdd('悪魔の槍が当たった（耐久−'+AKU.dmg+'）','#ff5c5c'); for(let i=0;i<AKU.dmg && S.mode==='fly';i++) damage(S.aku.by); } } } S.akuFl=S.akuFl.filter(f=>f.t<AKU.fly*2.6); }
   if(S.maou && S.maou.seed===undefined){ const d=S.maou; let best=0, bg=-1; for(let k=0;k<40;k++){ d.seed=1+Math.floor(Math.random()*900); const xs=[-9999]; for(let i=0;i<10;i++) xs.push(maouBoltX(i)); xs.push(9999); xs.sort((a,b)=>a-b); let gap=0; for(let i=0;i<xs.length-1;i++){ const lo=Math.max(xs[i],W/2-MOVE.x-MAOU.boltR), hi=Math.min(xs[i+1],W/2+MOVE.x+MAOU.boltR); gap=Math.max(gap,hi-lo); } if(gap>bg){ bg=gap; best=d.seed; } if(gap>=MAOU.boltR*2+190) break; } d.seed=best; }
   if(S.maou && S.maou.done && S.mode==='fly'){ const d=S.maou, bh=d.bh||(d.bh=[]); for(let i=0;i<10;i++){ if(bh[i] || d.t<maouBoltT(i)) continue; bh[i]=true; if(!inv() && Math.abs(RXw()-maouBoltX(i))<MAOU.boltR){ S.hp=0; S.flash=Math.max(S.flash,.7); play('kaminari',.9); logAdd('魔王のカミナリが直撃！ 一発で墜落','#ff5c5c'); startFall(); break; } } }
   if(S.maou){ const d=S.maou; d.t+=dt; if(d.t<MAOU.hit) S.shake=Math.max(S.shake,.05+.2*d.t/MAOU.hit); if(!d.done && d.t>=MAOU.hit){ d.done=true; if(S.mode==='fly'){ wins-=MAOU.win; save(); S.winPop={d:-MAOU.win,t:0}; S.shake=1; S.flash=Math.max(S.flash,.5); S.red=1; play('glass',.6); logAdd('魔王の呪い：WIN −'+MAOU.win+'（いま '+wins+'）','#ff5c5c'); } } if(d.t>=MAOU.life+MAOU.outT || (S.mode!=='fly' && d.t<MAOU.hit)){ S.maou=null; if(S.maouQ>0 && S.mode==='fly'){ S.maouQ--; S.maou={t:.4,by:d.by,done:false}; } } }
@@ -987,10 +994,10 @@ function update(dt){ if(S.cine){ const c=S.cine; c.t+=dt; if(c.t>=c.dur){ try{ c
   // 星喰いの王：光の柱を KING.vol 回、KING.per 本ずつ降らせる。予告のあと柱に当たると耐久に関係なく墜落（1本は必ずロケットをねらう）
   if(S.king && !frozen){ const d=S.king; d.t+=dt; if(S.mode!=='fly' && d.out===0){ if(d.g>=0){ d.left--; if(d.left<=0) d.out=.001; } d.g=-1; d.hit=false; d.w=1.4; }   /* 撃墜されても王は消えない。飛びなおして少ししたら、残りの回数ぶん続きが来る */
     else if(d.out>0){ d.out+=dt; if(d.out>=KING.outT) S.king=null; }
-    else if(d.t>=KING.inT && !((d.w=(d.w||0)-dt)>0)){ if(d.g<0){ d.g=0; d.xs=kingAim(); d.hit=false; d.dead=false; } d.g+=dt;
-      if(!d.hit && d.g>=KING.warn){ d.hit=true; S.shake=Math.max(S.shake,.6); S.flash=Math.max(S.flash,.45); }
-      if(!d.dead && d.g>=KING.warn && d.g<KING.warn+KING.beam && d.xs.some(x=>Math.abs(x-RXw())<KING.hw+HITB.x)){ d.dead=true; if(!jamBlocked(d.by,'光の柱')){ S.hp=0; logAdd('光の柱に飲まれた！（即死）','#fff2a8'); startFall(); } }
-      if(d.g>=KING.warn+KING.beam+KING.gap){ d.left--; d.g=-1; if(d.left<=0) d.out=.001; } } }
+    else if(d.t>=KING.inT && !((d.w=(d.w||0)-dt)>0)){ if(d.g<0){ d.g=0; kingWave(d); d.hit=false; d.dead=false; if(d.grid){ banner('光の格子！','#fff2a8','すき間に入れ'); } } d.g+=dt; const KW=d.wt||KING.warn;
+      if(!d.hit && d.g>=KW){ d.hit=true; S.shake=Math.max(S.shake,.6); S.flash=Math.max(S.flash,.45); }
+      if(!d.dead && d.g>=KW && d.g<KW+KING.beam && (d.xs.some(x=>Math.abs(x-RXw())<KING.hw+HITB.x) || d.ys.some(y=>Math.abs(y-RYw())<KING.hh+HITB.y))){ d.dead=true; if(!jamBlocked(d.by,'光の柱')){ S.hp=0; logAdd('光の柱に飲まれた！（即死）','#fff2a8'); startFall(); } }
+      if(d.g>=KW+KING.beam+KING.gap){ d.left--; d.g=-1; if(d.left<=0) d.out=.001; } } }
   if(S.storm && !frozen){ const d=S.storm; d.t+=dt; if(S.mode!=='fly' && d.out===0){ if(d.g>=0){ d.left--; if(d.left<=0) d.out=.001; } d.g=-1; d.hit=false; d.w=1.4; }   /* 撃墜されても雷雲は消えない */
     else if(d.out>0){ d.out+=dt; if(d.out>=STORM.outT) S.storm=null; }
     else if(d.t>=STORM.inT && !((d.w=(d.w||0)-dt)>0)){ if(d.g<0){ d.g=0; d.xs=stormAim(); d.hit=false; } d.g+=dt;
@@ -1222,7 +1229,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ update(dt); } draw(); } requestAnimationFrame(loop); }
-const VER='1127-023945'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1127-024450'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1265,7 +1272,7 @@ const FX_LIST=[
  ['hole','jam','ブラックホール','−1,000m',n=>Game.hole(n)],
  ['jelly','jam','クラゲの群れ','30秒 9匹がいすわる',n=>Game.jelly(n)],
  ['storm','jam','雷雲','落雷を8回',n=>Game.storm(n)],
- ['king','jam','星喰いの王','当たると即死の光の柱を5回ふらせる',n=>Game.king(n)],
+ ['king','jam','星喰いの王','当たると即死の光の柱を5回（たて・よこ、最後は格子）',n=>Game.king(n)],
  ['vamp','jam','吸血鬼','15秒 コウモリの嵐',n=>Game.vamp(n)],
  ['ice','jam','氷の怪鳥','凍って−2,000m＋30秒 速さ半分',n=>Game.ice(n)],
  ['crash','jam','機械クジラ','飲みこまれて即ついらく＋セーブ消去',n=>Game.crash(n)],
