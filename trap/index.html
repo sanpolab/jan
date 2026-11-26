@@ -31,8 +31,10 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;touch
   <div id="tp" hidden>
     <h3>お助け</h3>
     <button class="h" data-a="check">中間ポイント<br>今いる場所から再開</button><!-- バリアのギフトは外した（プレゼント箱のおにぎりと同じ効果なので。Game.barrier は残してある） --><button class="h" data-a="bridge">足場<br>この先の穴をふさぐ</button><button class="h" data-a="sweep">おそうじ<br>画面の罠を全部消す</button><button class="h" data-a="present">プレゼント箱<br>たたくと おにぎり</button><button class="h" data-a="skip">1面スキップ<br>今のステージをとばす</button>
-    <h3>妨害</h3>
-    <button class="j" data-a="flee">逃げるゴール<br>近づくと先へ逃げる</button><button class="j" data-a="hole">動く穴<br>8秒 追ってくる</button><button class="j" data-a="cloud">落ちてくる雲<br>頭の上から</button><button class="j" data-a="fakespring">ニセのバネ<br>空のかなたへ</button><button class="j" data-a="fakebox">ニセの箱<br>たたくと ばくだん</button><button class="j" data-a="spike">トゲ<br>目の前に飛び出す</button><button class="j" data-a="crumble">床ぬけ<br>足元がくずれる</button><button class="j" data-a="drop">落石<br>頭の上から</button><button class="j" data-a="ghost">見えないブロック<br>頭の上に12秒</button><button class="j" data-a="bullet">矢<br>右から飛んでくる</button><button class="j" data-a="wall">せまるトゲ壁<br>6秒 左から追ってくる</button><!-- あべこべは外した（Game.reverse は残してある） --><button class="j" data-a="wallf">前からトゲ壁<br>5秒 前からせまる（うしろへ逃げろ）</button><button class="j" data-a="rifujin">理不尽<br>妨害×3＋オニが3回やられるまで居すわる</button><button class="j" data-a="fake">ニセのゴール<br>さわるとやられる</button><button class="j" data-a="dark">まっくら<br>8秒 まわりしか見えない</button><button class="j" data-a="flip">さかさま<br>6秒 上下がひっくり返る</button><!-- つるつる床・向かい風・おもりは不採用（Game.ice / wind / heavy は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="mob">ぷにスライム<br>歩いてくる（踏むと倒せる）</button><button class="j" data-a="fakemob">ニセスライム<br>踏むと爆発する</button><button class="j" data-a="ball">トゲ玉<br>15秒 転がってくる</button>
+    <h3>妨害（ギフト用はこの4つ）</h3>
+    <button class="j" data-a="jam1">妨害 小<br>ランダムで1個</button><button class="j" data-a="jam5">妨害 中<br>ランダムで5個</button><button class="j" data-a="jam10">妨害 大<br>ランダムで10個</button><button class="j" data-a="rifujin">理不尽<br>妨害×3＋オニが3回やられるまで居すわる</button>
+    <h3>妨害を1つずつためす（テスト用）</h3>
+    <button class="j" data-a="flee">逃げるゴール<br>近づくと先へ逃げる</button><button class="j" data-a="hole">動く穴<br>8秒 追ってくる</button><button class="j" data-a="cloud">落ちてくる雲<br>頭の上から</button><button class="j" data-a="fakespring">ニセのバネ<br>空のかなたへ</button><button class="j" data-a="fakebox">ニセの箱<br>たたくと ばくだん</button><button class="j" data-a="spike">トゲ<br>目の前に飛び出す</button><button class="j" data-a="crumble">床ぬけ<br>足元がくずれる</button><button class="j" data-a="drop">落石<br>頭の上から</button><button class="j" data-a="ghost">見えないブロック<br>頭の上に12秒</button><button class="j" data-a="bullet">矢<br>右から飛んでくる</button><button class="j" data-a="wall">せまるトゲ壁<br>6秒 左から追ってくる</button><!-- あべこべは外した（Game.reverse は残してある） --><button class="j" data-a="wallf">前からトゲ壁<br>5秒 前からせまる（うしろへ逃げろ）</button><button class="j" data-a="fake">ニセのゴール<br>さわるとやられる</button><button class="j" data-a="dark">まっくら<br>8秒 まわりしか見えない</button><button class="j" data-a="flip">さかさま<br>6秒 上下がひっくり返る</button><!-- つるつる床・向かい風・おもりは不採用（Game.ice / wind / heavy は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="mob">ぷにスライム<br>歩いてくる（踏むと倒せる）</button><button class="j" data-a="fakemob">ニセスライム<br>踏むと爆発する</button><button class="j" data-a="ball">トゲ玉<br>15秒 転がってくる</button>
     <h3>その他</h3>
     <button class="n" data-a="next">次のステージへ</button><button class="n" data-a="reset">記録を消す</button><button class="n" data-a="close">とじる</button>
   </div>
@@ -145,14 +147,20 @@ const Game={
   fakemob(n){ const {tx,ty}=pTile(), f=S.p.face; for(const dx of [f*7,f*6,f*8,f*5,-f*6]){ const x=tx+dx, gy=groundBelow(x,ty-1); if(gy>0 && tile(x,gy-1)==='.' && x>1 && x<S.n-2){ S.ents.push({k:'mob',fake:true,gift:true,x,px:x*TS+30,py:gy*TS,dir:dx>0?-1:1,st:'walk',life:T_.mobT,t:0}); play('pon',.6); burst(x*TS+30,gy*TS-20,['#8a5cf0','#fff'],8,240); logAdd((n||'だれか')+' がぷにスライムを呼んだ…？','#ff9aa8'); return; } } logAdd((n||'だれか')+' のニセスライム（置けなかった）','#ff9aa8'); },
   wallf(n){ if(S.wallF){ S.wallF.t+=T_.wallFT; S.wallF.out=0; logAdd((n||'だれか')+' が前のトゲ壁をのばした','#ff9aa8'); return; } S.wallF={x:S.cam+W+260,t:T_.wallFT,out:0}; play('dark',.7); play('heavy',.5); banner('前からトゲ壁！','#ff5c5c',n); logAdd((n||'だれか')+' が前からトゲ壁を呼んだ（'+T_.wallFT+'秒 うしろへ逃げろ）','#ff9aa8'); },
   rifujin(n){ const got=rifPick(3); S.shake=Math.max(S.shake,.5); S.red=.3; play('bad',.8); play('don',.7); RIF.left=Math.min(30,RIF.left+RIF.n); RIF.cd=RIF.gap; RIF.pop=.6; logAdd((n||'だれか')+' の理不尽！ あと'+RIF.left+'回やられるまで、理不尽オニが妨害を出し続ける','#ff5c5c'); for(const k of got){ try{ Game[k](n); }catch(e){} } banner('理不尽！','#ff5c5c',(n||'だれか')+' のしわざ（'+RIF.left+'回やられるまで消えない）'); },
+  /* ギフト用の妨害は3つだけ：小＝1個、中＝5個、大＝10個。中身は毎回ランダムで、JAMQ.gap 秒おきに1個ずつ出す（一度に重なって詰まないように） */
+  jam1(n){ jamAdd(n,1,'妨害！'); }, jam5(n){ jamAdd(n,5,'妨害 ×5！'); }, jam10(n){ jamAdd(n,10,'妨害 ×10！'); },
   next(){ stageI=(stageI+1)%STAGES.length; save(); newRun(false); },
-  reset(){ RIF.left=0; deaths=0; playT=0; stageI=0; WAITQ.length=0; save(); newRun(false); } };
+  reset(){ RIF.left=0; JAMQ.q.length=0; deaths=0; playT=0; stageI=0; WAITQ.length=0; save(); newRun(false); } };
 /* やられている間・ゴール演出中に届いたギフトは、ためておいて動けるようになってから順番に出す */
 const WAITQ=[]; let waitT=0;
-for(const k of ['check','barrier','bridge','sweep','present','skip','flee','hole','cloud','fakebox','fakespring','spike','crumble','drop','ghost','bullet','wall','reverse','fake','ice','dark','wind','flip','heavy','ball','mob','fakemob','wallf','rifujin']){ const f=Game[k]; Game[k]=function(n){ if(S.mode!=='play'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
+for(const k of ['check','barrier','bridge','sweep','present','skip','flee','hole','cloud','fakebox','fakespring','spike','crumble','drop','ghost','bullet','wall','reverse','fake','ice','dark','wind','flip','heavy','ball','mob','fakemob','wallf','rifujin','jam1','jam5','jam10']){ const f=Game[k]; Game[k]=function(n){ if(S.mode!=='play'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
 
 /* 理不尽：妨害が3つ同時にきて、さらに「理不尽オニ」がついてくる。オニは RIF.gap 秒ごとに妨害を1つ出し続け、RIF.n 回やられるまで消えない（おそうじでも消えない）。さかさまは出さない */
 const RIF={left:0,n:3,gap:3.5,cd:0,pop:0,fire:0}, RIF_POOL=['hole','cloud','fakespring','fakebox','spike','crumble','drop','ghost','bullet','wall','wallf','fake','dark','ball','mob','fakemob'];
+const JAMQ={q:[],cd:0,gap:.8,last:''}, JAM_POOL=RIF_POOL.concat(['flee']);
+function jamAdd(n,c,title){ for(let i=0;i<c && JAMQ.q.length<60;i++) JAMQ.q.push(n); if(c>1){ banner(title,'#ff5c5c',(n||'だれか')+' のしわざ'); S.shake=Math.max(S.shake,.3); play('bad',.6); } logAdd((n||'だれか')+' の妨害'+(c>1?' ×'+c:'')+'（何がくるかはお楽しみ）','#ff9aa8'); }
+/* 1個えらぶ：前後のトゲ壁にはさまれる組み合わせ・まっくらの重ねがけ・同じものの連続・逃げるゴールのためすぎは出さない */
+function jamPick(){ for(let g0=0;g0<40;g0++){ const k=pick(JAM_POOL); if(k===JAMQ.last) continue; if((k==='wall' && S.wallF) || (k==='wallf' && S.wall)) continue; if(k==='dark' && S.darkT>0) continue; if(k==='flee' && S.flee>=2) continue; if((k==='wall'||k==='wallf') && S.darkT>0) continue; if(k==='dark' && (S.wall||S.wallF)) continue; return k; } return 'spike'; }
 function rifPick(n){ const got=[]; let guard=0; while(got.length<n && guard++<80){ const k=pick(RIF_POOL); if(got.includes(k)) continue; if((k==='wall' && (got.includes('wallf') || S.wallF)) || (k==='wallf' && (got.includes('wall') || S.wall))) continue;   /* 前とうしろの壁にはさまれるのだけは、なし */ got.push(k); } return got; }
 /* ===== やられる・ゴール ===== */
 function die(cause){ const p=S.p; if(S.mode!=='play') return;
@@ -173,6 +181,7 @@ function update(dt){ T+=dt; S.t+=dt; const p=S.p;
   playT+=dt; saveT+=dt; if(saveT>5){ saveT=0; save(); }
   if(S.mode==='clear'){ S.clearT+=dt; if(Math.random()<dt*40) S.parts.push({x:S.cam+rand(0,W),y:-20,vx:rand(-60,60),vy:rand(80,300),g:300,t:rand(1.2,2.2),s:pick([10,14]),c:pick(['#ffd23f','#fff','#4cc3ff','#ff5c8a','#5dffb0'])}); if(S.clearT>=T_.clear){ stageI=(stageI+1)%STAGES.length; save(); newRun(false); banner('ステージ '+(stageI+1),'#fff',STAGES[stageI].name); } return; }
   if(WAITQ.length){ waitT-=dt; if(waitT<=0){ waitT=.3; const fn=WAITQ.shift(); try{ fn(); }catch(e){} } } else waitT=.2;
+  if(JAMQ.q.length){ JAMQ.cd-=dt; if(JAMQ.cd<=0){ JAMQ.cd=JAMQ.gap; const who=JAMQ.q.shift(), k=jamPick(); JAMQ.last=k; try{ Game[k](who); }catch(e){} } } else JAMQ.cd=0;
   if(RIF.pop>0) RIF.pop-=dt; if(RIF.fire>0) RIF.fire-=dt; if(RIF.left>0 && !S.sky){ RIF.cd-=dt; if(RIF.cd<=0){ RIF.cd=RIF.gap; RIF.fire=.5; const k=rifPick(1)[0]; if(k){ try{ Game[k]('理不尽オニ'); }catch(e){} } } }
   if(S.sky){ S.sky.t+=dt; p.y-=2500*dt; p.x+=p.vx*dt*.15; p.run+=dt*20; if(Math.random()<dt*60) S.parts.push({x:p.x+rand(-14,14),y:p.y,vx:rand(-60,60),vy:rand(200,500),g:0,t:.35,s:pick([8,12]),c:'#fff'}); if(p.y<-240){ S.twinkle={x:p.x,t:0}; S.sky=null; S.invT=0; S.barrier=0; die('ニセのバネ'); S.corpse=null; play('harp2',.5); } return; }
   if(S.invT>0) S.invT-=dt; if(S.revT>0){ S.revT-=dt; if(S.revT<=0){ S.revT=0; logAdd('あべこべが元にもどった','#fff'); } } for(const k of ['iceT','darkT','windT','flipT','heavyT']) if(S[k]>0) S[k]=Math.max(0,S[k]-dt); S.flipK+=clamp((S.flipT>0?1:0)-S.flipK,-dt*4,dt*4);
@@ -351,7 +360,7 @@ tp.addEventListener('click',ev=>{ const b=ev.target.closest('button'); if(!b) re
 newRun(false);
 let last=performance.now(); window.__ready=false;
 function loop(now){ let dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ const n=Math.max(1,Math.ceil(dt/(1/120))); for(let i=0;i<n;i++) update(dt/n); draw(); } requestAnimationFrame(loop); }
-window.__dbg={ get S(){ return S; }, set S(v){ S=v; }, Game, STAGES, PH, T_, IN, KEYS, update, draw, tile, solid, RIF, jumpPress, jumpRelease, WAITQ, get playT(){ return playT; }, get deaths(){ return deaths; }, get stageI(){ return stageI; }, set stageI(v){ stageI=v; newRun(false); } };
+window.__dbg={ get S(){ return S; }, set S(v){ S=v; }, Game, STAGES, PH, T_, IN, KEYS, update, draw, tile, solid, RIF, JAMQ, jumpPress, jumpRelease, WAITQ, get playT(){ return playT; }, get deaths(){ return deaths; }, get stageI(){ return stageI; }, set stageI(v){ stageI=v; newRun(false); } };
 Promise.all([document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()].concat(Object.values(IMG).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.onload=r; im.onerror=r; } })))).then(()=>{ window.__ready=true; requestAnimationFrame(loop); });
 </script>
 </body>
