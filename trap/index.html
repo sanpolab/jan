@@ -32,7 +32,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;touch
     <h3>お助け</h3>
     <button class="h" data-a="check">中間ポイント<br>今いる場所から再開</button><button class="h" data-a="barrier">バリア<br>1回だけ守る</button><button class="h" data-a="bridge">足場<br>この先の穴をふさぐ</button><button class="h" data-a="sweep">おそうじ<br>画面の罠を全部消す</button><button class="h" data-a="present">プレゼント箱<br>たたくと おにぎり</button>
     <h3>妨害</h3>
-    <button class="j" data-a="flee">逃げるゴール<br>近づくと先へ逃げる</button><button class="j" data-a="hole">動く穴<br>8秒 追ってくる</button><button class="j" data-a="cloud">落ちてくる雲<br>頭の上から</button><button class="j" data-a="fakespring">ニセのバネ<br>空のかなたへ</button><button class="j" data-a="fakebox">ニセの箱<br>たたくと ばくだん</button><button class="j" data-a="spike">トゲ<br>目の前に飛び出す</button><button class="j" data-a="crumble">床ぬけ<br>足元がくずれる</button><button class="j" data-a="drop">落石<br>頭の上から</button><button class="j" data-a="ghost">見えないブロック<br>頭の上に12秒</button><button class="j" data-a="bullet">矢<br>右から飛んでくる</button><button class="j" data-a="wall">せまるトゲ壁<br>6秒 左から追ってくる</button><button class="j" data-a="reverse">あべこべ<br>8秒 左右が逆</button><button class="j" data-a="fake">ニセのゴール<br>さわるとやられる</button>
+    <button class="j" data-a="flee">逃げるゴール<br>近づくと先へ逃げる</button><button class="j" data-a="hole">動く穴<br>8秒 追ってくる</button><button class="j" data-a="cloud">落ちてくる雲<br>頭の上から</button><button class="j" data-a="fakespring">ニセのバネ<br>空のかなたへ</button><button class="j" data-a="fakebox">ニセの箱<br>たたくと ばくだん</button><button class="j" data-a="spike">トゲ<br>目の前に飛び出す</button><button class="j" data-a="crumble">床ぬけ<br>足元がくずれる</button><button class="j" data-a="drop">落石<br>頭の上から</button><button class="j" data-a="ghost">見えないブロック<br>頭の上に12秒</button><button class="j" data-a="bullet">矢<br>右から飛んでくる</button><button class="j" data-a="wall">せまるトゲ壁<br>6秒 左から追ってくる</button><button class="j" data-a="reverse">あべこべ<br>8秒 左右が逆</button><button class="j" data-a="fake">ニセのゴール<br>さわるとやられる</button><button class="j" data-a="ice">つるつる床<br>10秒 すべる</button><button class="j" data-a="dark">まっくら<br>8秒 まわりしか見えない</button><button class="j" data-a="wind">向かい風<br>6秒 うしろへ押される</button><button class="j" data-a="flip">さかさま<br>6秒 上下がひっくり返る</button><button class="j" data-a="heavy">おもり<br>8秒 ジャンプが低い</button><button class="j" data-a="ball">トゲ玉<br>15秒 転がってくる</button>
     <h3>その他</h3>
     <button class="n" data-a="next">次のステージへ</button><button class="n" data-a="reset">記録を消す</button><button class="n" data-a="close">とじる</button>
   </div>
@@ -46,7 +46,7 @@ const W=1080, H=1080, FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONT
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
 const TS=60, ROWS=12, OY=210, TOPH=172, BOTY=930;   /* 1マス60。ゲームの世界は画面の y=210〜930 に12段 */
 const PH={run:330,acc:3200,air:2400,fric:3000,grav:2400,jump:-985,cut:.45,maxFall:1150,coyote:.09,buf:.12,w:36,h:50,spring:-1500};
-const T_={holeT:8,holeStep:.2,cloudWait:.7,fleeN:8,dead:1.0,clear:2.4,hPop:.1,fFall:.22,crumb:.55,drop:.55,ghost:12,bulletV:560,bulletWarn:.55,wallT:6,wallV:255,rev:8,bridge:15,inv:1.0};
+const T_={holeT:8,holeStep:.2,cloudWait:.7,fleeN:8,dead:1.0,clear:2.4,hPop:.1,fFall:.22,crumb:.55,drop:.55,ghost:12,bulletV:560,bulletWarn:.55,wallT:6,wallV:255,rev:8,bridge:15,inv:1.0,ice:10,dark:8,wind:6,windV:215,flip:6,heavy:8,ballT:15};
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, pick=a=>a[Math.floor(Math.random()*a.length)], fmt=n=>Math.round(n).toLocaleString('en-US');
 
 /* ===== ステージ：地面は下2段。そこから穴をあけたり、ものを置いたりして作る =====
@@ -74,7 +74,7 @@ try{ const o=JSON.parse(localStorage.getItem('trap_save')||'{}'); deaths=o.death
 function save(){ try{ localStorage.setItem('trap_save',JSON.stringify({deaths,time:Math.round(playT),stage:stageI})); }catch(e){} }
 function newRun(keepCp){ const st=STAGES[stageI], cp=keepCp&&S?S.cp:null, sd=S?S.stDeaths||0:0, sp=cp||{x:st.start[0]*TS+TS/2,y:(st.start[1]+1)*TS};
   S={ mode:'play', n:st.n, t:0, map:st.rows.map(r=>r.slice()), ents:st.ents.map(e=>Object.assign({},e,{st:'wait',t:0,px:e.x*TS+TS/2,py:(e.y+1)*TS,vy:0,dir:e.v||1})), p:{x:sp.x,y:sp.y,vx:0,vy:0,face:1,ground:false,coy:0,buf:0,run:0,jumping:false},
-    cp, stDeaths:keepCp?sd:0, cam:0, parts:[], pops:[], crumbs:[], debris:[], warns:[], bullets:[], drops:[], ghosts:[], bridges:[], items:[], booms:[], hiT:0, sky:null, twinkle:null, holes:[], clouds:[], flee:0, wall:null, revT:0, barrier:0, invT:1, safe:{x:sp.x,y:sp.y}, shake:0, flash:0, red:0, log:S?S.log:[], banner:null, wanim:[], deadT:0, clearT:0, fakeHit:null };
+    cp, stDeaths:keepCp?sd:0, cam:0, parts:[], pops:[], crumbs:[], debris:[], warns:[], bullets:[], drops:[], ghosts:[], bridges:[], items:[], booms:[], hiT:0, sky:null, twinkle:null, holes:[], clouds:[], flee:0, wall:null, revT:0, iceT:0, darkT:0, windT:0, flipT:0, flipK:0, heavyT:0, barrier:0, invT:1, safe:{x:sp.x,y:sp.y}, shake:0, flash:0, red:0, log:S?S.log:[], banner:null, wanim:[], deadT:0, clearT:0, fakeHit:null };
   S.cam=clamp(S.p.x-W*.38,0,S.n*TS-W); }
 const logAdd=(s,c)=>{ S.log.unshift({s,c:c||'#fff',t:6}); S.log.length=Math.min(S.log.length,3); };
 const banner=(a,c,b)=>{ S.banner={a,b:b||'',c:c||'#fff',t:0}; };
@@ -114,7 +114,7 @@ const Game={
     if(!done && !S.p.ground){ const y=clamp(Math.floor(S.p.y/TS)+1,1,10); for(let i=-1;i<=1;i++) if(tile(tx+i,y)==='.'){ setT(tx+i,y,'b'); S.bridges.push({x:tx+i,y,t:T_.bridge}); done++; } }
     play('pon',.7); logAdd((n||'だれか')+(done?' が足場を出した（'+T_.bridge+'秒）':' の足場（この先に穴がなかった）'),'#5dffb0'); },
   sweep(n){ const x0=Math.floor(S.cam/TS)-1, x1=x0+20; let c=0; for(let y=0;y<ROWS;y++) for(let x=x0;x<=x1;x++){ const ch=tile(x,y); if(ch==='^'||ch==='v'||ch==='h'||ch==='p'||ch==='F'||ch==='M'){ setT(x,y,'.'); burst(x*TS+30,y*TS+30,['#fff','#ffd23f'],4,220); c++; } }
-    for(const gh of S.ghosts) setT(gh.x,gh.y,'.'); S.ghosts=[]; c+=S.holes.length+S.clouds.length+S.flee; S.holes=[]; S.clouds=[]; S.flee=0; c+=S.bullets.length+S.drops.length+S.warns.length; S.bullets=[]; S.drops=[]; S.warns=[]; S.pops=[]; if(S.wall){ S.wall=null; c++; } if(S.revT>0){ S.revT=0; c++; }
+    for(const gh of S.ghosts) setT(gh.x,gh.y,'.'); S.ghosts=[]; c+=S.holes.length+S.clouds.length+S.flee; S.holes=[]; S.clouds=[]; S.flee=0; c+=S.bullets.length+S.drops.length+S.warns.length; S.bullets=[]; S.drops=[]; S.warns=[]; S.pops=[]; if(S.wall){ S.wall=null; c++; } if(S.revT>0){ S.revT=0; c++; } for(const k of ['iceT','darkT','windT','flipT','heavyT']) if(S[k]>0){ S[k]=0; c++; }
     S.ents=S.ents.filter(e=>{ const on=e.px>S.cam-80&&e.px<S.cam+W+80; if(on&&(e.k==='ball'||e.k==='crusher'||e.k==='fake')){ burst(e.px,e.py-30,['#fff','#ffd23f'],10,300); c++; return false; } return true; });
     S.flash=.35; play('harp2',.7); play('kick',.6); banner('おそうじ！','#ffd23f',(n||'だれか')+' が画面の罠を消した'); logAdd((n||'だれか')+' が罠を'+c+'こ消した','#5dffb0'); },
   present(n){ const {tx,ty}=pTile(); for(const dx of [S.p.face*2,S.p.face*3,S.p.face,0]){ const x=tx+dx, gy=groundBelow(x,ty); if(gy<4) continue; const y=gy-4; if(tile(x,y)==='.' && tile(x,y+1)==='.' && tile(x,y+2)==='.'){ setT(x,y,'B'); play('pon',.6); burst(x*TS+30,y*TS+30,['#ffd23f','#fff'],10,260); logAdd((n||'だれか')+' がプレゼント箱を置いた（下からたたく）','#5dffb0'); return; } } logAdd((n||'だれか')+' のプレゼント箱（置けなかった）','#5dffb0'); },
@@ -134,11 +134,17 @@ const Game={
   wall(n){ if(S.wall){ S.wall.t+=T_.wallT; logAdd((n||'だれか')+' がトゲ壁をのばした','#ff9aa8'); return; } S.wall={x:S.cam-260,t:T_.wallT,out:0}; play('dark',.7); play('heavy',.5); banner('うしろからトゲ壁！','#ff5c5c',n); logAdd((n||'だれか')+' がトゲ壁を呼んだ（'+T_.wallT+'秒 前に逃げろ）','#ff9aa8'); },
   reverse(n){ S.revT=Math.min(40,S.revT+T_.rev); play('bad',.6); banner('あべこべ！','#c08bff','左右が逆になった'); logAdd((n||'だれか')+' があべこべにした（'+T_.rev+'秒）','#ff9aa8'); },
   fake(n){ const {tx,ty}=pTile(); for(const dx of [S.p.face*4,S.p.face*5,S.p.face*3,-S.p.face*4]){ const x=tx+dx, gy=groundBelow(x,ty-1); if(gy>0 && tile(x,gy-1)==='.' && x>1 && x<S.n-1){ S.ents.push({k:'fake',gift:true,x,y:gy-1,px:x*TS+30,py:gy*TS,st:'wait',t:0}); play('pon',.5); logAdd((n||'だれか')+' がゴールの旗を立てた…？','#ff9aa8'); return; } } logAdd((n||'だれか')+' のニセのゴール（置けなかった）','#ff9aa8'); },
+  ice(n){ S.iceT=Math.min(40,S.iceT+T_.ice); play('glass',.6); banner('つるつる！','#8fd3ff','床がすべる'); logAdd((n||'だれか')+' が床をこおらせた（'+T_.ice+'秒）','#ff9aa8'); },
+  dark(n){ S.darkT=Math.min(40,S.darkT+T_.dark); play('dark',.8); logAdd((n||'だれか')+' がまっくらにした（'+T_.dark+'秒）','#ff9aa8'); },
+  wind(n){ S.windT=Math.min(40,S.windT+T_.wind); play('swing',.8); play('wing',.6); banner('向かい風！','#c9ced8','うしろへ押される'); logAdd((n||'だれか')+' が向かい風をふかせた（'+T_.wind+'秒）','#ff9aa8'); },
+  flip(n){ S.flipT=Math.min(30,S.flipT+T_.flip); play('bad',.6); play('boyon',.5); logAdd((n||'だれか')+' が画面をさかさまにした（'+T_.flip+'秒）','#ff9aa8'); },
+  heavy(n){ S.heavyT=Math.min(40,S.heavyT+T_.heavy); play('heavy',.8); banner('おもり！','#9aa3b5','ジャンプが低くなる'); logAdd((n||'だれか')+' がおもりをのせた（'+T_.heavy+'秒）','#ff9aa8'); },
+  ball(n){ const {tx,ty}=pTile(), f=S.p.face; for(const dx of [f*8,f*7,f*6,-f*7]){ const x=tx+dx, gy=groundBelow(x,ty-1); if(gy>0 && tile(x,gy-1)==='.' && x>1 && x<S.n-2){ S.ents.push({k:'ball',gift:true,x,px:x*TS+30,py:gy*TS,dir:dx>0?-1:1,a:x-9,b:x+9,life:T_.ballT,t:0}); play('pon',.6); burst(x*TS+30,gy*TS-26,['#333','#fff'],8,240); logAdd((n||'だれか')+' がトゲ玉を転がした（'+T_.ballT+'秒）','#ff9aa8'); return; } } logAdd((n||'だれか')+' のトゲ玉（置けなかった）','#ff9aa8'); },
   next(){ stageI=(stageI+1)%STAGES.length; save(); newRun(false); },
   reset(){ deaths=0; playT=0; stageI=0; WAITQ.length=0; save(); newRun(false); } };
 /* やられている間・ゴール演出中に届いたギフトは、ためておいて動けるようになってから順番に出す */
 const WAITQ=[]; let waitT=0;
-for(const k of ['check','barrier','bridge','sweep','present','flee','hole','cloud','fakebox','fakespring','spike','crumble','drop','ghost','bullet','wall','reverse','fake']){ const f=Game[k]; Game[k]=function(n){ if(S.mode!=='play'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
+for(const k of ['check','barrier','bridge','sweep','present','flee','hole','cloud','fakebox','fakespring','spike','crumble','drop','ghost','bullet','wall','reverse','fake','ice','dark','wind','flip','heavy','ball']){ const f=Game[k]; Game[k]=function(n){ if(S.mode!=='play'){ if(WAITQ.length<80) WAITQ.push(()=>f.call(Game,n)); return; } return f.call(Game,n); }; }
 
 /* ===== やられる・ゴール ===== */
 function die(cause){ const p=S.p; if(S.mode!=='play') return;
@@ -160,14 +166,14 @@ function update(dt){ T+=dt; S.t+=dt; const p=S.p;
   if(S.mode==='clear'){ S.clearT+=dt; if(Math.random()<dt*40) S.parts.push({x:S.cam+rand(0,W),y:-20,vx:rand(-60,60),vy:rand(80,300),g:300,t:rand(1.2,2.2),s:pick([10,14]),c:pick(['#ffd23f','#fff','#4cc3ff','#ff5c8a','#5dffb0'])}); if(S.clearT>=T_.clear){ stageI=(stageI+1)%STAGES.length; save(); newRun(false); banner('ステージ '+(stageI+1),'#fff',STAGES[stageI].name); } return; }
   if(WAITQ.length){ waitT-=dt; if(waitT<=0){ waitT=.3; const fn=WAITQ.shift(); try{ fn(); }catch(e){} } } else waitT=.2;
   if(S.sky){ S.sky.t+=dt; p.y-=2500*dt; p.x+=p.vx*dt*.15; p.run+=dt*20; if(Math.random()<dt*60) S.parts.push({x:p.x+rand(-14,14),y:p.y,vx:rand(-60,60),vy:rand(200,500),g:0,t:.35,s:pick([8,12]),c:'#fff'}); if(p.y<-240){ S.twinkle={x:p.x,t:0}; S.sky=null; S.invT=0; S.barrier=0; die('ニセのバネ'); S.corpse=null; play('harp2',.5); } return; }
-  if(S.invT>0) S.invT-=dt; if(S.revT>0){ S.revT-=dt; if(S.revT<=0){ S.revT=0; logAdd('あべこべが元にもどった','#fff'); } }
+  if(S.invT>0) S.invT-=dt; if(S.revT>0){ S.revT-=dt; if(S.revT<=0){ S.revT=0; logAdd('あべこべが元にもどった','#fff'); } } for(const k of ['iceT','darkT','windT','flipT','heavyT']) if(S[k]>0) S[k]=Math.max(0,S[k]-dt); S.flipK+=clamp((S.flipT>0?1:0)-S.flipK,-dt*4,dt*4);
   /* 横の動き */
-  const ax=axis(), tv=ax*PH.run, a=(p.ground?PH.acc:PH.air)*dt; if(ax){ p.vx+=clamp(tv-p.vx,-a,a); p.face=ax>0?1:-1; } else { const f=(p.ground?PH.fric:PH.air*.5)*dt; p.vx=Math.abs(p.vx)<=f?0:p.vx-Math.sign(p.vx)*f; }
-  p.x+=p.vx*dt; { const hw=PH.w/2, y0=Math.floor((p.y-PH.h+2)/TS), y1=Math.floor((p.y-2)/TS); if(p.vx>0){ const tx=Math.floor((p.x+hw)/TS); for(let y=y0;y<=y1;y++) if(solid(tx,y)){ p.x=tx*TS-hw-.01; p.vx=0; reveal(tx,y); break; } } else if(p.vx<0){ const tx=Math.floor((p.x-hw)/TS); for(let y=y0;y<=y1;y++) if(solid(tx,y)){ p.x=(tx+1)*TS+hw+.01; p.vx=0; reveal(tx,y); break; } } }
+  const ice=S.iceT>0 && p.ground, wv=S.windT>0?-T_.windV:0; const ax=axis(), tv=ax*PH.run, a=(p.ground?PH.acc*(ice?.16:1):PH.air)*dt; if(ax){ p.vx+=clamp(tv-p.vx,-a,a); p.face=ax>0?1:-1; } else { const f=(p.ground?PH.fric*(ice?.05:1):PH.air*.5)*dt; p.vx=Math.abs(p.vx)<=f?0:p.vx-Math.sign(p.vx)*f; }
+  const mvx=p.vx+wv; p.x+=mvx*dt; { const hw=PH.w/2, y0=Math.floor((p.y-PH.h+2)/TS), y1=Math.floor((p.y-2)/TS); if(mvx>0){ const tx=Math.floor((p.x+hw)/TS); for(let y=y0;y<=y1;y++) if(solid(tx,y)){ p.x=tx*TS-hw-.01; p.vx=0; reveal(tx,y); break; } } else if(mvx<0){ const tx=Math.floor((p.x-hw)/TS); for(let y=y0;y<=y1;y++) if(solid(tx,y)){ p.x=(tx+1)*TS+hw+.01; p.vx=0; reveal(tx,y); break; } } }
   p.x=clamp(p.x,PH.w/2,S.n*TS-PH.w/2);
   /* たての動き・ジャンプ */
   if(p.buf>0) p.buf-=dt; if(p.ground) p.coy=PH.coyote; else p.coy-=dt;
-  if(p.buf>0 && p.coy>0){ p.vy=PH.jump*(S.hiT>0?1.22:1); p.buf=0; p.coy=0; p.ground=false; p.jumping=true; play('jump',.3); for(let i=0;i<4;i++) S.parts.push({x:p.x+rand(-14,14),y:p.y,vx:rand(-120,120),vy:rand(-120,-20),g:600,t:.3,s:8,c:'#fff'}); }
+  if(p.buf>0 && p.coy>0){ p.vy=PH.jump*(S.hiT>0?1.22:1)*(S.heavyT>0?.8:1); p.buf=0; p.coy=0; p.ground=false; p.jumping=true; play('jump',.3); for(let i=0;i<4;i++) S.parts.push({x:p.x+rand(-14,14),y:p.y,vx:rand(-120,120),vy:rand(-120,-20),g:600,t:.3,s:8,c:'#fff'}); }
   p.vy=Math.min(PH.maxFall,p.vy+PH.grav*dt); p.y+=p.vy*dt; p.ground=false;
   { const hw=PH.w/2-1, x0=Math.floor((p.x-hw)/TS), x1=Math.floor((p.x+hw)/TS);
     if(p.vy>=0){ const ty=Math.floor(p.y/TS); for(let x=x0;x<=x1;x++) if(solid(x,ty) && p.y-p.vy*dt<=ty*TS+12){ p.y=ty*TS; p.vy=0; p.ground=true; p.jumping=false; reveal(x,ty); }
@@ -211,7 +217,7 @@ function update(dt){ T+=dt; S.t+=dt; const p=S.p;
     else if(e.k==='fake'){ if(e.st==='wait' && hitRect(e.px-14,e.py-104,30,104)){ e.st='hit'; e.t=0; S.fakeHit={x:e.px,y:e.py,t:0}; play('bad',.6); die('ニセのゴール'); } }
     else if(e.k==='check'){ if(e.st==='wait' && Math.abs(p.x-e.px)<34 && Math.abs(p.y-e.py)<70){ e.st='on'; S.cp={x:e.px,y:e.py}; play('bless',.6); burst(e.px,e.py-60,['#5dffb0','#fff'],12,280); logAdd('中間ポイント！ やられてもここから','#5dffb0'); } }
     else if(e.k==='crusher'){ if(e.st==='wait'){ if(Math.abs(p.x-e.px)<TS*1.15 && p.y>e.py) { e.st='fall'; e.vy=0; play('swing',.6); } } else if(e.st==='fall'){ e.vy=Math.min(1600,e.vy+2800*dt); e.py+=e.vy*dt; if(hitRect(e.px-28,e.py-TS,56,TS)) die('落ちてきたブロック'); const ty=Math.floor(e.py/TS); if(solid(e.x,ty)){ if(tile(e.x,ty-1)==='.' ) setT(e.x,ty-1,'r'); e.dead=true; S.shake=Math.max(S.shake,.3); play('rockhit',.6); burst(e.px,ty*TS,['#8a8f9a','#fff'],8,260); } else if(e.py>ROWS*TS+100) e.dead=true; } }
-    else if(e.k==='ball'){ e.px+=e.dir*150*dt; const tx=Math.floor((e.px+e.dir*26)/TS), ty=Math.floor((e.py-4)/TS); if(e.px<e.a*TS+26 || solid(tx,ty) || !solid(tx,ty+1)) e.dir=1; if(e.px>e.b*TS+34 || (e.dir>0 && (solid(tx,ty) || !solid(tx,ty+1)))) e.dir=-1; if(Math.hypot(p.x-e.px,(p.y-25)-(e.py-26))<40) die('トゲ玉'); } }
+    else if(e.k==='ball'){ if(e.life!=null){ e.life-=dt; if(e.life<=0){ e.dead=true; burst(e.px,e.py-26,['#333','#fff'],8,240); } } e.px+=e.dir*150*dt; const tx=Math.floor((e.px+e.dir*26)/TS), ty=Math.floor((e.py-4)/TS); if(e.px<e.a*TS+26 || solid(tx,ty) || !solid(tx,ty+1)) e.dir=1; if(e.px>e.b*TS+34 || (e.dir>0 && (solid(tx,ty) || !solid(tx,ty+1)))) e.dir=-1; if(Math.hypot(p.x-e.px,(p.y-25)-(e.py-26))<40) die('トゲ玉'); } }
   S.ents=S.ents.filter(e=>!e.dead); if(S.fakeHit){ S.fakeHit.t+=dt; }
   /* カメラ */
   const tgt=clamp(p.x-W*.4+p.face*70,0,S.n*TS-W); S.cam+=(tgt-S.cam)*Math.min(1,dt*6); }
@@ -253,13 +259,14 @@ function drawFlag(x,y,real,t,hit){ if(ok('flag') && !hit){ g.drawImage(IMG.flag,
   const wv=real?Math.sin(t*6)*6:0; g.fillStyle='#e23a3a'; g.beginPath(); g.moveTo(x+4,y-164); g.lineTo(x+74,y-150+wv); g.lineTo(x+4,y-118); g.closePath(); g.fill(); g.fillStyle='#fff'; g.fillRect(x+14,y-148+wv*.3,16,12); }
 function draw(){ const p=S.p; g.setTransform(1,0,0,1,0,0);
   /* 空と遠くの景色 */
-  g.fillStyle='#bfe6ff'; g.fillRect(0,TOPH,W,BOTY-TOPH); const cam=S.cam; g.save(); g.beginPath(); g.rect(0,TOPH,W,BOTY-TOPH); g.clip();
+  g.fillStyle='#bfe6ff'; g.fillRect(0,TOPH,W,BOTY-TOPH); const cam=S.cam; g.save(); g.beginPath(); g.rect(0,TOPH,W,BOTY-TOPH); g.clip(); if(S.flipK>0){ const mid=(TOPH+BOTY)/2, sy=Math.cos(Math.PI*S.flipK); g.translate(0,mid); g.scale(1,Math.abs(sy)<.02?.02:sy); g.translate(0,-mid); }   /* さかさま：ゲームの画面だけ上下をひっくり返す */
   if(ok('bg')){ g.fillStyle='#84d9f4'; g.fillRect(0,TOPH,W,BOTY-TOPH); const bw=1672, off=-((cam*.25)%bw); for(let x=off;x<W;x+=bw) g.drawImage(IMG.bg,Math.round(x),185,bw+1,941); }
   else { g.fillStyle='#fff'; for(let i=0;i<8;i++){ const x=((i*310-cam*.2)%2480+2480)%2480-200, y=TOPH+50+(i*67)%170; g.fillRect(x,y,120,28); g.fillRect(x+24,y-20,68,20); g.fillRect(x-20,y+12,160,16); } }
   const sx=S.shake>0?rand(-1,1)*S.shake*14:0, sy=S.shake>0?rand(-1,1)*S.shake*14:0; g.translate(Math.round(-cam+sx),OY+Math.round(sy));
   /* マス */
   const x0=Math.max(0,Math.floor(cam/TS)-1), x1=Math.min(S.n-1,x0+20); for(let ty=0;ty<ROWS;ty++) for(let tx=x0;tx<=x1;tx++){ const ch=S.map[ty][tx]; if(ch==='.'||ch==='h') continue; if(ty>=10 && S.holes.length && inHole(tx)) continue; let ox=0, oy=0; const cr=S.crumbs.find(q=>q.x===tx&&q.y===ty); if(cr){ ox=rand(-3,3); oy=rand(-2,2); } drawTile(ch,tx*TS+ox,ty*TS+oy,tx,ty); }
   for(let tx=x0;tx<=x1;tx++) if(S.map[ROWS-1][tx]==='#' && !(S.holes.length && inHole(tx))){ if(ok('tiles')) g.drawImage(IMG.tiles,60,0,60,60,tx*TS,ROWS*TS,TS+.5,TS+.5); else { g.fillStyle='#9a6234'; g.fillRect(tx*TS,ROWS*TS,TS,40); } }
+  if(S.iceT>0){ const bl=S.iceT<1.5&&Math.floor(T*10)%2; if(!bl) for(let tx=x0;tx<=x1;tx++) for(let ty=1;ty<ROWS;ty++){ if(solid(tx,ty) && !solid(tx,ty-1) && !(ty>=10 && S.holes.length && inHole(tx))){ g.fillStyle='rgba(170,228,255,.92)'; g.fillRect(tx*TS,ty*TS,TS,10); g.fillStyle='#fff'; g.fillRect(tx*TS+8+((tx*7)%30),ty*TS+2,14,4); } } }
   for(const q of S.debris){ g.save(); g.translate(q.x+30,q.y+30); g.rotate(q.rot); g.translate(-30,-30); drawTile(q.c==='f'?'f':q.c,0,0,-9,-9); g.restore(); }
   /* 置いてあるもの */
   for(const e of S.ents){ if(e.k==='goal'){ const hop=e.run?Math.abs(Math.sin(T*16))*30:0; drawFlag(e.px,e.py-hop,true,T,false); if(e.run){ for(let i=1;i<=3;i++){ g.fillStyle='rgba(255,255,255,'+(.7-i*.2)+')'; g.fillRect(e.px-30-i*26,e.py-14,16,8); } } } else if(e.k==='fake') drawFlag(e.px,e.py,false,T,e.st==='hit');
@@ -281,7 +288,9 @@ function draw(){ const p=S.p; g.setTransform(1,0,0,1,0,0);
   /* 主人公 */
   if(S.mode!=='dead'){ const pose=!p.ground?'jump':(Math.abs(p.vx)>30?(Math.floor(p.run)%2?'run1':'run2'):'stand'), bl=S.invT>0&&Math.floor(T*20)%2; if(!bl) drawHero(p.x,p.y,p.face,pose);
     if(S.barrier>0){ g.strokeStyle='rgba(143,211,255,'+(.7+.2*Math.sin(T*8))+')'; g.lineWidth=5; g.beginPath(); g.arc(p.x,p.y-27,44,0,7); g.stroke(); if(S.barrier>1) txt('×'+S.barrier,p.x+40,p.y-64,26,'#8fd3ff','left','#111'); }
-    if(S.revT>0){ txt('？',p.x,p.y-82+Math.sin(T*8)*4,40,'#c08bff','center','#111',FONTD); } }
+    if(S.revT>0){ txt('？',p.x,p.y-82+Math.sin(T*8)*4,40,'#c08bff','center','#111',FONTD); }
+    if(S.heavyT>0){ const hx=p.x, hy=p.y-62; g.fillStyle='#111'; g.fillRect(hx-24,hy-30,48,34); g.fillRect(hx-10,hy-40,20,12); g.fillStyle='#5b6474'; g.fillRect(hx-20,hy-26,40,26); g.fillStyle='#9aa3b5'; g.fillRect(hx-20,hy-26,40,6); g.fillStyle='#111'; g.fillRect(hx-6,hy-36,12,4); txt('10t',hx,hy-11,18,'#fff','center'); } }
+  if(S.windT>0){ g.fillStyle='rgba(255,255,255,.75)'; for(let i=0;i<16;i++){ const L=90+(i*37)%120, x=cam+W+200-((T*(900+i*60)+i*211)%(W+500)), y=30+(i*97)%(ROWS*TS-60); g.fillRect(x,y,L,5); } }
   if(S.twinkle && S.twinkle.t<.9){ const k=S.twinkle.t/.9, r=70*Math.sin(k*Math.PI), x=S.twinkle.x, y=26; g.fillStyle='#fff'; g.beginPath(); g.moveTo(x,y-r); g.lineTo(x+r*.18,y-r*.18); g.lineTo(x+r,y); g.lineTo(x+r*.18,y+r*.18); g.lineTo(x,y+r); g.lineTo(x-r*.18,y+r*.18); g.lineTo(x-r,y); g.lineTo(x-r*.18,y-r*.18); g.closePath(); g.fill(); g.strokeStyle='#ffd23f'; g.lineWidth=4; g.stroke(); }
   if(S.mode==='dead' && S.corpse) drawHero(S.corpse.x,S.corpse.y,S.corpse.face,'dead',1,0);
   /* トゲ壁 */
@@ -291,6 +300,7 @@ function draw(){ const p=S.p; g.setTransform(1,0,0,1,0,0);
   g.restore();
   if(S.flash>0){ g.fillStyle='rgba(255,255,255,'+clamp(S.flash*1.6,0,.8)+')'; g.fillRect(0,TOPH,W,BOTY-TOPH); } if(S.red>0){ g.fillStyle='rgba(226,58,58,'+clamp(S.red*.9,0,.4)+')'; g.fillRect(0,TOPH,W,BOTY-TOPH); }
   if(S.revT>0){ g.fillStyle='rgba(160,90,255,.12)'; g.fillRect(0,TOPH,W,BOTY-TOPH); }
+  if(S.darkT>0){ const a=clamp(S.darkT*2.5,0,1), px=p.x-S.cam; let py=p.y-27+OY; if(S.flipK>.5) py=TOPH+BOTY-py; const gr=g.createRadialGradient(px,py,90,px,py,230); gr.addColorStop(0,'rgba(5,6,16,0)'); gr.addColorStop(1,'rgba(5,6,16,'+(.97*a)+')'); g.fillStyle=gr; g.fillRect(0,TOPH,W,BOTY-TOPH); }
   drawHud(); }
 function drawHud(){ g.fillStyle='#1b2440'; g.fillRect(0,0,W,TOPH); g.fillStyle='#ffd23f'; g.fillRect(0,TOPH-6,W,6); g.fillStyle='#1b2440'; g.fillRect(0,BOTY,W,H-BOTY); g.fillStyle='#ffd23f'; g.fillRect(0,BOTY,W,6);
   txt('ステージ '+(stageI+1)+' / '+STAGES.length,24,40,34,'#fff'); txt(STAGES[stageI].name,24,84,30,'#9fb0d8'); txt('このステージ '+S.stDeaths+'回',24,128,28,'#ff9aa8');
@@ -298,7 +308,7 @@ function drawHud(){ g.fillStyle='#1b2440'; g.fillRect(0,0,W,TOPH); g.fillStyle='
   { const bx=W-224; txt('時間',bx+60,30,30,'#fff','center'); txtD(tstr(playT),bx+60,96,playT>=3600?46:60,'#ffd23f'); }
   /* 効いているもの */
   let tx=24; const tag=(s,c)=>{ g.font='900 28px '+FONT; const w=g.measureText(s).width+32; g.fillStyle=c; rr(tx,TOPH+14,w,44,22); g.fill(); txt(s,tx+16,TOPH+37,28,'#111'); tx+=w+10; };
-  if(S.barrier>0) tag('バリア ×'+S.barrier,'#8fd3ff'); if(S.flee>0) tag('逃げるゴール ×'+S.flee,'#ff9aa8'); if(S.holes.length) tag('動く穴 あと'+Math.ceil(Math.max.apply(null,S.holes.map(h=>h.t)))+'秒','#ff9aa8'); if(S.hiT>0) tag('ハイジャンプ あと'+Math.ceil(S.hiT)+'秒','#5dffb0'); if(S.revT>0) tag('あべこべ あと'+Math.ceil(S.revT)+'秒','#c08bff'); if(S.wall&&S.wall.t>0) tag('トゲ壁 あと'+Math.ceil(S.wall.t)+'秒','#ff9aa8'); if(S.cp) tag('中間ポイントあり','#5dffb0');
+  if(S.barrier>0) tag('バリア ×'+S.barrier,'#8fd3ff'); if(S.flee>0) tag('逃げるゴール ×'+S.flee,'#ff9aa8'); if(S.holes.length) tag('動く穴 あと'+Math.ceil(Math.max.apply(null,S.holes.map(h=>h.t)))+'秒','#ff9aa8'); if(S.hiT>0) tag('ハイジャンプ あと'+Math.ceil(S.hiT)+'秒','#5dffb0'); if(S.revT>0) tag('あべこべ あと'+Math.ceil(S.revT)+'秒','#c08bff'); if(S.iceT>0) tag('つるつる あと'+Math.ceil(S.iceT)+'秒','#8fd3ff'); if(S.darkT>0) tag('まっくら あと'+Math.ceil(S.darkT)+'秒','#9aa3b5'); if(S.windT>0) tag('向かい風 あと'+Math.ceil(S.windT)+'秒','#c9ced8'); if(S.flipT>0) tag('さかさま あと'+Math.ceil(S.flipT)+'秒','#c08bff'); if(S.heavyT>0) tag('おもり あと'+Math.ceil(S.heavyT)+'秒','#9aa3b5'); if(S.wall&&S.wall.t>0) tag('トゲ壁 あと'+Math.ceil(S.wall.t)+'秒','#ff9aa8'); if(S.cp) tag('中間ポイントあり','#5dffb0');
   /* できごと */
   for(let i=0;i<S.log.length;i++){ const l=S.log[i]; g.globalAlpha=clamp(l.t,0,1)*(i?.75:1); if(TALLPAD) txt(l.s,24,BOTY+40+i*38,30,l.c,'left'); else txt(l.s,W-24,BOTY-34-i*38,28,l.c,'right','rgba(0,0,0,.75)'); } g.globalAlpha=1;
   if(S.banner){ const b=S.banner, k=clamp(b.t/.18,0,1), al=clamp((2.2-b.t)/.3,0,1); g.globalAlpha=al; txtD(b.a,W/2,470,96*(.7+.3*k),b.c,'center','#111'); if(b.b) txt(b.b,W/2,560,36,'#fff','center','#111'); g.globalAlpha=1; }
