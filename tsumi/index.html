@@ -87,7 +87,7 @@ canvas{width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/tsumi/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/tsumi/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 13:05</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 13:08</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -208,7 +208,7 @@ function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
 // 全画面の映像が流れているあいだは、テスト・ギフト・一時停止のボタンと下のギフト表を消して、映像だけを画面のまん中に見せる
 // 自動更新：公開先に新しい版が出ていたら、古い画面を持ったままにならないよう自動で読みこみ直す（スマホは古い画面を10分ほど覚えているため）
-const VER='1126-130509'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
+const VER='1126-130824'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
   const chk=()=>{ if(S && S.mode==='playing') return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('tsumi_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('tsumi_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); };
   setTimeout(chk,800); setInterval(chk,60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 let cutUi=false; function syncCutUi(){ const on=!!(S.cut && S.cut.vid); if(on===cutUi) return; cutUi=on; for(const id of ['testBtn','cfgBtn','pauseBtn','rot','gtbl','feed','viewers','memo','photo']){ const e=document.getElementById(id); if(e) e.style.visibility=on?'hidden':''; }
@@ -498,7 +498,7 @@ function explode(x,y,big){ play('impact',big?1:.55); blastWalls(x,y,big); const 
   for(let i=0;i<(big?10:4);i++) S.parts.push({k:'smoke',x:x+rand(-60,60),y:y+rand(-30,10),vx:rand(-50,50),vy:rand(-150,-60),g:-20,t:rand(1.4,2.6),r:rand(50,110)*(big?1.6:1)});
   // 当たった動物は消し飛ぶ。特大はぜんぶ消す
   for(const b of S.bodies.slice()){ if(big || Math.hypot(b.position.x-x,b.position.y-y)<DRAGON.wipe || Matter.Query.point([b],{x,y}).length) removeBody(b); }
-  if(big){ curse={w:0,d:0}; bless=null; tableT=CFG.tableSec; Body.scale(table, CFG.smallW/(table.bounds.max.x-table.bounds.min.x), 1); logAdd('ドラゴンの呪い！台が小さくなった','#ff5c5c'); }
+  if(big){ const more=!!curse && tableT>0; curse=curse&&more?curse:{w:0,d:0}; bless=null; tableT=(more?tableT:0)+CFG.tableSec;   /* 呪いの重ねがけ：残り時間にそのぶん足す */ Body.scale(table, CFG.smallW/(table.bounds.max.x-table.bounds.min.x), 1); logAdd(more?'ドラゴンの呪いが重なった！ 残り'+Math.ceil(tableT/60)+'分にのびた':'ドラゴンの呪い！台が小さくなった','#ff5c5c'); }
   for(const b of S.bodies){ if(b.isStatic) continue; const dx=b.position.x-x, dy=b.position.y-y, d=Math.hypot(dx,dy); if(d>R) continue; const f=1-d/R, nx=d>1?dx/d:0, ny=(d>1?dy/d:-1)-.55, nl=Math.hypot(nx,ny)||1;
     Sleeping.set(b,false); Body.setVelocity(b,{x:b.velocity.x+nx/nl*K*f,y:b.velocity.y+ny/nl*K*f}); Body.setAngularVelocity(b,b.angularVelocity+rand(-.06,.06)*f); } }
 function updateSeq(dt){
@@ -603,7 +603,7 @@ const Game = {
       const apply=(vid)=>{ if(S.mode!=='playing') return; wallSkin='hand'; wallT=Math.max(wallT,CFG.wallSec*DB()); makeWalls(true); S.shake=.4; for(const b of walls) for(let i=0;i<24;i++) S.parts.push({x:b.position.x+rand(-50,50),y:TOP_Y+rand(-10,60),vx:rand(-180,180),vy:rand(-420,-120),t:rand(.5,1),c:pick(['#8b8577','#b7a98a','#6c675c']),r:rand(6,16)}); if(!vid) showBand('ゴーレム',name+' のお助け '+CFG.wallSec*DB()+'秒 横に落ちない','#8a6a2a'); };
       if(vOK(golemVid)) startCut('golem','',name,()=>apply(true)); else apply(false); }
     else { logAdd(name+' が世界樹を呼んだ','#9dffb8');
-      startCut('heaven','',name,()=>{ if(S.mode!=='playing') return; curse=null; bless={w:0,d:0}; tableT=CFG.tableSec; treeA=1; setBg('tree'); Body.scale(table, CFG.wideW/(table.bounds.max.x-table.bounds.min.x), 1); wallSkin='vine'; wallT=Math.max(wallT,CFG.vineSec*DB()); makeWalls(true); setGlue(6); S.holy=6; S.leafT=7; S.white=.7; S.rings.push({x:540,y:TOP_Y+10,t:0}); }); }
+      startCut('heaven','',name,()=>{ if(S.mode!=='playing') return; { const more=!!bless && tableT>0; curse=null; bless=bless&&more?bless:{w:0,d:0}; tableT=(more?tableT:0)+CFG.tableSec; if(more) logAdd('世界樹の加護が重なった！ 残り'+Math.ceil(tableT/60)+'分にのびた','#9dffb8'); S.treeMore=more; }   /* 世界樹の重ねがけ：残り時間にそのぶん足す（ツタの壁の時間も足す） */ treeA=1; setBg('tree'); Body.scale(table, CFG.wideW/(table.bounds.max.x-table.bounds.min.x), 1); { const add=CFG.vineSec*DB(); wallT=(S.treeMore && wallSkin==='vine' && wallT>0)?wallT+add:Math.max(wallT,add); } wallSkin='vine'; makeWalls(true); setGlue(6); S.holy=6; S.leafT=7; S.white=.7; S.rings.push({x:540,y:TOP_Y+10,t:0}); }); }
     sfx.good(); },
 };
 window.TsumiGame = Game;
