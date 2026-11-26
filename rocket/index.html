@@ -131,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 02:29</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/26 10:44</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -231,11 +231,11 @@ function mkVid(name){ const v=document.createElement('video'); v.preload='auto';
 const VID={icebird:{v:mkVid('icebird'),dur:5.8},phoenix:{v:mkVid('phoenix'),dur:4.3},hole:{v:mkVid('hole'),dur:4.9},whale:{v:mkVid('whale'),dur:5.5},astro:{v:mkVid('astro'),dur:8.9},vamp:{v:mkVid('vamp'),dur:5.0},stop:{v:mkVid('stop'),dur:5.0},goal:{v:mkVid('goal'),dur:9.9},samurai:{v:mkVid('samurai'),dur:4.7},storm:{v:mkVid('storm'),dur:5.0},jelly:{v:mkVid('jelly'),dur:5.0},maou:{v:mkVid('maou'),dur:9.8},hero:{v:mkVid('hero'),dur:9.9},comet:{v:mkVid('comet'),dur:5.0},double:{v:mkVid('double'),dur:5.0},akuma:{v:mkVid('akuma'),dur:7.3},kama:{v:mkVid('kama'),dur:3.85}};
 img('hslash','hslash.webp'); const heSh=mkSheet('hero',{n:30,cols:8,fw:260,fh:379,fps:10});   /* 正面向きの勇者の全身（剣をかかげる→振り下ろす→かまえる） */
 /* 宇宙カマキリ：1発目は右はしから体ごと身を乗り出して斬る。2発目からは、上下左右のどこかのはしから鎌の腕だけが出てきて斬る（向きは毎回ランダム）。横向きの斬撃は上下に、たて向きの斬撃は左右によける。当たると耐久−1 */
-const KAMA={n:12,inT:.8,warn:.85,pre:.42,gap:.5,outT:.6,vx:[250,540,830],lanes:[615,815,1015],top:200,bot:1300,armH:640,armW:359,armPx:.5,band:92,v:2500,sw:620,sh:259,w:1180,cols:5,fw:800,fh:450,nf:14,fps:12,by:.78,
+const KAMA={n:12,inT:.7,warn:.72,pre:.36,gap:.32,outT:.6,vx:[250,540,830],lanes:[615,815,1015],top:200,bot:1300,armH:640,armW:359,armPx:.5,band:92,v:2500,sw:620,sh:259,w:1180,cols:5,fw:800,fh:450,nf:14,fps:12,by:.78,
   D:{R:{dx:-1,dy:0,rot:-Math.PI/2,sr:0},L:{dx:1,dy:0,rot:Math.PI/2,sr:Math.PI},D:{dx:0,dy:-1,rot:0,sr:Math.PI/2},U:{dx:0,dy:1,rot:Math.PI,sr:-Math.PI/2}}};
 img('kama','kama.webp'); img('kama_slash','kama_slash.webp'); img('kama_face','kama_face.jpg'); img('kama_arm','kama_arm.webp');
 /* 悪魔降臨：画面の奥に槍の羽の悪魔が浮かび、10秒のあいだ何度も槍を降らせる。毎回1か所だけ光る丸い輪（助かる場所）が出て、その外にいると耐久−1 */
-const AKU={T:20,maxT:80,hit:62,dmg:2,inT:1.3,gap:2.0,warn:.95,fly:.34,r:125,minX:120,maxX:960,minY:640,maxY:1000,far:520,near:230,cx:W/2,cy:500,w:760,len:340,ay:598,iw:325,ih:600,ang:Math.atan2(-598,324),cols:8,fw:640,fh:360,idle:19,pre:.45,atk:[25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46]};
+const AKU={T:20,maxT:80,hit:62,dmg:2,inT:1.3,gap:1.6,warn:.8,fly:.2,r:125,minX:120,maxX:960,minY:640,maxY:1000,far:520,near:230,cx:W/2,cy:500,w:760,len:340,ay:598,iw:325,ih:600,ang:Math.atan2(-598,324),cols:8,fw:640,fh:360,idle:19,pre:.45,atk:[25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46]};
 img('aku','aku.webp'); img('aku_spear','aku_spear.webp'); img('aku_face','aku_face.jpg');
 const HERO={win:50,sub:100000,gain:10000,inT:.6,hit:1.6,life:3.6,outT:.6,rate:1.5,h:620,y:500,move:1.4};   /* 勇者：ゴールを近づける高さ、呪いが無いときに進む高さ、現れる秒数、剣を振り下ろす時刻、いる秒数、消える秒数、コマ送りの速さ、絵の高さと位置、進むのにかける秒数 */
 img('mcircle','mcircle.webp'); const moSh=mkSheet('maou',{n:48,cols:8,fw:400,fh:300,fps:10});   /* 正面向きの魔王の全身（腕を広げる→上げる→こぶしを握る） */
@@ -1197,7 +1197,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ update(dt); } draw(); } requestAnimationFrame(loop); }
-const VER='1126-022919'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1126-104453'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
