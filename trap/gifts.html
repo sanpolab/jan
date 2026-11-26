@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ワナだらけ ギフト表</title>
+<style>
+@font-face{font-family:'MPR';src:url('./font/mpr.woff2') format('woff2');font-weight:100 900;font-display:swap}
+html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku Gothic ProN','Noto Sans JP','Yu Gothic','Meiryo',sans-serif}
+#grid{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.55vw;padding:.6vw;box-sizing:border-box;width:100%}
+.c{border:.32vw solid #e0262e;border-radius:1.3vw;background:linear-gradient(#17171d,#08080b);padding:.5vw .3vw .45vw;display:flex;flex-direction:column;align-items:center;min-width:0;box-shadow:0 0 1vw rgba(224,38,46,.35) inset}
+.c.help{border-color:#2fbf4f;box-shadow:0 0 1vw rgba(47,191,79,.35) inset}
+.c.free{border-color:#58b8ff;box-shadow:0 0 1vw rgba(88,184,255,.35) inset}
+.g svg{width:86%;height:86%}
+.c.both{border-color:#ffcc33;box-shadow:0 0 1vw rgba(255,204,51,.35) inset}
+.pair{display:flex;align-items:center;justify-content:center;gap:.2vw;width:100%}
+.pair>div{flex:1 1 50%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;min-width:0;position:relative}
+.pair img{width:100%;height:100%;object-fit:contain}
+.g .t{font-weight:900;font-size:calc(11.5vw / var(--cols));line-height:1.15;text-align:center;overflow-wrap:anywhere;color:#ffe680}
+.g .q{font-weight:900;font-size:calc(34vw / var(--cols));color:#555}
+.g .coin{position:absolute;right:0;bottom:0;font-weight:900;font-size:calc(10.5vw / var(--cols));background:rgba(0,0,0,.78);border-radius:.6vw;padding:0 .35vw;color:#ffd23f}
+.nm{font-weight:900;font-size:calc(13.5vw / var(--cols));line-height:1.15;text-align:center;margin-top:.25vw;text-shadow:0 .15vw 0 #000;white-space:nowrap;overflow:hidden;max-width:100%}
+.g .sp{width:92%;height:92%;border-radius:12%;background-image:url('./img/giftcat.jpg');background-repeat:no-repeat}
+.split{display:block!important;position:relative;height:100vh;overflow:hidden;padding:0!important}
+.sec{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:1.6vw;padding:0 .8vw .6vw;box-sizing:border-box;transition:transform .55s cubic-bezier(.3,.9,.3,1)}
+.sec.jam{background:rgba(224,38,46,.20);box-shadow:0 0 0 .4vw rgba(224,38,46,.75) inset}
+.sec.help{background:rgba(47,191,79,.18);box-shadow:0 0 0 .4vw rgba(47,191,79,.75) inset}
+.sec .hd{font-weight:900;font-size:3.6vw;line-height:1.4;text-align:center;letter-spacing:.3vw;text-shadow:0 .2vw 0 #000}
+.sec .hd small{font-size:2.8vw;opacity:.85;margin-left:1.5vw;letter-spacing:0}
+.sec.jam .hd{color:#ff8a90}.sec.help .hd{color:#8dffa6}
+.sec .gr{display:grid;gap:.7vw;justify-content:center}
+.g.txt{flex-direction:column;gap:.15vw}.g.txt .coin{position:static}
+</style>
+</head>
+<body>
+<div id="grid"></div>
+<script>
+/* ワナだらけのギフト表。ゲームの「ギフト」画面で登録した割り当てをそのまま表示する。
+   URLの後ろに ?cols=9（1段の数）や ?all=1（未登録の効果も出す）を付けられる */
+const FX=[["present", "help", "プレゼント箱"], ["bridge", "help", "足場"], ["check", "help", "中間ポイント"], ["sweep", "help", "罠を全消し"], ["skip", "help", "1面スキップ"], ["jam1", "jam", "妨害×1"], ["jam5", "jam", "妨害×5"], ["jam10", "jam", "妨害×10"], ["back", "jam", "1面もどる"]];
+const q=new URLSearchParams(location.search), cols=Math.max(3,Math.min(13,parseInt(q.get('cols'),10)||9)), showAll=q.get('all')==='1';
+document.documentElement.style.setProperty('--cols',cols);
+let last='', CATN=0, CATL=null; const nrm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.'); fetch('./gifts_cat.json').then(r=>r.json()).then(j=>{ CATL=j; CATN=j.length; last=''; build(); }).catch(()=>{});
+/* 割り当ての読みこみ元：①同じブラウザでゲームを開いていればその設定（変えると自動で反映）②なければURLの # 以降に書かれた設定 */
+function fromHash(){ const h=new URLSearchParams(location.hash.replace(/^#/,'')), g=h.get('g'), o=h.get('o'), m={}; if(g) for(const part of g.split(',')){ const a=part.split('.'); if(a.length<2) continue; const e={id:null,name:'',coins:a[2]!=null&&a[2]!==''?Number(a[2]):null,ci:null}; if(a[1][0]==='n'){ try{ e.name=decodeURIComponent(a[1].slice(1)); }catch(_){ e.name=a[1].slice(1); } } else { e.ci=parseInt(a[1],10); e.name=(CATL&&CATL[e.ci])?CATL[e.ci][0]:'#'+e.ci; } m[a[0]]=e; }
+  const lb={}, l=h.get('l'); if(l) for(const part of l.split(',')){ const p=part.indexOf('.'); if(p<1) continue; try{ lb[part.slice(0,p)]=decodeURIComponent(part.slice(p+1)); }catch(_){} } return {m, lb, op:o?{followOn:o[0]==='1',likeOn:o[1]==='1',coinOn:o[2]!=='0',chatOn:o[3]!=='0'}:null}; }
+function load(){ let m={}, src='local'; try{ m=JSON.parse(localStorage.getItem('trap_gifts')||'{}')||{}; }catch(e){} if(!Object.keys(m).some(k=>m[k]&&m[k].name)){ m=fromHash().m; src='hash'; } if(window.__sample) m=window.__sample; SRC=src; return m; }
+let SRC='local';
+function build(){ const m=load(); if(CATL) for(const k in m){ const b=m[k]; if(b && b.name && b.ci==null){ const i=CATL.findIndex(e=>nrm(e[0])===nrm(b.name)); if(i>=0){ b.ci=i; if(b.coins==null) b.coins=CATL[i][1]; } } } for(const k in m) if(m[k] && m[k].off) delete m[k]; let LB={}; if(SRC==='hash') LB=fromHash().lb; else { try{ LB=JSON.parse(localStorage.getItem('trap_lbl')||'{}')||{}; }catch(e){} } const key=JSON.stringify(m)+JSON.stringify(LB)+CATN+(localStorage.getItem('trap_opts')||'')+location.hash; if(key===last) return; last=key; const g=document.getElementById('grid'); g.innerHTML=''; const any=FX.some(f=>m[f[0]]&&m[f[0]].name);
+  let op={likeOn:true,followOn:true,coinOn:true,chatOn:true}; if(SRC==='hash'){ const ho=fromHash().op; if(ho) op=ho; } else { try{ Object.assign(op,JSON.parse(localStorage.getItem('trap_opts')||'{}')); }catch(e){} }
+  const COIN_ON=op.coinOn!==false;
+  const free=(svg,label,icon,kind)=>{ const c=document.createElement('div'); c.className='c '+(kind||'jam'); const pair=document.createElement('div'); pair.className='pair'; const gd=document.createElement('div'); gd.className='g'; gd.innerHTML=svg; const fx=document.createElement('div'); const fi=document.createElement('img'); fi.src='./img/fx/'+icon+'.webp'; fx.appendChild(fi); pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; nm.textContent=label; c.appendChild(pair); c.appendChild(nm); g.appendChild(c); };
+  if(op.chatOn!==false) free('<svg viewBox="0 0 100 100"><path d="M10 14h80a6 6 0 0 1 6 6v44a6 6 0 0 1-6 6H44L22 90V70H10a6 6 0 0 1-6-6V20a6 6 0 0 1 6-6z" fill="#58b8ff"/><circle cx="30" cy="42" r="6" fill="#fff"/><circle cx="50" cy="42" r="6" fill="#fff"/><circle cx="70" cy="42" r="6" fill="#fff"/></svg>','妨害×1','jam1');
+  if(op.followOn) free('<svg viewBox="0 0 100 100"><circle cx="40" cy="30" r="20" fill="#3ddc6a"/><path d="M6 92c0-24 15-38 34-38s34 14 34 38z" fill="#3ddc6a"/><path d="M78 40v34M61 57h34" stroke="#3ddc6a" stroke-width="11" stroke-linecap="round"/></svg>','プレゼント箱','present','help');
+  if(op.likeOn) free('<svg viewBox="0 0 100 100"><path d="M50 90C20 68 6 52 6 33 6 18 17 8 30 8c8 0 15 4 20 11 5-7 12-11 20-11 13 0 24 10 24 25 0 19-14 35-44 57z" fill="#ff3b5c"/><text x="50" y="57" text-anchor="middle" font-size="27" font-weight="900" fill="#fff" font-family="MPR,sans-serif">1000</text></svg>','妨害×1','jam1');
+  for(const f of FX){ const b=m[f[0]]; if(!showAll && any && !(b&&b.name)) continue; const c=document.createElement('div'); c.className='c '+f[1];
+    const pair=document.createElement('div'); pair.className='pair'; const gd=document.createElement('div'); gd.className='g';
+    if(b&&b.ci!=null){ const d2=document.createElement('div'); d2.className='sp'; const rows=CATN?Math.ceil(CATN/24):20; d2.style.backgroundSize='2400% '+(rows*100)+'%'; d2.style.backgroundPosition=((b.ci%24)/23*100)+'% '+(rows>1?(Math.floor(b.ci/24)/(rows-1)*100):0)+'%'; gd.appendChild(d2); }
+    else if(b&&b.pic){ const im=document.createElement('img'); im.src=b.pic; im.alt=b.name||''; im.referrerPolicy='no-referrer'; im.onerror=()=>{ gd.innerHTML=''; gd.classList.add('txt'); const t=document.createElement('div'); t.className='t'; t.textContent=b.name||'？'; gd.appendChild(t); }; gd.appendChild(im); }
+    else if(b&&b.name){ gd.classList.add('txt'); const t=document.createElement('div'); t.className='t'; t.textContent=b.name; gd.appendChild(t); }
+    else { const t=document.createElement('div'); t.className='q'; t.textContent='？'; gd.appendChild(t); }
+    if(b&&b.coins!=null&&COIN_ON){ const cn=document.createElement('div'); cn.className='coin'; cn.textContent=b.coins; gd.appendChild(cn); }
+    const fx=document.createElement('div'); const fi=document.createElement('img'); fi.src='./img/fx/'+f[0]+'.webp'; fi.alt=f[2]; fx.appendChild(fi);
+    pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; { const lab=LB[f[0]]||f[2]; nm.textContent=lab; if(LB[f[0]] && lab.length>8) nm.style.fontSize='calc('+(13.5*8/lab.length).toFixed(2)+'vw / var(--cols))'; } c.appendChild(pair); c.appendChild(nm); g.appendChild(c); } autoFit(); }
+// fit=1：窓の高さに全部おさまる中で、いちばん大きく見える列の数を自動でえらぶ（ゲームの下に出す時用）
+// fit=1（ゲームの下に出す時）：妨害とお助けを別のページにして、大きく見える数だけ並べ、5秒ごとに横へスライドして切りかえる
+let CELLS=null, PG=[], pgI=0, pgTm=0;
+const mkSec=(k,cells,c,lab)=>{ const s=document.createElement('div'); s.className='sec '+k; const h=document.createElement('div'); h.className='hd'; h.innerHTML=(k==='jam'?'▼ 妨害（じゃま）':'▼ お助け')+(lab?'<small>'+lab+'</small>':''); const r=document.createElement('div'); r.className='gr'; r.style.gridTemplateColumns='repeat('+c+',calc((100vw - 1.6vw - '+(c-1)+' * .7vw) / '+c+'))'; for(const x of cells) r.appendChild(x); s.appendChild(h); s.appendChild(r); return s; };
+function showPg(){ PG.forEach((s,i)=>{ let d=i-pgI; if(PG.length>2 && d<-1) d+=PG.length; if(PG.length>2 && d>PG.length-2) d-=PG.length; s.style.transform='translateX('+(d*103)+'%)'; s.style.visibility=Math.abs(d)<=1?'':'hidden'; }); }
+function autoFit(){ if(q.get('fit')!=='1') return; const gr=document.getElementById('grid'); const fresh=[...gr.children].filter(c=>c.classList.contains('c'));
+  if(fresh.length||!CELLS){ CELLS={jam:[],help:[]}; for(const c of fresh) CELLS[(c.classList.contains('help')||c.classList.contains('free')||c.classList.contains('both'))?'help':'jam'].push(c); }
+  gr.classList.add('split'); gr.innerHTML=''; const H=window.innerHeight, nj=CELLS.jam.length, nh=CELLS.help.length, all=CELLS.jam.concat(CELLS.help); if(!all.length) return; let best=null;
+  const MAXPG=Math.max(1,parseInt(q.get('pg'),10)||4), MINC=Math.max(4,Math.min(13,parseInt(q.get('min'),10)||4));   // pg=ページ数の上限（少ないほど札が小さくなって段が増える）、min=1段の数の下限
+  for(let c=MINC;c<=13;c++){ document.documentElement.style.setProperty('--cols',c); const t=mkSec('jam',all.slice(0,1),c,''); t.style.height='auto'; t.style.position='static'; gr.appendChild(t); const hd=t.firstChild.offsetHeight, rh=t.lastChild.offsetHeight, gap=Math.max(1,window.innerWidth*.007), pad=window.innerWidth*.006; gr.removeChild(t);
+    const rows=Math.floor((H-hd-pad+gap)/(rh+gap)); if(rows<1) continue; const cap=c*rows, pages=Math.ceil(nj/cap)+Math.ceil(nh/cap); best={c,cap}; if(pages<=MAXPG) break; }
+  if(!best) best={c:13,cap:13}; document.documentElement.style.setProperty('--cols',best.c); PG=[];
+  for(const k of ['jam','help']){ const a=CELLS[k], n=Math.ceil(a.length/best.cap); if(!n) continue; const per=Math.ceil(a.length/n); for(let i=0;i<n;i++) PG.push(mkSec(k,a.slice(i*per,(i+1)*per),best.c,n>1?(i+1)+' / '+n:'')); }
+  for(const s of PG) gr.appendChild(s); if(pgI>=PG.length) pgI=0; showPg(); clearInterval(pgTm); if(PG.length>1) pgTm=setInterval(()=>{ pgI=(pgI+1)%PG.length; showPg(); },5000); }
+window.addEventListener('resize',autoFit);
+build(); window.addEventListener('storage',build); window.addEventListener('hashchange',build); setInterval(build,2000);
+</script>
+</body>
+</html>
