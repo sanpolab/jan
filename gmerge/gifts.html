@@ -42,12 +42,12 @@ html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku G
 @keyframes altIn{from{opacity:0;transform:translateY(1.2vh)}to{opacity:1;transform:none}}
 .scr .strip{animation:altIn .4s ease-out}
 
-#grid.mx{display:grid!important;grid-template-columns:7.2% repeat(11,1fr);grid-template-rows:.82fr 1fr 1fr 1fr 1.28fr;gap:.5vh .35vw;height:100vh;width:100vw;padding:.6vh .4vw!important;box-sizing:border-box;overflow:hidden;background:#07040f}
+#grid.mx{display:grid!important;grid-template-columns:7.2% repeat(11,1fr);grid-template-rows:.82fr 1fr 1fr 1fr 1.28fr;gap:.3vw .35vw;height:min(100vh,45vw);width:100vw;padding:.35vw .4vw!important;box-sizing:border-box;overflow:hidden;background:#07040f}
 #grid.mx .ml{white-space:pre-line;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;font-size:1.25vw;line-height:1.2;border-radius:.8vw;border:.2vw solid currentColor;background:rgba(255,255,255,.05);padding:0 .2vw}
 #grid.mx .mc{min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:.8vw;border:.16vw solid rgba(190,150,255,.55);background:linear-gradient(#1b1330,#0c0818);position:relative;overflow:hidden}
 #grid.mx .mc.none{opacity:.28}
 #grid.mx .mc .g{flex:1 1 0;min-height:0;height:100%;aspect-ratio:1;max-width:100%;position:relative;display:flex;align-items:center;justify-content:center}
-#grid.mx .mc .g .coin{right:auto;left:50%;transform:translateX(-50%);bottom:.2vh;font-size:1.25vw;border-radius:.5vw;white-space:nowrap}
+#grid.mx .mc .g .coin{right:auto;left:50%;transform:translateX(-50%);bottom:.12vw;font-size:1.25vw;border-radius:.5vw;white-space:nowrap}
 #grid.mx .mc .g .coin::before{content:'';display:inline-block;width:.85em;height:.85em;border-radius:50%;background:#ffc93c;box-shadow:inset 0 0 0 .12em #b57a00;margin-right:.25em;vertical-align:-.08em}
 #grid.mx .mc.pc img{flex:1 1 0;min-height:0;height:70%;max-width:92%;object-fit:contain}
 #grid.mx .mc .cap{flex:0 0 auto;font-weight:900;font-size:1.05vw;line-height:1.25;white-space:nowrap;max-width:100%;overflow:hidden;text-shadow:0 .12vw 0 #000}
@@ -137,7 +137,9 @@ function matrixFit(){ if(q.get('fit')==='1') return; if(q.get('scroll')==='1'){ 
   const rows=[['上から\n落下','drop','r1'],['持ちコマ\n交換','chg','r2'],['ネクスト\n変更','next','r3']];
   for(const [lab,pre,rc] of rows){ gr.appendChild(el('ml '+rc,lab)); for(let i=0;i<11;i++){ const src=by[pre+i], c=el('mc'); if(src){ c.appendChild(src.querySelector('.g').cloneNode(true)); } else { c.classList.add('none'); } gr.appendChild(c); } }
   gr.appendChild(el('ml r4','スキル')); const sk=[]; for(const f of frees) sk.push(f); for(const k of MX_SK) if(by[k]) sk.push(by[k]);
-  for(let i=0;i<11;i++){ const src=sk[i], c=el('mc'); if(src){ c.appendChild(el('cap top',src.querySelector('.nm').textContent)); c.appendChild(src.querySelector('.g').cloneNode(true)); } else c.classList.add('none'); gr.appendChild(c); } }
+  for(let i=0;i<11;i++){ const src=sk[i], c=el('mc'); if(src){ c.appendChild(el('cap top',src.querySelector('.nm').textContent)); c.appendChild(src.querySelector('.g').cloneNode(true)); } else c.classList.add('none'); gr.appendChild(c); } 
+  /* 表はいつも横長（横幅の45%の高さ）。枠の下が余っている時は、ぴったりの高さを小さく知らせる */
+  { let h=document.getElementById('mxHint'); const need=Math.ceil(window.innerWidth*.45), spare=window.innerHeight-need; if(q.get('hint')!=='0' && spare>24){ if(!h){ h=document.createElement('div'); h.id='mxHint'; h.style.cssText='position:fixed;left:0;right:0;text-align:center;font:700 14px sans-serif;color:#ffd23f;background:rgba(0,0,0,.6);padding:4px'; document.body.appendChild(h); } h.style.top=(need+6)+'px'; h.textContent='OBSのブラウザソースの「高さ」を '+need+' にすると、下の空きがなくなります（いまは幅 '+window.innerWidth+' × 高さ '+window.innerHeight+'）'; } else if(h) h.remove(); } }
 window.addEventListener('resize',matrixFit);
 
 build(); window.addEventListener('storage',build); window.addEventListener('hashchange',build); setInterval(build,2000);
