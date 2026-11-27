@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>配信オーバーレイ</title>
+<style>
+@font-face{font-family:Dela;src:url(font/dela.woff2) format('woff2');font-display:swap}
+@font-face{font-family:MPR;src:url(font/mpr.woff2) format('woff2');font-display:swap}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:transparent;overflow:hidden;font-family:MPR,'Hiragino Maru Gothic ProN','Noto Sans JP','Noto Sans CJK JP',sans-serif;color:#fff}
+body.setup{overflow:auto;background:#12131a;-webkit-text-size-adjust:100%}
+.host{position:relative;overflow:hidden}
+.wg{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none}
+.pop{font-family:Dela,MPR,sans-serif}
+.ol{text-shadow:0 3px 0 #0b0c12,0 -2px 0 #0b0c12,2px 0 0 #0b0c12,-2px 0 0 #0b0c12,2px 2px 0 #0b0c12,-2px 2px 0 #0b0c12,0 6px 10px rgba(0,0,0,.45)}
+.panel{background:linear-gradient(180deg,rgba(28,30,46,.92),rgba(14,15,24,.92));border:4px solid #fff;border-radius:28px;box-shadow:0 8px 0 rgba(0,0,0,.35)}
+.ctl{position:absolute;right:10px;bottom:8px;display:flex;gap:6px;opacity:0;transition:opacity .15s}
+.wg:hover .ctl,.wg.show .ctl{opacity:1}
+.ctl button{font:700 20px MPR,sans-serif;padding:6px 12px;border-radius:12px;border:2px solid #fff;background:#2b2e45;color:#fff;cursor:pointer}
+.st{position:absolute;left:8px;top:8px;font:700 16px MPR,sans-serif;background:#c62828;color:#fff;border-radius:10px;padding:4px 10px;display:none;z-index:9}
+/* WIN */
+.win{width:600px;height:220px}
+.win .panel{position:absolute;inset:8px 8px 14px;display:flex;align-items:center;justify-content:center;gap:34px}
+.win .lab{font-size:64px;color:#ffd84a;letter-spacing:4px}
+.win .num{font-size:128px;line-height:1;min-width:150px;text-align:center}
+.win .num.pos{color:#7dff9a}.win .num.neg{color:#ff7d8b}
+.bump{animation:bump .45s}
+@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.35)}100%{transform:scale(1)}}
+/* ランキング */
+.rank{width:560px}
+.rank .ttl{height:74px;display:flex;align-items:center;justify-content:center;font-size:36px;border-radius:24px 24px 0 0;border:4px solid #fff;border-bottom:0}
+.rank.like .ttl{background:linear-gradient(90deg,#ff4f8b,#ff8a5c)}
+.rank.gift .ttl{background:linear-gradient(90deg,#7a5cff,#3fb6ff)}
+.rank .list{position:relative;background:linear-gradient(180deg,rgba(28,30,46,.92),rgba(14,15,24,.92));border:4px solid #fff;border-radius:0 0 24px 24px;box-shadow:0 8px 0 rgba(0,0,0,.35)}
+.rank .row{position:absolute;left:0;right:0;height:84px;display:flex;align-items:center;padding:0 18px 0 12px;gap:12px;transition:top .5s cubic-bezier(.2,.9,.3,1.2),opacity .3s}
+.rank .no{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;background:#3a3d57;flex:none}
+.rank .row.r1 .no{background:#ffc92e;color:#4a3200}.rank .row.r2 .no{background:#cfd6e3;color:#2e3442}.rank .row.r3 .no{background:#e39a5b;color:#4a2408}
+.rank .av{width:60px;height:60px;border-radius:50%;flex:none;border:3px solid #fff;background:#555 center/cover;display:flex;align-items:center;justify-content:center;font:700 28px MPR,sans-serif;overflow:hidden}
+.rank .nm{flex:1;font:800 30px MPR,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank .val{font-size:32px;color:#ffe37a;flex:none}
+.rank .val small{font:700 18px MPR,sans-serif;color:#fff;margin-left:4px}
+.rank .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 26px MPR,sans-serif;color:#aab}
+/* 時間 */
+.time{width:640px;height:220px}
+.time .panel{position:absolute;inset:8px 8px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.time .lab{font:800 28px MPR,sans-serif;color:#9fe3ff;margin-bottom:2px}
+.time .num{font-size:104px;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:2px}
+.time.hot .num{color:#ff6b6b;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.55}}
+.time .add{position:absolute;right:26px;top:16px;font-size:40px;color:#7dff9a;opacity:0}
+.time .add.go{animation:rise 1.4s}
+@keyframes rise{0%{opacity:0;transform:translateY(20px)}20%{opacity:1}100%{opacity:0;transform:translateY(-40px)}}
+/* びん */
+.jar{width:540px;height:760px}
+.jar canvas{position:absolute;left:0;top:0;width:540px;height:760px}
+.jar .cnt{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:40px}
+.jar .cnt small{font:800 24px MPR,sans-serif;margin-left:6px}
+/* せつめいページ */
+.pg{max-width:760px;margin:0 auto;padding:18px 14px 80px}
+.pg h1{font:400 30px Dela,MPR,sans-serif;margin:6px 0 4px}
+.pg h2{font:400 22px Dela,MPR,sans-serif;margin:30px 0 10px;color:#ffd84a}
+.pg p,.pg li{font-size:15px;line-height:1.8;color:#d5d8e6}
+.pg ol{padding-left:22px}
+.card{background:#1b1d2a;border:1px solid #33364d;border-radius:16px;padding:14px;margin:14px 0}
+.card h3{font:400 19px Dela,MPR,sans-serif;margin-bottom:8px}
+.pv{background:repeating-conic-gradient(#2a2c3c 0 25%,#232534 0 50%) 0 0/24px 24px;border-radius:12px;margin:8px 0;display:flex;justify-content:center;padding:8px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.btns button,.pg select,.pg input{font:700 15px MPR,sans-serif;padding:9px 12px;border-radius:10px;border:1px solid #555a7a;background:#2b2e45;color:#fff}
+.pg input{width:100%;margin:5px 0}
+.url{display:flex;gap:8px;align-items:center;margin-top:6px}
+.url code{flex:1;font:13px ui-monospace,monospace;background:#0e0f17;border-radius:8px;padding:9px;overflow:auto;white-space:nowrap;color:#9fe3ff}
+.sz{font-size:13px;color:#9aa}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+const Q=new URLSearchParams(location.search), W=Q.get('w');
+const HOME_URL='https://sanpolab.github.io/jan/overlay/', EMBED=!/(^|\.)github\.io$|^localhost$|^127\./.test(location.hostname);
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+/* つなぎ先。キーはこの端末（このブラウザ）の中にだけ保存する。アドレスには入れない */
+let CLOUD={on:false,user:'',key:''}; Object.assign(CLOUD,LS.get('ov_cloud',{})||{});
+if(!CLOUD.key){ for(const src of ['gmerge_cloud','trap_cloud','rocket_cloud','tsumi_cloud','bike_cloud']){ const t=LS.get(src,null); if(t&&t.key&&t.user){ CLOUD={on:!!t.on,user:String(t.user),key:String(t.key)}; LS.set('ov_cloud',CLOUD); break; } } }
+const cloudOn=()=>!!(CLOUD.on&&CLOUD.user&&CLOUD.key);
+const BUS={h:{},on(ev,f){(this.h[ev]=this.h[ev]||[]).push(f);},emit(ev,d){(this.h[ev]||[]).forEach(f=>{try{f(d);}catch(e){console.error(e);}});}};
+const TF={urls:['ws://localhost:21213/','ws://127.0.0.1:21213/'],tries:0,ws:null,ok:false,wait:3000,timer:null,streak:{},why:''};
+function tfUI(){ const el=document.getElementById('st'); if(!el) return; if(Q.get('status')==='0'||TF.ok){ el.style.display='none'; return; } el.style.display='block'; el.textContent=(cloudOn()?'つなぎ先':'TikFinity')+'につながっていません'+(TF.why?'：'+TF.why:''); }
+function tfConnect(){ clearTimeout(TF.timer); try{ if(TF.ws){ TF.ws.onclose=null; TF.ws.close(); } }catch(e){}
+  TF.tries++; const url=cloudOn()?'wss://api.tik.tools?uniqueId='+encodeURIComponent(CLOUD.user.replace(/^@/,''))+'&apiKey='+encodeURIComponent(CLOUD.key):TF.urls[TF.tries%2]; let ws;
+  try{ ws=new WebSocket(url); }catch(e){ TF.ok=false; tfUI(); TF.timer=setTimeout(tfConnect,TF.wait=Math.min(20000,TF.wait*1.5)); return; }
+  TF.ws=ws; ws.onopen=()=>{ TF.ok=true; TF.tries=0; TF.why=''; TF.wait=3000; tfUI(); };
+  ws.onclose=ev=>{ if(TF.ws!==ws) return; TF.ok=false; TF.wait=Math.min(20000,TF.wait*1.5); TF.why='';
+    if(cloudOn()&&ev){ const r=String(ev.reason||''), q=r.toLowerCase(), c=ev.code; TF.why=/not currently live|not live|offline/.test(q)?'いまは配信していないようです':/expired|evaluation|trial/.test(q)?'APIキーの期限が切れています':/limit|too many|concurrent|quota|rate/.test(q)||c===4429?'同時につなげる数の上限です':/key|unauthor|forbidden|auth|invalid/.test(q)||c===4401||c===4403?'APIキーがちがうようです':'';
+      const mm=/retry after (\d+)\s*s/i.exec(r); if(mm) TF.wait=Math.min(600,(+mm[1])+3)*1000; }
+    tfUI(); TF.timer=setTimeout(tfConnect,TF.wait); };
+  ws.onerror=()=>{}; ws.onmessage=e=>{ let m; try{ m=JSON.parse(e.data); }catch(_){ return; } try{ tfEvent(m); }catch(err){ console.error(err); } }; }
+const isAdmin=uid=>{ const a=String(Q.get('admin')||CLOUD.user||'').replace(/^@/,'').toLowerCase(); return !!a && String(uid||'').replace(/^@/,'').toLowerCase()===a; };
+function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.data||m||{}, u=d.user||{}, name=d.nickname||u.nickname||d.uniqueId||u.uniqueId||'だれか', uid=String(d.uniqueId||u.uniqueId||d.userId||u.userId||name);
+  const av=d.profilePictureUrl||u.profilePictureUrl||(u.profilePicture&&(u.profilePicture.url||(u.profilePicture.urls&&u.profilePicture.urls[0])))||(u.avatarThumb&&u.avatarThumb.url_list&&u.avatarThumb.url_list[0])||null;
+  if(ev==='gift'){ const gd=d.giftDetails||d.extendedGiftInfo||d.gift||{}, id=d.giftId!=null?d.giftId:(gd.id!=null?gd.id:gd.giftId), gname=d.giftName||gd.giftName||gd.name||('ID'+id), coins=parseInt(d.diamondCount!=null?d.diamondCount:(gd.diamondCount!=null?gd.diamondCount:gd.diamond_count),10)||1,
+      pic=d.giftPictureUrl||gd.giftPictureUrl||gd.pictureUrl||(gd.icon&&gd.icon.url_list&&gd.icon.url_list[0])||(gd.image&&gd.image.url_list&&gd.image.url_list[0])||null, gtype=d.giftType!=null?d.giftType:gd.giftType, rc=Math.max(1,parseInt(d.repeatCount,10)||1), end=!!d.repeatEnd;
+    let n=rc; if(gtype===1){ const k=uid+'|'+id, last=TF.streak[k]||0; n=Math.max(0,rc-last); if(end) delete TF.streak[k]; else TF.streak[k]=rc; }
+    if(n>0) BUS.emit('gift',{name,uid,av,gname,coins,pic,n:Math.min(n,5000)}); }
+  else if(ev==='like'){ const c=parseInt(d.likeCount!=null?d.likeCount:(d.count!=null?d.count:d.likes),10)||1; BUS.emit('like',{name,uid,av,n:c}); }
+  else if(ev==='chat'){ const tx=d.comment!=null?d.comment:(d.text!=null?d.text:d.content); BUS.emit('chat',{name,uid,text:String(tx||''),admin:isAdmin(uid)}); } }
+window.OvTF={simulate:m=>tfEvent(m),TF,BUS};
+/* せつめいページの「ためす」ボタンや操作を、同じブラウザで開いているほかの部品にも届ける */
+window.addEventListener('storage',e=>{ if(e.key==='ov_test'&&e.newValue){ try{ tfEvent(JSON.parse(e.newValue).m); }catch(_){} } if(e.key==='ov_cmd'&&e.newValue){ try{ BUS.emit('cmd',JSON.parse(e.newValue)); }catch(_){} } });
+const sendCmd=c=>{ c.t=Date.now(); LS.set('ov_cmd',c); BUS.emit('cmd',c); };
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const COLS=['#ff6b8b','#ffb347','#5cc8ff','#8f7bff','#5fd68a','#ff8a5c','#e86bd6','#48c9b0'];
+const hue=s=>{ let h=0; for(const c of String(s)) h=(h*31+c.charCodeAt(0))>>>0; return COLS[h%COLS.length]; };
+
+/* ===== WINカウンター ===== */
+function mountWin(box,o){ box.innerHTML='<div class="panel"><div class="lab pop ol"></div><div class="num pop ol"></div></div><div class="ctl"><button data-d="-1">−1</button><button data-d="1">＋1</button><button data-z="1">0にもどす</button></div>';
+  box.classList.add('win'); box.querySelector('.lab').textContent=o.label||'WIN'; const num=box.querySelector('.num'); let v=LS.get('ov_win',0)|0;
+  const draw=b=>{ num.textContent=v; num.className='num pop ol '+(v>0?'pos':v<0?'neg':''); if(b){ void num.offsetWidth; num.classList.add('bump'); } };
+  const set=nv=>{ v=Math.max(-999,Math.min(9999,nv|0)); LS.set('ov_win',v); draw(true); };
+  box.querySelector('.ctl').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.dataset.z) set(0); else set(v+(+b.dataset.d)); });
+  window.addEventListener('storage',e=>{ if(e.key==='ov_win'){ v=LS.get('ov_win',0)|0; draw(true); } });
+  BUS.on('chat',c=>{ if(!c.admin) return; const m=/^\s*win\s*([+\-=＋－−＝])\s*(\d+)\s*$/i.exec(c.text); if(!m) return; const k=m[1], n=+m[2]; set(/[=＝]/.test(k)?n:/[+＋]/.test(k)?v+n:v-n); });
+  draw(); return {w:600,h:220}; }
+
+/* ===== ランキング（いいね・ギフト） ===== */
+function mountRank(box,o){ const kind=o.kind, top=Math.max(1,Math.min(10,o.top||5)), key='ov_rank_'+kind, RH=84;
+  box.classList.add('rank',kind); box.innerHTML='<div class="ttl pop ol"></div><div class="list"><div class="empty"></div></div>';
+  box.querySelector('.ttl').textContent=o.title||(kind==='like'?'♥ いいねランキング':'🎁 ギフトランキング'); const list=box.querySelector('.list'), empty=box.querySelector('.empty'); list.style.height=(top*RH+12)+'px';
+  empty.textContent=kind==='like'?'いいねをタップして1位をねらおう！':'ギフトでランクイン！';
+  let M=new Map(); if(!o.demo){ const sv=LS.get(key,null); if(sv&&sv.t&&Date.now()-sv.t<8*3600e3) for(const r of sv.l) M.set(r.uid,r); }
+  const rows=new Map(); let saveT=0;
+  const draw=()=>{ const arr=[...M.values()].sort((a,b)=>b.v-a.v).slice(0,top); empty.style.display=arr.length?'none':'flex'; const keep=new Set();
+    arr.forEach((r,i)=>{ keep.add(r.uid); let el=rows.get(r.uid); if(!el){ el=document.createElement('div'); el.className='row'; el.innerHTML='<div class="no pop"></div><div class="av"></div><div class="nm ol"></div><div class="val pop ol"><span></span><small></small></div>'; el.style.top=(top*RH)+'px'; el.style.opacity='0'; list.appendChild(el); rows.set(r.uid,el); void el.offsetWidth; el.querySelector('small').textContent=kind==='like'?'いいね':'コイン'; }
+      el.className='row r'+(i+1); el.style.top=(6+i*RH)+'px'; el.style.opacity='1'; el.querySelector('.no').textContent=i+1; el.querySelector('.nm').textContent=r.name; const av=el.querySelector('.av'); if(r.av){ av.style.backgroundImage='url("'+String(r.av).replace(/["\\\n]/g,'')+'")'; av.textContent=''; } else { av.style.backgroundImage=''; av.style.backgroundColor=hue(r.uid); av.textContent=[...r.name][0]||'?'; }
+      const sp=el.querySelector('.val span'), tx=r.v.toLocaleString('ja-JP'); if(sp.textContent!==tx){ sp.textContent=tx; sp.classList.remove('bump'); void sp.offsetWidth; sp.style.display='inline-block'; sp.classList.add('bump'); } });
+    for(const [uid,el] of rows) if(!keep.has(uid)){ el.remove(); rows.delete(uid); } };
+  const add=(e,amt)=>{ let r=M.get(e.uid); if(!r){ r={uid:e.uid,name:e.name,av:e.av||null,v:0}; M.set(e.uid,r); } r.name=e.name; if(e.av) r.av=e.av; r.v+=amt; draw();
+    if(!o.demo && Date.now()-saveT>2000){ saveT=Date.now(); LS.set(key,{t:Date.now(),l:[...M.values()].sort((a,b)=>b.v-a.v).slice(0,60)}); } };
+  if(kind==='like') BUS.on('like',e=>add(e,e.n)); else BUS.on('gift',e=>add(e,e.coins*e.n));
+  BUS.on('cmd',c=>{ if(c.cmd==='reset'&&(c.kind===kind||c.kind==='all')){ M=new Map(); if(!o.demo) LS.set(key,{t:Date.now(),l:[]}); draw(); } });
+  BUS.on('chat',c=>{ if(c.admin && /^\s*(ランキング|rank)\s*(リセット|reset)\s*$/i.test(c.text)){ M=new Map(); LS.set(key,{t:Date.now(),l:[]}); draw(); } });
+  draw(); return {w:560,h:74+top*RH+12+16}; }
+
+/* ===== 時間（時計・配信時間・耐久タイマー） ===== */
+function mountTime(box,o){ const mode=o.mode||'clock'; box.classList.add('time');
+  box.innerHTML='<div class="panel"><div class="lab"></div><div class="num pop ol"></div><div class="add pop ol"></div></div>'+(mode==='clock'?'':'<div class="ctl">'+(mode==='down'?'<button data-a="tog">▶/⏸</button><button data-a="p">＋1分</button><button data-a="m">−1分</button>':'')+'<button data-a="rst">リセット</button></div>');
+  const lab=box.querySelector('.lab'), num=box.querySelector('.num'), addEl=box.querySelector('.add'), pad=n=>String(n).padStart(2,'0');
+  const fmt=s=>{ s=Math.max(0,Math.floor(s)); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':':'')+pad(m)+':'+pad(x); };
+  const base=Math.max(1,parseFloat(o.min)||60)*60, per=o.per!=null?Math.max(0,parseFloat(o.per)):1, key='ov_time_'+mode;
+  let S=LS.get(key,null); if(mode==='down' && (!S||S.base!==base)) S={base,run:false,left:base,end:0}; if(mode==='up' && !S) S={start:Date.now()};
+  const save=()=>LS.set(key,S), left=()=>S.run?Math.max(0,(S.end-Date.now())/1000):S.left;
+  const bumpAdd=sec=>{ addEl.textContent=(sec>=0?'+':'−')+fmt(Math.abs(sec)); addEl.style.color=sec>=0?'#7dff9a':'#ff7d8b'; addEl.classList.remove('go'); void addEl.offsetWidth; addEl.classList.add('go'); };
+  const addSec=sec=>{ if(S.run) S.end=Math.max(Date.now(),S.end+sec*1000); else S.left=Math.max(0,S.left+sec); save(); bumpAdd(sec); };
+  const act=a=>{ if(mode==='up'){ if(a==='rst'){ S={start:Date.now()}; save(); } return; } if(mode!=='down') return;
+    if(a==='tog'||a==='start'||a==='stop'){ const go=a==='tog'?!S.run:a==='start'; if(go&&!S.run){ S.end=Date.now()+S.left*1000; S.run=true; } else if(!go&&S.run){ S.left=left(); S.run=false; } save(); }
+    else if(a==='rst'){ S={base,run:false,left:base,end:0}; save(); } else if(a==='p') addSec(60); else if(a==='m') addSec(-60); };
+  const ctl=box.querySelector('.ctl'); if(ctl) ctl.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) act(b.dataset.a); });
+  window.addEventListener('storage',e=>{ if(e.key===key) S=LS.get(key,S); });
+  if(mode==='down'&&!o.nogift){ BUS.on('gift',e=>{ if(per>0) addSec(e.coins*e.n*per); });
+    BUS.on('chat',c=>{ if(!c.admin) return; const t=c.text.trim(); if(/^(タイマー|timer)\s*(開始|スタート|start)$/i.test(t)) act('start'); else if(/^(タイマー|timer)\s*(停止|ストップ|stop)$/i.test(t)) act('stop'); else if(/^(タイマー|timer)\s*(リセット|reset)$/i.test(t)) act('rst'); else { const m=/^(?:タイマー|timer)\s*([+\-＋－−])\s*(\d+)$/i.exec(t); if(m) addSec((/[+＋]/.test(m[1])?1:-1)*(+m[2])); } }); }
+  BUS.on('cmd',c=>{ if(c.cmd==='time'&&c.mode===mode) act(c.a); });
+  lab.textContent=o.label||(mode==='clock'?'いまの時間':mode==='up'?'配信時間':'のこり時間'); if(o.label==='') lab.style.display='none';
+  const tick=()=>{ if(mode==='clock'){ const d=new Date(); num.textContent=pad(d.getHours())+':'+pad(d.getMinutes())+(o.sec==='0'?'':':'+pad(d.getSeconds())); }
+    else if(mode==='up') num.textContent=fmt((Date.now()-S.start)/1000);
+    else { const l=left(); num.textContent=fmt(Math.ceil(l)); box.classList.toggle('hot',S.run&&l<=60); if(S.run&&l<=0){ S.run=false; S.left=0; save(); } } };
+  tick(); setInterval(tick,250); return {w:640,h:220}; }
+
+/* ===== ギフトのびん ===== */
+function mountJar(box,o){ box.classList.add('jar'); box.innerHTML='<canvas width="1080" height="1520"></canvas><div class="cnt pop ol"><span>0</span><small>こ</small></div>';
+  const cv=box.querySelector('canvas'), g=cv.getContext('2d'), cnt=box.querySelector('.cnt span'); g.scale(2,2);
+  const XL=78,XR=462,FL=664,NL=140,NR=400,NY=178,TOP=96; let P=[], total=0, queue=[], imgs={};
+  const getImg=u=>{ if(!u) return null; if(!imgs[u]){ const im=new Image(); im.onload=()=>im.ok=true; im.src=u; imgs[u]=im; } return imgs[u]; };
+  const rOf=c=>c<5?22:c<30?27:c<100?33:c<500?40:50;
+  const spawn=q=>{ const r=rOf(q.coins), x=NL+r+Math.random()*(NR-NL-2*r); P.push({x,y:-r-Math.random()*40,px:x+(Math.random()-.5)*3,py:-r-8,r,a:Math.random()*6.28,im:getImg(q.pic),c:hue(q.gname||'g'),ch:[...(q.gname||'🎁')][0],o:1,die:0}); total++; cnt.textContent=total.toLocaleString('ja-JP'); };
+  BUS.on('gift',e=>{ const k=Math.min(e.n,12); for(let i=0;i<k;i++) queue.push({coins:e.coins,pic:e.pic,gname:e.gname}); if(e.n>k){ total+=e.n-k; } if(queue.length>60) queue.splice(0,queue.length-60); });
+  BUS.on('cmd',c=>{ if(c.cmd==='reset'&&(c.kind==='jar'||c.kind==='all')){ P=[]; queue=[]; total=0; cnt.textContent='0'; } });
+  let acc=0, last=performance.now(), spT=0, purgeT=0;
+  const step=dt=>{ for(const p of P){ const vx=(p.x-p.px)*.992, vy=(p.y-p.py)*.992; p.px=p.x; p.py=p.y; p.x+=vx; p.y+=vy+1500*dt*dt; p.a+=vx/p.r; }
+    for(let it=0;it<8;it++){ for(let i=0;i<P.length;i++){ const a=P[i]; for(let j=i+1;j<P.length;j++){ const b=P[j], dx=b.x-a.x, dy=b.y-a.y, rr=a.r+b.r; if(Math.abs(dx)>rr||Math.abs(dy)>rr) continue; const d2=dx*dx+dy*dy; if(d2>=rr*rr||d2===0) continue; const d=Math.sqrt(d2), k=(rr-d)/d*.5; a.x-=dx*k; a.y-=dy*k; b.x+=dx*k; b.y+=dy*k; } }
+      for(const p of P){ const l=p.y<NY?NL:XL, r=p.y<NY?NR:XR; if(p.y>=NY && p.y-p.r<NY && (p.x<NL||p.x>NR)){ p.y=NY+p.r; } if(p.x-p.r<l){ p.x=l+p.r; } if(p.x+p.r>r){ p.x=r-p.r; } if(p.y+p.r>FL){ p.y=FL-p.r; p.px+=(p.x-p.px)*.25; } } }
+    for(const p of P){ if(Math.abs(p.x-p.px)<.03&&Math.abs(p.y-p.py)<.03){ p.px=p.x; p.py=p.y; } } };
+  const jarBack=()=>{ g.save(); g.beginPath(); g.moveTo(NL-8,TOP); g.lineTo(NR+8,TOP); g.lineTo(NR+8,NY-20); g.quadraticCurveTo(XR+10,NY-6,XR+10,NY+50); g.lineTo(XR+10,FL-50); g.quadraticCurveTo(XR+10,FL+10,XR-50,FL+10); g.lineTo(XL+50,FL+10); g.quadraticCurveTo(XL-10,FL+10,XL-10,FL-50); g.lineTo(XL-10,NY+50); g.quadraticCurveTo(XL-10,NY-6,NL-8,NY-20); g.closePath();
+    const gr=g.createLinearGradient(XL,0,XR,0); gr.addColorStop(0,'rgba(190,230,255,.30)'); gr.addColorStop(.5,'rgba(190,230,255,.12)'); gr.addColorStop(1,'rgba(190,230,255,.26)'); g.fillStyle=gr; g.fill(); g.restore(); };
+  const jarFront=()=>{ g.save(); g.lineJoin='round'; g.beginPath(); g.moveTo(NL-8,TOP); g.lineTo(NL-8,NY-20); g.quadraticCurveTo(XL-10,NY-6,XL-10,NY+50); g.lineTo(XL-10,FL-50); g.quadraticCurveTo(XL-10,FL+10,XL+50,FL+10); g.lineTo(XR-50,FL+10); g.quadraticCurveTo(XR+10,FL+10,XR+10,FL-50); g.lineTo(XR+10,NY+50); g.quadraticCurveTo(XR+10,NY-6,NR+8,NY-20); g.lineTo(NR+8,TOP);
+    g.lineWidth=14; g.strokeStyle='rgba(11,12,18,.85)'; g.stroke(); g.lineWidth=7; g.strokeStyle='#fff'; g.stroke();
+    g.beginPath(); g.ellipse(270,TOP,138,16,0,0,6.283); g.lineWidth=14; g.strokeStyle='rgba(11,12,18,.85)'; g.stroke(); g.lineWidth=7; g.strokeStyle='#fff'; g.stroke();
+    g.lineCap='round'; g.strokeStyle='rgba(255,255,255,.55)'; g.lineWidth=10; g.beginPath(); g.moveTo(XL+22,NY+70); g.lineTo(XL+22,FL-150); g.stroke(); g.beginPath(); g.moveTo(XL+22,FL-120); g.lineTo(XL+22,FL-96); g.stroke(); g.restore(); };
+  const frame=now=>{ const dt=Math.min(.05,(now-last)/1000); last=now; acc+=dt; spT-=dt; if(queue.length&&spT<=0){ spawn(queue.shift()); spT=.11; }
+    while(acc>=1/120){ step(1/120); acc-=1/120; }
+    /* いっぱいになったら、古いもの（下のほう）から少しずつ消して場所をあける */
+    purgeT-=dt; if(purgeT<=0 && P.some(p=>!p.die&&p.y<TOP+50&&p.y>TOP-60&&Math.abs(p.y-p.py)<.2) ){ purgeT=2.5; let k=Math.ceil(P.length*.3); for(const p of P){ if(k<=0) break; if(!p.die){ p.die=1; k--; } } }
+    for(const p of P) if(p.die){ p.o-=dt*2.5; } P=P.filter(p=>p.o>0);
+    g.clearRect(0,0,540,760); jarBack();
+    for(const p of P){ g.save(); g.globalAlpha=Math.max(0,p.o); g.translate(p.x,p.y); g.rotate(p.a); if(p.im&&p.im.ok){ g.drawImage(p.im,-p.r*1.08,-p.r*1.08,p.r*2.16,p.r*2.16); } else { g.beginPath(); g.arc(0,0,p.r-1,0,6.283); g.fillStyle=p.c; g.fill(); g.lineWidth=3; g.strokeStyle='#fff'; g.stroke(); g.fillStyle='#fff'; g.font='700 '+Math.round(p.r)+'px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(p.ch,0,2); } g.restore(); }
+    jarFront(); requestAnimationFrame(frame); };
+  requestAnimationFrame(frame); window.__jar=()=>({n:P.length,total}); return {w:540,h:760}; }
+
+/* ===== 置き方 ===== */
+function place(host,name,o,maxW,maxH){ const box=document.createElement('div'); box.className='wg'; host.appendChild(box);
+  const sz=name==='win'?mountWin(box,o):name==='like'?mountRank(box,Object.assign({kind:'like'},o)):name==='gift'?mountRank(box,Object.assign({kind:'gift'},o)):name==='time'?mountTime(box,o):mountJar(box,o);
+  const fit=()=>{ const W0=maxW(), H0=maxH?maxH():1e9, s=Math.min(W0/sz.w,H0/sz.h); box.style.transform='scale('+s+')'; host.style.width=(sz.w*s)+'px'; host.style.height=(sz.h*s)+'px'; }; fit(); window.addEventListener('resize',fit); return box; }
+const DEMO_N=['たぬ吉','ぽんた','みけ','ゆきんこ','レオ','さくら','もちこ','ハル','そら','くろまめ'], DEMO_G=[['バラ',1,0],['ローザ',10,1],['歌うキノコ',99,2],['コーギー',299,3],['マネーガン',500,4],['銀河',1000,5]];
+const demoGift=(i,n)=>{ const gi=i!=null?i:Math.floor(Math.pow(Math.random(),2.2)*DEMO_G.length), G=DEMO_G[gi], nm=DEMO_N[Math.floor(Math.random()*DEMO_N.length)]; return {event:'gift',data:{giftName:G[0],diamondCount:G[1],repeatCount:n||1,repeatEnd:true,nickname:nm,uniqueId:'demo_'+nm,giftId:9000+gi,giftPictureUrl:'../gmerge/img/g'+G[2]+'.webp'}}; };
+const demoLike=()=>{ const nm=DEMO_N[Math.floor(Math.random()*DEMO_N.length)]; return {event:'like',data:{likeCount:1+Math.floor(Math.random()*30),nickname:nm,uniqueId:'demo_'+nm}}; };
+const opts=()=>{ const o={}; for(const [k,v] of Q) o[k]=v; if(o.top) o.top=+o.top; return o; };
+
+if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---- */
+  const app=document.getElementById('app'); app.innerHTML='<div id="st" class="st"></div><div class="host" id="host"></div>'; const o=opts();
+  place(document.getElementById('host'),W,o,()=>innerWidth,()=>innerHeight);
+  if(Q.get('demo')==='1'){ setInterval(()=>{ tfEvent(Math.random()<.5?demoGift():demoLike()); },900); }
+  else if(W==='like'||W==='gift'||W==='jar'||(W==='time'&&o.mode==='down')||(W==='win'&&(Q.get('admin')||CLOUD.user))){ tfConnect(); tfUI(); } window.__ready=true;
+} else { /* ---- せつめいページ ---- */
+  document.body.classList.add('setup'); const base=(EMBED?HOME_URL:location.origin+location.pathname.replace(/index\.html$/,''));
+  const C=[['win','WINカウンター','?w=win','600 × 220','勝った数を出します。部品にマウスをのせると出るボタン（OBSなら右クリック→「対話」）か、下のボタンで増やしたり減らしたりできます。自分のコメントで「win+1」「win-1」「win=0」と打っても変わります。'],
+    ['like','いいねランキング','?w=like','560 × 522','いいねをたくさん押してくれた人の上位5人を出します。「&top=3」を足すと3人だけになります。'],
+    ['gift','ギフトランキング','?w=gift','560 × 522','ギフトのコイン合計が多い人の上位5人を出します。'],
+    ['time','時間','?w=time','640 × 220','「いまの時間」「配信時間」「耐久タイマー（ギフトで時間がのびる）」の3つから選べます。'],
+    ['jar','ギフトのびん','?w=jar','540 × 760','ギフトが来るたびに、そのギフトがびんの中に落ちてたまっていきます。いっぱいになると古いものから消えます。']];
+  let h='<div class="pg"><h1>配信オーバーレイ</h1><p>配信画面に重ねて出す部品です。下の見本は、にせもののデータで動いています。</p>';
+  for(const [id,ttl,q,sz,desc] of C){ h+='<div class="card"><h3>'+ttl+'</h3><p>'+desc+'</p>'+(id==='time'?'<div class="btns"><select id="tmode"><option value="clock">いまの時間</option><option value="up">配信時間</option><option value="down">耐久タイマー</option></select></div>':'')+'<div class="pv"><div class="host" id="pv_'+id+'"></div></div><div class="btns" id="bt_'+id+'"></div><div class="url"><code id="u_'+id+'">'+esc(base+q)+'</code><button data-copy="u_'+id+'">コピー</button></div><p class="sz">OBSのブラウザソースの大きさ：<span id="sz_'+id+'">'+sz+'</span></p></div>'; }
+  h+='<h2>OBSへの入れ方</h2><ol><li>OBSの「ソース」の ＋ →「ブラウザ」を選ぶ</li><li>URLに、上の部品のアドレスをはりつける</li><li>幅と高さに、部品の下に書いてある大きさを入れる</li><li>あとは画面の上で好きな場所に動かして、大きさを変えるだけ（背景はすきとおっています）</li></ol>'
+    +'<h2>つなぎ先</h2><p>なにもしなければ、同じパソコンで動いている TikFinity（アプリ版）から受け取ります。tik.tools を使う時だけ、下に入れてください。<br>※ キーはこのブラウザの中にだけ保存されます。OBSで使う時は、このページをOBSのブラウザソースで開き、右クリック→「対話」でここに入れてください（入れ終わったら、そのソースは消して大丈夫です）。<b>配信にキーが映らないよう、入れる時は配信を止めておいてください。</b></p>'
+    +'<div class="card"><label><input type="checkbox" id="clOn" style="width:auto"> tik.tools を使う</label><input id="clUser" placeholder="TikTokのユーザー名（@のあとの英数字）" autocapitalize="off" autocomplete="off" spellcheck="false"><input id="clKey" type="password" placeholder="tik.tools のAPIキー" autocapitalize="off" autocomplete="off" spellcheck="false"><div class="btns"><button id="clSave">保存する</button><span id="clMsg" class="sz"></span></div></div>'
+    +'<h2>まとめてリセット</h2><div class="btns"><button data-rs="like">いいねランキング</button><button data-rs="gift">ギフトランキング</button><button data-rs="jar">びんの中身</button></div></div>';
+  document.getElementById('app').innerHTML=h;
+  const pvW=()=>Math.min(document.querySelector('.pv').clientWidth-16,460);
+  place(document.getElementById('pv_win'),'win',{},pvW).classList.add('show');
+  place(document.getElementById('pv_like'),'like',{demo:true},()=>Math.min(pvW(),380));
+  place(document.getElementById('pv_gift'),'gift',{demo:true},()=>Math.min(pvW(),380));
+  place(document.getElementById('pv_jar'),'jar',{demo:true},()=>Math.min(pvW(),300));
+  const tmode=document.getElementById('tmode'), TQ={clock:'?w=time',up:'?w=time&mode=up',down:'?w=time&mode=down&min=60&per=1'};
+  const setT=()=>{ const hst=document.getElementById('pv_time'); hst.innerHTML=''; place(hst,'time',{mode:tmode.value,nogift:true},pvW).classList.add('show'); document.getElementById('u_time').textContent=base+TQ[tmode.value];
+    document.getElementById('bt_time').innerHTML=tmode.value==='down'?'<span class="sz">min=はじめの分数、per=1コインでのびる秒数（アドレスの数字を書きかえて使います）</span>':''; }; tmode.onchange=setT; setT();
+  const fire=m=>{ tfEvent(m); LS.set('ov_test',{t:Date.now(),m}); };
+  document.getElementById('bt_like').innerHTML='<button id="tLike">いいねをためす</button>'; document.getElementById('bt_gift').innerHTML='<button id="tGift">ギフトをためす</button>'; document.getElementById('bt_jar').innerHTML='<button id="tJar1">小さいギフト×5</button><button id="tJar2">大きいギフト</button>';
+  document.getElementById('tLike').onclick=()=>fire(demoLike()); document.getElementById('tGift').onclick=()=>fire(demoGift()); document.getElementById('tJar1').onclick=()=>fire(demoGift(0,5)); document.getElementById('tJar2').onclick=()=>fire(demoGift(3+Math.floor(Math.random()*3)));
+  document.addEventListener('click',e=>{ const c=e.target.closest('[data-copy]'); if(c){ const t=document.getElementById(c.dataset.copy).textContent; (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{ c.textContent='コピーした'; setTimeout(()=>c.textContent='コピー',1500); },()=>{ const r=document.createRange(); r.selectNodeContents(document.getElementById(c.dataset.copy)); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }); }
+    const r=e.target.closest('[data-rs]'); if(r) sendCmd({cmd:'reset',kind:r.dataset.rs}); });
+  const on=document.getElementById('clOn'), us=document.getElementById('clUser'), ky=document.getElementById('clKey'); on.checked=!!CLOUD.on; us.value=CLOUD.user||''; if(CLOUD.key) ky.placeholder='（保存ずみ。変える時だけ入れる）';
+  document.getElementById('clSave').onclick=()=>{ CLOUD.on=on.checked; CLOUD.user=us.value.trim().replace(/^@/,''); if(ky.value.trim()) CLOUD.key=ky.value.trim(); ky.value=''; LS.set('ov_cloud',CLOUD); document.getElementById('clMsg').textContent='保存しました。OBSの部品は、目のマークを消して付け直すと反映されます'; };
+  let dn=0; const demo=setInterval(()=>{ dn++; tfEvent(Math.random()<.55?demoGift():demoLike()); },1100); for(let i=0;i<14;i++) tfEvent(i%2?demoGift():demoLike()); window.__ready=true;
+}
+</script>
+</body>
+</html>
