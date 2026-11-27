@@ -10,7 +10,8 @@
 @font-face{font-family:MPR;src:url(font/mpr.woff2) format('woff2');font-display:swap}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:transparent;overflow:hidden;font-family:MPR,'Hiragino Maru Gothic ProN','Noto Sans JP','Noto Sans CJK JP',sans-serif;color:#fff}
-body.setup{overflow:auto;background:#12131a;-webkit-text-size-adjust:100%}
+html.setup{overflow:auto;height:auto}
+body.setup{overflow:visible;height:auto;background:#12131a;-webkit-text-size-adjust:100%}
 .host{position:relative;overflow:hidden}
 .wg{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none}
 .pop{font-family:Dela,MPR,sans-serif}
@@ -216,7 +217,7 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
   if(Q.get('demo')==='1'){ setInterval(()=>{ tfEvent(Math.random()<.5?demoGift():demoLike()); },900); }
   else if(W==='like'||W==='gift'||W==='jar'||(W==='time'&&o.mode==='down')||(W==='win'&&(Q.get('admin')||CLOUD.user))){ tfConnect(); tfUI(); } window.__ready=true;
 } else { /* ---- せつめいページ ---- */
-  document.body.classList.add('setup'); const base=(EMBED?HOME_URL:location.origin+location.pathname.replace(/index\.html$/,''));
+  document.documentElement.classList.add('setup'); document.body.classList.add('setup'); const base=(EMBED?HOME_URL:location.origin+location.pathname.replace(/index\.html$/,''));
   const C=[['win','WINカウンター','?w=win','600 × 220','勝った数を出します。部品にマウスをのせると出るボタン（OBSなら右クリック→「対話」）か、下のボタンで増やしたり減らしたりできます。自分のコメントで「win+1」「win-1」「win=0」と打っても変わります。'],
     ['like','いいねランキング','?w=like','560 × 522','いいねをたくさん押してくれた人の上位5人を出します。「&top=3」を足すと3人だけになります。'],
     ['gift','ギフトランキング','?w=gift','560 × 522','ギフトのコイン合計が多い人の上位5人を出します。'],
