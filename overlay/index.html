@@ -9,9 +9,10 @@
 @font-face{font-family:Dela;src:url(font/dela.woff2) format('woff2');font-display:swap}
 @font-face{font-family:MPR;src:url(font/mpr.woff2) format('woff2');font-display:swap}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:transparent;overflow:hidden;font-family:MPR,'Hiragino Maru Gothic ProN','Noto Sans JP','Noto Sans CJK JP',sans-serif;color:#fff}
-html.setup{overflow:auto;height:auto}
-body.setup{overflow:visible;height:auto;background:#12131a;-webkit-text-size-adjust:100%}
+html.one,html.one body{overflow:hidden}
+html,body{background:transparent;font-family:MPR,'Hiragino Maru Gothic ProN','Noto Sans JP','Noto Sans CJK JP',sans-serif;color:#fff}
+html.setup,body.setup{overflow:visible;height:auto;min-height:100%;touch-action:auto}
+body.setup{background:#12131a;-webkit-text-size-adjust:100%}
 .host{position:relative;overflow:hidden}
 .wg{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none}
 .pop{font-family:Dela,MPR,sans-serif}
@@ -212,6 +213,7 @@ const demoLike=()=>{ const nm=DEMO_N[Math.floor(Math.random()*DEMO_N.length)]; r
 const opts=()=>{ const o={}; for(const [k,v] of Q) o[k]=v; if(o.top) o.top=+o.top; return o; };
 
 if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---- */
+  document.documentElement.classList.add('one');
   const app=document.getElementById('app'); app.innerHTML='<div id="st" class="st"></div><div class="host" id="host"></div>'; const o=opts();
   place(document.getElementById('host'),W,o,()=>innerWidth,()=>innerHeight);
   if(Q.get('demo')==='1'){ setInterval(()=>{ tfEvent(Math.random()<.5?demoGift():demoLike()); },900); }
