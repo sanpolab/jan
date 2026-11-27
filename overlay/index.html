@@ -109,6 +109,30 @@ body.setup{background:#12131a;-webkit-text-size-adjust:100%}
 .heartg .hn{font:700 54px/1.3 Georgia,'Times New Roman',serif;color:#fff3f8}
 .heartg .hn small{font:700 24px 'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;color:#ffc2d8}
 .heartg.done .hn .a{color:#ffd86b;text-shadow:0 0 20px #ffd86b}
+/* 会員証 */
+.mcard .mc{position:absolute;left:30px;top:14px;width:700px;height:420px;border-radius:26px;overflow:hidden;opacity:0;transform:translateY(60px) rotateX(50deg) scale(.8);transform-origin:50% 100%;box-shadow:0 14px 34px rgba(0,0,0,.6);font-family:'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif}
+.mcard{perspective:1400px}
+.mcard .mc.on{opacity:1;transform:none;transition:opacity .35s,transform .7s cubic-bezier(.2,1.25,.4,1)}
+.mcard .mc.out{opacity:0;transform:translateY(-30px) scale(.96);transition:opacity .6s,transform .6s}
+.mcard .mc::before{content:'';position:absolute;inset:10px;border-radius:18px;border:1.5px solid var(--ln);pointer-events:none}
+.mcard .k0{--ln:rgba(60,30,10,.55);--tx:#3a1f0c;--sub:#5a3418;background:linear-gradient(135deg,#f0c49a 0%,#c98a55 28%,#8a5429 55%,#d9a06c 78%,#7a4720 100%)}
+.mcard .k1{--ln:rgba(40,50,70,.5);--tx:#232a38;--sub:#3d4658;background:linear-gradient(135deg,#ffffff 0%,#c9d1de 26%,#8e98aa 55%,#e8edf5 78%,#7f8898 100%)}
+.mcard .k2{--ln:rgba(80,55,0,.55);--tx:#3a2800;--sub:#5e4406;background:linear-gradient(135deg,#fff6c8 0%,#f0c95a 26%,#b8862b 55%,#ffe48a 78%,#9a6d1c 100%)}
+.mcard .k3{--ln:rgba(217,184,102,.8);--tx:#ffe9a8;--sub:#d9b866;background:linear-gradient(135deg,#2c2c30 0%,#0c0c0e 30%,#1c1b1f 55%,#050506 100%)}
+.mcard .sh{position:absolute;top:-30%;left:-60%;width:40%;height:160%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:rotate(18deg)}
+.mcard .mc.on .sh{animation:msh 1.6s .5s}
+@keyframes msh{to{left:130%}}
+.mcard .m1{position:absolute;left:40px;top:34px;font:700 28px Georgia,'Times New Roman',serif;letter-spacing:7px;color:var(--tx)}
+.mcard .m2{position:absolute;right:40px;top:30px;font:700 34px Georgia,'Times New Roman',serif;letter-spacing:6px;color:var(--tx);font-style:italic}
+.mcard .mav{position:absolute;left:44px;top:128px;width:150px;height:150px;border-radius:50%;border:4px solid var(--sub);background:#444 center/cover;display:flex;align-items:center;justify-content:center;font:700 72px 'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,.35)}
+.mcard .mnm{position:absolute;left:220px;right:36px;top:128px;height:150px;display:flex;align-items:center;white-space:nowrap;overflow:hidden;font-weight:700;color:var(--tx);letter-spacing:2px}
+.mcard .mno{position:absolute;left:44px;bottom:36px;font:700 40px Georgia,'Times New Roman',serif;letter-spacing:5px;color:var(--tx)}
+.mcard .mvi{position:absolute;right:40px;bottom:40px;font-size:30px;font-weight:700;color:var(--sub)}
+.mcard .mup{position:absolute;left:0;right:0;top:92px;text-align:center;font:700 30px Georgia,serif;font-style:italic;letter-spacing:12px;color:#fff;text-shadow:0 0 14px #ffd86b,0 2px 0 rgba(0,0,0,.6);opacity:0}
+.mcard .mc.up .mup{animation:mup 5.5s .6s}
+@keyframes mup{0%{opacity:0;transform:scale(2)}8%{opacity:1;transform:none}90%{opacity:1}100%{opacity:0}}
+.mcard .mc.up{box-shadow:0 14px 34px rgba(0,0,0,.6),0 0 50px rgba(255,216,107,.9)}
+.mcard .mcount{position:absolute;left:0;right:0;bottom:8px;text-align:center;font:700 34px 'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;letter-spacing:4px;color:#fff3c4;text-shadow:0 2px 0 #000,0 0 12px rgba(0,0,0,.9)}
 /* コンボ・図鑑 */
 .combo .cb{position:absolute;left:6px;right:6px;top:6px;height:176px;background:linear-gradient(180deg,rgba(26,21,14,.96),rgba(8,7,6,.96));border:2px solid #d9b866;border-radius:14px;box-shadow:0 0 0 5px rgba(8,7,6,.9),0 0 0 6px #8a6d2f;opacity:0;transform:translateX(-40px);transition:opacity .3s,transform .3s}
 .combo .cb.on{opacity:1;transform:none}.combo .cb.end{opacity:0;transform:scale(1.06);transition:opacity .9s .5s,transform .9s .5s}
@@ -505,9 +529,36 @@ function mountZukan(box,o){ const S_=mkS(o), COLS=Math.max(3,Math.min(10,parseIn
   BUS.on('cmd',c=>{ if(c.cmd==='reset'&&(c.kind==='zukan'||c.kind==='all')){ G=new Map(); done=false; if(!o.demo) LS.set('ov_zukan',{t:Date.now(),l:[]}); draw(); } });
   draw(); return {w:CW,h:CH}; }
 
+/* ===== 会員証（出席） ===== */
+const MB_RK=[['BRONZE','ブロンズ',1],['SILVER','シルバー',5],['GOLD','ゴールド',15],['BLACK','ブラック',30]];   /* 来店回数がこの数になるとその会員 */
+const mbDay=()=>{ const d=new Date(Date.now()-5*3600e3); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };   /* 朝5時で日付が変わる（深夜の配信が2日に分かれないように） */
+const mbPrev=day=>{ const p=day.split('-').map(Number), d=new Date(p[0],p[1]-1,p[2]-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+function mountCard(box,o){ const S_=mkS(o), CW=760, CH=520; let dead=false; box.__kill=()=>{ dead=true; }; box.classList.add('mcard'); box.style.width=CW+'px'; box.style.height=CH+'px';
+  box.innerHTML='<div class="mc"><div class="sh"></div><div class="m1">MEMBER\'S CARD</div><div class="m2"></div><div class="mav"></div><div class="mnm"></div><div class="mno"></div><div class="mvi"></div><div class="mup">RANK UP</div></div><div class="mcount"></div>';
+  const mc=box.querySelector('.mc'), q=s=>box.querySelector(s), cnt=q('.mcount');
+  const th=String(o.rank||'').split(',').map(x=>parseInt(x,10)).filter(x=>x>0); const need=i=>i===0?1:(th[i-1]||MB_RK[i][2]), rankOf=v=>{ let r=0; for(let i=0;i<4;i++) if(v>=need(i)) r=i; return r; };
+  const want=String(o.gift!=null?o.gift:'ハートミー,Heart Me').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean), anyGift=want.includes('*'), byChat=o.chat==='1';
+  let DB=o.demo?{n:6,m:{}}:(LS.get('ov_members',null)||{n:0,m:{}}); if(!DB.m) DB={n:0,m:{}};
+  const today=()=>Object.values(DB.m).filter(r=>r.last===mbDay()).length, showCnt=()=>{ cnt.textContent=o.count==='0'?'':'本日のご来店　'+today()+' 名様'; };
+  let queue=[], busy=false;
+  const attend=e=>{ const day=mbDay(); let r=DB.m[e.uid]; if(r&&r.last===day) return; let up=false; if(!r){ DB.n++; r=DB.m[e.uid]={no:DB.n,name:e.name,v:0,st:0,last:''}; }
+    const r0=rankOf(r.v); r.st=(r.last===mbPrev(day))?(r.st||0)+1:1; r.v++; r.last=day; r.name=e.name; if(e.av) r.av=e.av; up=r.v>1&&rankOf(r.v)>r0;
+    if(!o.demo){ const ks=Object.keys(DB.m); if(ks.length>4000){ ks.sort((a,b)=>(DB.m[a].last<DB.m[b].last?-1:1)).slice(0,ks.length-4000).forEach(k=>delete DB.m[k]); } LS.set('ov_members',DB); }
+    showCnt(); if(queue.length<25) queue.push({r:Object.assign({},r),uid:e.uid,up}); run(); };
+  const run=()=>{ if(busy||!queue.length||dead) return; busy=true; const {r,uid,up}=queue.shift(), k=rankOf(r.v); mc.className='mc k'+k; q('.m2').textContent=MB_RK[k][0]; const av=q('.mav'); if(r.av){ av.style.backgroundImage='url("'+String(r.av).replace(/["\\\n]/g,'')+'")'; av.textContent=''; } else { av.style.backgroundImage=''; av.style.backgroundColor=hue(uid); av.textContent=[...r.name][0]||'?'; }
+    const nm=q('.mnm'); nm.textContent=r.name+' 様'; nm.style.fontSize=Math.max(30,Math.min(62,760/Math.max(5,[...nm.textContent].length)))+'px'; q('.mno').textContent='No.'+String(r.no).padStart(4,'0'); q('.mvi').textContent=(r.v===1?'初来店':'来店 '+r.v+'回目')+(r.st>=2?'　／　'+r.st+'日連続':'');
+    void mc.offsetWidth; mc.classList.add('on'); if(up) mc.classList.add('up'); if(up){ S_('levelup',.7); } else S_('harp2',.5);
+    setTimeout(()=>{ mc.classList.remove('on'); mc.classList.add('out'); },up?6200:4600); setTimeout(()=>{ busy=false; run(); },up?6900:5300); };
+  BUS.on('gift',e=>{ if(dead||byChat) return; const nm=String(e.gname||'').toLowerCase(); if(anyGift||want.some(w=>nm.includes(w))) attend(e); });
+  BUS.on('chat',c=>{ if(dead||!byChat) return; attend(c); });
+  BUS.on('cmd',c=>{ if(dead) return; if(c.cmd==='card'){ attend({uid:c.uid||('test_'+c.name),name:c.name||'テスト'}); } if(c.cmd==='reset'&&c.kind==='members'){ DB={n:0,m:{}}; if(!o.demo) LS.set('ov_members',DB); showCnt(); } });
+  window.addEventListener('storage',e=>{ if(e.key==='ov_members'&&!o.demo){ DB=LS.get('ov_members',DB)||DB; showCnt(); } });
+  if(o.demo){ const D=[['たぬ吉',29,3],['ぽんた',14,1],['みけ',4,2],['ゆきんこ',40,9],['レオ',1,1],['さくら',8,1]]; D.forEach((d,i)=>{ DB.m['test_'+d[0]]={no:i+1,name:d[0],v:d[1],st:d[2],last:mbPrev(mbDay())}; }); }
+  showCnt(); window.__card=()=>({n:DB.n,today:today(),q:queue.length}); return {w:CW,h:CH}; }
+
 /* ===== 置き方 ===== */
 function place(host,name,o,maxW,maxH){ const box=document.createElement('div'); box.className='wg'+(o.theme==='gold'?' luxe':''); host.appendChild(box);
-  const sz=name==='win'?mountWin(box,o):name==='like'?mountRank(box,Object.assign({kind:'like'},o)):name==='gift'?mountRank(box,Object.assign({kind:'gift'},o)):name==='time'?mountTime(box,o):name==='gacha'?mountGacha(box,o):name==='combo'?mountCombo(box,o):name==='zukan'?mountZukan(box,o):name==='roulette'?mountRoulette(box,o):name==='vip'?mountVip(box,o):name==='king'?mountKing(box,o):name==='heart'?mountHeart(box,o):name==='fire'?mountFire(box,o):name==='rain'?mountRain(box,o):name==='thanks'?mountThanks(box,o):name==='goals'?mountGoals(box,o):name==='tower'?mountTower(box,o):mountJar(box,o);
+  const sz=name==='win'?mountWin(box,o):name==='like'?mountRank(box,Object.assign({kind:'like'},o)):name==='gift'?mountRank(box,Object.assign({kind:'gift'},o)):name==='time'?mountTime(box,o):name==='gacha'?mountGacha(box,o):name==='card'?mountCard(box,o):name==='combo'?mountCombo(box,o):name==='zukan'?mountZukan(box,o):name==='roulette'?mountRoulette(box,o):name==='vip'?mountVip(box,o):name==='king'?mountKing(box,o):name==='heart'?mountHeart(box,o):name==='fire'?mountFire(box,o):name==='rain'?mountRain(box,o):name==='thanks'?mountThanks(box,o):name==='goals'?mountGoals(box,o):name==='tower'?mountTower(box,o):mountJar(box,o);
   const fit=()=>{ const W0=maxW(), H0=maxH?maxH():1e9, s=Math.min(W0/sz.w,H0/sz.h); box.style.transform='scale('+s+')'; host.style.width=(sz.w*s)+'px'; host.style.height=(sz.h*s)+'px'; }; fit(); window.addEventListener('resize',fit); return box; }
 const DEMO_N=['たぬ吉','ぽんた','みけ','ゆきんこ','レオ','さくら','もちこ','ハル','そら','くろまめ'], DEMO_G=[['バラ',1,0],['ローザ',10,1],['歌うキノコ',99,2],['コーギー',299,3],['マネーガン',500,4],['銀河',1000,5]];
 const demoGift=(i,n)=>{ const gi=i!=null?i:Math.floor(Math.pow(Math.random(),2.2)*DEMO_G.length), G=DEMO_G[gi], nm=DEMO_N[Math.floor(Math.random()*DEMO_N.length)]; return {event:'gift',data:{giftName:G[0],diamondCount:G[1],repeatCount:n||1,repeatEnd:true,nickname:nm,uniqueId:'demo_'+nm,giftId:9000+gi,giftPictureUrl:'../gmerge/img/g'+G[2]+'.webp'}}; };
@@ -519,7 +570,7 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
   const app=document.getElementById('app'); app.innerHTML='<div id="st" class="st"></div><div class="host" id="host"></div>'; const o=opts();
   place(document.getElementById('host'),W,o,()=>innerWidth,()=>innerHeight);
   if(Q.get('demo')==='1'){ setInterval(()=>{ tfEvent(Math.random()<.5?demoGift():demoLike()); },900); }
-  else if(W==='like'||W==='gift'||W==='jar'||W==='gacha'||W==='roulette'||W==='combo'||W==='zukan'||W==='tower'||W==='vip'||W==='king'||W==='heart'||W==='fire'||W==='rain'||W==='thanks'||W==='goals'||(W==='time'&&o.mode==='down')||(W==='win'&&(Q.get('admin')||CLOUD.user))){ tfConnect(); tfUI(); } window.__ready=true;
+  else if(W==='like'||W==='gift'||W==='jar'||W==='gacha'||W==='card'||W==='roulette'||W==='combo'||W==='zukan'||W==='tower'||W==='vip'||W==='king'||W==='heart'||W==='fire'||W==='rain'||W==='thanks'||W==='goals'||(W==='time'&&o.mode==='down')||(W==='win'&&(Q.get('admin')||CLOUD.user))){ tfConnect(); tfUI(); } window.__ready=true;
 } else { /* ---- せつめいページ ---- */
   document.documentElement.classList.add('setup'); document.body.classList.add('setup'); const base=(EMBED?HOME_URL:location.origin+location.pathname.replace(/index\.html$/,''));
   const C=[['win','WINカウンター','?w=win','600 × 220','勝った数を出します。部品にマウスをのせると出るボタン（OBSなら右クリック→「対話」）か、下のボタンで増やしたり減らしたりできます。自分のコメントで「win+1」「win-1」「win=0」と打っても変わります。'],
@@ -529,6 +580,7 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
     ['gacha','ガチャガチャ','?w=gacha','600 × 900','決めたギフトが来ると、ハンドルが回ってカプセルが出てきます。S・A・B・Cのランクと、その中身が出ます。中身は下で自由に書きかえられます（1行に1つ）。'],
     ['roulette','ルーレット','?w=roulette&min=100','620 × 760','ギフトが来ると金のルーレットが回って、止まったマスのお題と、回した人の名前が出ます。マスの中身は下で書きかえられます（1行に1つ、2〜12個）。'],
     ['tower','シャンパンタワー','?w=tower&goal=1000','760 × 685','ギフトのコインがたまるほど、上のグラスから順にシャンパンが満ちていきます。目標に届くと金の紙ふぶきが舞って、2周目に入ります。「goal=」の数字が目標のコイン数です。'],
+    ['card','会員証（出席）','?w=card','760 × 520','ハートミーをくれた人に、番号つきの会員証が出ます。「No.0007 ◯◯様 来店12回目／3日連続」。来店が5回でシルバー、15回でゴールド、30回でブラックに上がります（1日1回だけ数えます。日付は朝5時に変わります）。記録は、OBSを動かしているパソコンの中にずっと残ります。'],
     ['combo','コンボカウンター','?w=combo','680 × 250','同じ人が続けてギフトを投げると「×12 COMBO」と数字が上がっていきます。5・10・20・50回で色が変わって光ります。下の金のバーが空になる前に次を投げれば続きます（8秒。「&sec=10」で変えられます）。その日の最高記録も出ます。'],
     ['zukan','ギフト図鑑','?w=zukan','780 × 580','その日もらったギフトの種類が、ショーケースに1つずつ並んで埋まっていきます。新しい種類が来ると光って登場。全部うまると「コンプリート！」。下に集めたいギフトの名前を書くと、その名前の枠が「？」で先に並びます。'],
     ['vip','VIPコール','?w=vip&min=1000','1920 × 1080（画面いっぱい）','大きなギフトが来ると、赤い幕が閉じてから左右に開き、金のプレートに「◯◯ 様」と名前が出ます。「min=」が、出すギフトの最低コイン数です。'],
@@ -551,6 +603,11 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
   place(document.getElementById('pv_like'),'like',{demo:true},()=>Math.min(pvW(),380));
   place(document.getElementById('pv_gift'),'gift',{demo:true},()=>Math.min(pvW(),380));
   const jsel=document.getElementById('jsel'), jsize=document.getElementById('jsize'), jover=document.getElementById('jover'); let jbox=null; const setJ=()=>{ const hst=document.getElementById('pv_jar'); if(jbox&&jbox.__kill) jbox.__kill(); hst.innerHTML=''; const v=jsel.value, K=(window.JARS||{})[v||'glass'], z=jsize.value, ov=jover.value; jbox=place(hst,'jar',{demo:true,jar:v,size:z,over:ov},()=>Math.min(pvW(),K.w>600?400:330)); document.getElementById('u_jar').textContent=base+'?w=jar'+(v?'&jar='+v:'')+(z!=='100'?'&size='+z:'')+(ov?'&over=0':''); document.getElementById('sz_jar').textContent=(K.w+180)+' × '+(K.h+100)+'（size= の数字を書きかえると、好きな大きさにもできます。100がふつう）'; }; jsize.onchange=setJ; jover.onchange=setJ; jsel.onchange=setJ; setJ();
+  place(document.getElementById('pv_card'),'card',{demo:true,snd:true,gift:'__none__'},()=>Math.min(pvW(),420));
+  { document.getElementById('bt_card').innerHTML='<button data-cd="レオ">初来店〜ブロンズ</button><button data-cd="みけ">5回目（シルバーに昇格）</button><button data-cd="ぽんた">15回目（ゴールドに昇格）</button><button data-cd="たぬ吉">30回目（ブラックに昇格）</button><button data-cd="ゆきんこ">ブラック会員</button><div style="width:100%"></div><label class="sz" style="width:100%">出席にするギフトの名前（「*」でどのギフトでも）<input id="cdGift" value="ハートミー"></label><label class="sz" style="width:100%"><input type="checkbox" id="cdChat" style="width:auto"> ギフトではなく、コメントしたら出席にする</label><button id="cdDel" style="background:#5a1f26">会員の記録を全部消す</button><span id="cdMsg" class="sz"></span>';
+    let cdN=0; document.getElementById('bt_card').addEventListener('click',e=>{ const b=e.target.closest('[data-cd]'); if(b){ const nm=b.dataset.cd; sendCmd({cmd:'card',name:nm==='レオ'?'おきゃく'+(++cdN):nm,uid:nm==='レオ'?'test_new'+cdN:'test_'+nm}); } });
+    const cu=()=>{ const v=document.getElementById('cdGift').value.trim(), ch=document.getElementById('cdChat').checked; document.getElementById('u_card').textContent=base+'?w=card'+(ch?'&chat=1':(v&&v!=='ハートミー'?'&gift='+encodeURIComponent(v):'')); }; document.getElementById('cdGift').oninput=cu; document.getElementById('cdChat').onchange=cu;
+    let arm=0; document.getElementById('cdDel').onclick=function(){ if(Date.now()-arm<4000){ sendCmd({cmd:'reset',kind:'members'}); LS.set('ov_members',{n:0,m:{}}); this.textContent='会員の記録を全部消す'; document.getElementById('cdMsg').textContent='このブラウザの記録を消しました'; arm=0; } else { arm=Date.now(); this.textContent='本当に消す時は、もう一度押す'; setTimeout(()=>{ if(arm) this.textContent='会員の記録を全部消す'; },4000); } }; }
   place(document.getElementById('pv_combo'),'combo',{demo:true,snd:true},()=>Math.min(pvW(),420));
   { document.getElementById('bt_combo').innerHTML='<button id="tCb">同じ人が1個投げる</button><button id="tCb5">5個まとめて</button>'; const cg=n=>fire({event:'gift',data:{giftName:'バラ',diamondCount:1,repeatCount:n,repeatEnd:true,nickname:'たぬ吉',uniqueId:'demo_combo',giftId:9000,giftPictureUrl:'../gmerge/img/g0.webp'}}); document.getElementById('tCb').onclick=()=>cg(1); document.getElementById('tCb5').onclick=()=>cg(5);
     let zb=null; document.getElementById('bt_zukan').innerHTML='<button id="tZk">ギフトをためす</button><div style="width:100%"></div><label class="sz" style="width:100%">集めたいギフトの名前（1行に1つ。空なら、来た順に18種まで並びます）<textarea id="zkL" placeholder="バラ&#10;ローザ&#10;ドーナツ"></textarea></label><button id="zkSet">見本に反映する</button>';
