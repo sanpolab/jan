@@ -131,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 02:44</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 13:34</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -154,9 +154,9 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <p>1段の数 <button class="tc" type="button" data-c="6">6</button> <button class="tc" type="button" data-c="7">7</button> <button class="tc" type="button" data-c="9">9</button>　<button id="tblCopy" type="button">URLをコピー</button> <button id="cfgTable" type="button">ひらく</button></p>
     <p id="tblNote">このChromeで開いた表は、ギフトを変えると数秒で自動で変わります。配信ソフトにURLを貼る場合は、ギフトを変えたあとにもう一度コピーして貼り直してください。</p>
     <h3>ギフト以外</h3>
-    <div class="row jam"><div class="nm">コメント<small>隕石が落ちてくる（同じ人は20秒に1回、画面に3個まで）</small></div><button id="optChat" type="button"></button></div>
+    <div class="row jam"><div class="nm">コメント<small>ドラゴンが来て火球を3発（同じ人は20秒に1回、画面に出られる数まで）</small></div><button id="optChat" type="button"></button></div>
     <div class="row jam"><div class="nm">いいね1000回<small>魔法使いが1体出る（画面に3体まで）</small></div><button id="optLike" type="button"></button></div>
-    <div class="row jam"><div class="nm">フォロー<small>隕石が落ちてくる</small></div><button id="optFollow" type="button"></button></div>
+    <div class="row jam"><div class="nm">フォロー<small>ドラゴンが来て火球を3発</small></div><button id="optFollow" type="button"></button></div>
     <div class="row both"><div class="nm">ギフト表のコイン数<small>オフにすると、ギフト表のギフトの絵にコイン数を出さない</small></div><button id="optCoin" type="button"></button></div>
     <h3>画面にのせる文字と写真（スマホの縦画面）</h3>
     <p>文字はゲームのすぐ下（視聴者数の右）に、写真はコメントらんの右に小さく出ます。この端末にだけ保存されます。</p>
@@ -180,7 +180,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="tp" hidden>
     <h3>無料・1コイン（妨害になる）</h3>
-    <button class="j" data-a="comment">コメント<br>隕石（耐久 −1）</button><button class="j" data-a="like">いいね×1000<br>魔法使い 1体</button><button class="h" data-a="double">2倍タイム<br>5分間 なんでも2倍</button><button class="j" data-a="heartme">ハートミー<br>ドラゴン 火球3発</button><button class="j" data-a="follow">フォロー<br>隕石（耐久 −1）</button>
+    <button class="j" data-a="comment">コメント<br>ドラゴン（火球3発）</button><button class="j" data-a="like">いいね×1000<br>魔法使い 1体</button><button class="h" data-a="double">2倍タイム<br>5分間 なんでも2倍</button><button class="j" data-a="heartme">ハートミー<br>ドラゴン 火球3発</button><button class="j" data-a="follow">フォロー<br>隕石（耐久 −1）</button>
     <h3>お助け</h3>
     <button class="h" data-a="fuel">エネルギー補給<br>耐久・パワー全回復</button><button class="h" data-a="boost">ブースター<br>10秒 3倍速</button><button class="h" data-a="shield">天使の加護<br>攻撃を1回防ぐ（3回分まで）</button><button class="h" data-a="heart">ハート<br>耐久 ＋1</button><button class="h" data-a="bomb">カミナリ<br>敵を1体消す（ガーゴイル・ドラゴン・天狗・魔法使い・アンコウ）</button><button class="h" data-a="buddy">おとも<br>40秒 弾を3発まで受ける</button><button class="h" data-a="hero">勇者<br>WIN ＋50</button><button class="h" data-a="dome">バリアドーム<br>5秒 弾を1発防ぐ</button><button class="h" data-a="roulUp">ゴール−ルーレット<br>ゴールが 100〜1,000m 近づく</button><button class="h" data-a="fairy">妖精の粉<br>15秒 小さくなって当たりにくい</button><button class="h" data-a="pad">加速板<br>ふれると1.5秒 加速</button><button class="h" data-a="astro">宇宙飛行士<br>＋10,000m 引っぱる</button><button class="h" data-a="samurai">侍<br>敵と弾をすべて斬る＋全回復＋混乱解除</button><button class="h" data-a="stop">時間停止<br>10秒 敵と弾が止まる</button><button class="h" data-a="comet">彗星ライド<br>＋3,000m 運ぶ間は無敵</button><button class="h" data-a="phoenix">不死鳥<br>＋2000m 運ぶ間は無敵</button>
     <button class="h" data-a="save">セーブ（天使）<br>落ちてもここから</button><button class="h" data-a="crow">カラス<br>＋200m 運んでくれる</button><span></span>
@@ -190,7 +190,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <h3>音</h3>
     <button class="g" id="optBgm">BGM</button><button class="g" id="optSe">効果音</button><span></span>
     <h3>妨害</h3>
-    <button class="j" data-a="meteor">隕石<br>耐久 −1</button><button class="j" data-a="stall">エンジン停止<br>3秒 落ちていく</button>
+    <button class="j" data-a="meteor2">隕石<br>2発（耐久 −1ずつ）</button><button class="j" data-a="stall">エンジン停止<br>3秒 落ちていく</button>
     <button class="j" data-a="hole">ブラックホール<br>−1,000m</button><button class="j" data-a="crash">撃墜（機械クジラ）<br>飲みこまれて即ついらく＋セーブ消去</button><button class="j" data-a="dragonAtk">ドラゴン襲来<br>火球4発（当たれば耐久−1）</button>
     <!-- 減速板はいったんお休み（絵 img/pad_dn.webp と Game.slowpad は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="king">星喰いの王<br>即死の光の柱を5回</button><button class="j" data-a="vamp">吸血鬼<br>15秒 コウモリの嵐（連打で3体まで）</button><button class="j" data-a="unsave">セーブ解除（魔女）<br>セーブ地点を消す</button><button class="j" data-a="tengu">天狗<br>うちわの大風 3回（横に強く流される）</button><button class="j" data-a="maou">魔王<br>WIN −50</button><button class="j" data-a="kama">宇宙カマキリ<br>斬撃12発 上下左右から</button><button class="j" data-a="akuma">悪魔降臨<br>20秒 光る輪へ逃げる</button><button class="j" data-a="roulDown">ゴール＋ルーレット<br>ゴールが 100〜1,000m 遠ざかる</button><button class="j" data-a="jelly">クラゲの群れ<br>30秒 9匹がいすわる（連打で増える）</button><button class="j" data-a="storm">雷雲<br>落雷を8回（予告あり・1本はねらってくる）</button><button class="j" data-a="spike">トゲ鉄球<br>10秒 振り子（当たると耐久−1）</button><button class="j" data-a="blackout">チョウチンアンコウ<br>10秒 まっ暗（ライトの先だけ見える）</button><button class="j" data-a="ufo">UFO<br>15秒 操作が上下左右とも逆（必ず当たる）</button><button class="j" data-a="garg">ガーゴイル<br>しがみつかれると落ちていく（振り落とせる）</button><button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−2,000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法2発（耐久−1）</button>
     <h3>目標の高さ（変えると0からやり直し）</h3>
@@ -202,7 +202,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 <script>
 'use strict';
 /* ロケット「◯◯mまで飛ぶまで終われません」
-   ロケットは勝手に上がる。コメント＝隕石、いいね＝魔法使い、ハートミー＝ドラゴンで、無料の行動はぜんぶ妨害になる。
+   ロケットは勝手に上がる。コメントとフォロー＝ドラゴン、いいね＝魔法使いで、無料の行動はぜんぶ妨害になる。
    燃料が切れると墜落して0mからやり直し。目標の高さに届いたらクリア。配信者の操作はいらない。 */
 const W=1080, H=1700, cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -236,7 +236,7 @@ const KAMA={n:12,inT:.7,warn:.72,pre:.36,gap:.32,outT:.6,vx:[250,540,830],lanes:
   D:{R:{dx:-1,dy:0,rot:-Math.PI/2,sr:0},L:{dx:1,dy:0,rot:Math.PI/2,sr:Math.PI},D:{dx:0,dy:-1,rot:0,sr:Math.PI/2},U:{dx:0,dy:1,rot:Math.PI,sr:-Math.PI/2}}};
 img('kama','kama.webp'); img('kama_slash','kama_slash.webp'); img('kama_face','kama_face.jpg'); img('kama_arm','kama_arm.webp');
 /* 悪魔降臨：画面の奥に槍の羽の悪魔が浮かび、10秒のあいだ何度も槍を降らせる。毎回1か所だけ光る丸い輪（助かる場所）が出て、その外にいると耐久−1 */
-const AKU={T:20,maxT:80,hit:62,dmg:2,inT:1.3,gap:1.6,warn:.8,fly:.2,r:125,minX:120,maxX:960,minY:640,maxY:1000,far:520,near:230,cx:W/2,cy:500,w:760,len:340,ay:598,iw:325,ih:600,ang:Math.atan2(-598,324),cols:8,fw:640,fh:360,idle:19,pre:.45,atk:[25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46]};
+const AKU={hitK:.72,T:20,maxT:80,hit:62,dmg:2,inT:1.3,gap:1.6,warn:.8,fly:.2,r:125,minX:120,maxX:960,minY:640,maxY:1000,far:520,near:230,cx:W/2,cy:500,w:760,len:340,ay:598,iw:325,ih:600,ang:Math.atan2(-598,324),cols:8,fw:640,fh:360,idle:19,pre:.45,atk:[25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46]};
 img('aku','aku.webp'); img('aku_spear','aku_spear.webp'); img('aku_face','aku_face.jpg');
 const HERO={win:50,sub:100000,gain:10000,inT:.6,hit:1.6,life:3.6,outT:.6,rate:1.5,h:620,y:500,move:1.4};   /* 勇者：ゴールを近づける高さ、呪いが無いときに進む高さ、現れる秒数、剣を振り下ろす時刻、いる秒数、消える秒数、コマ送りの速さ、絵の高さと位置、進むのにかける秒数 */
 img('mcircle','mcircle.webp'); const moSh=mkSheet('maou',{n:48,cols:8,fw:400,fh:300,fps:10});   /* 正面向きの魔王の全身（腕を広げる→上げる→こぶしを握る） */
@@ -248,12 +248,16 @@ function jellyCv(i){ if(!jfSh.ok) return null; if(jfCv[i]) return jfCv[i]; if(i=
 const JELLY={n:9,maxN:36,get sec(){ return DIFFS[DIFF].jelly; },inT:1.3,outT:1.1,w:205,hx:66,hy:52,by:.3};   /* クラゲ：数、いすわる秒数、来る・帰る秒数、絵の横幅、傘の当たり幅と高さの半分、傘の中心が絵の上からどこか */
 for(const k of ['scloud','sbolt','sspark']) img(k,k+'.webp');
 const STORM={inT:.8,get vol(){ return DIFFS[DIFF].storm; },per:5,warn:1.0,zap:.38,gap:.5,hw:62,min:210,outT:.8,cy:150};   /* 雷雲：雲が広がる秒数、落とす回数、1回の本数、予告の秒数、光る秒数、次までの間、雷の当たり幅の半分、雷どうしの最小間かく、雲が消える秒数、雲の高さの位置 */
-const KING={inT:1.0,vol:5,per:3,warn:1.3,beam:.55,gap:.7,hw:74,min:230,outT:.9,cy:300,hh:60,minY:300,gx:360,gy:420,gridWarn:1.9};   /* 星喰いの王：出てくる秒数、降らせる回数、1回の本数、予告の秒数、柱が出ている秒数、次までの間、柱の半分の幅 */
+const KING={inT:1.0,vol:5,per:4,perY:3,warn:1.0,beam:.5,gap:.4,hw:74,min:230,outT:.9,cy:300,hh:60,minY:150,gx:360,gy:420,gridWarn:1.7,safeY:185};   /* 星喰いの王：出てくる秒数、降らせる回数、1回の本数、予告の秒数、柱が出ている秒数、次までの間、柱の半分の幅 */
 /* 王の1回ぶんの柱を決める。たて→よこ→たて→十字…とくり返し、最後の1回は格子（たて・よこ全部）。xs＝たての柱のx、ys＝よこの柱のy、wt＝予告の秒数 */
-function kingWave(d){ const pickY=(n,aim)=>{ const ys=aim?[clamp(RYw()+rand(-20,20),520,1140)]:[]; let k=0; while(ys.length<n && k++<200){ const y=rand(520,1140); if(ys.every(q=>Math.abs(q-y)>=KING.minY)) ys.push(y); } return ys; };
+function kingWave(d){
+  /* よこの柱：先に「必ず助かる高さ」sy を1つ決めて、そこから KING.safeY 以内には柱を置かない（どこにいても即死、にならないように）。aim なら1本はロケットの高さをねらう */
+  const pickY=(n,aim)=>{ const ry=RYw(), lo=RY+MOVE.up+20, hi=RY+MOVE.dn-20; let sy=rand(lo,hi), k=0; while(aim && Math.abs(sy-ry)<KING.safeY+30 && k++<60) sy=rand(lo,hi); if(aim && Math.abs(sy-ry)<KING.safeY+30) sy=ry>(lo+hi)/2?lo:hi;
+    const ys=aim?[clamp(ry+rand(-15,15),500,1160)]:[]; k=0; while(ys.length<n && k++<300){ const y=rand(500,1160); if(Math.abs(y-sy)>=KING.safeY && ys.every(q=>Math.abs(q-y)>=KING.minY)) ys.push(y); } return ys; };
   d.n=(d.n||0)+1; d.xs=[]; d.ys=[]; d.wt=KING.warn; d.grid=false;
   if(d.left<=1){ d.grid=true; d.wt=KING.gridWarn; const x0=XL+rand(40,KING.gx-40), y0=rand(420,420+KING.gy-10); for(let x=x0;x<XL+XW;x+=KING.gx) d.xs.push(x); for(let y=y0;y<H/K;y+=KING.gy) d.ys.push(y); return; }
-  const m=(d.n-1)%4; if(m===0 || m===2) d.xs=kingAim(); else if(m===1) d.ys=pickY(2,true); else { d.xs=kingAim().slice(0,2); d.ys=pickY(1,Math.random()<.5); } }
+  const m=(d.n-1)%4; if(m===0 || m===2) d.xs=kingAim(); else if(m===1) d.ys=pickY(KING.perY,true); else { d.xs=kingAim().slice(0,3); d.ys=pickY(2,Math.random()<.5); } }
+window.__kw=d=>kingWave(d);
 function kingAim(){ const xs=[clamp(RXw()+rand(-20,20),XL+90,XL+XW-90)]; let guard=0; while(xs.length<KING.per && guard++<200){ const x=rand(XL+90,XL+XW-90); if(xs.every(q=>Math.abs(q-x)>=KING.min)) xs.push(x); } return xs; }
 function stormAim(){ const xs=[clamp(RXw()+rand(-30,30),XL+90,XL+XW-90)]; let guard=0; while(xs.length<STORM.per && guard++<200){ const x=rand(XL+90,XL+XW-90); if(xs.every(q=>Math.abs(q-x)>=STORM.min)) xs.push(x); } return xs; }
 img('slash','slash.webp'); const samSh=mkSheet('sam',{n:40,cols:8,fw:480,fh:273,fps:12});   /* 正面向きの侍（コマ0＝振り抜いた姿、33あたりで刀を納めきる） */
@@ -390,13 +394,13 @@ function fx(k,x,y,dur,s){ S.fx.push({k,x:RXw()+(x-W/2)*RS,y:RYw()+(y-RY)*RS,t:0,
 function debris(x,y,n,pw){ for(let i=0;i<n;i++) S.parts.push({k:'deb',i:Math.floor(rand(0,6)),x:x+rand(-50,50),y:y+rand(-30,30),vx:rand(-1,1)*pw,vy:rand(-1.3,-.2)*pw,g:1500,t:rand(1,1.8),r:rand(50,105),rot:rand(0,6),vr:rand(-9,9)}); }
 function fmt(n){ return Math.floor(n).toLocaleString(); }
 const Game={
-  /* 無料の行動はぜんぶ妨害：コメント＝隕石（同じ人は20秒に1回、画面に3個まで）、フォロー＝隕石、いいね1000回＝魔法使い（画面に3体まで）、ハートミー＝ドラゴン */
-  comment(n){ if(S.mode!=='fly') return; const k=n||'?'; if(T-(FREE.last.get(k)??-99)<FREE.commentGap) return; if(S.items.filter(it=>it.k==='meteor'&&!it.hit).length>=FREE.meteorMax) return; FREE.last.set(k,T); if(FREE.last.size>3000) FREE.last.clear(); fx2(()=>this.meteor(n)); },
+  /* 無料の行動はぜんぶ妨害：コメント＝ドラゴン（同じ人は20秒に1回）、フォロー＝ドラゴン、いいね1000回＝魔法使い（画面に3体まで）、ハートミー＝ドラゴン */
+  comment(n){ if(S.mode!=='fly') return; const k=n||'?'; if(T-(FREE.last.get(k)??-99)<FREE.commentGap) return; if(S.drgs.length>=DIFFS[DIFF].stack) return; FREE.last.set(k,T); if(FREE.last.size>3000) FREE.last.clear(); fx2(()=>this.dragon3(n)); },
   like(c,n){ FREE.likes+=(c||1); if(S.mode!=='fly'){ FREE.likes=Math.min(FREE.likes,FREE.likePer); return; } while(FREE.likes>=FREE.likePer){ FREE.likes-=FREE.likePer; if(S.wizs.length<FREE.wizMax) fx2(()=>this.wizard(n||'いいね')); } },
   heartme(n){ this.dragonAtk(n,true); },
   blackout(n){ if(S.mode!=='fly') return; if(inv() || jamBlocked(n,'チョウチンアンコウ')) return; if(!(S.blk>0)){ S.blkT=0; play('bubble',.7); play('dark',.6); } if(!S.ang || S.ang.out) S.ang={t:0,x:W+330,y:330,a:.9}; cutOnce('angler',n); S.blk=Math.min(BLK.max,Math.max(0,S.blk||0)+BLK.sec); S.shake=Math.max(S.shake,.25); logAdd((n||'だれか')+' がチョウチンアンコウを呼んだ（'+BLK.sec+'秒 まっ暗）','#ff9aa8'); },
   angler(n){ this.blackout(n); },
-  follow(n){ if(S.mode!=='fly') return; if(S.items.filter(it=>it.k==='meteor'&&!it.hit).length>=FREE.meteorMax+2) return; fx2(()=>this.meteor(n)); },
+  follow(n){ if(S.mode!=='fly') return; if(S.drgs.length>=DIFFS[DIFF].stack) return; fx2(()=>this.dragon3(n)); },
   double(n){ if(S.mode!=='fly') return; logAdd((n||'だれか')+' が2倍タイムを始めた（'+Math.round(DBL.sec/60)+'分間 なんでも2倍）','#ffd23f'); const go=()=>{ dblT=Math.min(DBL.max,dblT+DBL.sec); dblFx=3.2; dblEnd=0; dblKeep(); S.flash=Math.max(S.flash,.7); S.shake=Math.max(S.shake,.5); play('levelup',.8); play('coins',.6); ring(W/2,RY,'#ffd23f',true); }; if(S.cine) go(); else startCine('double',go); },   /* フォロー＝隕石（コメントとちがって1人1回きりなので、間隔の制限はなし） */
   fuel(n){ if(S.mode!=='fly') return; S.pow=1; S.hp=SHIPS[S.ship].hp; S.tankT=0; S.flash=.3; logAdd((n||'だれか')+' がエネルギー補給（耐久とパワー全回復）','#5dffb0'); },
   boost(n){ if(S.mode!=='fly') return; S.boostT=QUIET?S.boostT+CFG.boostSec:CFG.boostSec; S.stallT=0; ring(W/2,RY+150,'#bff3ff'); banner('ブースター！','#5dffb0',n,'logo_boost'); logAdd((n||'だれか')+' がブースターに点火','#5dffb0'); },
@@ -405,6 +409,8 @@ const Game={
   unsave(n){ if(jamBlocked(n,'セーブ解除')) return; cutOnce('unsave',n); if(S.saveAlt>0){ S.saveFx={k:'witch',t:-.45,alt:S.saveAlt}; S.saveAlt=0; logAdd((n||'だれか')+' の魔女がセーブ地点を消した','#ff9aa8'); } else { S.saveFx={k:'witch',t:-.45,alt:0}; logAdd((n||'だれか')+' の魔女が来たけど、セーブ地点はなかった','#d9a8ff'); } },
   warp(n){ if(S.mode!=='fly') return; S.alt=Math.min(CFG.goal,S.alt+CFG.warp); S.flash=.35; fx('warp',W/2,RY,.9,1); banner('＋'+CFG.warp+'m','#5dffb0',n,CFG.warp===500?'logo_p500':''); logAdd((n||'だれか')+' がワープさせた','#5dffb0'); },
   leak(n){ if(jamBlocked(n,'パワーダウン')) return; S.pow=0; S.red=.4; S.shake=.4; S.zapT=.8; banner('パワーダウン','#ff3d5a',n); logAdd((n||'だれか')+' が応援パワーを0にした','#ff9aa8'); },
+  /* ギフトの隕石：2発。2発目は少し横にずらして、少しおくれて落ちる */
+  meteor2(n){ const c=()=>S.items.filter(it=>it.k==='meteor').length, n0=c(); this.meteor(n); const a=c()>n0?S.items[S.items.length-1]:null; const n1=c(); this.meteor(n); if(c()>n1){ const b=S.items[S.items.length-1]; if(a) b.x=clamp(a.x+(Math.random()<.5?-1:1)*rand(230,330),XL+120,XL+XW-120); b.wait+=.4; } },
   meteor(n){ if(jamBlocked(n,'隕石')) return; S.items.push({k:'meteor',x:clamp(RXw()+rand(-70,70),XL+120,XL+XW-120),y:-260,vx:0,vy:420,hit:false,by:n,wait:METEOR_WARN}); play('count',.3);   /* 落ちてくる前に METEOR_WARN 秒、落ちる場所を赤く知らせる */ logAdd((n||'だれか')+' が隕石を落とした（耐久−1）','#ff9aa8'); },
   stall(n){ if(jamBlocked(n,'エンジン停止')) return; S.stallT=QUIET?S.stallT+CFG.stallSec:CFG.stallSec; S.boostT=0; S.red=.5; cutOnce('stall',n); logAdd((n||'だれか')+' がエンジンを止めた','#ff9aa8'); },
   hole(n){ if(S.mode!=='fly') return; if(inv()){ jamBlocked(n,'ブラックホール'); return; } const go=()=>{ if(jamBlocked(n,'ブラックホール')) return; S.holeT=HOLE.T; S.holeEnd=false; S.holeDrop+=Math.min(S.alt,CFG.hole); S.shake=.6; S.flash=Math.max(S.flash,.25); banner('−'+fmt(CFG.hole)+'m','#c58bff',n,CFG.hole===500?'logo_m500':''); logAdd((n||'だれか')+' がブラックホールで引きずり下ろした','#ff9aa8');  }; if(S.cine) go(); else startCine('hole',go); },
@@ -938,7 +944,7 @@ function update(dt){ if(S.cine){ const c=S.cine; c.t+=dt; if(c.t>=c.dur){ try{ c
       else if(d.st==='fire'){ d.left-=dt; if(!d.hitDone && d.pt>=AKU.fly+.2){ d.hitDone=true; S.shake=Math.max(S.shake,.6); play('aku_land',.8); play('don',.6); if(!d.waveHit) logAdd('槍の雨をよけた！','#5dffb0'); }
         if(d.pt>=AKU.gap-AKU.warn){ if(d.left>0) wave(); else { d.st='out'; d.pt=0; logAdd('悪魔が帰っていった','#fff'); } } }
       else if(d.st==='out'){ if(d.pt>=.8) S.aku=null; } } }
-  if(S.akuFl && S.akuFl.length){ for(const f of S.akuFl){ f.t+=dt; if(!f.done && f.t>=AKU.fly){ f.done=true; if(S.mode==='fly' && !inv() && S.aku && !S.aku.waveHit && Math.hypot(Math.max(0,Math.abs(RXw()-f.tx)-HITB.x),Math.max(0,Math.abs(RYw()-f.ty)-HITB.y))<AKU.r){ S.aku.waveHit=true;   /* 黄色い丸（半径 AKU.r）にロケットが少しでもかかっていたら当たり */ play('aku_hit',.9); play('hit',.7); S.shake=Math.max(S.shake,.8); S.rings.push({x:f.tx,y:f.ty,c:'#ff5c5c',t:0,big:true}); logAdd('悪魔の槍が当たった（耐久−'+AKU.dmg+'）','#ff5c5c'); for(let i=0;i<AKU.dmg && S.mode==='fly';i++) damage(S.aku.by); } } } S.akuFl=S.akuFl.filter(f=>f.t<AKU.fly*2.6); }
+  if(S.akuFl && S.akuFl.length){ for(const f of S.akuFl){ f.t+=dt; if(!f.done && f.t>=AKU.fly){ f.done=true; if(S.mode==='fly' && !inv() && S.aku && !S.aku.waveHit && Math.hypot(Math.max(0,Math.abs(RXw()-f.tx)-HITB.x*.5),Math.max(0,Math.abs(RYw()-f.ty)-HITB.y*.5))<AKU.r*AKU.hitK){ S.aku.waveHit=true;   /* ロケットの体の内側半分が、黄色い丸の内側 AKU.hitK 倍に入っていたら当たり（かすっただけなら外れ） */ play('aku_hit',.9); play('hit',.7); S.shake=Math.max(S.shake,.8); S.rings.push({x:f.tx,y:f.ty,c:'#ff5c5c',t:0,big:true}); logAdd('悪魔の槍が当たった（耐久−'+AKU.dmg+'）','#ff5c5c'); for(let i=0;i<AKU.dmg && S.mode==='fly';i++) damage(S.aku.by); } } } S.akuFl=S.akuFl.filter(f=>f.t<AKU.fly*2.6); }
   if(S.maou && S.maou.seed===undefined){ const d=S.maou; let best=0, bg=-1; for(let k=0;k<40;k++){ d.seed=1+Math.floor(Math.random()*900); const xs=[-9999]; for(let i=0;i<10;i++) xs.push(maouBoltX(i)); xs.push(9999); xs.sort((a,b)=>a-b); let gap=0; for(let i=0;i<xs.length-1;i++){ const lo=Math.max(xs[i],W/2-MOVE.x-MAOU.boltR), hi=Math.min(xs[i+1],W/2+MOVE.x+MAOU.boltR); gap=Math.max(gap,hi-lo); } if(gap>bg){ bg=gap; best=d.seed; } if(gap>=MAOU.boltR*2+190) break; } d.seed=best; }
   if(S.maou && S.maou.done && S.mode==='fly'){ const d=S.maou, bh=d.bh||(d.bh=[]); for(let i=0;i<10;i++){ if(bh[i] || d.t<maouBoltT(i)) continue; bh[i]=true; if(!inv() && Math.abs(RXw()-maouBoltX(i))<MAOU.boltR){ S.hp=0; S.flash=Math.max(S.flash,.7); play('kaminari',.9); logAdd('魔王のカミナリが直撃！ 一発で墜落','#ff5c5c'); startFall(); break; } } }
   if(S.maou){ const d=S.maou; d.t+=dt; if(d.t<MAOU.hit) S.shake=Math.max(S.shake,.05+.2*d.t/MAOU.hit); if(!d.done && d.t>=MAOU.hit){ d.done=true; if(S.mode==='fly'){ wins-=MAOU.win; save(); S.winPop={d:-MAOU.win,t:0}; S.shake=1; S.flash=Math.max(S.flash,.5); S.red=1; play('glass',.6); logAdd('魔王の呪い：WIN −'+MAOU.win+'（いま '+wins+'）','#ff5c5c'); } } if(d.t>=MAOU.life+MAOU.outT || (S.mode!=='fly' && d.t<MAOU.hit)){ S.maou=null; if(S.maouQ>0 && S.mode==='fly'){ S.maouQ--; S.maou={t:.4,by:d.by,done:false}; } } }
@@ -1189,7 +1195,7 @@ function draw(){ if(S.cine){ drawCine(); return; }
   /* ====== 下のログ ====== */
   g.fillStyle='rgba(8,14,34,.9)'; g.fillRect(0,930,W,150); g.fillStyle='#2c4a86'; g.fillRect(0,930,W,5);
   S.log.slice(-2).forEach((l,i)=>{ g.font='900 30px '+FONT; let s2=l.text; while(g.measureText(s2).width>W-60 && s2.length>4) s2=s2.slice(0,-2); txt(s2,30,966+i*44,30,l.color,'left'); });
-  txt('コメントで隕石　いいねで魔法使い　ハートミーでドラゴン',W/2,1058,24,'#ffd23f','center'); drawDbl(); }
+  txt('コメント・フォローでドラゴン　いいねで魔法使い',W/2,1058,24,'#ffd23f','center'); drawDbl(); }
 /* 2倍タイムの見た目：金色のふち、残り時間、始まりの大きな「×2」、2倍が効いたときの小さな「×2」、終わりの知らせ */
 img('moon2','moon2.webp');
 /* ゲーム画面に出る「2つの金の月」：2倍タイムの間、空（敵よりうしろ）に浮かぶ。始まりは1つの月が左右に分かれる。絵（img/moon2.webp）があればそれを使い、無ければ丸で描く */
@@ -1229,7 +1235,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ update(dt); } draw(); } requestAnimationFrame(loop); }
-const VER='1127-024450'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1127-133437'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1258,7 +1264,7 @@ const FX_LIST=[
  ['double','help','2倍タイム','5分間 なんでも2倍',n=>Game.double(n)],
  ['dragonAtk','jam','ドラゴン襲来','火球4発（当たれば耐久−1）',n=>Game.dragonAtk(n)],
  ['dragon3','jam','ドラゴン（火球3発）','火球3発（当たれば耐久−1）',n=>Game.dragon3(n)],
- ['meteor','jam','隕石','耐久 −1',n=>Game.meteor(n)],
+ ['meteor','jam','隕石','2発落ちてくる（当たれば耐久 −1ずつ）',n=>Game.meteor2(n)],
  ['bird','jam','小鳥','当たると一瞬おそくなる',n=>Game.bird(n)],
  ['wizard','jam','魔法使い','追ってくる魔法2発',n=>Game.wizard(n)],
  ['stall','jam','エンジン停止','3秒 落ちていく',n=>Game.stall(n)],
@@ -1272,7 +1278,7 @@ const FX_LIST=[
  ['hole','jam','ブラックホール','−1,000m',n=>Game.hole(n)],
  ['jelly','jam','クラゲの群れ','30秒 9匹がいすわる',n=>Game.jelly(n)],
  ['storm','jam','雷雲','落雷を8回',n=>Game.storm(n)],
- ['king','jam','星喰いの王','当たると即死の光の柱を5回（たて・よこ、最後は格子）',n=>Game.king(n)],
+ ['king','jam','星喰いの王','当たると即死の光の柱を5回（たて4本・よこ3本・十字、最後は格子）',n=>Game.king(n)],
  ['vamp','jam','吸血鬼','15秒 コウモリの嵐',n=>Game.vamp(n)],
  ['ice','jam','氷の怪鳥','凍って−2,000m＋30秒 速さ半分',n=>Game.ice(n)],
  ['crash','jam','機械クジラ','飲みこまれて即ついらく＋セーブ消去',n=>Game.crash(n)],
