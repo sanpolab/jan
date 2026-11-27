@@ -12,7 +12,7 @@
 html.one,html.one body{overflow:hidden}
 html,body{background:transparent;font-family:MPR,'Hiragino Maru Gothic ProN','Noto Sans JP','Noto Sans CJK JP',sans-serif;color:#fff}
 html.setup,body.setup{overflow:visible;height:auto;min-height:100%;touch-action:auto}
-body.setup{background:#12131a;-webkit-text-size-adjust:100%}
+body.setup{background:#0a0a0c;-webkit-text-size-adjust:100%}
 .host{position:relative;overflow:hidden}
 .wg{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none}
 .pop{font-family:Dela,MPR,sans-serif}
@@ -77,7 +77,7 @@ body.setup{background:#12131a;-webkit-text-size-adjust:100%}
 .tlab .tn{font:700 54px/1.1 Georgia,'Times New Roman',serif;color:#fff3c4}
 .tlab .tn small{font-size:24px;color:#e6cf8f;font-family:inherit}
 .tower.done .tn .a{color:#ffd86b;text-shadow:0 0 20px #ffd86b}
-.pg textarea{width:100%;min-height:64px;font:15px MPR,sans-serif;padding:8px;border-radius:10px;border:1px solid #555a7a;background:#2b2e45;color:#fff;margin:4px 0 8px}
+.pg textarea{width:100%;min-height:64px;font:14px/1.7 'Noto Sans JP',sans-serif;padding:10px;border-radius:0;border:1px solid rgba(200,169,106,.35);background:#101013;color:#f2ede2;margin:6px 0 8px}
 /* 黒金の着せ替え */
 .luxe .panel{background:linear-gradient(180deg,rgba(26,21,14,.96),rgba(8,7,6,.96));border:2px solid #d9b866;border-radius:14px;box-shadow:0 0 0 5px rgba(8,7,6,.9),0 0 0 6px #8a6d2f,0 8px 20px rgba(0,0,0,.5)}
 .luxe .pop{font-family:Georgia,'Times New Roman','Hiragino Mincho ProN','Yu Mincho','Noto Serif JP','Noto Serif CJK JP',serif;font-weight:700}
@@ -340,21 +340,41 @@ body.setup{background:#12131a;-webkit-text-size-adjust:100%}
 .goals .gb{height:16px;margin-top:12px;border-radius:8px;background:#2a2419;border:1px solid #8a6d2f;overflow:hidden}
 .goals .gb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#b8862b,#ffe08a);transition:width .6s}
 .goals .gr.done .gx{color:#ffe08a;text-shadow:0 0 14px rgba(255,216,107,.8)}.goals .gr.done .gn{color:#fff;letter-spacing:4px}
-/* せつめいページ */
-.pg{max-width:760px;margin:0 auto;padding:18px 14px 80px}
-.pg h1{font:400 30px Dela,MPR,sans-serif;margin:6px 0 4px}
-.pg h2{font:400 22px Dela,MPR,sans-serif;margin:30px 0 10px;color:#ffd84a}
-.pg p,.pg li{font-size:15px;line-height:1.8;color:#d5d8e6}
+/* せつめいページ（黒と金の落ちついた見た目） */
+.pg{max-width:780px;margin:0 auto;padding:0 18px 110px;font-family:'Noto Sans JP','Hiragino Sans','Yu Gothic',sans-serif;color:#f2ede2}
+.hero{text-align:center;padding:54px 0 30px;border-bottom:1px solid rgba(200,169,106,.28);margin-bottom:8px;position:relative}
+.hero::before{content:'';position:absolute;left:50%;top:22px;width:1px;height:22px;background:linear-gradient(#c8a96a,transparent)}
+.eyeb{font:500 12px Cinzel,'Cormorant Garamond',Georgia,serif;letter-spacing:.42em;color:#c8a96a;text-transform:uppercase}
+.pg h1{font:500 34px/1.5 'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;letter-spacing:.14em;margin:14px 0 12px;color:#f2ede2}
+.hero p{font-size:14px;line-height:2;color:#b9b2a3;max-width:30em;margin:0 auto}
+.stat{display:flex;justify-content:center;gap:34px;margin-top:22px}
+.stat div{font:500 12px Cinzel,Georgia,serif;letter-spacing:.3em;color:#8f8777}
+.stat b{display:block;font:500 40px/1 'Cormorant Garamond',Georgia,serif;letter-spacing:.04em;color:#e6d3a3;margin-bottom:6px}
+.nav{position:sticky;top:0;z-index:20;margin:0 -18px;padding:10px 18px;background:linear-gradient(rgba(10,10,12,.97),rgba(10,10,12,.9));border-bottom:1px solid rgba(200,169,106,.22);display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{flex:none;font:500 12.5px 'Noto Sans JP',sans-serif;color:#d8cdb4;text-decoration:none;border:1px solid rgba(200,169,106,.4);padding:6px 13px;letter-spacing:.06em;white-space:nowrap}
+.nav a:active{background:#c8a96a;color:#0a0a0c}
+.pg h2{font:500 21px 'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;letter-spacing:.16em;color:#e6d3a3;margin:54px 0 14px;padding-bottom:12px;border-bottom:1px solid rgba(200,169,106,.28)}
+.pg p,.pg li{font-size:14px;line-height:2;color:#c9c2b3}
 .pg ol{padding-left:22px}
-.card{background:#1b1d2a;border:1px solid #33364d;border-radius:16px;padding:14px;margin:14px 0}
-.card h3{font:400 19px Dela,MPR,sans-serif;margin-bottom:8px}
-.pv{background:repeating-conic-gradient(#2a2c3c 0 25%,#232534 0 50%) 0 0/24px 24px;border-radius:12px;margin:8px 0;display:flex;justify-content:center;padding:8px}
-.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-.btns button,.pg select,.pg input{font:700 15px MPR,sans-serif;padding:9px 12px;border-radius:10px;border:1px solid #555a7a;background:#2b2e45;color:#fff}
-.pg input{width:100%;margin:5px 0}
-.url{display:flex;gap:8px;align-items:center;margin-top:6px}
-.url code{flex:1;font:13px ui-monospace,monospace;background:#0e0f17;border-radius:8px;padding:9px;overflow:auto;white-space:nowrap;color:#9fe3ff}
-.sz{font-size:13px;color:#9aa}
+.pg b{color:#e6d3a3;font-weight:500}
+.card{background:linear-gradient(180deg,#141417,#0e0e11);border:1px solid rgba(200,169,106,.24);border-top:1px solid #c8a96a;padding:22px 18px 18px;margin:22px 0;scroll-margin-top:62px;position:relative}
+.card .no{font:500 11px Cinzel,Georgia,serif;letter-spacing:.38em;color:#c8a96a;margin-bottom:6px}
+.card h3{font:500 22px 'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;letter-spacing:.12em;margin-bottom:10px;color:#f2ede2}
+.pv{background:repeating-conic-gradient(#1b1b20 0 25%,#151519 0 50%) 0 0/22px 22px;border:1px solid rgba(200,169,106,.18);margin:14px 0 10px;display:flex;justify-content:center;padding:12px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.btns button,.pg select,.pg input,.url button{font:500 13.5px 'Noto Sans JP',sans-serif;padding:10px 14px;border-radius:0;border:1px solid rgba(200,169,106,.55);background:transparent;color:#e6d3a3;letter-spacing:.06em;-webkit-appearance:none;appearance:none}
+.btns button:active,.url button:active{background:#c8a96a;color:#0a0a0c}
+.pg select{background:#101013 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23c8a96a'/%3E%3C/svg%3E") right 12px center no-repeat;padding-right:30px;max-width:100%}
+.pg input{width:100%;margin:6px 0;background:#101013;color:#f2ede2;border-color:rgba(200,169,106,.35)}
+.pg input[type=checkbox]{width:18px;height:18px;padding:0;vertical-align:-4px;margin-right:6px;-webkit-appearance:auto;appearance:auto;accent-color:#c8a96a}
+.pg input::placeholder,.pg textarea::placeholder{color:#6f685b}
+.pg label.sz{display:block}
+.url{display:flex;gap:0;align-items:stretch;margin-top:10px}
+.url code{flex:1;font:12.5px ui-monospace,Menlo,monospace;background:#08080a;border:1px solid rgba(200,169,106,.3);border-right:0;padding:11px 10px;overflow:auto;white-space:nowrap;color:#d8cdb4}
+.url button{background:#c8a96a;color:#0a0a0c;border-color:#c8a96a;font-weight:700;flex:none}
+.sz{font-size:12.5px;color:#8f8777;line-height:1.9}
+.foot{text-align:center;margin-top:60px;padding-top:26px;border-top:1px solid rgba(200,169,106,.28);font:500 11px Cinzel,Georgia,serif;letter-spacing:.4em;color:#8f8777}
 </style>
 </head>
 <body>
@@ -805,12 +825,13 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
     ['thanks','ありがとうテロップ','?w=thanks','1920 × 96','ギフトをくれた人の名前とギフトが、金の帯で右から左へ流れます。来ていない時は帯ごと消えます。「&min=10」で10コイン以上だけ、「&msg=感謝！」で最後の言葉を変えられます。'],
     ['goals','目標ボード','?w=goals','640 × 396','「◯コインで△△する」という約束を3つまで並べます。コインの合計がたまると金のバーがのびて、届いたら「達成！」になります。下で中身を書きかえると、アドレスが変わります。'],
     ['jar','ギフトのびん','?w=jar','720 × 800','ギフトが来るたびに、そのギフトがびんの中に落ちてたまっていきます。いっぱいになると、口からあふれて外へこぼれ落ちます。']];
-  let h='<div class="pg"><h1>配信オーバーレイ</h1><p>配信画面に重ねて出す部品です。下の見本は、にせもののデータで動いています。</p><div class="card"><h3>見た目</h3><p>見た目を5つから選べます（ポップは、WINカウンター・ランキング・時間だけ。目標ボード・図鑑・コンボ・テロップ・フォロー・入室あいさつは、ポップを選ぶと黒と金になります）。会員証・ガチャ・びん・VIPコール・コメントは、それぞれの所で選びます。</p><div class="btns"><select id="thsel"><option value="">ポップ</option><option value="gold">黒と金（高級）</option><option value="yume">ゆめかわ（パステル）</option><option value="neon">ネオン（光る線）</option><option value="wa">和風（和紙と朱色）</option></select></div></div>';
-  for(const [id,ttl,q,sz,desc] of C){ h+='<div class="card"><h3>'+ttl+'</h3><p>'+desc+'</p>'+(id==='jar'?'<div class="btns"><select id="jsel"><option value="">ふつうのびん</option><option value="heart">ハート</option><option value="whale">クジラ</option><option value="cat">ねこ</option><option value="potion">魔法のびん</option><option value="perfume">クリスタルの香水びん</option><option value="chest">金の宝箱</option><option value="yume">ゆめかわのびん</option><option value="neon">ネオンのカプセル</option><option value="wa">和風の金魚ばち</option></select><select id="jsize"><option value="70">ギフト小さめ</option><option value="100" selected>ギフトふつう</option><option value="130">ギフト大きめ</option><option value="170">ギフト特大</option></select><select id="jover"><option value="">いっぱいになったら、あふれる</option><option value="0">あふれず、古いのから消える</option></select></div>':'')+(id==='time'?'<div class="btns"><select id="tmode"><option value="clock">いまの時間</option><option value="up">配信時間</option><option value="down">耐久タイマー</option></select></div>':'')+'<div class="pv"><div class="host" id="pv_'+id+'"></div></div><div class="btns" id="bt_'+id+'"></div><div class="url"><code id="u_'+id+'">'+esc(base+q)+'</code><button data-copy="u_'+id+'">コピー</button></div><p class="sz">OBSのブラウザソースの大きさ：<span id="sz_'+id+'">'+sz+'</span></p></div>'; }
+  { const l=document.createElement('link'); l.rel='stylesheet'; l.href='https://fonts.googleapis.com/css2?family=Cinzel:wght@500&family=Cormorant+Garamond:wght@500&family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap'; document.head.appendChild(l); }
+  let h='<div class="pg"><div class="hero"><div class="eyeb">Overlay Collection</div><h1>配信オーバーレイ</h1><p>配信画面に重ねて出す部品のコレクションです。<br>下の見本は、にせもののデータで動いています。</p><div class="stat"><div><b>'+C.length+'</b>PARTS</div><div><b>4</b>SERIES</div></div></div><div class="nav">'+C.map(c=>'<a href="#c_'+c[0]+'">'+c[1].replace(/（.*）/,'')+'</a>').join('')+'</div><div class="card"><div class="no">SERIES</div><h3>見た目</h3><p>見た目を5つから選べます（ポップは、WINカウンター・ランキング・時間だけ。目標ボード・図鑑・コンボ・テロップ・フォロー・入室あいさつは、ポップを選ぶと黒と金になります）。会員証・ガチャ・びん・VIPコール・コメントは、それぞれの所で選びます。</p><div class="btns"><select id="thsel"><option value="">ポップ</option><option value="gold">黒と金（高級）</option><option value="yume">ゆめかわ（パステル）</option><option value="neon">ネオン（光る線）</option><option value="wa">和風（和紙と朱色）</option></select></div></div>';
+  let cno=0; for(const [id,ttl,q,sz,desc] of C){ h+='<div class="card" id="c_'+id+'"><div class="no">No.'+String(++cno).padStart(2,'0')+'</div><h3>'+ttl+'</h3><p>'+desc+'</p>'+(id==='jar'?'<div class="btns"><select id="jsel"><option value="">ふつうのびん</option><option value="heart">ハート</option><option value="whale">クジラ</option><option value="cat">ねこ</option><option value="potion">魔法のびん</option><option value="perfume">クリスタルの香水びん</option><option value="chest">金の宝箱</option><option value="yume">ゆめかわのびん</option><option value="neon">ネオンのカプセル</option><option value="wa">和風の金魚ばち</option></select><select id="jsize"><option value="70">ギフト小さめ</option><option value="100" selected>ギフトふつう</option><option value="130">ギフト大きめ</option><option value="170">ギフト特大</option></select><select id="jover"><option value="">いっぱいになったら、あふれる</option><option value="0">あふれず、古いのから消える</option></select></div>':'')+(id==='time'?'<div class="btns"><select id="tmode"><option value="clock">いまの時間</option><option value="up">配信時間</option><option value="down">耐久タイマー</option></select></div>':'')+'<div class="pv"><div class="host" id="pv_'+id+'"></div></div><div class="btns" id="bt_'+id+'"></div><div class="url"><code id="u_'+id+'">'+esc(base+q)+'</code><button data-copy="u_'+id+'">コピー</button></div><p class="sz">OBSのブラウザソースの大きさ：<span id="sz_'+id+'">'+sz+'</span></p></div>'; }
   h+='<h2>音について</h2><p>ガチャ・ルーレット・VIPコール・シャンパンタワー・いいねゲージ・目標ボード・花火は、音が鳴ります。消したい時は、アドレスの最後に「&sound=0」を足してください。OBSでは、ブラウザソースの設定で「OBSで音声を制御する」に印を付けると、配信に音がのります。</p><h2>OBSへの入れ方</h2><ol><li>OBSの「ソース」の ＋ →「ブラウザ」を選ぶ</li><li>URLに、上の部品のアドレスをはりつける</li><li>幅と高さに、部品の下に書いてある大きさを入れる</li><li>あとは画面の上で好きな場所に動かして、大きさを変えるだけ（背景はすきとおっています）</li></ol>'
     +'<h2>つなぎ先</h2><p>なにもしなければ、同じパソコンで動いている TikFinity（アプリ版）から受け取ります。tik.tools を使う時だけ、下に入れてください。<br>※ キーはこのブラウザの中にだけ保存されます。OBSで使う時は、このページをOBSのブラウザソースで開き、右クリック→「対話」でここに入れてください（入れ終わったら、そのソースは消して大丈夫です）。<b>配信にキーが映らないよう、入れる時は配信を止めておいてください。</b></p>'
     +'<div class="card"><label><input type="checkbox" id="clOn" style="width:auto"> tik.tools を使う</label><input id="clUser" placeholder="TikTokのユーザー名（@のあとの英数字）" autocapitalize="off" autocomplete="off" spellcheck="false"><input id="clKey" type="password" placeholder="tik.tools のAPIキー" autocapitalize="off" autocomplete="off" spellcheck="false"><div class="btns"><button id="clSave">保存する</button><span id="clMsg" class="sz"></span></div></div>'
-    +'<h2>まとめてリセット</h2><div class="btns"><button data-rs="like">いいねランキング</button><button data-rs="gift">ギフトランキング</button><button data-rs="jar">びんの中身</button><button data-rs="tower">シャンパンタワー</button><button data-rs="goals">目標ボード</button><button data-rs="king">王座</button><button data-rs="combo">コンボの最高記録</button><button data-rs="zukan">ギフト図鑑</button><button data-rs="heart">いいねゲージ</button></div></div>';
+    +'<h2>まとめてリセット</h2><div class="btns"><button data-rs="like">いいねランキング</button><button data-rs="gift">ギフトランキング</button><button data-rs="jar">びんの中身</button><button data-rs="tower">シャンパンタワー</button><button data-rs="goals">目標ボード</button><button data-rs="king">王座</button><button data-rs="combo">コンボの最高記録</button><button data-rs="zukan">ギフト図鑑</button><button data-rs="heart">いいねゲージ</button></div><div class="foot">Overlay Collection</div></div>';
   document.getElementById('app').innerHTML=h;
   const pvW=()=>Math.min(document.querySelector('.pv').clientWidth-16,460);
   place(document.getElementById('pv_win'),'win',{},pvW).classList.add('show');
@@ -826,7 +847,7 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
       document.getElementById('u_chat').textContent=base+'?w=chat'+(st?'&style='+st:'')+(fo?'&font='+fo:'')+(co?'&color='+co:'')+(fs!=='100'?'&fs='+fs:''); document.getElementById('sz_chat').textContent=st==='nico'?'1920 × 1080（画面いっぱい。上のほうだけに流したい時は、高さを小さくする）':'640 × 572'; }; for(const id of ['chSt','chFo','chCo','chFs']) document.getElementById(id).onchange=chm; chm();
     document.getElementById('bt_follow').innerHTML='<button id="tFo">フォローをためす</button>'; document.getElementById('tFo').onclick=()=>{ const nm=DEMO_N[Math.floor(Math.random()*DEMO_N.length)]; fire({event:'follow',data:{nickname:nm,uniqueId:'demo_f'+(++fn)}}); };
     document.getElementById('bt_welcome').innerHTML='<button data-wl="2,7,15">ゴールド会員が来た</button><button data-wl="3,3,52">ブラック会員が来た</button><button data-wl="1,12,6">シルバー会員が来た</button>'; document.getElementById('bt_welcome').addEventListener('click',e=>{ const b=e.target.closest('[data-wl]'); if(b){ const p=b.dataset.wl.split(',').map(Number), nm=DEMO_N[Math.floor(Math.random()*DEMO_N.length)]; sendCmd({cmd:'welcome',uid:'demo_w'+p[0],name:nm,rec:{no:p[1],v:p[2]}}); } }); }
-  { document.getElementById('bt_card').innerHTML='<select id="cdSkin"><option value="">黒と金（金属カード）</option><option value="wa">和風</option><option value="yume">ゆめかわ</option><option value="neon">ネオン</option></select><div style="width:100%"></div><button data-cd="レオ">初来店〜ブロンズ</button><button data-cd="みけ">5回目（シルバーに昇格）</button><button data-cd="ぽんた">15回目（ゴールドに昇格）</button><button data-cd="たぬ吉">30回目（ブラックに昇格）</button><button data-cd="ゆきんこ">ブラック会員</button><div style="width:100%"></div><label class="sz" style="width:100%">出席にするギフトの名前（「*」でどのギフトでも）<input id="cdGift" value="ハートミー"></label><label class="sz" style="width:100%"><input type="checkbox" id="cdChat" style="width:auto"> ギフトではなく、コメントしたら出席にする</label><button id="cdDel" style="background:#5a1f26">会員の記録を全部消す</button><span id="cdMsg" class="sz"></span>';
+  { document.getElementById('bt_card').innerHTML='<select id="cdSkin"><option value="">黒と金（金属カード）</option><option value="wa">和風</option><option value="yume">ゆめかわ</option><option value="neon">ネオン</option></select><div style="width:100%"></div><button data-cd="レオ">初来店〜ブロンズ</button><button data-cd="みけ">5回目（シルバーに昇格）</button><button data-cd="ぽんた">15回目（ゴールドに昇格）</button><button data-cd="たぬ吉">30回目（ブラックに昇格）</button><button data-cd="ゆきんこ">ブラック会員</button><div style="width:100%"></div><label class="sz" style="width:100%">出席にするギフトの名前（「*」でどのギフトでも）<input id="cdGift" value="ハートミー"></label><label class="sz" style="width:100%"><input type="checkbox" id="cdChat" style="width:auto"> ギフトではなく、コメントしたら出席にする</label><button id="cdDel" style="border-color:#a8434c;color:#e08a92">会員の記録を全部消す</button><span id="cdMsg" class="sz"></span>';
     let cdN=0; document.getElementById('bt_card').addEventListener('click',e=>{ const b=e.target.closest('[data-cd]'); if(b){ const nm=b.dataset.cd; sendCmd({cmd:'card',name:nm==='レオ'?'おきゃく'+(++cdN):nm,uid:nm==='レオ'?'test_new'+cdN:'test_'+nm}); } });
     let cdb=null; const cu=()=>{ const v=document.getElementById('cdGift').value.trim(), ch=document.getElementById('cdChat').checked, sk=document.getElementById('cdSkin').value; document.getElementById('u_card').textContent=base+'?w=card'+(sk?'&skin='+sk:'')+(ch?'&chat=1':(v&&v!=='ハートミー'?'&gift='+encodeURIComponent(v):'')); const uw=document.getElementById('u_welcome'); if(uw) uw.textContent=base+'?w=welcome'+(sk?'&skin='+sk:'')+thq(); };
     const cdm=()=>{ const hst=document.getElementById('pv_card'); if(cdb&&cdb.__kill) cdb.__kill(); hst.innerHTML=''; cdb=place(hst,'card',{demo:true,snd:true,gift:'__none__',skin:document.getElementById('cdSkin').value},()=>Math.min(pvW(),420)); cu(); }; cdm(); document.getElementById('cdSkin').onchange=cdm; document.getElementById('cdGift').oninput=cu; document.getElementById('cdChat').onchange=cu;
