@@ -53,9 +53,8 @@ body.setup{overflow:auto;background:#12131a;-webkit-text-size-adjust:100%}
 .time .add.go{animation:rise 1.4s}
 @keyframes rise{0%{opacity:0;transform:translateY(20px)}20%{opacity:1}100%{opacity:0;transform:translateY(-40px)}}
 /* びん */
-.jar{width:540px;height:760px}
-.jar canvas{position:absolute;left:0;top:0;width:540px;height:760px}
-.jar .cnt{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:40px}
+.jar canvas{position:absolute;left:0;top:0}
+.jar .cnt{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:40px}
 .jar .cnt small{font:800 24px MPR,sans-serif;margin-left:6px}
 /* せつめいページ */
 .pg{max-width:760px;margin:0 auto;padding:18px 14px 80px}
@@ -76,6 +75,7 @@ body.setup{overflow:auto;background:#12131a;-webkit-text-size-adjust:100%}
 </head>
 <body>
 <div id="app"></div>
+<script src="jars.js"></script>
 <script>
 'use strict';
 const Q=new URLSearchParams(location.search), W=Q.get('w');
@@ -168,18 +168,22 @@ function mountTime(box,o){ const mode=o.mode||'clock'; box.classList.add('time')
   tick(); setInterval(tick,250); return {w:640,h:220}; }
 
 /* ===== ギフトのびん ===== */
-function mountJar(box,o){ box.classList.add('jar'); box.innerHTML='<canvas width="1080" height="1520"></canvas><div class="cnt pop ol"><span>0</span><small>こ</small></div>';
+function mountJar(box,o){ const SK=(window.JARS||{})[o.jar]||null, CW=SK?SK.w:540, CH=SK?SK.h:700, BH=CH+60; let dead=false; box.__kill=()=>{ dead=true; };
+  box.classList.add('jar'); box.style.width=CW+'px'; box.style.height=BH+'px'; box.innerHTML='<canvas width="'+CW*2+'" height="'+CH*2+'" style="width:'+CW+'px;height:'+CH+'px"></canvas><div class="cnt pop ol"><span>0</span><small>こ</small></div>';
   const cv=box.querySelector('canvas'), g=cv.getContext('2d'), cnt=box.querySelector('.cnt span'); g.scale(2,2);
-  const XL=78,XR=462,FL=664,NL=140,NR=400,NY=178,TOP=96; let P=[], total=0, queue=[], imgs={};
+  const XL=78,XR=462,FL=664,NL=SK?SK.x0:140,NR=SK?SK.x1:400,NY=178,TOP=SK?SK.my:96, WALL=SK?(o.jar==='whale'?9:11):0; let P=[], total=0, queue=[], imgs={};
+  let DF=null, skin=null; if(SK){ const b=atob(SK.df); DF=new Float32Array(b.length); for(let i=0;i<b.length;i++) DF[i]=(b.charCodeAt(i)-128)*2; skin=new Image(); skin.onload=()=>skin.ok=true; skin.src=SK.img; }
+  const dfAt=(x,y)=>{ const c=SK.cell, fx=Math.max(0,Math.min(SK.gw-1.001,x/c-.5)), fy=Math.max(0,Math.min(SK.gh-1.001,y/c-.5)), ix=fx|0, iy=fy|0, tx=fx-ix, ty=fy-iy, i=iy*SK.gw+ix; return (DF[i]*(1-tx)+DF[i+1]*tx)*(1-ty)+(DF[i+SK.gw]*(1-tx)+DF[i+SK.gw+1]*tx)*ty; };
+  const wallSkin=p=>{ const need=p.r+WALL, d=dfAt(p.x,p.y); if(d>=need) return; let nx=dfAt(p.x+4,p.y)-dfAt(p.x-4,p.y), ny=dfAt(p.x,p.y+4)-dfAt(p.x,p.y-4); const l=Math.hypot(nx,ny); if(l<1e-4){ nx=CW/2-p.x; ny=CH/2-p.y; const m=Math.hypot(nx,ny)||1; nx/=m; ny/=m; } else { nx/=l; ny/=l; } const k=Math.min(need-d,p.r); p.x+=nx*k; p.y+=ny*k; if(ny<-.5) p.px+=(p.x-p.px)*.2; };
   const getImg=u=>{ if(!u) return null; if(!imgs[u]){ const im=new Image(); im.onload=()=>im.ok=true; im.src=u; imgs[u]=im; } return imgs[u]; };
   const rOf=c=>c<5?22:c<30?27:c<100?33:c<500?40:50;
   const spawn=q=>{ const r=rOf(q.coins), x=NL+r+Math.random()*(NR-NL-2*r); P.push({x,y:-r-Math.random()*40,px:x+(Math.random()-.5)*3,py:-r-8,r,a:Math.random()*6.28,im:getImg(q.pic),c:hue(q.gname||'g'),ch:[...(q.gname||'🎁')][0],o:1,die:0}); total++; cnt.textContent=total.toLocaleString('ja-JP'); };
-  BUS.on('gift',e=>{ const k=Math.min(e.n,12); for(let i=0;i<k;i++) queue.push({coins:e.coins,pic:e.pic,gname:e.gname}); if(e.n>k){ total+=e.n-k; } if(queue.length>60) queue.splice(0,queue.length-60); });
+  BUS.on('gift',e=>{ if(dead) return; const k=Math.min(e.n,12); for(let i=0;i<k;i++) queue.push({coins:e.coins,pic:e.pic,gname:e.gname}); if(e.n>k){ total+=e.n-k; } if(queue.length>60) queue.splice(0,queue.length-60); });
   BUS.on('cmd',c=>{ if(c.cmd==='reset'&&(c.kind==='jar'||c.kind==='all')){ P=[]; queue=[]; total=0; cnt.textContent='0'; } });
   let acc=0, last=performance.now(), spT=0, purgeT=0;
   const step=dt=>{ for(const p of P){ const vx=(p.x-p.px)*.992, vy=(p.y-p.py)*.992; p.px=p.x; p.py=p.y; p.x+=vx; p.y+=vy+1500*dt*dt; p.a+=vx/p.r; }
     for(let it=0;it<8;it++){ for(let i=0;i<P.length;i++){ const a=P[i]; for(let j=i+1;j<P.length;j++){ const b=P[j], dx=b.x-a.x, dy=b.y-a.y, rr=a.r+b.r; if(Math.abs(dx)>rr||Math.abs(dy)>rr) continue; const d2=dx*dx+dy*dy; if(d2>=rr*rr||d2===0) continue; const d=Math.sqrt(d2), k=(rr-d)/d*.5; a.x-=dx*k; a.y-=dy*k; b.x+=dx*k; b.y+=dy*k; } }
-      for(const p of P){ const l=p.y<NY?NL:XL, r=p.y<NY?NR:XR; if(p.y>=NY && p.y-p.r<NY && (p.x<NL||p.x>NR)){ p.y=NY+p.r; } if(p.x-p.r<l){ p.x=l+p.r; } if(p.x+p.r>r){ p.x=r-p.r; } if(p.y+p.r>FL){ p.y=FL-p.r; p.px+=(p.x-p.px)*.25; } } }
+      if(SK){ for(const p of P) wallSkin(p); } else for(const p of P){ const l=p.y<NY?NL:XL, r=p.y<NY?NR:XR; if(p.y>=NY && p.y-p.r<NY && (p.x<NL||p.x>NR)){ p.y=NY+p.r; } if(p.x-p.r<l){ p.x=l+p.r; } if(p.x+p.r>r){ p.x=r-p.r; } if(p.y+p.r>FL){ p.y=FL-p.r; p.px+=(p.x-p.px)*.25; } } }
     for(const p of P){ if(Math.abs(p.x-p.px)<.03&&Math.abs(p.y-p.py)<.03){ p.px=p.x; p.py=p.y; } } };
   const jarBack=()=>{ g.save(); g.beginPath(); g.moveTo(NL-8,TOP); g.lineTo(NR+8,TOP); g.lineTo(NR+8,NY-20); g.quadraticCurveTo(XR+10,NY-6,XR+10,NY+50); g.lineTo(XR+10,FL-50); g.quadraticCurveTo(XR+10,FL+10,XR-50,FL+10); g.lineTo(XL+50,FL+10); g.quadraticCurveTo(XL-10,FL+10,XL-10,FL-50); g.lineTo(XL-10,NY+50); g.quadraticCurveTo(XL-10,NY-6,NL-8,NY-20); g.closePath();
     const gr=g.createLinearGradient(XL,0,XR,0); gr.addColorStop(0,'rgba(190,230,255,.30)'); gr.addColorStop(.5,'rgba(190,230,255,.12)'); gr.addColorStop(1,'rgba(190,230,255,.26)'); g.fillStyle=gr; g.fill(); g.restore(); };
@@ -190,12 +194,12 @@ function mountJar(box,o){ box.classList.add('jar'); box.innerHTML='<canvas width
   const frame=now=>{ const dt=Math.min(.05,(now-last)/1000); last=now; acc+=dt; spT-=dt; if(queue.length&&spT<=0){ spawn(queue.shift()); spT=.11; }
     while(acc>=1/120){ step(1/120); acc-=1/120; }
     /* いっぱいになったら、古いもの（下のほう）から少しずつ消して場所をあける */
-    purgeT-=dt; if(purgeT<=0 && P.some(p=>!p.die&&p.y<TOP+50&&p.y>TOP-60&&Math.abs(p.y-p.py)<.2) ){ purgeT=2.5; let k=Math.ceil(P.length*.3); for(const p of P){ if(k<=0) break; if(!p.die){ p.die=1; k--; } } }
+    purgeT-=dt; let full=false; for(const p of P){ if(!p.die&&p.y<TOP+50&&p.y>TOP-60&&Math.abs(p.y-p.py)<.2&&Math.abs(p.x-p.px)<.2){ p.st=(p.st||0)+dt; if(p.st>.8) full=true; } else p.st=0; } if(purgeT<=0 && full){ purgeT=2.5; let k=Math.ceil(P.length*.3); for(const p of P){ if(k<=0) break; if(!p.die){ p.die=1; k--; } } }
     for(const p of P) if(p.die){ p.o-=dt*2.5; } P=P.filter(p=>p.o>0);
-    g.clearRect(0,0,540,760); jarBack();
+    g.clearRect(0,0,CW,CH); if(SK){ if(skin.ok) g.drawImage(skin,0,0,CW,CH); } else jarBack();
     for(const p of P){ g.save(); g.globalAlpha=Math.max(0,p.o); g.translate(p.x,p.y); g.rotate(p.a); if(p.im&&p.im.ok){ g.drawImage(p.im,-p.r*1.08,-p.r*1.08,p.r*2.16,p.r*2.16); } else { g.beginPath(); g.arc(0,0,p.r-1,0,6.283); g.fillStyle=p.c; g.fill(); g.lineWidth=3; g.strokeStyle='#fff'; g.stroke(); g.fillStyle='#fff'; g.font='700 '+Math.round(p.r)+'px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(p.ch,0,2); } g.restore(); }
-    jarFront(); requestAnimationFrame(frame); };
-  requestAnimationFrame(frame); window.__jar=()=>({n:P.length,total}); return {w:540,h:760}; }
+    if(SK){ if(skin.ok){ g.globalAlpha=.3; g.drawImage(skin,0,0,CW,CH); g.globalAlpha=1; } } else jarFront(); if(!dead) requestAnimationFrame(frame); };
+  requestAnimationFrame(frame); window.__jar=()=>({n:P.length,total}); return {w:CW,h:BH}; }
 
 /* ===== 置き方 ===== */
 function place(host,name,o,maxW,maxH){ const box=document.createElement('div'); box.className='wg'; host.appendChild(box);
@@ -219,7 +223,7 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
     ['time','時間','?w=time','640 × 220','「いまの時間」「配信時間」「耐久タイマー（ギフトで時間がのびる）」の3つから選べます。'],
     ['jar','ギフトのびん','?w=jar','540 × 760','ギフトが来るたびに、そのギフトがびんの中に落ちてたまっていきます。いっぱいになると古いものから消えます。']];
   let h='<div class="pg"><h1>配信オーバーレイ</h1><p>配信画面に重ねて出す部品です。下の見本は、にせもののデータで動いています。</p>';
-  for(const [id,ttl,q,sz,desc] of C){ h+='<div class="card"><h3>'+ttl+'</h3><p>'+desc+'</p>'+(id==='time'?'<div class="btns"><select id="tmode"><option value="clock">いまの時間</option><option value="up">配信時間</option><option value="down">耐久タイマー</option></select></div>':'')+'<div class="pv"><div class="host" id="pv_'+id+'"></div></div><div class="btns" id="bt_'+id+'"></div><div class="url"><code id="u_'+id+'">'+esc(base+q)+'</code><button data-copy="u_'+id+'">コピー</button></div><p class="sz">OBSのブラウザソースの大きさ：<span id="sz_'+id+'">'+sz+'</span></p></div>'; }
+  for(const [id,ttl,q,sz,desc] of C){ h+='<div class="card"><h3>'+ttl+'</h3><p>'+desc+'</p>'+(id==='jar'?'<div class="btns"><select id="jsel"><option value="">ふつうのびん</option><option value="heart">ハート</option><option value="whale">クジラ</option><option value="cat">ねこ</option><option value="potion">魔法のびん</option></select></div>':'')+(id==='time'?'<div class="btns"><select id="tmode"><option value="clock">いまの時間</option><option value="up">配信時間</option><option value="down">耐久タイマー</option></select></div>':'')+'<div class="pv"><div class="host" id="pv_'+id+'"></div></div><div class="btns" id="bt_'+id+'"></div><div class="url"><code id="u_'+id+'">'+esc(base+q)+'</code><button data-copy="u_'+id+'">コピー</button></div><p class="sz">OBSのブラウザソースの大きさ：<span id="sz_'+id+'">'+sz+'</span></p></div>'; }
   h+='<h2>OBSへの入れ方</h2><ol><li>OBSの「ソース」の ＋ →「ブラウザ」を選ぶ</li><li>URLに、上の部品のアドレスをはりつける</li><li>幅と高さに、部品の下に書いてある大きさを入れる</li><li>あとは画面の上で好きな場所に動かして、大きさを変えるだけ（背景はすきとおっています）</li></ol>'
     +'<h2>つなぎ先</h2><p>なにもしなければ、同じパソコンで動いている TikFinity（アプリ版）から受け取ります。tik.tools を使う時だけ、下に入れてください。<br>※ キーはこのブラウザの中にだけ保存されます。OBSで使う時は、このページをOBSのブラウザソースで開き、右クリック→「対話」でここに入れてください（入れ終わったら、そのソースは消して大丈夫です）。<b>配信にキーが映らないよう、入れる時は配信を止めておいてください。</b></p>'
     +'<div class="card"><label><input type="checkbox" id="clOn" style="width:auto"> tik.tools を使う</label><input id="clUser" placeholder="TikTokのユーザー名（@のあとの英数字）" autocapitalize="off" autocomplete="off" spellcheck="false"><input id="clKey" type="password" placeholder="tik.tools のAPIキー" autocapitalize="off" autocomplete="off" spellcheck="false"><div class="btns"><button id="clSave">保存する</button><span id="clMsg" class="sz"></span></div></div>'
@@ -229,7 +233,7 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
   place(document.getElementById('pv_win'),'win',{},pvW).classList.add('show');
   place(document.getElementById('pv_like'),'like',{demo:true},()=>Math.min(pvW(),380));
   place(document.getElementById('pv_gift'),'gift',{demo:true},()=>Math.min(pvW(),380));
-  place(document.getElementById('pv_jar'),'jar',{demo:true},()=>Math.min(pvW(),300));
+  const jsel=document.getElementById('jsel'); let jbox=null; const setJ=()=>{ const hst=document.getElementById('pv_jar'); if(jbox&&jbox.__kill) jbox.__kill(); hst.innerHTML=''; const v=jsel.value, K=(window.JARS||{})[v]; jbox=place(hst,'jar',{demo:true,jar:v},()=>Math.min(pvW(),v==='whale'?380:300)); document.getElementById('u_jar').textContent=base+'?w=jar'+(v?'&jar='+v:''); document.getElementById('sz_jar').textContent=K?K.w+' × '+(K.h+60):'540 × 760'; }; jsel.onchange=setJ; setJ();
   const tmode=document.getElementById('tmode'), TQ={clock:'?w=time',up:'?w=time&mode=up',down:'?w=time&mode=down&min=60&per=1'};
   const setT=()=>{ const hst=document.getElementById('pv_time'); hst.innerHTML=''; place(hst,'time',{mode:tmode.value,nogift:true},pvW).classList.add('show'); document.getElementById('u_time').textContent=base+TQ[tmode.value];
     document.getElementById('bt_time').innerHTML=tmode.value==='down'?'<span class="sz">min=はじめの分数、per=1コインでのびる秒数（アドレスの数字を書きかえて使います）</span>':''; }; tmode.onchange=setT; setT();
