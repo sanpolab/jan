@@ -152,7 +152,8 @@ body.setup{background:#12131a;-webkit-text-size-adjust:100%}
 .mcard .mvi{position:absolute;right:78px;bottom:48px;font-size:25px;font-weight:700;color:var(--tx)}
 .mcard .mup{position:absolute;left:-30px;right:-30px;top:96px;height:230px;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:5;pointer-events:none}
 .mcard .mup .u1{font:400 92px Dela,MPR,sans-serif;letter-spacing:2px;color:#ffe06b;text-shadow:4px 0 0 #3a2000,-4px 0 0 #3a2000,0 4px 0 #3a2000,0 -4px 0 #3a2000,3px 3px 0 #3a2000,-3px 3px 0 #3a2000,3px -3px 0 #3a2000,-3px -3px 0 #3a2000,0 9px 0 #1c0f00,0 0 34px #ffb22a;transform:rotate(-4deg)}
-.mcard.upg .mc{filter:brightness(.55);transition:filter .5s .6s}
+.mcard .mc{transition:filter .5s}
+.mcard.upg .mc.on{filter:brightness(.55);transition:filter .5s .6s}
 .mcard .mup .u2{margin-top:6px;font:700 34px 'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;letter-spacing:4px;color:#2a1a00;background:linear-gradient(135deg,#fff0b8,#d9a93a);border-radius:22px;padding:2px 26px;box-shadow:0 3px 0 #3a2500}
 .mcard.upg .mup{display:flex;animation:mup 2.3s both}
 @keyframes mup{0%{opacity:0;transform:scale(3)}14%{opacity:1;transform:scale(.92)}22%{transform:scale(1.05)}30%{transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:scale(1.15)}}
@@ -584,7 +585,7 @@ function mountCard(box,o){ const S_=mkS(o), CW=760, CH=520; let dead=false; box.
     /* ランクアップ：まず前のランクのカードで出て、光って新しいランクに変わり、「ランクアップ！」が大きく出る */
     fill(r,uid,k-1); void mc.offsetWidth; mc.classList.add('on'); S_('harp2',.5);
     setTimeout(()=>{ if(dead) return; fill(r,uid,k); mc.classList.add('on','up','flash'); q('.mup .u2').textContent=MB_RK[k-1][1]+' ▶ '+MB_RK[k][1]; box.classList.add('upg'); S_('levelup',.75); S_('cheer',.5);
-      for(let i=0;i<110;i++){ const a=Math.random()*6.28, v=140+Math.random()*460; sp.push({x:380,y:224,vx:Math.cos(a)*v,vy:Math.sin(a)*v-140,t:0,l:.9+Math.random()*1.2,s:4+Math.random()*7,c:['#ffd86b','#fff3c4','#ffffff','#ffb24a'][i%4]}); } spL=performance.now(); requestAnimationFrame(spark); },1500);
+      for(let i=0;i<110;i++){ const a=Math.random()*6.28, v=140+Math.random()*460; sp.push({x:380,y:224,vx:Math.cos(a)*v,vy:Math.sin(a)*v-140,t:0,l:.9+Math.random()*1.2,s:4+Math.random()*7,c:['#ffd86b','#fff3c4','#ffffff','#ffb24a'][i%4]}); } spL=performance.now(); requestAnimationFrame(spark); },1500); setTimeout(()=>box.classList.remove('upg'),1500+2350);
     setTimeout(()=>{ mc.classList.remove('on'); mc.classList.add('out'); box.classList.remove('upg'); },8200); setTimeout(()=>{ busy=false; run(); },8900); };
   BUS.on('gift',e=>{ if(dead||byChat) return; const nm=String(e.gname||'').toLowerCase(); if(anyGift||want.some(w=>nm.includes(w))) attend(e); });
   BUS.on('chat',c=>{ if(dead||!byChat) return; attend(c); });
