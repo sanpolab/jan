@@ -60,6 +60,7 @@ body.setup{background:#12131a;-webkit-text-size-adjust:100%}
 .jar .cnt small{font:800 24px MPR,sans-serif;margin-left:6px}
 /* ガチャ・タワー */
 .gacha canvas,.tower canvas{position:absolute;left:0;top:0}
+.roul .gres .pz{font-size:46px;margin:2px 0 8px}
 .gres{position:absolute;left:40px;right:40px;top:8px;padding:14px 18px 16px;text-align:center;border-radius:18px;border:2px solid #d9b866;background:linear-gradient(180deg,rgba(24,20,14,.96),rgba(8,7,6,.96));box-shadow:0 0 0 5px rgba(8,7,6,.9),0 0 0 6px #8a6d2f,0 10px 30px rgba(0,0,0,.6);font-family:'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;opacity:0;transform:translateY(16px) scale(.92);transition:opacity .25s,transform .35s cubic-bezier(.2,1.4,.4,1)}
 .gres.on{opacity:1;transform:none}
 .gres .rk{font:700 84px/1 Georgia,'Times New Roman',serif;letter-spacing:4px;text-shadow:0 0 18px currentColor,0 3px 0 rgba(0,0,0,.6)}
@@ -422,9 +423,35 @@ function mountFire(box,o){ const CW=o.W||1920, CH=o.H||1080, minC=Math.max(1,par
   BUS.on('gift',e=>{ if(dead||e.coins*e.n<minC) return; q=Math.min(5,q+1); run(); }); BUS.on('cmd',c=>{ if(c.cmd==='fire'&&!dead){ q=Math.min(5,q+1); run(); } });
   window.__fire=()=>({q,busy,t:v.currentTime,alpha}); return {w:CW,h:CH}; }
 
+/* ===== ルーレット ===== */
+const RL_DEF=['モノマネ','決めポーズ','早口言葉','投げキッス','変顔','一発ギャグ','ほめ言葉','歌ワンフレーズ'];
+function mountRoulette(box,o){ const CW=620, CH=760, CX=10+296.2, CY=150+301.5, R=213; let dead=false; box.__kill=()=>{ dead=true; }; box.classList.add('roul'); box.style.width=CW+'px'; box.style.height=CH+'px';
+  let items=String(o.items||'').split('|').map(x=>x.trim()).filter(Boolean).slice(0,12); if(items.length<2) items=RL_DEF.slice(); const N=items.length, SEG=Math.PI*2/N;
+  box.innerHTML='<canvas width="'+CW*2+'" height="'+CH*2+'" style="position:absolute;left:0;top:0;width:'+CW+'px;height:'+CH+'px"></canvas><div class="gres"><div class="pz"></div><div class="who"></div></div>';
+  const g=box.querySelector('canvas').getContext('2d'); g.scale(2,2); const res=box.querySelector('.gres'), RG=new Image(); RG.onload=()=>RG.ok=true; RG.src='img/rring.webp';
+  const MIN="'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif";
+  const wh=document.createElement('canvas'); wh.width=wh.height=R*4; const w=wh.getContext('2d'); w.scale(2,2); w.translate(R,R);
+  const paint=hi=>{ w.clearRect(-R,-R,R*2,R*2); for(let i=0;i<N;i++){ const a0=i*SEG, a1=a0+SEG; w.beginPath(); w.moveTo(0,0); w.arc(0,0,R,a0,a1); w.closePath(); const gr=w.createRadialGradient(0,0,20,0,0,R); const win=hi===i; if(win){ gr.addColorStop(0,'#fff0b8'); gr.addColorStop(1,'#d9a93a'); } else if(i%2){ gr.addColorStop(0,'#5a0f18'); gr.addColorStop(1,'#2a060b'); } else { gr.addColorStop(0,'#26211a'); gr.addColorStop(1,'#0a0908'); } w.fillStyle=gr; w.fill(); w.lineWidth=2; w.strokeStyle='#d9b866'; w.stroke();
+      w.save(); w.rotate(a0+SEG/2); const t=items[i], n=[...t].length, fs=Math.max(15,Math.min(30,Math.min((R-70)/n*1.05,R*SEG*.42))); w.font='700 '+fs+'px '+MIN; w.textAlign='right'; w.textBaseline='middle'; w.fillStyle=win?'#2a1a00':'#ffe9a8'; w.fillText(t,R-22,1); w.restore(); } };
+  paint(-1);
+  const want=String(o.gift||'').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean), minC=Math.max(1,parseInt(o.min,10)||100);
+  let rot=-Math.PI/2-SEG/2, q=[], cur=null, last=performance.now(), tick=0;
+  BUS.on('gift',e=>{ if(dead) return; const nm=String(e.gname||'').toLowerCase(); if(want.length?!(want.includes('*')||want.some(x=>nm.includes(x))):e.coins*e.n<minC) return; for(let i=0;i<(want.length?Math.min(e.n,5):1);i++) if(q.length<20) q.push(e.name); });
+  BUS.on('cmd',c=>{ if(c.cmd==='roulette'&&!dead) q.push(c.name||'テスト'); });
+  const frame=now=>{ const dt=Math.min(.05,(now-last)/1000); last=now;
+    if(!cur&&q.length){ const name=q.shift(), idx=Math.floor(Math.random()*N), base=rot%(Math.PI*2), to=-Math.PI/2-(idx+.5)*SEG+(Math.random()-.5)*SEG*.7; let d=(to-base)%(Math.PI*2); if(d<0) d+=Math.PI*2; cur={t:0,name,idx,from:base,to:base+d+Math.PI*2*5,shown:false}; res.classList.remove('on'); paint(-1); }
+    if(cur){ cur.t+=dt; const D=5.4, u=Math.min(1,cur.t/D), e=1-Math.pow(1-u,3.4); rot=cur.from+(cur.to-cur.from)*e; if(u>=1&&!cur.shown){ cur.shown=true; paint(cur.idx); res.querySelector('.pz').textContent=items[cur.idx]; res.querySelector('.who').textContent=cur.name+' さん'; res.classList.add('on'); } if(cur.t>D+5){ res.classList.remove('on'); paint(-1); cur=null; } }
+    else rot+=dt*.12;
+    g.clearRect(0,0,CW,CH); g.save(); g.translate(CX,CY); g.rotate(rot); g.drawImage(wh,-R,-R,R*2,R*2); g.restore();
+    if(RG.ok) g.drawImage(RG,10,150,600,600);
+    { const hg=g.createRadialGradient(CX-8,CY-8,2,CX,CY,34); hg.addColorStop(0,'#fff3c4'); hg.addColorStop(.6,'#d9a93a'); hg.addColorStop(1,'#8a6d2f'); g.beginPath(); g.arc(CX,CY,30,0,6.283); g.fillStyle=hg; g.fill(); g.lineWidth=2; g.strokeStyle='#5a4418'; g.stroke(); g.beginPath(); g.arc(CX,CY,8,0,6.283); g.fillStyle='#b01226'; g.fill(); }
+    { const wob=cur&&cur.t<5.4?Math.sin(rot/SEG*Math.PI*2)*.12*(1-Math.min(1,cur.t/5.4)):0; g.save(); g.translate(CX,CY-R-40); g.rotate(wob); const pg=g.createLinearGradient(-22,0,22,0); pg.addColorStop(0,'#b8862b'); pg.addColorStop(.5,'#fff0b8'); pg.addColorStop(1,'#b8862b'); g.beginPath(); g.moveTo(-22,-14); g.lineTo(22,-14); g.lineTo(0,58); g.closePath(); g.fillStyle=pg; g.fill(); g.lineWidth=3; g.strokeStyle='#3a2a08'; g.stroke(); g.beginPath(); g.arc(0,-12,9,0,6.283); g.fillStyle='#b01226'; g.fill(); g.stroke(); g.restore(); }
+    if(!dead) requestAnimationFrame(frame); };
+  requestAnimationFrame(frame); window.__roul=()=>({q:q.length,cur:cur&&{t:cur.t,idx:cur.idx,item:items[cur.idx]},N}); return {w:CW,h:CH}; }
+
 /* ===== 置き方 ===== */
 function place(host,name,o,maxW,maxH){ const box=document.createElement('div'); box.className='wg'+(o.theme==='gold'?' luxe':''); host.appendChild(box);
-  const sz=name==='win'?mountWin(box,o):name==='like'?mountRank(box,Object.assign({kind:'like'},o)):name==='gift'?mountRank(box,Object.assign({kind:'gift'},o)):name==='time'?mountTime(box,o):name==='gacha'?mountGacha(box,o):name==='vip'?mountVip(box,o):name==='king'?mountKing(box,o):name==='heart'?mountHeart(box,o):name==='fire'?mountFire(box,o):name==='rain'?mountRain(box,o):name==='thanks'?mountThanks(box,o):name==='goals'?mountGoals(box,o):name==='tower'?mountTower(box,o):mountJar(box,o);
+  const sz=name==='win'?mountWin(box,o):name==='like'?mountRank(box,Object.assign({kind:'like'},o)):name==='gift'?mountRank(box,Object.assign({kind:'gift'},o)):name==='time'?mountTime(box,o):name==='gacha'?mountGacha(box,o):name==='roulette'?mountRoulette(box,o):name==='vip'?mountVip(box,o):name==='king'?mountKing(box,o):name==='heart'?mountHeart(box,o):name==='fire'?mountFire(box,o):name==='rain'?mountRain(box,o):name==='thanks'?mountThanks(box,o):name==='goals'?mountGoals(box,o):name==='tower'?mountTower(box,o):mountJar(box,o);
   const fit=()=>{ const W0=maxW(), H0=maxH?maxH():1e9, s=Math.min(W0/sz.w,H0/sz.h); box.style.transform='scale('+s+')'; host.style.width=(sz.w*s)+'px'; host.style.height=(sz.h*s)+'px'; }; fit(); window.addEventListener('resize',fit); return box; }
 const DEMO_N=['たぬ吉','ぽんた','みけ','ゆきんこ','レオ','さくら','もちこ','ハル','そら','くろまめ'], DEMO_G=[['バラ',1,0],['ローザ',10,1],['歌うキノコ',99,2],['コーギー',299,3],['マネーガン',500,4],['銀河',1000,5]];
 const demoGift=(i,n)=>{ const gi=i!=null?i:Math.floor(Math.pow(Math.random(),2.2)*DEMO_G.length), G=DEMO_G[gi], nm=DEMO_N[Math.floor(Math.random()*DEMO_N.length)]; return {event:'gift',data:{giftName:G[0],diamondCount:G[1],repeatCount:n||1,repeatEnd:true,nickname:nm,uniqueId:'demo_'+nm,giftId:9000+gi,giftPictureUrl:'../gmerge/img/g'+G[2]+'.webp'}}; };
@@ -436,7 +463,7 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
   const app=document.getElementById('app'); app.innerHTML='<div id="st" class="st"></div><div class="host" id="host"></div>'; const o=opts();
   place(document.getElementById('host'),W,o,()=>innerWidth,()=>innerHeight);
   if(Q.get('demo')==='1'){ setInterval(()=>{ tfEvent(Math.random()<.5?demoGift():demoLike()); },900); }
-  else if(W==='like'||W==='gift'||W==='jar'||W==='gacha'||W==='tower'||W==='vip'||W==='king'||W==='heart'||W==='fire'||W==='rain'||W==='thanks'||W==='goals'||(W==='time'&&o.mode==='down')||(W==='win'&&(Q.get('admin')||CLOUD.user))){ tfConnect(); tfUI(); } window.__ready=true;
+  else if(W==='like'||W==='gift'||W==='jar'||W==='gacha'||W==='roulette'||W==='tower'||W==='vip'||W==='king'||W==='heart'||W==='fire'||W==='rain'||W==='thanks'||W==='goals'||(W==='time'&&o.mode==='down')||(W==='win'&&(Q.get('admin')||CLOUD.user))){ tfConnect(); tfUI(); } window.__ready=true;
 } else { /* ---- せつめいページ ---- */
   document.documentElement.classList.add('setup'); document.body.classList.add('setup'); const base=(EMBED?HOME_URL:location.origin+location.pathname.replace(/index\.html$/,''));
   const C=[['win','WINカウンター','?w=win','600 × 220','勝った数を出します。部品にマウスをのせると出るボタン（OBSなら右クリック→「対話」）か、下のボタンで増やしたり減らしたりできます。自分のコメントで「win+1」「win-1」「win=0」と打っても変わります。'],
@@ -444,6 +471,7 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
     ['gift','ギフトランキング','?w=gift','560 × 522','ギフトのコイン合計が多い人の上位5人を出します。'],
     ['time','時間','?w=time','640 × 220','「いまの時間」「配信時間」「耐久タイマー（ギフトで時間がのびる）」の3つから選べます。'],
     ['gacha','ガチャガチャ','?w=gacha','600 × 900','決めたギフトが来ると、ハンドルが回ってカプセルが出てきます。S・A・B・Cのランクと、その中身が出ます。中身は下で自由に書きかえられます（1行に1つ）。'],
+    ['roulette','ルーレット','?w=roulette&min=100','620 × 760','ギフトが来ると金のルーレットが回って、止まったマスのお題と、回した人の名前が出ます。マスの中身は下で書きかえられます（1行に1つ、2〜12個）。'],
     ['tower','シャンパンタワー','?w=tower&goal=1000','760 × 685','ギフトのコインがたまるほど、上のグラスから順にシャンパンが満ちていきます。目標に届くと金の紙ふぶきが舞って、2周目に入ります。「goal=」の数字が目標のコイン数です。'],
     ['vip','VIPコール','?w=vip&min=1000','1920 × 1080（画面いっぱい）','大きなギフトが来ると、赤い幕が閉じてから左右に開き、金のプレートに「◯◯ 様」と名前が出ます。「min=」が、出すギフトの最低コイン数です。'],
     ['king','王座（今日のMVP）','?w=king','520 × 590','その日いちばん多くギフトをくれた人を、王冠つきの金の額ぶちで出し続けます。1位が入れかわると光ります。'],
@@ -479,6 +507,10 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
     const ugo=()=>{ let q='?w=goals', n=0; for(let i=0;i<3;i++){ const c=parseInt(document.getElementById('gc'+i).value,10), t=document.getElementById('gx'+i).value.trim(); if(c>0&&t){ n++; q+='&g'+n+'='+c+':'+encodeURIComponent(t); } } document.getElementById('u_goals').textContent=base+q; document.getElementById('sz_goals').textContent='640 × '+(84+Math.max(1,n)*104); }; for(let i=0;i<3;i++){ document.getElementById('gc'+i).oninput=ugo; document.getElementById('gx'+i).oninput=ugo; } ugo();
     document.getElementById('bt_rain').innerHTML='<button id="tRain">ギフトをためす</button>'; document.getElementById('tRain').onclick=()=>fire(demoGift(null,3)); document.getElementById('bt_thanks').innerHTML='<button id="tTh">ギフトをためす</button>'; document.getElementById('tTh').onclick=()=>fire(demoGift()); }
   place(document.getElementById('pv_gacha'),'gacha',{demo:true,gift:'*__none__'},()=>Math.min(pvW(),340));
+  { const D=RL_DEF.join('\n'); let rb=null; document.getElementById('bt_roulette').innerHTML='<button id="tRl">回してみる</button><div style="width:100%"></div><label class="sz" style="width:100%">回すギフトの名前（空なら、下のコイン数以上のギフトで回る）<input id="rlGift" placeholder="例：ドーナツ"></label><label class="sz" style="width:100%">何コイン以上で回すか<input id="rlMin" type="number" inputmode="numeric" value="100"></label><label class="sz" style="width:100%">マスの中身<textarea id="rlIt" style="min-height:150px">'+esc(D)+'</textarea></label><button id="rlSet">見本に反映する</button>';
+    const rlL=()=>document.getElementById('rlIt').value.split('\n').map(x=>x.trim().replace(/\|/g,'／')).filter(Boolean).slice(0,12), url=()=>{ const l=rlL(), gf=document.getElementById('rlGift').value.trim(), mn=parseInt(document.getElementById('rlMin').value,10)||100; document.getElementById('u_roulette').textContent=base+'?w=roulette'+(gf?'&gift='+encodeURIComponent(gf):'&min='+mn)+(l.length>=2&&l.join('|')!==RL_DEF.join('|')?'&items='+encodeURIComponent(l.join('|')):''); };
+    const mk=()=>{ const hst=document.getElementById('pv_roulette'); if(rb&&rb.__kill) rb.__kill(); hst.innerHTML=''; rb=place(hst,'roulette',{demo:true,gift:'__none__',items:rlL().join('|')},()=>Math.min(pvW(),340)); url(); }; mk();
+    for(const id of ['rlGift','rlMin','rlIt']) document.getElementById(id).oninput=url; document.getElementById('rlSet').onclick=mk; document.getElementById('tRl').onclick=()=>sendCmd({cmd:'roulette',name:DEMO_N[Math.floor(Math.random()*DEMO_N.length)]}); }
   place(document.getElementById('pv_tower'),'tower',{demo:true,goal:3000},()=>Math.min(pvW(),420));
   { const bg=document.getElementById('bt_gacha'), pv=LS.get('ov_gacha',null)||{}; let h2='<button id="tGa">回してみる</button><div style="width:100%"></div><label class="sz" style="width:100%">回すギフトの名前（「*」にすると、どのギフトでも回る）<input id="gaGift" value="ハートミー"></label>';
     for(const k of 'SABC') h2+='<label class="sz" style="width:100%">'+k+'ランクの中身（出やすさ '+GA_RK.find(r=>r[0]===k)[2]+'%）<textarea id="ga'+k+'">'+esc(((pv[k]&&pv[k].length)?pv[k]:GA_DEF[k]).join('\n'))+'</textarea></label>'; h2+='<button id="gaSave">見本に反映する</button><span id="gaMsg" class="sz"></span>'; bg.innerHTML=h2;
