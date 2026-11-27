@@ -39,6 +39,8 @@ html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku G
 .strip .vp{flex:1 1 0;min-width:0;overflow:hidden;position:relative;padding:.9vh 0}
 .strip .trk{height:100%;display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--r),1fr);gap:.8vh;width:max-content;will-change:transform;padding:0 .8vh;box-sizing:border-box}
 .scr .c{box-sizing:border-box;justify-content:center}
+@keyframes altIn{from{opacity:0;transform:translateY(1.2vh)}to{opacity:1;transform:none}}
+.scr .strip{animation:altIn .4s ease-out}
 </style>
 </head>
 <body>
@@ -89,6 +91,7 @@ function autoFit(){ if(q.get('fit')!=='1') return; const gr=document.getElementB
 window.addEventListener('resize',autoFit);
 /* ふつうの表示：種類ごと（妨害・お助けなど）に段を分けて、入りきらない段は横にゆっくり流す。札を大きくできるので文字が読みやすい */
 let SCELLS=null, STRK=[], sRaf=0, sPrev=0;
+const ALT_ON=q.get('alt')!=='0'; let altTimer=0;
 function scrollFit(){ if(q.get('fit')==='1' || q.get('scroll')==='0') return; const gr=document.getElementById('grid'); const fresh=[...gr.children].filter(c=>c.classList.contains('c')); if(fresh.length||!SCELLS) SCELLS=fresh; const all=SCELLS; gr.classList.add('scr'); gr.innerHTML=''; STRK=[]; if(!all.length) return;
   const isH=c=>c.classList.contains('help')||c.classList.contains('both')||c.classList.contains('free'), groups=[]; for(const c of all){ const k=c.dataset.grp||(isH(c)?'お助け':'妨害'); let G=groups.find(x=>x.k===k); if(!G){ G={k,kind:isH(c)?'help':'jam',cells:[]}; groups.push(G); } G.cells.push(c); }
   if(FREE_GRP){ const i=groups.findIndex(x=>x.k===FREE_GRP); if(i>=0){ const G=groups.splice(i,1)[0]; G.kind=G.cells.every(isH)?'help':'jam'; groups.push(G); } }
@@ -97,6 +100,11 @@ function scrollFit(){ if(q.get('fit')==='1' || q.get('scroll')==='0') return; co
   const fitW=ch=>{ let w=ch*1.4; for(let i=0;i<6;i++){ const h=natH(w); if(Math.abs(h-ch)<.6) break; w*=ch/h; } while(natH(w)>ch+.5 && w>20) w*=.985; return w; };
   const rowsQ=parseInt(q.get('rows'),10)||0, minCols=parseFloat(q.get('min'))||3.5; let R=rowsQ||1;
   for(const G of groups){ const st=document.createElement('div'); st.className='strip '+G.kind; const lb=document.createElement('div'); lb.className='lb'; lb.textContent=G.k; const vp=document.createElement('div'); vp.className='vp'; const trk=document.createElement('div'); trk.className='trk'; trk.style.setProperty('--r',R); vp.appendChild(trk); st.appendChild(lb); st.appendChild(vp); gr.appendChild(st); G.vp=vp; G.trk=trk; G.lb=lb; }
+  /* 交互に映す：1種類ずつ画面いっぱいに出して、数秒ごとに入れかえる。札は「その種類が全部入る、いちばん大きい大きさ」にする */
+  clearInterval(altTimer); if(ALT_ON && groups.length>1){ const gap=window.innerHeight*.008, sts=groups.slice().sort((a,b)=>(a.kind==='jam'?0:1)-(b.kind==='jam'?0:1)).map(G=>G.vp.parentNode);   /* 妨害を先に映す */
+    for(const G of groups){ const st=G.vp.parentNode; for(const x of sts) x.style.display=(x===st)?'':'none'; const cs=getComputedStyle(G.vp), vh=G.vp.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom), vw0=G.vp.clientWidth, n=G.cells.length; let r=1, ch=0, cw=0, ok=false; for(r=1;r<=8;r++){ ch=Math.max(20,(vh-gap*(r-1))/r); cw=fitW(ch); if(Math.ceil(n/r)*(cw+gap)+gap*2<=vw0){ ok=true; break; } } if(!ok) r=8;
+      st.style.setProperty('--cols',window.innerWidth/cw); G.trk.style.setProperty('--r',r); G.trk.style.margin='0 auto'; G.lb.style.fontSize=Math.max(10,Math.min(vh*.11,vh/(G.k.length+.3)))+'px'; for(const c of G.cells){ c.style.width=cw+'px'; c.style.height=ch+'px'; G.trk.appendChild(c); } }
+    let cur=0; const show=i=>{ sts.forEach((x,k)=>{ x.style.display=k===i?'':'none'; }); }; show(0); const hold=Math.max(2,parseFloat(q.get('hold'))||8); altTimer=setInterval(()=>{ cur=(cur+1)%sts.length; show(cur); },hold*1000); return; }
   const cs=getComputedStyle(groups[0].vp), vh=groups[0].vp.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom), gap=window.innerHeight*.008, vw0=groups[0].vp.clientWidth; let ch=0, cw=0; const maxN=Math.max(...groups.map(G=>G.cells.length)), calc=()=>{ ch=Math.max(20,(vh-gap*(R-1))/R); cw=fitW(ch); }; /* まず「流さなくても全部入る、いちばん大きい札」をさがす。入りきらない時だけ、横に流す前提で段数を決める */ if(rowsQ) calc(); else { let ok=false; for(R=1;R<=2;R++){ calc(); if(Math.ceil(maxN/R)*(cw+gap)+gap*2<=vw0){ ok=true; break; } } if(!ok){ for(R=1;;R++){ calc(); if(R>=4 || vw0/cw>=minCols) break; } } } for(const G of groups) G.trk.style.setProperty('--r',R); const sec=Math.max(.5,parseFloat(q.get('sec'))||3);
   document.documentElement.style.setProperty('--cols',window.innerWidth/cw);
   for(const G of groups){ G.lb.style.fontSize=Math.max(10,Math.min(vh*.2,vh/(G.k.length+.3)))+'px'; for(const c of G.cells){ c.style.width=cw+'px'; c.style.height=ch+'px'; G.trk.appendChild(c); } const full=G.trk.scrollWidth, over=full>G.vp.clientWidth+2; if(over){ for(const c of G.cells){ const d=c.cloneNode(true); G.trk.appendChild(d); } } else G.trk.style.margin='0 auto'; G.trk.style.transform='translate3d(0,0,0)'; STRK.push({el:G.trk,loop:over?full-gap:0,x:0,v:cw/sec}); }
