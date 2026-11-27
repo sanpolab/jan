@@ -96,7 +96,7 @@ const ALT_ON=q.get('alt')!=='0'; let altTimer=0;
 function scrollFit(){ if(q.get('fit')==='1' || q.get('scroll')==='0') return; const gr=document.getElementById('grid'); const fresh=[...gr.children].filter(c=>c.classList.contains('c')); if(fresh.length||!SCELLS) SCELLS=fresh; const all=SCELLS; gr.classList.add('scr'); gr.innerHTML=''; STRK=[]; if(!all.length) return;
   const isH=c=>c.classList.contains('help')||c.classList.contains('both')||c.classList.contains('free'), groups=[]; for(const c of all){ const k=c.dataset.grp||(isH(c)?'お助け':'妨害'); let G=groups.find(x=>x.k===k); if(!G){ G={k,kind:isH(c)?'help':'jam',cells:[]}; groups.push(G); } G.cells.push(c); }
   if(FREE_GRP){ const i=groups.findIndex(x=>x.k===FREE_GRP); if(i>=0){ const G=groups.splice(i,1)[0]; G.kind=G.cells.every(isH)?'help':'jam'; groups.push(G); } }
-  const probe=all[all.length-1], natH=w=>{ document.documentElement.style.setProperty('--cols',window.innerWidth/w); probe.style.width=w+'px'; probe.style.height='auto'; gr.appendChild(probe); const h=probe.offsetHeight; gr.removeChild(probe); return h; };
+  const probe=all[all.length-1].cloneNode(true) /* 大きさをはかる用の写し（本物を使うと、表から1枚ぬけてしまう） */, natH=w=>{ document.documentElement.style.setProperty('--cols',window.innerWidth/w); probe.style.width=w+'px'; probe.style.height='auto'; gr.appendChild(probe); const h=probe.offsetHeight; gr.removeChild(probe); return h; };
   /* 札の高さ ch にぴったり入る札の幅をさがす */
   const fitW=ch=>{ let w=ch*1.4; for(let i=0;i<6;i++){ const h=natH(w); if(Math.abs(h-ch)<.6) break; w*=ch/h; } while(natH(w)>ch+.5 && w>20) w*=.985; return w; };
   const rowsQ=parseInt(q.get('rows'),10)||0, minCols=parseFloat(q.get('min'))||3.5; let R=rowsQ||1;

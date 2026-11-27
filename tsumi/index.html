@@ -87,7 +87,7 @@ canvas{width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/tsumi/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/tsumi/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 17:57</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 18:03</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -208,7 +208,7 @@ function ovOff(){ g.restore(); }
 function fullOn(){ g.save(); if(SHORT){ g.setTransform(1,0,0,1,0,0); g.translate(0,200+SHORT); g.scale(1,OS()); g.translate(0,-200); } }
 // 全画面の映像が流れているあいだは、テスト・ギフト・一時停止のボタンと下のギフト表を消して、映像だけを画面のまん中に見せる
 // 自動更新：公開先に新しい版が出ていたら、古い画面を持ったままにならないよう自動で読みこみ直す（スマホは古い画面を10分ほど覚えているため）
-const VER='1127-175745'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
+const VER='1127-180334'; (function(){ const tg=document.getElementById('verTag'); if(VER.indexOf('__')===0){ if(tg) tg.textContent=''; return; }
   const chk=()=>{ if(S && S.mode==='playing') return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('tsumi_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('tsumi_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); };
   setTimeout(chk,800); setInterval(chk,60000); document.addEventListener('visibilitychange',()=>{ if(!document.hidden) chk(); }); })();
 let cutUi=false; function syncCutUi(){ const on=!!(S.cut && S.cut.vid); if(on===cutUi) return; cutUi=on; for(const id of ['testBtn','cfgBtn','pauseBtn','rot','gtbl','feed','viewers','memo','photo']){ const e=document.getElementById(id); if(e) e.style.visibility=on?'hidden':''; }
