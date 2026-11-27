@@ -194,7 +194,7 @@ function mountJar(box,o){ const SK=(window.JARS||{})[o.jar]||null, CW=SK?SK.w:54
   const frame=now=>{ const dt=Math.min(.05,(now-last)/1000); last=now; acc+=dt; spT-=dt; if(queue.length&&spT<=0){ spawn(queue.shift()); spT=.11; }
     while(acc>=1/120){ step(1/120); acc-=1/120; }
     /* いっぱいになったら、古いもの（下のほう）から少しずつ消して場所をあける */
-    purgeT-=dt; let full=false; for(const p of P){ if(!p.die&&p.y<TOP+50&&p.y>TOP-60&&Math.abs(p.y-p.py)<.2&&Math.abs(p.x-p.px)<.2){ p.st=(p.st||0)+dt; if(p.st>.8) full=true; } else p.st=0; } if(purgeT<=0 && full){ purgeT=2.5; let k=Math.ceil(P.length*.3); for(const p of P){ if(k<=0) break; if(!p.die){ p.die=1; k--; } } }
+    purgeT-=dt; let full=false; for(const p of P){ if(!p.die&&p.y<TOP+45&&Math.abs(p.y-p.py)<.2&&Math.abs(p.x-p.px)<.2){ p.st=(p.st||0)+dt; if(p.st>.8) full=true; } else p.st=0; } if(purgeT<=0 && full){ purgeT=2.5; let k=Math.ceil(P.length*.3); for(const p of P){ if(k<=0) break; if(!p.die){ p.die=1; k--; } } }
     for(const p of P) if(p.die){ p.o-=dt*2.5; } P=P.filter(p=>p.o>0);
     g.clearRect(0,0,CW,CH); if(SK){ if(skin.ok) g.drawImage(skin,0,0,CW,CH); } else jarBack();
     for(const p of P){ g.save(); g.globalAlpha=Math.max(0,p.o); g.translate(p.x,p.y); g.rotate(p.a); if(p.im&&p.im.ok){ g.drawImage(p.im,-p.r*1.08,-p.r*1.08,p.r*2.16,p.r*2.16); } else { g.beginPath(); g.arc(0,0,p.r-1,0,6.283); g.fillStyle=p.c; g.fill(); g.lineWidth=3; g.strokeStyle='#fff'; g.stroke(); g.fillStyle='#fff'; g.font='700 '+Math.round(p.r)+'px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(p.ch,0,2); } g.restore(); }
