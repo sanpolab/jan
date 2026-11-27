@@ -83,6 +83,31 @@ body.setup{background:#12131a;-webkit-text-size-adjust:100%}
 .luxe.rank .av{border:2px solid #d9b866}.luxe.rank .nm{font-family:'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP','Noto Serif CJK JP',serif;color:#fff6dc}.luxe.rank .val{color:#ffe08a}.luxe.rank .val small{color:#d9b866}
 .luxe.rank .row+.row{border-top:1px solid rgba(217,184,102,.18)}
 .luxe.time .lab{color:#d9b866;letter-spacing:8px;font-family:'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP','Noto Serif CJK JP',serif}.luxe.time .num{color:#fff3c4}
+/* VIP・王座・ハート・花火 */
+.vip{overflow:hidden}
+.vip canvas{position:absolute;left:0;top:0;width:1920px;height:1080px}
+.vip .cu{position:absolute;top:0;width:962px;height:1080px;background-size:100% 100%;transition:transform .5s cubic-bezier(.3,.9,.4,1);will-change:transform;box-shadow:0 0 60px rgba(0,0,0,.6)}
+.vip .cl{left:0;background-image:url(img/curtL.webp);transform:translateX(-104%)}.vip .cr{right:0;background-image:url(img/curtR.webp);transform:translateX(104%)}
+.vip.st-shut .cu{transform:none}
+.vip.st-open .cu,.vip.st-out .cu{transition:transform 1.5s cubic-bezier(.6,0,.3,1)}
+.vip .pl{position:absolute;left:236px;top:280px;width:1448px;height:483px;opacity:0;transform:scale(.6)}
+.vip .pl img{position:absolute;left:0;top:0;width:100%;height:100%}
+.vip.st-shut .pl{opacity:1;transform:scale(.82)}
+.vip.st-open .pl{opacity:1;transform:scale(1);transition:transform 1.4s cubic-bezier(.2,1.3,.4,1)}
+.vip.st-out .pl{opacity:0;transform:scale(1.04);transition:opacity .8s,transform .8s}
+.vip .pn{position:absolute;left:150px;right:150px;top:158px;height:160px;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;font-family:'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;font-weight:700;color:#ffe9a8;text-shadow:0 0 22px rgba(255,216,107,.75),0 3px 0 #000;letter-spacing:4px}
+.vip .ps{position:absolute;left:150px;right:150px;top:318px;text-align:center;font:700 38px 'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;color:#d9b866;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:3px}
+.king .kav{position:absolute;left:104px;top:118px;width:308px;height:308px;border-radius:50%;background:#1a140c center/cover;display:flex;align-items:center;justify-content:center;font:700 150px 'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;color:#fff6dc}
+.king .kf{position:absolute;left:0;top:0;width:520px;height:520px}
+.king .kn{position:absolute;left:162px;width:196px;top:412px;height:50px;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;font-family:'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;font-weight:700;font-size:26px;color:#3a2500;text-shadow:0 1px 0 rgba(255,240,190,.7)}
+.king .kc{position:absolute;left:0;right:0;top:522px;text-align:center;font:700 50px/1.1 Georgia,'Times New Roman',serif;color:#fff3c4;text-shadow:0 2px 0 #000,0 0 12px rgba(0,0,0,.8)}
+.king .kc small{font:700 24px 'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;color:#e6cf8f}
+.king.chg .kf{animation:kchg 1.1s}
+@keyframes kchg{0%{filter:brightness(1)}25%{filter:brightness(2.1) drop-shadow(0 0 30px #ffd86b);transform:scale(1.06)}100%{filter:brightness(1);transform:none}}
+.heartg .hl{position:absolute;left:0;right:0;bottom:0;height:80px;text-align:center;text-shadow:0 2px 0 #000,0 0 10px rgba(0,0,0,.8)}
+.heartg .hn{font:700 54px/1.3 Georgia,'Times New Roman',serif;color:#fff3f8}
+.heartg .hn small{font:700 24px 'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif;color:#ffc2d8}
+.heartg.done .hn .a{color:#ffd86b;text-shadow:0 0 20px #ffd86b}
 /* テロップ・目標 */
 .thanks .band{position:absolute;inset:14px 0;background:linear-gradient(180deg,rgba(26,21,14,.95),rgba(8,7,6,.95));border-top:2px solid #d9b866;border-bottom:2px solid #d9b866;box-shadow:0 0 0 4px rgba(8,7,6,.85);overflow:hidden;opacity:0;transition:opacity .5s}
 .thanks .band.on{opacity:1}
@@ -342,9 +367,64 @@ function mountGoals(box,o){ let G=[]; for(const k of ['g1','g2','g3']){ const m=
   BUS.on('cmd',c=>{ if(c.cmd==='reset'&&(c.kind==='goals'||c.kind==='all')){ total=0; if(!o.demo) LS.set('ov_goals',{t:Date.now(),v:0}); draw(); } });
   draw(); return {w:CW,h:CH}; }
 
+/* ===== VIPコール ===== */
+function mountVip(box,o){ const CW=1920, CH=1080, minC=Math.max(1,parseInt(o.min,10)||1000), suf=o.suffix!=null?o.suffix:'様'; let dead=false; box.__kill=()=>{ dead=true; }; box.classList.add('vip'); box.style.width=CW+'px'; box.style.height=CH+'px';
+  box.innerHTML='<canvas width="960" height="540"></canvas><div class="pl"><img src="img/plate.webp"><div class="pn"></div><div class="ps"></div></div><div class="cu cl"></div><div class="cu cr"></div>';
+  const g=box.querySelector('canvas').getContext('2d'), pn=box.querySelector('.pn'), ps=box.querySelector('.ps'); let q=[], busy=false, conf=[], last=performance.now();
+  const run=()=>{ if(busy||!q.length||dead) return; busy=true; const e=q.shift(); pn.textContent=e.name+' '+suf; ps.textContent=e.sub||''; pn.style.fontSize=Math.max(54,Math.min(128,1500/Math.max(4,[...pn.textContent].length)))+'px';
+    box.className=box.className.replace(/ ?st-\w+/g,'')+' st-shut'; setTimeout(()=>{ box.className=box.className.replace(/ ?st-\w+/g,'')+' st-open'; for(let i=0;i<170;i++) conf.push({x:Math.random()*960,y:-10-Math.random()*240,vx:(Math.random()-.5)*50,vy:90+Math.random()*150,t:0,r:Math.random()*6,c:['#ffd86b','#fff3c4','#e8b84a','#ffffff'][i%4],s:3+Math.random()*5}); },1000);
+    setTimeout(()=>{ box.className=box.className.replace(/ ?st-\w+/g,'')+' st-out'; },7200); setTimeout(()=>{ box.className=box.className.replace(/ ?st-\w+/g,''); busy=false; run(); },8100); };
+  BUS.on('gift',e=>{ if(dead||e.coins*e.n<minC) return; if(q.length<8) q.push({name:e.name,sub:e.gname+(e.n>1?' ×'+e.n:'')+'　ありがとうございます'}); run(); });
+  BUS.on('cmd',c=>{ if(c.cmd==='vip'&&!dead){ q.push({name:c.name||'テスト',sub:(c.gname||'ライオン')+'　ありがとうございます'}); run(); } });
+  const frame=now=>{ const dt=Math.min(.05,(now-last)/1000); last=now; if(conf.length||frame.dirty){ g.clearRect(0,0,960,540); frame.dirty=conf.length>0; for(const c of conf){ c.t+=dt; c.x+=c.vx*dt+Math.sin(c.t*3+c.r)*.7; c.y+=c.vy*dt; g.save(); g.translate(c.x,c.y); g.rotate(c.r+c.t*5); g.fillStyle=c.c; g.fillRect(-c.s/2,-c.s/4,c.s,c.s/2); g.restore(); } conf=conf.filter(c=>c.y<560); } if(!dead) requestAnimationFrame(frame); };
+  requestAnimationFrame(frame); return {w:CW,h:CH}; }
+
+/* ===== 王座（今日のMVP） ===== */
+function mountKing(box,o){ const CW=520, CH=590; let dead=false; box.__kill=()=>{ dead=true; }; box.classList.add('king'); box.style.width=CW+'px'; box.style.height=CH+'px';
+  box.innerHTML='<div class="kav"></div><img class="kf" src="img/kingf.webp"><div class="kn"></div><div class="kc"><span></span><small> コイン</small></div>'; const av=box.querySelector('.kav'), kn=box.querySelector('.kn'), kc=box.querySelector('.kc span');
+  let M=new Map(), top=null; if(!o.demo){ const sv=LS.get('ov_king',null); if(sv&&sv.t&&Date.now()-sv.t<8*3600e3) for(const r of sv.l) M.set(r.uid,r); } let saveT=0;
+  const draw=()=>{ let b=null; for(const r of M.values()) if(!b||r.v>b.v) b=r; if(!b){ av.textContent='?'; av.style.backgroundImage=''; kn.textContent=o.label||'今日のMVP'; kc.textContent='0'; return; }
+    if(!top||top!==b.uid){ top=b.uid; box.classList.remove('chg'); void box.offsetWidth; box.classList.add('chg'); }
+    if(b.av){ av.style.backgroundImage='url("'+String(b.av).replace(/["\\\n]/g,'')+'")'; av.textContent=''; } else { av.style.backgroundImage=''; av.style.backgroundColor=hue(b.uid); av.textContent=[...b.name][0]||'?'; }
+    kn.textContent=b.name; kn.style.fontSize=Math.max(18,Math.min(34,300/Math.max(4,[...b.name].length)))+'px'; kc.textContent=b.v.toLocaleString('ja-JP'); };
+  BUS.on('gift',e=>{ if(dead) return; let r=M.get(e.uid); if(!r){ r={uid:e.uid,name:e.name,av:e.av||null,v:0}; M.set(e.uid,r); } r.name=e.name; if(e.av) r.av=e.av; r.v+=e.coins*e.n; draw(); if(!o.demo&&Date.now()-saveT>2000){ saveT=Date.now(); LS.set('ov_king',{t:Date.now(),l:[...M.values()].sort((a,b)=>b.v-a.v).slice(0,40)}); } });
+  BUS.on('cmd',c=>{ if(c.cmd==='reset'&&(c.kind==='king'||c.kind==='all')){ M=new Map(); top=null; if(!o.demo) LS.set('ov_king',{t:Date.now(),l:[]}); draw(); } });
+  draw(); return {w:CW,h:CH}; }
+
+/* ===== いいねゲージ（クリスタルのハート） ===== */
+function mountHeart(box,o){ const CW=520, CH=520, BH=CH+84, goal=Math.max(10,parseInt(o.goal,10)||10000); let dead=false; box.__kill=()=>{ dead=true; }; box.classList.add('heartg'); box.style.width=CW+'px'; box.style.height=BH+'px';
+  box.innerHTML='<canvas width="1040" height="1040" style="position:absolute;left:0;top:0;width:520px;height:520px"></canvas><div class="hl"><div class="hn"><span class="a"></span><small></small></div></div>';
+  const g=box.querySelector('canvas').getContext('2d'); g.scale(2,2); const im=u=>{ const i=new Image(); i.onload=()=>i.ok=true; i.src=u; return i; }, HI=im('img/heartc.webp'), MK=im('img/heartc_m.png'), off=document.createElement('canvas'); off.width=off.height=520; const og=off.getContext('2d');
+  const na=box.querySelector('.hn .a'), ns=box.querySelector('.hn small'); let total=0, laps=0, shown=0, party=0, sp=[], bub=[], last=performance.now(), saveT=0;
+  if(!o.demo){ const sv=LS.get('ov_heart',null); if(sv&&sv.t&&Date.now()-sv.t<8*3600e3&&sv.goal===goal){ total=sv.v||0; laps=sv.laps||0; } } const save=()=>{ if(!o.demo) LS.set('ov_heart',{t:Date.now(),v:total,laps,goal}); };
+  BUS.on('like',e=>{ if(dead) return; total+=e.n; if(Date.now()-saveT>1500){ saveT=Date.now(); save(); } });
+  BUS.on('cmd',c=>{ if(c.cmd==='reset'&&(c.kind==='heart'||c.kind==='all')){ total=0; laps=0; shown=0; save(); } });
+  const T0=83, B0=438;   /* ハートの中の、上のはしと下のはし */
+  const frame=now=>{ const dt=Math.min(.05,(now-last)/1000); last=now; const cur=Math.min(total-laps*goal,goal); shown+=(cur-shown)*Math.min(1,dt*3); if(Math.abs(cur-shown)<.5) shown=cur; const f=Math.max(0,Math.min(1,shown/goal));
+    if(!party&&cur>=goal&&shown>=goal-.5){ party=6; for(let i=0;i<90;i++){ const a=Math.random()*6.28, v=80+Math.random()*320; sp.push({x:260,y:260,vx:Math.cos(a)*v,vy:Math.sin(a)*v-80,t:0,l:.9+Math.random()*1.2,s:4+Math.random()*7,c:['#ff8fb8','#ffd86b','#fff','#ffc2d8'][i%4]}); } }
+    if(party>0){ party-=dt; if(party<=0){ laps++; shown=0; party=0; save(); } }
+    g.clearRect(0,0,CW,CH);
+    if(f>0&&MK.ok){ const top=B0-(B0-T0)*f; og.globalCompositeOperation='source-over'; og.clearRect(0,0,520,520); const gr=og.createLinearGradient(0,top,0,B0); gr.addColorStop(0,'rgba(255,150,190,.92)'); gr.addColorStop(1,'rgba(235,60,120,.92)'); og.fillStyle=gr; og.beginPath(); og.moveTo(0,520); og.lineTo(0,top); for(let x=0;x<=520;x+=13) og.lineTo(x,top+Math.sin(x/38+now/420)*4+Math.sin(x/17-now/300)*2); og.lineTo(520,520); og.closePath(); og.fill();
+      og.fillStyle='rgba(255,235,245,.8)'; if(Math.random()<.25) bub.push({x:90+Math.random()*340,y:B0-10,t:0}); for(const b of bub){ b.t+=dt; b.y-=44*dt; if(b.y>top+6){ og.beginPath(); og.arc(b.x+Math.sin(b.t*5)*3,b.y,2.2,0,6.283); og.fill(); } } bub=bub.filter(b=>b.y>top&&b.t<8);
+      og.globalCompositeOperation='destination-in'; og.drawImage(MK,0,0,520,520); g.drawImage(off,0,0); }
+    if(HI.ok) g.drawImage(HI,0,0,CW,CH);
+    for(const s of sp){ s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vy+=260*dt; g.globalAlpha=Math.max(0,1-s.t/s.l); g.fillStyle=s.c; g.save(); g.translate(s.x,s.y); g.rotate(s.t*7); g.fillRect(-s.s/2,-s.s/2,s.s,s.s); g.restore(); } g.globalAlpha=1; sp=sp.filter(s=>s.t<s.l);
+    na.textContent=Math.round(Math.min(goal,shown)).toLocaleString('ja-JP'); ns.textContent=' / '+goal.toLocaleString('ja-JP')+' いいね'+(laps?'　×'+(laps+1)+'周目':''); box.classList.toggle('done',party>0);
+    if(!dead) requestAnimationFrame(frame); };
+  requestAnimationFrame(frame); window.__heart=()=>({total,laps,shown}); return {w:CW,h:BH}; }
+
+/* ===== 金の花火（動画） ===== */
+function mountFire(box,o){ const CW=o.W||1920, CH=o.H||1080, minC=Math.max(1,parseInt(o.min,10)||500); let dead=false; box.__kill=()=>{ dead=true; }; box.classList.add('fire'); box.style.width=CW+'px'; box.style.height=CH+'px';
+  const v=document.createElement('video'); v.playsInline=true; v.preload='auto'; v.setAttribute('playsinline',''); const alpha=!!v.canPlayType('video/webm; codecs="vp9"') && !/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  v.src=alpha?'vid/fire.webm':'vid/fire.mp4'; if(!alpha) v.style.mixBlendMode='screen'; v.style.cssText+=';position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .25s'; box.appendChild(v);
+  let q=0, busy=false; const run=()=>{ if(busy||q<=0||dead) return; busy=true; q--; v.currentTime=0; v.muted=o.sound==='0'; v.style.opacity='1'; const p=v.play(); if(p&&p.catch) p.catch(()=>{ v.muted=true; const p2=v.play(); if(p2&&p2.catch) p2.catch(()=>{ busy=false; v.style.opacity='0'; }); }); };
+  v.onended=()=>{ v.style.opacity='0'; busy=false; setTimeout(run,300); };
+  BUS.on('gift',e=>{ if(dead||e.coins*e.n<minC) return; q=Math.min(5,q+1); run(); }); BUS.on('cmd',c=>{ if(c.cmd==='fire'&&!dead){ q=Math.min(5,q+1); run(); } });
+  window.__fire=()=>({q,busy,t:v.currentTime,alpha}); return {w:CW,h:CH}; }
+
 /* ===== 置き方 ===== */
 function place(host,name,o,maxW,maxH){ const box=document.createElement('div'); box.className='wg'+(o.theme==='gold'?' luxe':''); host.appendChild(box);
-  const sz=name==='win'?mountWin(box,o):name==='like'?mountRank(box,Object.assign({kind:'like'},o)):name==='gift'?mountRank(box,Object.assign({kind:'gift'},o)):name==='time'?mountTime(box,o):name==='gacha'?mountGacha(box,o):name==='rain'?mountRain(box,o):name==='thanks'?mountThanks(box,o):name==='goals'?mountGoals(box,o):name==='tower'?mountTower(box,o):mountJar(box,o);
+  const sz=name==='win'?mountWin(box,o):name==='like'?mountRank(box,Object.assign({kind:'like'},o)):name==='gift'?mountRank(box,Object.assign({kind:'gift'},o)):name==='time'?mountTime(box,o):name==='gacha'?mountGacha(box,o):name==='vip'?mountVip(box,o):name==='king'?mountKing(box,o):name==='heart'?mountHeart(box,o):name==='fire'?mountFire(box,o):name==='rain'?mountRain(box,o):name==='thanks'?mountThanks(box,o):name==='goals'?mountGoals(box,o):name==='tower'?mountTower(box,o):mountJar(box,o);
   const fit=()=>{ const W0=maxW(), H0=maxH?maxH():1e9, s=Math.min(W0/sz.w,H0/sz.h); box.style.transform='scale('+s+')'; host.style.width=(sz.w*s)+'px'; host.style.height=(sz.h*s)+'px'; }; fit(); window.addEventListener('resize',fit); return box; }
 const DEMO_N=['たぬ吉','ぽんた','みけ','ゆきんこ','レオ','さくら','もちこ','ハル','そら','くろまめ'], DEMO_G=[['バラ',1,0],['ローザ',10,1],['歌うキノコ',99,2],['コーギー',299,3],['マネーガン',500,4],['銀河',1000,5]];
 const demoGift=(i,n)=>{ const gi=i!=null?i:Math.floor(Math.pow(Math.random(),2.2)*DEMO_G.length), G=DEMO_G[gi], nm=DEMO_N[Math.floor(Math.random()*DEMO_N.length)]; return {event:'gift',data:{giftName:G[0],diamondCount:G[1],repeatCount:n||1,repeatEnd:true,nickname:nm,uniqueId:'demo_'+nm,giftId:9000+gi,giftPictureUrl:'../gmerge/img/g'+G[2]+'.webp'}}; };
@@ -356,7 +436,7 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
   const app=document.getElementById('app'); app.innerHTML='<div id="st" class="st"></div><div class="host" id="host"></div>'; const o=opts();
   place(document.getElementById('host'),W,o,()=>innerWidth,()=>innerHeight);
   if(Q.get('demo')==='1'){ setInterval(()=>{ tfEvent(Math.random()<.5?demoGift():demoLike()); },900); }
-  else if(W==='like'||W==='gift'||W==='jar'||W==='gacha'||W==='tower'||W==='rain'||W==='thanks'||W==='goals'||(W==='time'&&o.mode==='down')||(W==='win'&&(Q.get('admin')||CLOUD.user))){ tfConnect(); tfUI(); } window.__ready=true;
+  else if(W==='like'||W==='gift'||W==='jar'||W==='gacha'||W==='tower'||W==='vip'||W==='king'||W==='heart'||W==='fire'||W==='rain'||W==='thanks'||W==='goals'||(W==='time'&&o.mode==='down')||(W==='win'&&(Q.get('admin')||CLOUD.user))){ tfConnect(); tfUI(); } window.__ready=true;
 } else { /* ---- せつめいページ ---- */
   document.documentElement.classList.add('setup'); document.body.classList.add('setup'); const base=(EMBED?HOME_URL:location.origin+location.pathname.replace(/index\.html$/,''));
   const C=[['win','WINカウンター','?w=win','600 × 220','勝った数を出します。部品にマウスをのせると出るボタン（OBSなら右クリック→「対話」）か、下のボタンで増やしたり減らしたりできます。自分のコメントで「win+1」「win-1」「win=0」と打っても変わります。'],
@@ -365,6 +445,10 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
     ['time','時間','?w=time','640 × 220','「いまの時間」「配信時間」「耐久タイマー（ギフトで時間がのびる）」の3つから選べます。'],
     ['gacha','ガチャガチャ','?w=gacha','600 × 900','決めたギフトが来ると、ハンドルが回ってカプセルが出てきます。S・A・B・Cのランクと、その中身が出ます。中身は下で自由に書きかえられます（1行に1つ）。'],
     ['tower','シャンパンタワー','?w=tower&goal=1000','760 × 685','ギフトのコインがたまるほど、上のグラスから順にシャンパンが満ちていきます。目標に届くと金の紙ふぶきが舞って、2周目に入ります。「goal=」の数字が目標のコイン数です。'],
+    ['vip','VIPコール','?w=vip&min=1000','1920 × 1080（画面いっぱい）','大きなギフトが来ると、赤い幕が閉じてから左右に開き、金のプレートに「◯◯ 様」と名前が出ます。「min=」が、出すギフトの最低コイン数です。'],
+    ['king','王座（今日のMVP）','?w=king','520 × 590','その日いちばん多くギフトをくれた人を、王冠つきの金の額ぶちで出し続けます。1位が入れかわると光ります。'],
+    ['heart','いいねゲージ','?w=heart&goal=10000','520 × 604','いいねがたまるほど、クリスタルのハートがピンクに満ちていきます。目標に届くと光って、2周目に入ります。「goal=」が目標のいいね数です。'],
+    ['fire','金の花火','?w=fire&min=500','1920 × 1080（画面いっぱい）','大きなギフトが来ると、金の花火が3発上がります（音つき）。「min=」が、上げるギフトの最低コイン数。「&sound=0」で音を消せます。'],
     ['rain','ギフトの雨','?w=rain','1920 × 1080（画面いっぱい）','ギフトが来ると、そのギフトの絵が画面の上からキラキラ降ってきます。高いギフトほど大きく、たくさん降ります。「&size=150」で大きくできます。'],
     ['thanks','ありがとうテロップ','?w=thanks','1920 × 96','ギフトをくれた人の名前とギフトが、金の帯で右から左へ流れます。来ていない時は帯ごと消えます。「&min=10」で10コイン以上だけ、「&msg=感謝！」で最後の言葉を変えられます。'],
     ['goals','目標ボード','?w=goals','640 × 396','「◯コインで△△する」という約束を3つまで並べます。コインの合計がたまると金のバーがのびて、届いたら「達成！」になります。下で中身を書きかえると、アドレスが変わります。'],
@@ -374,13 +458,20 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
   h+='<h2>OBSへの入れ方</h2><ol><li>OBSの「ソース」の ＋ →「ブラウザ」を選ぶ</li><li>URLに、上の部品のアドレスをはりつける</li><li>幅と高さに、部品の下に書いてある大きさを入れる</li><li>あとは画面の上で好きな場所に動かして、大きさを変えるだけ（背景はすきとおっています）</li></ol>'
     +'<h2>つなぎ先</h2><p>なにもしなければ、同じパソコンで動いている TikFinity（アプリ版）から受け取ります。tik.tools を使う時だけ、下に入れてください。<br>※ キーはこのブラウザの中にだけ保存されます。OBSで使う時は、このページをOBSのブラウザソースで開き、右クリック→「対話」でここに入れてください（入れ終わったら、そのソースは消して大丈夫です）。<b>配信にキーが映らないよう、入れる時は配信を止めておいてください。</b></p>'
     +'<div class="card"><label><input type="checkbox" id="clOn" style="width:auto"> tik.tools を使う</label><input id="clUser" placeholder="TikTokのユーザー名（@のあとの英数字）" autocapitalize="off" autocomplete="off" spellcheck="false"><input id="clKey" type="password" placeholder="tik.tools のAPIキー" autocapitalize="off" autocomplete="off" spellcheck="false"><div class="btns"><button id="clSave">保存する</button><span id="clMsg" class="sz"></span></div></div>'
-    +'<h2>まとめてリセット</h2><div class="btns"><button data-rs="like">いいねランキング</button><button data-rs="gift">ギフトランキング</button><button data-rs="jar">びんの中身</button><button data-rs="tower">シャンパンタワー</button><button data-rs="goals">目標ボード</button></div></div>';
+    +'<h2>まとめてリセット</h2><div class="btns"><button data-rs="like">いいねランキング</button><button data-rs="gift">ギフトランキング</button><button data-rs="jar">びんの中身</button><button data-rs="tower">シャンパンタワー</button><button data-rs="goals">目標ボード</button><button data-rs="king">王座</button><button data-rs="heart">いいねゲージ</button></div></div>';
   document.getElementById('app').innerHTML=h;
   const pvW=()=>Math.min(document.querySelector('.pv').clientWidth-16,460);
   place(document.getElementById('pv_win'),'win',{},pvW).classList.add('show');
   place(document.getElementById('pv_like'),'like',{demo:true},()=>Math.min(pvW(),380));
   place(document.getElementById('pv_gift'),'gift',{demo:true},()=>Math.min(pvW(),380));
   const jsel=document.getElementById('jsel'), jsize=document.getElementById('jsize'), jover=document.getElementById('jover'); let jbox=null; const setJ=()=>{ const hst=document.getElementById('pv_jar'); if(jbox&&jbox.__kill) jbox.__kill(); hst.innerHTML=''; const v=jsel.value, K=(window.JARS||{})[v||'glass'], z=jsize.value, ov=jover.value; jbox=place(hst,'jar',{demo:true,jar:v,size:z,over:ov},()=>Math.min(pvW(),K.w>600?400:330)); document.getElementById('u_jar').textContent=base+'?w=jar'+(v?'&jar='+v:'')+(z!=='100'?'&size='+z:'')+(ov?'&over=0':''); document.getElementById('sz_jar').textContent=(K.w+180)+' × '+(K.h+100)+'（size= の数字を書きかえると、好きな大きさにもできます。100がふつう）'; }; jsize.onchange=setJ; jover.onchange=setJ; jsel.onchange=setJ; setJ();
+  place(document.getElementById('pv_vip'),'vip',{demo:true,min:99999999},()=>Math.min(pvW(),460));
+  place(document.getElementById('pv_king'),'king',{demo:true},()=>Math.min(pvW(),300));
+  place(document.getElementById('pv_heart'),'heart',{demo:true,goal:600},()=>Math.min(pvW(),300));
+  { const W0=Math.min(pvW(),460); place(document.getElementById('pv_fire'),'fire',{demo:true,min:99999999,W:W0,H:Math.round(W0*9/16)},()=>W0); document.getElementById('pv_fire').style.background='#05060c';
+    document.getElementById('bt_vip').innerHTML='<button id="tVip">ためす</button>'; document.getElementById('tVip').onclick=()=>sendCmd({cmd:'vip',name:DEMO_N[Math.floor(Math.random()*DEMO_N.length)],gname:'ライオン'});
+    document.getElementById('bt_fire').innerHTML='<button id="tFire">ためす（音が出ます）</button>'; document.getElementById('tFire').onclick=()=>sendCmd({cmd:'fire'});
+    document.getElementById('bt_king').innerHTML='<button id="tKing">ギフトをためす</button>'; document.getElementById('tKing').onclick=()=>fire(demoGift()); document.getElementById('bt_heart').innerHTML='<button id="tHe">いいねをためす</button>'; document.getElementById('tHe').onclick=()=>fire(demoLike()); }
   place(document.getElementById('pv_rain'),'rain',{demo:true,W:Math.min(pvW(),460),H:260},()=>Math.min(pvW(),460));
   place(document.getElementById('pv_thanks'),'thanks',{demo:true},()=>Math.min(pvW(),460));
   place(document.getElementById('pv_goals'),'goals',{demo:true},()=>Math.min(pvW(),400));
