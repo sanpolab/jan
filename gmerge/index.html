@@ -152,7 +152,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/gmerge/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/gmerge/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 01:49</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 13:44</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -209,7 +209,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
     <h3>そのほかのスキル</h3>
     <button class="j" data-a="rain5">バラ×5</button><button class="j" data-a="rain125">バラ×125</button><button class="j" data-a="rain200">バラ×200</button><button class="j" data-a="gacha">ランダムガチャ</button><button class="j" data-a="toss">投げ飛ばす</button><button class="j" data-a="shake">ゆらす</button><button class="j" data-a="rock">おじゃま玉</button><button class="h" data-a="clean">おそうじ<br>小さいコマを消す</button><button class="h" data-a="allclear">全消し</button>
     <h3>無料（コメント・いいね・フォロー）</h3>
-    <button class="j" data-a="comment">コメント<br>バラ1個</button><button class="j" data-a="like">いいね×1000<br>ローザ1個</button><button class="j" data-a="follow">フォロー<br>ローザ1個</button>
+    <button class="j" data-a="comment">コメント<br>バラ1個</button><button class="j" data-a="like">いいね×1000<br>ランダムガチャ</button><button class="j" data-a="follow">フォロー<br>ランダムガチャ</button>
     <h3>音</h3>
     <button class="g" id="optBgm">BGM</button><button class="g" id="optSe">効果音</button><button class="g" id="optTrack">曲</button>
     <h3>その他</h3>
@@ -219,9 +219,11 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 <div id="below"><div id="binfo"><div id="viewers"><small>視聴</small><span id="viewN">–</span></div><div id="memo"></div></div><div id="frow"><div id="feed"><div class="ln hint">ここにコメント・ギフト・フォローが流れます</div></div><div id="photo"></div></div><iframe id="gtbl" title="ギフト表"></iframe></div>
 <script src="./lib/matter.min.js"></script>
 <script>
+/* ギフトの初期割り当てを作り直した時は番号を上げる（古い保存を捨てて、新しい初期値にする） */
+try{ if(localStorage.getItem('gmerge_gv')!=='2'){ localStorage.removeItem('gmerge_gifts'); localStorage.setItem('gmerge_gv','2'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1127-014925';
+const VER='1127-134409';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== ユニバゲーム：同じギフト同士がくっつくと、ひとつ上のギフトに進化する「くっつけ落としゲーム」。
    配信者が左右に動かして落とす。視聴者がギフトを投げると、そのギフトのコマが箱の中にふってくる。箱からあふれたら終わり。WINはなく、スコアとベストスコアだけ ===== */
@@ -304,10 +306,11 @@ const Game={
   nextSet(lv,n){ if(S.mode!=='play') return; S.next=lv; play('pon',.6); logAdd((n||'だれか')+' が ネクストを '+LV[lv].name+' に変更',LV[lv].col); },
   /* おそうじ：いちばん小さい2段階（バラ・ローザ）をぜんぶ消す */
   clean(n){ if(S.mode!=='play') return; let c=0; for(const b of pieces()){ if(b.lv<=1 && !b.gone){ b.gone=true; burst(b.position.x,b.position.y,'#5dffb0',6,220); Composite.remove(engine.world,b); c++; } } play('harp',.7); S.flash=.2; logAdd((n||'だれか')+' のおそうじ：小さいコマを'+c+'個消した','#5dffb0'); },
-  /* 無料の反応。コメント＝バラ1個（同じ人は20秒に1回）、いいね1000回ごと＝ローザ1個、フォロー＝ローザ1個 */
+  /* 無料の反応。コメント＝バラ1個（同じ人は20秒に1回）、いいね1000回ごと＝ランダムガチャ、フォロー＝ローザ1個 */
   comment(n){ const now=performance.now(), k=String(n||''); if(CMT[k] && now-CMT[k]<20000) return; CMT[k]=now; giftDrop(0,n); },
-  like(c,n){ likeAcc+=Math.max(1,c|0); let k=0; while(likeAcc>=1000 && k<3){ likeAcc-=1000; k++; giftDrop(1,n); } if(likeAcc>=1000) likeAcc=likeAcc%1000; },
-  follow(n){ giftDrop(2,n); } };
+  like(c,n){ likeAcc+=Math.max(1,c|0); let k=0; while(likeAcc>=1000 && k<3){ likeAcc-=1000; k++; Game.gacha(n); } if(likeAcc>=1000) likeAcc=likeAcc%1000; },
+  follow(n){ Game.gacha(n); },
+  share(n){ Game.rain(5,n); }, subscribe(n){ Game.rain(200,n); } };
 for(let i=0;i<LV.length;i++){ Game['drop'+i]=n=>giftDrop(i,n); Game['chg'+i]=n=>Game.chg(i,n); Game['next'+i]=n=>Game.nextSet(i,n); }
 
 /* ===== 進める ===== */
@@ -436,7 +439,7 @@ const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://1
 try{ TF.map=JSON.parse(localStorage.getItem('gmerge_gifts')||'{}')||{}; }catch(e){ TF.map={}; }
 const tfNorm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.');
 /* はじめて開いた時だけ、ギフトの割り当てのたたき台を入れる（あとから自由に変えられる） */
-if(!localStorage.getItem('gmerge_gdef')){ try{ localStorage.setItem('gmerge_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"drop0": {"id": null, "name": "バラ", "coins": 1, "ci": 1, "pic": null}, "drop1": {"id": null, "name": "ローザ", "coins": 10, "ci": 37, "pic": null}, "drop2": {"id": null, "name": "歌うキノコ", "coins": 99, "ci": 63, "pic": null}, "drop3": {"id": null, "name": "コーギー", "coins": 299, "ci": 155, "pic": null}, "drop4": {"id": null, "name": "マネーガン", "coins": 1016, "ci": 357, "pic": null}, "drop5": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}, "drop6": {"id": null, "name": "クジラのダイビング", "coins": 2150, "ci": 389, "pic": null}, "drop7": {"id": null, "name": "子猫のレオン", "coins": 4888, "ci": 413, "pic": null}, "drop8": {"id": null, "name": "ハヤブサ", "coins": 10999, "ci": 439, "pic": null}, "drop9": {"id": null, "name": "ライオン", "coins": 29999, "ci": 464, "pic": null}, "drop10": {"id": null, "name": "TikTokUniverse", "coins": 44999, "ci": 474, "pic": null}}; try{ localStorage.setItem('gmerge_gifts',JSON.stringify(TF.map)); }catch(e){} } }
+if(!localStorage.getItem('gmerge_gdef')){ try{ localStorage.setItem('gmerge_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"drop0": {"id": null, "name": "バラ", "coins": 1, "ci": 1, "pic": null}, "drop1": {"id": null, "name": "フィンガーハート", "coins": 5, "ci": 28, "pic": null}, "drop2": {"id": null, "name": "ローザ", "coins": 10, "ci": 37, "pic": null}, "drop3": {"id": null, "name": "ドーナッツ", "coins": 30, "ci": 58, "pic": null}, "drop4": {"id": null, "name": "ハンドハート", "coins": 100, "ci": 87, "pic": null}, "drop5": {"id": null, "name": "恋のメガネ", "coins": 149, "ci": 90, "pic": null}, "drop6": {"id": null, "name": "愛してる", "coins": 199, "ci": 107, "pic": null}, "drop7": {"id": null, "name": "スターメガネ", "coins": 249, "ci": 149, "pic": null}, "drop8": {"id": null, "name": "コーギー", "coins": 299, "ci": 155, "pic": null}, "drop9": {"id": null, "name": "だいすき", "coins": 500, "ci": 310, "pic": null}, "drop10": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}, "chg0": {"id": null, "name": "GG", "coins": 1, "ci": 4, "pic": null}, "chg1": {"id": null, "name": "おまもり", "coins": 5, "ci": 27, "pic": null}, "chg2": {"id": null, "name": "友情ネックレス", "coins": 10, "ci": 38, "pic": null}, "chg3": {"id": null, "name": "香水", "coins": 20, "ci": 55, "pic": null}, "chg4": {"id": null, "name": "ハートポーズ", "coins": 100, "ci": 85, "pic": null}, "chg5": {"id": null, "name": "蝶結び", "coins": 149, "ci": 96, "pic": null}, "chg6": {"id": null, "name": "ローズハンド", "coins": 199, "ci": 108, "pic": null}, "chg7": {"id": null, "name": "雪の花", "coins": 249, "ci": 141, "pic": null}, "chg8": {"id": null, "name": "うっとりペンギン", "coins": 299, "ci": 174, "pic": null}, "chg9": {"id": null, "name": "ドラゴンの冠", "coins": 500, "ci": 320, "pic": null}, "chg10": {"id": null, "name": "幕開けの花火", "coins": 1099, "ci": 361, "pic": null}, "next0": {"id": null, "name": "どんぐり", "coins": 1, "ci": 3, "pic": null}, "next1": {"id": null, "name": "ニャオ", "coins": 5, "ci": 30, "pic": null}, "next2": {"id": null, "name": "アイスバー", "coins": 10, "ci": 40, "pic": null}, "next3": {"id": null, "name": "G.O.A.T.バスカー", "coins": 20, "ci": 53, "pic": null}, "next4": {"id": null, "name": "すきすきビーム", "coins": 100, "ci": 89, "pic": null}, "next5": {"id": null, "name": "ハートの風船", "coins": 149, "ci": 99, "pic": null}, "next6": {"id": null, "name": "花冠", "coins": 199, "ci": 117, "pic": null}, "next7": {"id": null, "name": "女神の花冠", "coins": 249, "ci": 146, "pic": null}, "next8": {"id": null, "name": "ラブコール", "coins": 299, "ci": 172, "pic": null}, "next9": {"id": null, "name": "すばらしい！", "coins": 500, "ci": 309, "pic": null}, "next10": {"id": null, "name": "良い週末を", "coins": 599, "ci": 328, "pic": null}, "rain5": {"id": null, "name": "TikTok", "coins": 1, "ci": 14, "pic": null}, "shake": {"id": null, "name": "エール", "coins": 5, "ci": 26, "pic": null}, "clean": {"id": null, "name": "メロメロ〜", "coins": 10, "ci": 42, "pic": null}, "toss": {"id": null, "name": "天才", "coins": 50, "ci": 59, "pic": null}, "rock": {"id": null, "name": "歌うキノコ", "coins": 99, "ci": 63, "pic": null}, "rain125": {"id": null, "name": "音色のしずく", "coins": 100, "ci": 86, "pic": null}, "allclear": {"id": null, "name": "つながる心", "coins": 299, "ci": 176, "pic": null}}; try{ localStorage.setItem('gmerge_gifts',JSON.stringify(TF.map)); }catch(e){} } }
 function tfSave(){ try{ localStorage.setItem('gmerge_gifts',JSON.stringify(TF.map)); }catch(e){} }
 // 名前が合わずに「割り当てなし」になったギフトを覚えておき、設定画面で「どの効果か」を1回えらべば、届いた名前とIDをその効果に結びつける
 let MISS=[]; try{ MISS=JSON.parse(localStorage.getItem('gmerge_miss')||'[]')||[]; }catch(e){}
@@ -499,7 +502,7 @@ function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.dat
   else if(ev==='chat'){ { const tx=d.comment!=null?d.comment:(d.text!=null?d.text:d.content); if(tx) feedAdd(name,tx); } if(OPT.chatOn && !TITLE && !PAUSE) Game.comment(name); tfLogAdd('コメント：'+name+(OPT.chatOn?'':'（オフ）')); }
   else if(ev==='like'){ const c=parseInt(d.likeCount!=null?d.likeCount:(d.count!=null?d.count:d.likes),10)||1; if(OPT.likeOn && !TITLE && !PAUSE) Game.like(c,name); }
   else if(ev==='error'||ev==='disconnected'||ev==='streamend'){ tfLogAdd('つなぎ先から：'+ev+' '+JSON.stringify(d).slice(0,140)); }
-  else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') feedAdd(name,'がフォローした','fl'); if(ev==='follow' && OPT.followOn) runFx(()=>Game.follow(name)); tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
+  else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') feedAdd(name,'がフォローした','fl'); if(ev==='follow' && OPT.followOn) runFx(()=>Game.follow(name)); if(ev==='share') runFx(()=>Game.share(name)); if(ev==='subscribe') runFx(()=>Game.subscribe(name));   /* シェア＝バラ×5、サブスク＝バラ×200 */ tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
 const GIFT_EN={'rose':['バラ','ローズ'],'tiktok':['TikTok','ティックトック'],'gg':['GG'],'icecreamcone':['ソフトクリーム','アイスクリーム'],'fingerheart':['フィンガーハート','指ハート'],'heartme':['ハートミー'],'rosa':['ローザ'],'perfume':['香水'],'doughnut':['ドーナッツ','ドーナツ'],'donut':['ドーナッツ','ドーナツ'],'handhearts':['ハンドハート'],'handheart':['ハンドハート'],'hatandmustache':['帽子と口ひげ','帽子とひげ'],'papercrane':['折り鶴','折り稚'],'swan':['白鳥','スワン'],'train':['列車'],'corgi':['コーギー'],'confetti':['紙吹雪','コンフェッティ'],'goldenconfetti':['金の紙吹雪'],'lion':['ライオン'],'galaxy':['ギャラクシー','銀河'],'moneygun':['マネーガン'],'sunglasses':['サングラス'],'hearts':['ハート'],'heart':['ハート'],'cap':['キャップ'],'littlecrown':['小さな王冠'],'bubblegum':['風船ガム'],'friendshipnecklace':['友情ネックレス'],'loveyou':['愛してる'],'garlandheadpiece':['花冠'],'coral':['サンゴ'],'football':['サッカー'],'soccer':['サッカー'],'winkwink':['ウインク'],'wink':['ウインク'],'cheeryouup':['エール'],'whalediving':['ダイビングするクジラ','クジラダイビング'],'universe':['TikTok Universe','ユニバース'],'tiktokuniverse':['TikTok Universe','ユニバース'],'interstellar':['インターステラー'],'rocket':['ロケット'],'pegasus':['ペガサス'],'firephoenix':['不死鳥','フェニックス','火の鳥'],'phoenix':['不死鳥','フェニックス'],'feather':['羽根'],'featherstiara':['羽のティアラ'],'feathermask':['羽根のマスク'],'loveshelter':['ラブシェルター'],'superpopular':['スーパー人気'],'ilovepoyou':['大好き'],'ilyso':['大好き'],'youreawesome':['素晴らしい'],'acorn':['どんぐり'],'popsicle':['アイスバー'],'baseball':['野球'],'catpaws':['猫の足'],'glowstick':['ペンライト'],'fan':['うちわ'],'omamori':['おまもり'],'amulet':['おまもり'],'slowmotion':['スローモーション'],'bravo':['ブラボー！'],'genius':['天才'],'firstvisit':['初見です'],'mirrorbloom':['ミラーブルーム'],'butterfly':['蝶結び'],'chili':['チリ'],'starglasses':['スターメガネ'],'ramune':['ラムネ']};
 const enKey=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]/g,''), enHit=(b,gf)=>{ const c=GIFT_EN[enKey(gf.name)]; return !!(c && b.name && c.some(j=>tfNorm(j)===tfNorm(b.name))); };
 /* 名前が合わないギフト（スマホ用のつなぎ先は英語の名前で届く、など）を、絵で見分ける。
