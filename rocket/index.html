@@ -131,7 +131,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/rocket/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/rocket/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 21:18</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/27 21:19</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -190,7 +190,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
     <h3>音</h3>
     <button class="g" id="optBgm">BGM</button><button class="g" id="optSe">効果音</button><span></span>
     <h3>妨害</h3>
-    <button class="j" data-a="meteor2">隕石<br>2発（耐久 −1ずつ）</button><button class="j" data-a="stall">エンジン停止<br>1〜5秒 動けない</button>
+    <button class="j" data-a="meteor2">隕石<br>2発（耐久 −1ずつ）</button><button class="j" data-a="stall">エンジン停止<br>1.5秒 動けない</button>
     <button class="j" data-a="hole">ブラックホール<br>−1,000m</button><button class="j" data-a="crash">撃墜（機械クジラ）<br>飲みこまれて即ついらく＋セーブ消去</button><button class="j" data-a="dragonAtk">ドラゴン襲来<br>火球4発（当たれば耐久−1）</button>
     <!-- 減速板はいったんお休み（絵 img/pad_dn.webp と Game.slowpad は残してある。戻すときはここにボタンを足す） --><button class="j" data-a="king">星喰いの王<br>即死の光の柱を5回</button><button class="j" data-a="vamp">吸血鬼<br>15秒 コウモリの嵐（連打で3体まで）</button><button class="j" data-a="unsave">セーブ解除（魔女）<br>セーブ地点を消す</button><button class="j" data-a="tengu">天狗<br>うちわの大風 3回（横に強く流される）</button><button class="j" data-a="maou">魔王<br>WIN −50</button><button class="j" data-a="kama">宇宙カマキリ<br>斬撃12発 上下左右から</button><button class="j" data-a="akuma">悪魔降臨<br>20秒 光る輪へ逃げる</button><button class="j" data-a="roulDown">ゴール＋ルーレット<br>ゴールが 100〜1,000m 遠ざかる</button><button class="j" data-a="jelly">クラゲの群れ<br>30秒 9匹がいすわる（連打で増える）</button><button class="j" data-a="storm">雷雲<br>落雷を8回（予告あり・1本はねらってくる）</button><button class="j" data-a="spike">トゲ鉄球<br>10秒 振り子（当たると耐久−1）</button><button class="j" data-a="blackout">チョウチンアンコウ<br>10秒 まっ暗（ライトの先だけ見える）</button><button class="j" data-a="ufo">UFO<br>15秒 操作が上下左右とも逆（必ず当たる）</button><button class="j" data-a="garg">ガーゴイル<br>しがみつかれると落ちていく（振り落とせる）</button><button class="j" data-a="bird">小鳥<br>当たると一瞬おそくなる</button><button class="j" data-a="ice">氷の怪鳥<br>凍って−2,000m＋30秒 速さ半分</button><button class="j" data-a="wizard">魔法使い<br>追ってくる魔法2発（耐久−1）</button>
     <h3>目標の高さ（変えると0からやり直し）</h3>
@@ -207,7 +207,7 @@ canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 const W=1080, H=1700, cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, pick=a=>a[Math.floor(Math.random()*a.length)];
 const FONT="MPR,'Hiragino Sans','Noto Sans JP',sans-serif", FONTD="DELA,"+FONT;
-const CFG={ goal:10000, speed:25, powDecay:.05, comment:.12, like:.006, follow:.5, hp:5, boostSec:10, boostMul:3, stallSec:3, stallFall:30, hole:1000, warp:500, ppm:20 };
+const CFG={ goal:10000, speed:25, powDecay:.05, comment:.12, like:.006, follow:.5, hp:5, boostSec:10, boostMul:3, stallSec:1.5, stallFall:30, hole:1000, warp:500, ppm:20 };
 /* 絵（チャッピー製）。読めていない間は何も描かない */
 const IMG={}; function img(k,src){ const im=new Image(); im.src='./img/'+src; IMG[k]=im; return im; }
 img('king','king.webp'); img('kingbeam','kingbeam.jpg');   /* 星喰いの王（10コマ×5段のコマ送り、1コマ400×335）と光の柱 */
@@ -412,7 +412,7 @@ const Game={
   /* ギフトの隕石：2発。2発目は少し横にずらして、少しおくれて落ちる */
   meteor2(n){ const c=()=>S.items.filter(it=>it.k==='meteor').length, n0=c(); this.meteor(n); const a=c()>n0?S.items[S.items.length-1]:null; const n1=c(); this.meteor(n); if(c()>n1){ const b=S.items[S.items.length-1]; if(a) b.x=clamp(a.x+(Math.random()<.5?-1:1)*rand(230,330),XL+120,XL+XW-120); b.wait+=.4; } },
   meteor(n){ if(jamBlocked(n,'隕石')) return; S.items.push({k:'meteor',x:clamp(RXw()+rand(-70,70),XL+120,XL+XW-120),y:-260,vx:0,vy:420,hit:false,by:n,wait:METEOR_WARN}); play('count',.3);   /* 落ちてくる前に METEOR_WARN 秒、落ちる場所を赤く知らせる */ logAdd((n||'だれか')+' が隕石を落とした（耐久−1）','#ff9aa8'); },
-  stall(n){ if(jamBlocked(n,'エンジン停止')) return; { const sec=1+Math.floor(Math.random()*5);   /* 止まる長さは毎回くじ引き：1〜5秒 */ S.stallT=QUIET?S.stallT+sec:sec; } S.boostT=0; S.red=.5; cutOnce('stall',n); logAdd((n||'だれか')+' がエンジンを止めた','#ff9aa8'); },
+  stall(n){ if(jamBlocked(n,'エンジン停止')) return; S.stallT=QUIET?S.stallT+CFG.stallSec:CFG.stallSec; S.boostT=0; S.red=.5; cutOnce('stall',n); logAdd((n||'だれか')+' がエンジンを止めた','#ff9aa8'); },
   hole(n){ if(S.mode!=='fly') return; if(inv()){ jamBlocked(n,'ブラックホール'); return; } const go=()=>{ if(jamBlocked(n,'ブラックホール')) return; S.holeT=HOLE.T; S.holeEnd=false; S.holeDrop+=Math.min(S.alt,CFG.hole); S.shake=.6; S.flash=Math.max(S.flash,.25); banner('−'+fmt(CFG.hole)+'m','#c58bff',n,CFG.hole===500?'logo_m500':''); logAdd((n||'だれか')+' がブラックホールで引きずり下ろした','#ff9aa8');  }; if(S.cine) go(); else startCine('hole',go); },
   dragon3(n){ this.dragonAtk(n,true); },
   dragonAtk(n,s3){ if(S.mode!=='fly') return; if(S.drgs.length>=DIFFS[DIFF].stack) return; let slot=0; while(S.drgs.some(d=>d.slot===slot)) slot++; const first=!S.drgs.length, P=DRG_SLOTS[slot%DRG_SLOTS.length]; S.drgs.push({t:first?0:DRG.cut,cutin:first,by:n,s3:!!s3,shot:0,snd:false,id:++JID,slot,ox:P[0],oy:P[1]}); if(first) S.banner=null; S.flash=Math.max(S.flash,.12); logAdd((n||'だれか')+' がドラゴンを呼んだ（火球'+(s3?3:4)+'発）','#ff9aa8'); },   /* 同時に stack 体まで。2体目からはカットインなしですぐ降りてくる */
@@ -1179,7 +1179,7 @@ function draw(){ if(S.cine){ drawCine(); return; }
     const gr=g.createLinearGradient(0,y1,0,y0); gr.addColorStop(0,'#4cc3ff'); gr.addColorStop(.6,'#5dffb0'); gr.addColorStop(1,'#ffe14d'); g.fillStyle=S.boostT>0?'#ffffff':gr; if(f>.01){ rr(x-7,y1-hh*f,30,hh*f,10); g.fill(); }
     if(ok('mega')){ const mi=IMG.mega, mw=74, mh=mw*mi.naturalHeight/mi.naturalWidth, pu=1+.12*Math.max(0,Math.sin(T*6))*S.pow; g.save(); g.translate(x+12,y0-58); g.scale(pu,pu); g.drawImage(mi,-mw/2,-mh/2,mw,mh); g.restore(); } else txt('応援',x+8,y0-52,26,'#fff','center','#0a1730'); txt('×'+(1+S.pow).toFixed(1),x+8,y1+52,30,'#ffe14d','center','#0a1730'); }
   if(S.boostT>0 && !S.astro) txt('ブースター 残り '+Math.ceil(S.boostT)+'秒',W/2,892,36,'#4cc3ff','center','#04203a');
-  if(S.stallT>0) txt('エンジン停止！動けない 残り '+Math.ceil(S.stallT)+'秒',W/2,892,36,'#ff5c5c','center','#2a0008');
+  if(S.stallT>0) txt('エンジン停止！動けない 残り '+S.stallT.toFixed(1)+'秒',W/2,892,36,'#ff5c5c','center','#2a0008');
   if(S.slowT>0 || S.frz){ const tx2=S.frz?'凍結中！':'凍結：速さ半分　あと'+Math.ceil(S.slowT)+'秒'; g.save(); g.font='900 30px '+FONT; const tw=g.measureText(tx2).width+44; g.fillStyle='rgba(20,60,110,.85)'; g.strokeStyle='#9bd8ff'; g.lineWidth=4; rr(W/2-tw/2,236,tw,54,27); g.fill(); g.stroke(); txt(tx2,W/2,264,30,'#eaf6ff','center'); g.restore(); }
   { const step=mileStep(), rem=CFG.goal-S.alt; if(S.mode==='fly' && rem<=step && rem>0){ const pl=.5+.5*Math.sin(T*5), k=1-rem/step; g.save(); for(const [x0,y0,x1,y1] of [[0,0,90,0],[W,0,W-90,0]]){ const gr=g.createLinearGradient(x0,0,x1,0); gr.addColorStop(0,'rgba(255,210,63,'+((.3+.35*k)*(.6+.4*pl))+')'); gr.addColorStop(1,'rgba(255,210,63,0)'); g.fillStyle=gr; g.fillRect(Math.min(x0,x1),150,90,790); } const tx2='ゴールまで あと '+fmt(Math.ceil(rem))+'m'; g.font='900 32px '+FONT; const tw=g.measureText(tx2).width+48; g.fillStyle='rgba(60,40,0,.88)'; g.strokeStyle='#ffd23f'; g.lineWidth=4; rr(W/2-tw/2,850,tw,56,28); g.fill(); g.stroke(); txt(tx2,W/2,879,32,'#fff3b0','center'); g.restore(); } }
   if(S.mileFx && !S.retry){ const m=S.mileFx, a=clamp(m.t/.18,0,1), b=clamp((m.t-2.0)/.4,0,1), ox=(1-(1-Math.pow(1-a,3)))*900-b*b*1200, cy=258; g.save(); g.translate(ox,0); const gr=g.createLinearGradient(0,0,W,0); gr.addColorStop(0,'rgba(255,210,63,0)'); gr.addColorStop(.25,'rgba(40,26,0,.85)'); gr.addColorStop(.75,'rgba(40,26,0,.85)'); gr.addColorStop(1,'rgba(255,210,63,0)'); g.fillStyle=gr; g.fillRect(0,cy-52,W,104); g.fillStyle='rgba(255,210,63,.9)'; g.fillRect(140,cy-54,W-280,4); g.fillRect(140,cy+50,W-280,4); const pk=1+.4*Math.pow(clamp(1-(m.t-.1)/.2,0,1),2); g.translate(W/2,cy-10); g.scale(pk,pk); txt(m.text,0,0,62,'#ffd23f','center','#3a2a00',FONTD); g.scale(1/pk,1/pk); txt(m.sub,0,44,26,'#fff','center','#2a1c00'); g.restore(); }
@@ -1235,7 +1235,7 @@ cv.addEventListener('pointerdown',()=>{ if(S.mode==='clear' && S.clearT>2.4){ ne
 newRun(true); goalShow=CFG.goal; logAdd(fmt(CFG.goal)+'m まで飛ぶまで終われません！','#ffd23f');
 let last=performance.now();
 function loop(now){ const dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ update(dt); } draw(); } requestAnimationFrame(loop); }
-const VER='1127-211800'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+const VER='1127-211920'; (function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(S && S.mode==='fly' && S.alt>40) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('rocket_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('rocket_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
 { const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'); if(b) b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); if(e) e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); try{ localStorage.setItem('rocket_snd',JSON.stringify(OPTS)); }catch(_){} }; for(const [id,k] of [['optBgm','bgm'],['optSe','se']]){ const el=document.getElementById(id); if(el) el.addEventListener('click',ev=>{ ev.stopPropagation(); OPTS[k]=OPTS[k]?0:1; up(); }); } up(); }
 /* ===== TikTokとの接続とギフトの割り当て（つみつみアニマルから移した仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
 const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rocket_opts')||'{}')); }catch(e){}
@@ -1267,7 +1267,7 @@ const FX_LIST=[
  ['meteor','jam','隕石','2発落ちてくる（当たれば耐久 −1ずつ）',n=>Game.meteor2(n)],
  ['bird','jam','小鳥','当たると一瞬おそくなる',n=>Game.bird(n)],
  ['wizard','jam','魔法使い','追ってくる魔法2発',n=>Game.wizard(n)],
- ['stall','jam','エンジン停止','1〜5秒（毎回ランダム）その場から動けない',n=>Game.stall(n)],
+ ['stall','jam','エンジン停止','1.5秒 その場から動けない',n=>Game.stall(n)],
  ['garg','jam','ガーゴイル','しがみつかれると落ちていく',n=>Game.garg(n)],
  ['tengu','jam','天狗','うちわの大風 3回',n=>Game.tengu(n)],
  ['spike','jam','トゲ鉄球','10秒 振り子（当たると耐久−1）',n=>Game.spike(n)],
