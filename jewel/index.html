@@ -165,7 +165,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 23:02</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 23:04</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -232,10 +232,10 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 <div id="below"><div id="binfo"><div id="viewers"><small>視聴</small><span id="viewN">–</span></div><div id="memo"></div></div><div id="frow"><div id="feed"><div class="ln hint">ここにコメント・ギフト・フォローが流れます</div></div><div id="photo"></div></div><iframe id="gtbl" title="ギフト表"></iframe></div>
 <script>
 /* ギフトの初期割り当てを作り直した時は番号を上げる（古い保存を捨てて、新しい初期値にする） */
-try{ if(localStorage.getItem('jewel_gv')!=='6'){ localStorage.removeItem('jewel_gifts'); localStorage.removeItem('jewel_gdef'); localStorage.setItem('jewel_gv','6'); } }catch(e){}
+try{ if(localStorage.getItem('jewel_gv')!=='7'){ localStorage.removeItem('jewel_gifts'); localStorage.removeItem('jewel_gdef'); localStorage.setItem('jewel_gv','7'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1128-230237';
+const VER='1128-230433';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== 宝石クルーン：黒い大理石の皿が5段。玉は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
    ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで玉が増える ===== */
@@ -550,7 +550,7 @@ const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://1
 try{ TF.map=JSON.parse(localStorage.getItem('jewel_gifts')||'{}')||{}; }catch(e){ TF.map={}; }
 const tfNorm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.');
 /* はじめて開いた時だけ、ギフトの割り当てのたたき台を入れる（あとから自由に変えられる） */
-if(!localStorage.getItem('jewel_gdef')){ try{ localStorage.setItem('jewel_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"from2": {"id": null, "name": "ドーナッツ", "coins": 30, "ci": 58, "pic": null}, "from3": {"id": null, "name": "ビッグな叫び", "coins": 149, "ci": 97, "pic": null, "alt": ["Big Shout", "Bigshout", "Big Scream", "Shout"]}, "gem10": {"id": null, "name": "歌うキノコ", "coins": 99, "ci": 63, "pic": null}, "gem100": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}, "gem500": {"id": null, "name": "子猫のレオン", "coins": 4888, "ci": 413, "pic": null, "alt": ["Leon the Kitten", "Leon the kitten"]}, "cap": {"id": null, "name": "列車", "coins": 899, "ci": 340, "pic": null}, "dbl": {"id": null, "name": "クジラのダイビング", "coins": 2150, "ci": 389, "pic": null, "alt": ["Whale Diving", "Whale diving"]}, "x2": {"id": null, "name": "マネーガン", "coins": 1016, "ci": 357, "pic": null}, "gem1": {"id": null, "name": "ネバールくん", "coins": 1, "ci": null, "pic": null, "alt": ["ネバール", "ネバール君", "Nebaru-kun", "Nebarukun", "Nebaru kun"]}}; try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} } }
+if(!localStorage.getItem('jewel_gdef')){ try{ localStorage.setItem('jewel_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"gem1": {"id": null, "name": "アイスバー", "coins": 10, "ci": 40, "pic": null}, "from2": {"id": null, "name": "ドーナッツ", "coins": 30, "ci": 58, "pic": null}, "from3": {"id": null, "name": "恋のメガネ", "coins": 149, "ci": 90, "pic": null}, "gem10": {"id": null, "name": "歌うキノコ", "coins": 99, "ci": 63, "pic": null}, "gem100": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}, "gem500": {"id": null, "name": "子猫のレオン", "coins": 4888, "ci": 413, "pic": null, "alt": ["Leon the Kitten", "Leon the kitten"]}, "cap": {"id": null, "name": "列車", "coins": 899, "ci": 340, "pic": null}, "dbl": {"id": null, "name": "クジラのダイビング", "coins": 2150, "ci": 389, "pic": null, "alt": ["Whale Diving", "Whale diving"]}, "x2": {"id": null, "name": "マネーガン", "coins": 1016, "ci": 357, "pic": null}}; try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} } }
 function tfSave(){ try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} }
 // 名前が合わずに「割り当てなし」になったギフトを覚えておき、設定画面で「どの効果か」を1回えらべば、届いた名前とIDをその効果に結びつける
 let MISS=[]; try{ MISS=JSON.parse(localStorage.getItem('jewel_miss')||'[]')||[]; }catch(e){}
