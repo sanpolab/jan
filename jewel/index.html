@@ -165,7 +165,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 21:19</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 21:21</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -235,7 +235,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 try{ if(localStorage.getItem('jewel_gv')!=='2'){ localStorage.removeItem('jewel_gifts'); localStorage.setItem('jewel_gv','2'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1128-211934';
+const VER='1128-212143';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== 宝石クルーン：黒い大理石の皿が5段。宝石は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
    ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで宝石が増える ===== */
@@ -335,7 +335,13 @@ const Game={
   comment(n){ const now=performance.now(), k=String(n||''); if(CMT[k] && now-CMT[k]<30000) return; CMT[k]=now; addGems(1,0,n,true); },
   like(c,n){ likeAcc+=Math.max(1,c|0); let k=0; while(likeAcc>=1000 && k<3){ likeAcc-=1000; k++; addGems(3,0,n,true); } if(likeAcc>=1000) likeAcc=likeAcc%1000; },
   follow(n){ addGems(5,1,n); }, share(n){ addGems(3,0,n); }, subscribe(n){ addGems(30,5,n); } };
-for(const k in GEMS) Game[k]=n=>addGems(GEMS[k][0],GEMS[k][1],n);
+/* ギフトごとに出る宝石の数は、ギフト設定の画面で変えられる（この端末に保存） */
+const GEMN=(()=>{ try{ return JSON.parse(localStorage.getItem('jewel_cnt')||'{}')||{}; }catch(e){ return {}; } })();
+const gemN=k=>clamp((GEMN[k]|0)||GEMS[k][0],1,2000);
+function gemSet(k,v){ v=clamp(parseInt(v,10)||0,0,2000); if(v) GEMN[k]=v; else delete GEMN[k]; try{ localStorage.setItem('jewel_cnt',JSON.stringify(GEMN)); }catch(e){} gemSync(); }
+function gemLbl(){ const o={}; for(const k in GEMS) o[k]='宝石×'+gemN(k); return o; }
+function gemSync(){ for(const k in GEMS){ const n=gemN(k), nm='宝石×'+n; try{ const f=FX_LIST.find(x=>x[0]===k); if(f){ f[2]=nm; f[3]='宝石が'+n+'個、1段目に入る'; } TBL_NAME[k]=nm; }catch(e){} const b=document.querySelector('#tp [data-a="'+k+'"]'); if(b) b.textContent=nm; } }
+for(const k in GEMS) Game[k]=n=>addGems(gemN(k),GEMS[k][1],n);
 
 /* ===== 進める ===== */
 function update(dt){ T+=dt; if(S.shake>0) S.shake=Math.max(0,S.shake-dt); if(S.flash>0) S.flash=Math.max(0,S.flash-dt); if(S.ban){ S.ban.t-=dt; if(S.ban.t<=0) S.ban=null; } if(S.jp){ S.jp.t-=dt; if(S.jp.t<=0) S.jp=null; }
@@ -566,11 +572,11 @@ function pickDraw(){ const tb=document.getElementById('pickTabs'); tb.innerHTML=
 const TBL_NAME={"gem1": "宝石×1", "gem5": "宝石×5", "gem10": "宝石×10", "gem30": "宝石×30", "gem100": "宝石×100", "gem500": "宝石×500", "from3": "3段目から", "from4": "4段目から", "from5": "FINALから", "shake": "皿をゆらす", "cap": "当たり穴にフタ", "dbl": "確変（穴2つ）", "wipe": "全消し"}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('jewel_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('jewel_lbl',JSON.stringify(LBL)); }catch(e){} }
 let tblCols=7; try{ tblCols=parseInt(localStorage.getItem('jewel_tblcols'),10)||7; }catch(e){}
 function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name || b.off) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
-  const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+(OPT.coinOn?1:0)+(OPT.chatOn?1:0)+'&g='+parts.join(',')+(()=>{ const l=Object.keys(LBL).filter(k=>LBL[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LBL[k]))); return l.length?'&l='+l.join(','):''; })(); }
+  const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+(OPT.coinOn?1:0)+(OPT.chatOn?1:0)+'&g='+parts.join(',')+(()=>{ const LB=Object.assign(gemLbl(),LBL), l=Object.keys(LB).filter(k=>LB[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LB[k]))); return l.length?'&l='+l.join(','):''; })(); }
 function tblUI(){ const el=document.getElementById('tblUrl'); if(el) el.value=tblUrl(); document.querySelectorAll('#cfg button.tc').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.c,10)===tblCols)); }
 function cfgBuild(){ tblUI(); missBuild(); { const en=document.getElementById('embedNote'); if(en) en.hidden=!EMBED; } { const sb=document.getElementById('seqLearn'), sn=document.getElementById('seqNote'); if(sb){ sb.textContent=TF.seqLearn?'順番登録をやめる':'上から順に受信で登録'; sb.style.background=TF.seqLearn?'#d1457a':''; const f=TF.seqLearn&&FX_LIST.find(x=>x[0]===TF.learn); sn.textContent=f?'いま待っているのは「'+f[2]+'」（'+((TF.map[f[0]]||{}).name||'')+'）。このギフトを1個流してください':''; } } const box=document.getElementById('cfgRows'); if(!box) return; box.innerHTML='';
   for(const f of FX_LIST){ const b=TF.map[f[0]]||{}, row=document.createElement('div'); row.className='row '+f[1];
-    const nm=document.createElement('div'); nm.className='nm'; nm.textContent=(f[1]==='jam'?'挑戦｜':f[1]==='help'?'守り｜':'')+f[2]; const sm=document.createElement('small'); sm.textContent=f[3]+(b.coins!=null?'　'+b.coins+'コイン':''); nm.appendChild(sm); { const li=document.createElement('input'); li.type='text'; li.maxLength=14; li.value=LBL[f[0]]||''; li.placeholder='表の名前：'+(TBL_NAME[f[0]]||f[2]); li.style.cssText='display:block;width:100%;box-sizing:border-box;font-size:.8em;margin-top:.25em;padding:.25em .4em'; const sv=()=>{ const v=li.value.trim(); if(v) LBL[f[0]]=v; else delete LBL[f[0]]; lblSave(); tblUI(); }; li.addEventListener('input',sv); li.addEventListener('pointerdown',e=>e.stopPropagation()); li.addEventListener('keydown',e=>e.stopPropagation()); nm.appendChild(li); } 
+    const nm=document.createElement('div'); nm.className='nm'; nm.textContent=(f[1]==='jam'?'挑戦｜':f[1]==='help'?'守り｜':'')+f[2]; const sm=document.createElement('small'); sm.textContent=f[3]+(b.coins!=null?'　'+b.coins+'コイン':''); nm.appendChild(sm); { const li=document.createElement('input'); li.type='text'; li.maxLength=14; li.value=LBL[f[0]]||''; li.placeholder='表の名前：'+(TBL_NAME[f[0]]||f[2]); li.style.cssText='display:block;width:100%;box-sizing:border-box;font-size:.8em;margin-top:.25em;padding:.25em .4em'; const sv=()=>{ const v=li.value.trim(); if(v) LBL[f[0]]=v; else delete LBL[f[0]]; lblSave(); tblUI(); }; li.addEventListener('input',sv); li.addEventListener('pointerdown',e=>e.stopPropagation()); li.addEventListener('keydown',e=>e.stopPropagation()); nm.appendChild(li); } if(GEMS[f[0]]){ const w=document.createElement('label'); w.style.cssText='display:flex;align-items:center;gap:.4em;margin-top:.35em;font-size:.9em;color:#e9c46a'; w.append('出る宝石の数'); const ni=document.createElement('input'); ni.type='number'; ni.min=1; ni.max=2000; ni.value=gemN(f[0]); ni.style.cssText='width:6em;font-size:1em;padding:.25em .4em'; ni.addEventListener('change',()=>{ gemSet(f[0],ni.value); cfgBuild(); }); ni.addEventListener('pointerdown',e=>e.stopPropagation()); ni.addEventListener('keydown',e=>e.stopPropagation()); w.appendChild(ni); w.append('個（1〜2000）'); nm.appendChild(w); } 
     const inp=document.createElement('button'); inp.type='button'; inp.className='gsel'; const gi=document.createElement('div'); gi.className='gi'; if(b.ci!=null) catIcon(gi,b.ci); else if(b.pic){ gi.style.backgroundImage='url('+b.pic+')'; gi.style.backgroundSize='contain'; gi.style.backgroundPosition='center'; }
     const gt=document.createElement('div'); gt.className='gt'; gt.textContent=b.name||'未設定（押してえらぶ）'; if(b.name){ const sm2=document.createElement('small'); sm2.textContent=(b.coins!=null?b.coins+'コイン':'')+(b.id!=null?'　受信ずみ':''); gt.appendChild(sm2); }
     inp.appendChild(gi); inp.appendChild(gt); inp.addEventListener('click',()=>pickOpen(f));
@@ -615,7 +621,8 @@ document.getElementById('ttl').addEventListener('click',e=>{ const b=e.target.cl
 if(/[?&]notitle=1/.test(location.search)) TITLE=false;
 ttlUI();
 { const a=document.getElementById('jpTx'), b=document.getElementById('jpWin'); a.value=JP.text||''; b.value=JP.win||''; a.addEventListener('input',()=>{ JP.text=a.value.slice(0,16); jpSave(); }); b.addEventListener('input',()=>{ JP.win=clamp(parseInt(b.value,10)||0,-99999,99999); jpSave(); }); for(const e of [a,b]) e.addEventListener('keydown',ev=>ev.stopPropagation()); }
-window.JewelGame=Game; window.__dbg={ get S(){ return S; }, Game, DISH, CFG, JP, update, draw, reset, get best(){ return best; }, get TITLE(){ return TITLE; }, set TITLE(v){ TITLE=v; ttlUI(); }, get PAUSE(){ return PAUSE; }, setPause };
+gemSync();
+window.JewelGame=Game; window.__dbg={ gemSet, gemN, get S(){ return S; }, Game, DISH, CFG, JP, update, draw, reset, get best(){ return best; }, get TITLE(){ return TITLE; }, set TITLE(v){ TITLE=v; ttlUI(); }, get PAUSE(){ return PAUSE; }, setPause };
 Promise.all([document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()].concat(Object.values(IMG).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.onload=r; im.onerror=r; } })))).then(()=>{ window.__ready=true; requestAnimationFrame(loop); });
 </script>
 </body>
