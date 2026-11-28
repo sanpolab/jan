@@ -48,7 +48,7 @@ html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku G
 <script>
 /* 宝石クルーンのギフト表。ゲームの「ギフト」画面で登録した割り当てをそのまま表示する。
    URLの後ろに ?cols=9（1段の数）や ?all=1（未登録の効果も出す）を付けられる */
-const FX=[["gem1", "jam", "宝石×1", "宝石"], ["gem5", "jam", "宝石×5", "宝石"], ["gem10", "jam", "宝石×10", "宝石"], ["gem30", "jam", "宝石×30", "宝石"], ["gem100", "jam", "宝石×100", "宝石"], ["gem500", "jam", "宝石×500", "宝石"], ["from3", "jam", "3段目から", "途中から"], ["from4", "jam", "4段目から", "途中から"], ["from5", "jam", "FINALから", "途中から"], ["shake", "jam", "皿をゆらす", "スキル"], ["cap", "help", "当たり穴にフタ", "スキル"], ["wipe", "help", "全消し", "スキル"]];
+const FX=[["gem1", "jam", "宝石×1", "宝石"], ["gem5", "jam", "宝石×5", "宝石"], ["gem10", "jam", "宝石×10", "宝石"], ["gem30", "jam", "宝石×30", "宝石"], ["gem100", "jam", "宝石×100", "宝石"], ["gem500", "jam", "宝石×500", "宝石"], ["from3", "jam", "3段目から", "途中から"], ["from4", "jam", "4段目から", "途中から"], ["from5", "jam", "FINALから", "途中から"], ["dbl", "jam", "確変モード", "スキル"], ["shake", "jam", "皿をゆらす", "スキル"], ["cap", "help", "当たり穴にフタ", "スキル"], ["wipe", "help", "全消し", "スキル"]];
 const FREE_GRP=FX.some(f=>f[3])?FX[FX.length-1][3]:'';
 const q=new URLSearchParams(location.search), cols=Math.max(3,Math.min(13,parseInt(q.get('cols'),10)||9)), showAll=q.get('all')==='1';
 document.documentElement.style.setProperty('--cols',cols);
