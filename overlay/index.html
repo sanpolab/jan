@@ -158,7 +158,11 @@ body.setup{background:#0a0a0c;-webkit-text-size-adjust:100%}
 .mcard .mc{position:absolute;left:30px;top:14px;width:700px;height:420px;border-radius:20px;overflow:hidden;opacity:0;transform:translateY(60px) rotateX(50deg) scale(.8);transform-origin:50% 100%;box-shadow:0 14px 34px rgba(0,0,0,.6);font-family:'Hiragino Mincho ProN','Yu Mincho','YuMincho','Noto Serif JP','Noto Serif CJK JP',serif}
 .mcard{perspective:1400px}
 .mcard .mc.on{opacity:1;transform:none;transition:opacity .35s,transform .7s cubic-bezier(.2,1.25,.4,1)}
-.mcard .mc.out{opacity:0;transform:translateY(-30px) scale(.96);transition:opacity .6s,transform .6s}
+.mcard .mc.out{opacity:1;animation:mput .68s cubic-bezier(.5,0,.75,.4) forwards}
+/* しまう：少し持ち上げてから、下の見えないポケットへすっと差しこむ（下のはしの位置で切れていく） */
+@keyframes mput{0%{transform:none;clip-path:inset(-40px -40px 0 -40px)}22%{transform:translateY(-16px) scale(.985);clip-path:inset(-40px -40px 0 -40px)}30%{transform:translateY(-16px) scale(.985);clip-path:inset(-40px -40px -16px -40px)}100%{transform:translateY(428px) scale(.985);clip-path:inset(-40px -40px 100% -40px)}}
+.mcard .mslot{position:absolute;left:44px;right:44px;top:433px;height:3px;border-radius:2px;background:linear-gradient(90deg,transparent,rgba(255,236,170,.95),transparent);opacity:0;transition:opacity .25s}
+.mcard.put .mslot{opacity:1}
 .mcard .k0{--ln:rgba(60,30,10,.55);--tx:#3a1f0c;--sub:#5a3418;background:url(img/card0.webp) center/100% 100% no-repeat}
 .mcard .k1{--ln:rgba(40,50,70,.5);--tx:#232a38;--sub:#3d4658;background:url(img/card1.webp) center/100% 100% no-repeat}
 .mcard .k2{--ln:rgba(80,55,0,.55);--tx:#3a2800;--sub:#5e4406;background:url(img/card2.webp) center/100% 100% no-repeat}
@@ -816,7 +820,7 @@ const mbDay=()=>{ const d=new Date(Date.now()-5*3600e3); return d.getFullYear()+
 const mbPrev=day=>{ const p=day.split('-').map(Number), d=new Date(p[0],p[1]-1,p[2]-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 const MB_SK={gold:{h:"MEMBER'S CARD",r:[['BRONZE','ブロンズ'],['SILVER','シルバー'],['GOLD','ゴールド'],['BLACK','ブラック']]},wa:{h:'会員之証',f:'yuji',r:[['白木','白木'],['藍','藍'],['朱','朱'],['黒金','黒金']]},yume:{h:"Member's Card",f:'hachi',r:[['MILK','ミルク'],['ICHIGO','いちご'],['LAVENDER','ラベンダー'],['AURORA','オーロラ']]},neon:{h:'MEMBER ID',f:'orbitron',r:[['GREEN','グリーン'],['CYAN','シアン'],['MAGENTA','マゼンタ'],['GOLD','ゴールド']]}};
 function mountCard(box,o){ const skin=MB_SK[o.skin]?o.skin:'gold', RN=MB_SK[skin].r; if(MB_SK[skin].f) chFont(MB_SK[skin].f); const S_=()=>{}   /* 会員証は音なし（ランクアップも） */, CW=760, CH=520; let dead=false; box.__kill=()=>{ dead=true; }; box.classList.add('mcard','sk-'+skin); box.style.width=CW+'px'; box.style.height=CH+'px';
-  box.innerHTML='<div class="mc"><div class="sh"></div><div class="m1"></div><div class="m2"></div><div class="mav"></div><div class="mnm"></div><div class="mno"></div><div class="mvi"></div></div><div class="mup"><div class="u1">ランクアップ！</div><div class="u2"></div></div><canvas width="760" height="520"></canvas><div class="mcount"></div>';
+  box.innerHTML='<div class="mc"><div class="sh"></div><div class="m1"></div><div class="m2"></div><div class="mav"></div><div class="mnm"></div><div class="mno"></div><div class="mvi"></div></div><div class="mup"><div class="u1">ランクアップ！</div><div class="u2"></div></div><div class="mslot"></div><canvas width="760" height="520"></canvas><div class="mcount"></div>';
   const mc=box.querySelector('.mc'), q=s=>box.querySelector(s), cnt=q('.mcount'); q('.m1').textContent=MB_SK[skin].h;
   const th=String(o.rank||'').split(',').map(x=>parseInt(x,10)).filter(x=>x>0); const need=i=>i===0?1:(th[i-1]||MB_RK[i][2]), rankOf=v=>{ let r=0; for(let i=0;i<4;i++) if(v>=need(i)) r=i; return r; };
   const want=String(o.gift!=null?o.gift:'ハートミー,Heart Me').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean), anyGift=want.includes('*'), byChat=o.chat==='1';
@@ -834,12 +838,12 @@ function mountCard(box,o){ const skin=MB_SK[o.skin]?o.skin:'gold', RN=MB_SK[skin
     /* 出ている間、カードをゆっくりゆらし、光のすじを流し、ふちからキラキラを少し立ちのぼらせる */
     const glit=ms=>{ const t0=performance.now(), col=k>=2?['#ffe9a8','#ffffff','#ffd86b']:['#ffffff','#f3ead2']; const iv=setInterval(()=>{ if(dead||performance.now()-t0>ms||!mc.classList.contains('on')){ clearInterval(iv); return; } for(let i=0;i<(k>=2?2:1);i++){ const e=Math.random(), x=e<.5?30+Math.random()*700:(e<.75?30:730), y=e<.5?(Math.random()<.5?16:434):16+Math.random()*418; sp.push({x,y,vx:(Math.random()-.5)*26,vy:-18-Math.random()*34,g:-6,t:0,l:1+Math.random()*1.1,s:2.5+Math.random()*4,c:col[Math.floor(Math.random()*col.length)]}); } if(sp.length&&performance.now()-spL>200){ spL=performance.now(); requestAnimationFrame(spark); } },170); };
     const idle=()=>setTimeout(()=>{ if(mc.classList.contains('on')) mc.classList.add('idle'); },850);
-    if(!up){ fill(r,uid,k); void mc.offsetWidth; mc.classList.add('on'); idle(); glit(4300); S_('harp2',.5); setTimeout(()=>{ mc.classList.remove('on','idle'); mc.classList.add('out'); },4600); setTimeout(()=>{ busy=false; run(); },5300); return; }
+    if(!up){ fill(r,uid,k); void mc.offsetWidth; mc.classList.add('on'); idle(); glit(4300); S_('harp2',.5); setTimeout(()=>{ mc.classList.remove('on','idle'); mc.classList.add('out'); box.classList.add('put'); setTimeout(()=>box.classList.remove('put'),760); },4600); setTimeout(()=>{ busy=false; run(); },5300); return; }
     /* ランクアップ：まず前のランクのカードで出て、光って新しいランクに変わり、「ランクアップ！」が大きく出る */
     fill(r,uid,k-1); void mc.offsetWidth; mc.classList.add('on'); S_('harp2',.5);
     setTimeout(()=>{ if(dead) return; fill(r,uid,k); mc.classList.add('on','up','flash'); idle(); glit(6400); q('.mup .u2').textContent=RN[k-1][1]+' ▶ '+RN[k][1]; box.classList.add('upg'); S_('levelup',.75); S_('cheer',.5);
       for(let i=0;i<110;i++){ const a=Math.random()*6.28, v=140+Math.random()*460; sp.push({x:380,y:224,vx:Math.cos(a)*v,vy:Math.sin(a)*v-140,t:0,l:.9+Math.random()*1.2,s:4+Math.random()*7,c:['#ffd86b','#fff3c4','#ffffff','#ffb24a'][i%4]}); } spL=performance.now(); requestAnimationFrame(spark); },1500); setTimeout(()=>box.classList.remove('upg'),1500+2350);
-    setTimeout(()=>{ mc.classList.remove('on','idle'); mc.classList.add('out'); box.classList.remove('upg'); },8200); setTimeout(()=>{ busy=false; run(); },8900); };
+    setTimeout(()=>{ mc.classList.remove('on','idle','up'); mc.classList.add('out'); box.classList.remove('upg'); box.classList.add('put'); setTimeout(()=>box.classList.remove('put'),760); },8200); setTimeout(()=>{ busy=false; run(); },8900); };
   BUS.on('gift',e=>{ if(dead||byChat) return; const nm=String(e.gname||'').toLowerCase(); if(anyGift||want.some(w=>nm.includes(w))) attend(e); });
   BUS.on('chat',c=>{ if(dead||!byChat) return; attend(c); });
   BUS.on('cmd',c=>{ if(dead) return; if(c.cmd==='card'){ attend({uid:c.uid||('test_'+c.name),name:c.name||'テスト'}); } if(c.cmd==='reset'&&c.kind==='members'){ DB={n:0,m:{}}; if(!o.demo) LS.set('ov_members',DB); showCnt(); } });
