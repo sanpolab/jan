@@ -165,7 +165,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 21:56</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 22:02</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -218,7 +218,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
     <h3>とちゅうの段から入れる</h3>
     <button class="j" data-a="from3">3段目から</button><button class="j" data-a="from4">4段目から</button><button class="j" data-a="from5">FINALから</button>
     <h3>そのほか</h3>
-    <button class="j" data-a="dbl">確変モード<br>当たり穴が2つ</button><button class="j" data-a="shake">皿をゆらす</button><button class="h" data-a="cap">フタ<br>当たり穴をふさぐ</button><button class="h" data-a="wipe">全消し</button>
+    <button class="j" data-a="dbl">確変モード<br>当たり穴が2つ</button><button class="j" data-a="x2">玉数2倍タイム<br>宝石が2倍</button><button class="j" data-a="shake">皿をゆらす</button><button class="h" data-a="cap">フタ<br>当たり穴をふさぐ</button><button class="h" data-a="wipe">全消し</button>
     <h3>無料（コメント・いいね・フォロー）</h3>
     <button class="j" data-a="comment">コメント<br>宝石1個</button><button class="j" data-a="like">いいね×1000<br>宝石3個</button><button class="j" data-a="follow">フォロー<br>宝石5個</button>
     <h3>大当たりの時</h3>
@@ -235,7 +235,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 try{ if(localStorage.getItem('jewel_gv')!=='2'){ localStorage.removeItem('jewel_gifts'); localStorage.setItem('jewel_gv','2'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1128-215651';
+const VER='1128-220222';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== 宝石クルーン：黒い大理石の皿が5段。宝石は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
    ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで宝石が増える ===== */
@@ -248,15 +248,15 @@ const KY=.5;
 const DISH=[{x:960,y:118,R:176},{x:960,y:308,R:176},{x:960,y:498,R:176},{x:960,y:688,R:176},{x:960,y:906,R:250}].map((d,i)=>{ const nh=[5,4,4,3,3][i]; return Object.assign(d,{i,nh,Ri:d.R*.795,rh:d.R*(nh===5?.485:nh===4?.455:.43),hr:d.R*(nh===5?.142:nh===4?.158:.17),gr:15*Math.sqrt(d.R/255),s:d.R/255,w:(i%2?-1:1)*(.2+i*.04),a0:i*1.3}); });   /* nh＝穴の数（上から 5・4・4・3・3。当たりは1つずつなので 1/5・1/4・1/4・1/3・1/3） */
 const NAME=['1st','2nd','3rd','4th','FINAL'], LAST=DISH.length-1;
 /* 調整する数字。maxIn＝1つの皿に同時に入れる数、feed＝宝石を出す間かく（秒）、vcap＝この速さより遅いと穴に落ちる、capSec＝フタの秒数、dblSec＝確変の秒数 */
-const CFG={maxIn:[26,22,18,16,14], feed:.2, feedFast:.1, vcap:235, K:1400, A:1700, drag:.36, mu:26, capSec:20, dblSec:30, qMax:3000};
-const IMG={}; for(const k of ['bg','plate','ring_gold','ring_ruby','cap','gem0','gem1','gem2','gem3','gem4','gem5','kx_burst','kx_ruby']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; }
+const CFG={maxIn:[26,22,18,16,14], feed:.2, feedFast:.1, vcap:235, K:1400, A:1700, drag:.36, mu:26, capSec:20, dblSec:30, x2Sec:60, qMax:3000};
+const IMG={}; for(const k of ['bg','plate','ring_gold','ring_ruby','cap','gem0','gem1','gem2','gem3','gem4','gem5','kx_burst','kx_ruby','kx_burst2','kx_x2']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; }
 const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 /* 当たったときの設定（この端末に保存）。text＝大当たりの時に出す文字、win＝オーバーレイのWinカウンターに足す数（0なら何もしない） */
 const JP=(()=>{ try{ return Object.assign({text:'',win:0},JSON.parse(localStorage.getItem('jewel_jp')||'{}')); }catch(e){ return {text:'',win:0}; } })();
 function jpSave(){ try{ localStorage.setItem('jewel_jp',JSON.stringify(JP)); }catch(e){} }
 let S, T=0, best=0, likeAcc=0; const CMT={}; try{ best=+(localStorage.getItem('jewel_total')||0)||0; }catch(e){}
 
-function reset(){ S={gems:[],fly:[],q:[],qT:0,parts:[],rings:[],kx:null,log:[],ban:null,flash:0,shake:0,capT:0,dblT:0,jp:null,jpN:0,reach:[0,0,0,0,0],lastSe:{}}; }
+function reset(){ S={gems:[],fly:[],q:[],qT:0,parts:[],rings:[],kx:null,log:[],ban:null,flash:0,shake:0,capT:0,dblT:0,x2T:0,jp:null,jpN:0,reach:[0,0,0,0,0],lastSe:{}}; }
 function logAdd(s,c){ S.log.unshift({s,c:c||'#fff',t:30}); if(S.log.length>8) S.log.length=8; }
 function banner(a,c,b){ S.ban={a,c:c||GOLD,b:b||'',t:2.4}; }
 function burst(x,y,col,n,v){ for(let i=0;i<n;i++){ const a=rand(0,TAU), sp=rand(v*.3,v); S.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,t:rand(.35,.8),s:rand(3,8),c:pick([col,'#fff',GOLD])}); } }
@@ -296,7 +296,7 @@ function landed(q){ const d=DISH[q.d], [hx,hy]=holePos(d,q.hole), [sx,sy]=toScre
   if(q.d<LAST){ const n=q.d+1; flyTo(n,q.t,q.by,sx,sy,.55); if(n===LAST){ se('jean',.5,.5); banner('FINAL に入った！',RUBY,q.by?q.by+' の宝石':''); logAdd((q.by?q.by+' の宝石':'宝石')+' が FINAL へ',RUBY); } else se('bell',.22+q.d*.08,.14); return; }
   jackpot(q); }
 function jackpot(q){ S.jpN++; best++; try{ localStorage.setItem('jewel_total',String(best)); }catch(e){} S.jp={t:6,by:q.by,type:q.t}; S.flash=.6; S.shake=.7; const d=DISH[LAST]; burst(d.x,d.y,GOLD,90,900); burst(W/2,H/2,GOLD,120,1100);
-  play('fanfare',.8); play('cheer',.75); play('clap',.6); logAdd('大当たり！'+(q.by?'（'+q.by+'）':''),GOLD);
+  play('fanfare',.8); play('cheer',.75); play('clap',.6); logAdd((q.by?q.by+' さん ':'')+'大当たり！',GOLD);
   if(JP.win){ try{ let v=0; try{ v=JSON.parse(localStorage.getItem('ov_win')||'0')|0; }catch(e){} v=clamp(v+(JP.win|0),-999999,999999); localStorage.setItem('ov_win',String(v)); }catch(e){} } }
 
 /* ===== 音（効果音は効果音ラボ、BGMは甘茶の音楽工房） ===== */
@@ -315,9 +315,9 @@ window.addEventListener('pointerdown',()=>{ audioInit(); if(actx && actx.state==
 /* ===== ギフトで起きること ===== */
 const GEMS={gem1:[1,0],gem5:[5,1],gem10:[10,2],gem30:[30,5],gem100:[100,3],gem500:[500,4]};
 function qLeft(){ let n=0; for(const b of S.q) n+=b.n; return n; }
-function addGems(n,type,by,quiet){ const room=CFG.qMax-qLeft(); n=Math.min(n,room); if(n<=0){ logAdd((by||'だれか')+' の宝石（いっぱいで入らなかった）','#9a927f'); return; } S.q.push({n,t:type,by:by||null});
-  if(!quiet){ logAdd((by||'だれか')+' が 宝石 ×'+n,GOLD); if(n>=100){ banner('宝石 ×'+n+'！',GOLD,(by||'だれか')+' さん'); se('cheer',.5,1); S.flash=Math.max(S.flash,.15); } else if(n>=10) se('swing',.3,.3); } }
-function fromStage(i,by){ const d=DISH[i]; flyTo(i,4,by,d.x+pick([-1,1])*rand(380,460),d.y-rand(150,220),.6); logAdd((by||'だれか')+' が '+NAME[i]+' に宝石を直接入れた','#9fe7ff'); banner(NAME[i]+' から スタート！','#9fe7ff',(by||'だれか')+' さん'); se('swing',.4,.2); if(i===LAST) se('jean',.5,.5); }
+function addGems(n,type,by,quiet){ const x2=S.x2T>0; if(x2) n*=2; const room=CFG.qMax-qLeft(); n=Math.min(n,room); if(n<=0){ logAdd((by||'だれか')+' の宝石（いっぱいで入らなかった）','#9a927f'); return; } S.q.push({n,t:type,by:by||null});
+  if(!quiet){ logAdd((by||'だれか')+' が 宝石 ×'+n+(x2?'（2倍）':''),x2?'#8fc7ff':GOLD); if(n>=100){ banner('宝石 ×'+n+'！',GOLD,(by||'だれか')+' さん'); se('cheer',.5,1); S.flash=Math.max(S.flash,.15); } else if(n>=10) se('swing',.3,.3); } }
+function fromStage(i,by){ const d=DISH[i]; flyTo(i,4,by,d.x+pick([-1,1])*rand(380,460),d.y-rand(150,220),.6); if(S.x2T>0) flyTo(i,4,by,d.x+pick([-1,1])*rand(380,460),d.y-rand(150,220),.75); logAdd((by||'だれか')+' が '+NAME[i]+' に宝石を直接入れた','#9fe7ff'); banner(NAME[i]+' から スタート！','#9fe7ff',(by||'だれか')+' さん'); se('swing',.4,.2); if(i===LAST) se('jean',.5,.5); }
 const Game={
   start(){ audioInit(); play('bell',.4); reset(); TITLE=false; ttlUI(); },
   title(){ setPause(false,true); reset(); TITLE=true; ttlUI(); },
@@ -329,6 +329,8 @@ const Game={
   cap(n){ S.capT=Math.min(120,Math.max(S.capT,0)+CFG.capSec); se('heavy',.6,.3); banner('当たりの穴に フタ！','#c9c2b0',(n||'だれか')+' さん（'+CFG.capSec+'秒）'); logAdd((n||'だれか')+' が 当たりの穴にフタをした','#c9c2b0'); },
   /* 確変：当たりの穴が2つになる */
   dbl(n){ S.dblT=Math.min(180,Math.max(S.dblT,0)+CFG.dblSec); S.kx={t:0,by:n||null,step:0}; S.ban=null; S.flash=Math.max(S.flash,.35); play('don',.7); logAdd((n||'だれか')+' が 確変モードに入れた',RUBY); },
+  /* 玉数2倍タイム：この間に入る宝石がぜんぶ2倍になる */
+  x2(n){ S.x2T=Math.min(300,Math.max(S.x2T,0)+CFG.x2Sec); S.kx={t:0,by:n||null,step:99,kind:'x2'}; S.ban=null; S.flash=Math.max(S.flash,.35); play('don',.7); logAdd((n||'だれか')+' が 玉数2倍タイムに入れた','#8fc7ff'); },
   /* 全消し：皿の上の宝石と、待っている宝石をぜんぶ消す（妨害） */
   wipe(n){ for(const q of S.gems){ const d=DISH[q.d], [sx,sy]=toScreen(d,q.x,q.y); burst(sx,sy,'#8d8674',3,160); } S.gems=[]; S.fly=[]; S.q=[]; S.flash=Math.max(S.flash,.25); se('glass',.5,.3); banner('全消し…','#c9c2b0',(n||'だれか')+' さん'); logAdd((n||'だれか')+' が 宝石をぜんぶ消した','#c9c2b0'); },
   /* 無料の反応。コメント＝宝石1個（同じ人は30秒に1回）、いいね1000回ごと＝宝石3個、フォロー＝宝石5個、シェア＝宝石3個、サブスク＝宝石30個 */
@@ -345,9 +347,9 @@ for(const k in GEMS) Game[k]=n=>addGems(gemN(k),GEMS[k][1],n);
 
 /* ===== 進める ===== */
 function update(dt){ T+=dt; if(S.shake>0) S.shake=Math.max(0,S.shake-dt); if(S.flash>0) S.flash=Math.max(0,S.flash-dt); if(S.ban){ S.ban.t-=dt; if(S.ban.t<=0) S.ban=null; } if(S.jp){ S.jp.t-=dt; if(S.jp.t<=0) S.jp=null; }
-  if(S.capT>0) S.capT=Math.max(0,S.capT-dt); if(S.dblT>0){ S.dblT=Math.max(0,S.dblT-dt); if(S.dblT<=0) logAdd('確変モード おわり','#b9b2a3'); }
+  if(S.capT>0) S.capT=Math.max(0,S.capT-dt); if(S.dblT>0){ S.dblT=Math.max(0,S.dblT-dt); if(S.dblT<=0) logAdd('確変モード おわり','#b9b2a3'); } if(S.x2T>0){ S.x2T=Math.max(0,S.x2T-dt); if(S.x2T<=0) logAdd('玉数2倍タイム おわり','#b9b2a3'); }
   /* 確変に入った時の演出：①帯が走る ②「確変」がドンと出る ③上の段から順に、2つ目の当たり穴に火がつく */
-  if(S.kx){ const k=S.kx, t0=k.t; k.t+=dt; if(t0<.28 && k.t>=.28){ S.flash=.7; S.shake=.8; play('jean',.7); play('cheer',.7); burst(W/2,H/2,RUBY,140,1300); }
+  if(S.kx){ const k=S.kx, t0=k.t; k.t+=dt; if(t0<.28 && k.t>=.28){ S.flash=.7; S.shake=.8; play('jean',.7); play('cheer',.7); burst(W/2,H/2,k.kind==='x2'?'#4aa3ff':RUBY,140,1300); }
     while(k.step<DISH.length && k.t>=1.15+k.step*.16){ const d=DISH[k.step], [hx,hy]=holePos(d,d.nh>>1), [sx,sy]=toScreen(d,hx,hy); burst(sx,sy,RUBY,26,420); S.rings.push({x:sx,y:sy,r:d.hr*3.2,t:.5}); se('bell',.3+k.step*.06,.05); k.step++; }
     if(t0<1.95 && k.t>=1.95) play('clap',.5); if(k.t>3) S.kx=null; }
   for(const r of S.rings) r.t-=dt; S.rings=S.rings.filter(r=>r.t>0);
@@ -391,25 +393,28 @@ function drawGems(i){ const d=DISH[i], L=[]; for(const q of S.gems){ if(q.d!==i)
   /* 投げた人の名前（たまに出す。3段目から先の宝石にはいつも出す） */
   let n=0; for(const [sy,sx,q] of L){ if(!q.tag || q.st!=='roll') continue; if(++n>(i>=2?6:3)) break; nameTag(q.by,sx,sy-d.gr*1.45-14); } }
 /* 確変に入った時のカットイン。絵（kx_burst＝赤と金の爆発、kx_ruby＝大きなルビー）があれば使い、なければ今ある絵で描く */
-function drawKx(){ const k=S.kx, t=k.t, out=clamp((t-2.45)/.45,0,1), a=clamp(t/.12,0,1)*(1-out), cx=W/2, cy=H/2-20;
+function modeBox(x,y,a,b,left,total,col){ g.fillStyle='rgba(8,5,6,.8)'; rr(x,y,562,116,14); g.fill(); g.strokeStyle=col; g.lineWidth=3; g.stroke(); txt(a,x+26,y+40,34,col,'left','#000',FONTD); txt(b,x+26,y+86,24,'#fff','left',null,FONTD); gold(String(Math.ceil(left)),x+496,y+52,74,'right'); txt('秒',x+504,y+68,26,GOLD,'left',null,FONTD); g.fillStyle=col; g.fillRect(x+2,y+110,558*clamp(left/total,0,1),5); }
+function drawKx(){ const k=S.kx, X2=k.kind==='x2', t=k.t, out=clamp((t-2.45)/.45,0,1), a=clamp(t/.12,0,1)*(1-out), cx=W/2, cy=H/2-20;
   g.save(); g.globalAlpha=a*.72; g.fillStyle='#050203'; g.fillRect(0,0,W,H); g.globalAlpha=a;
   /* 光のすじ */
-  g.save(); g.translate(cx,cy); g.rotate(T*.5); for(let i=0;i<20;i++){ g.rotate(TAU/20); g.fillStyle=i%2?'rgba(255,40,80,.16)':'rgba(233,196,106,.13)'; g.beginPath(); g.moveTo(0,0); g.lineTo(-90,-1400); g.lineTo(90,-1400); g.closePath(); g.fill(); } g.restore();
+  g.save(); g.translate(cx,cy); g.rotate(T*.5); for(let i=0;i<20;i++){ g.rotate(TAU/20); g.fillStyle=i%2?(X2?'rgba(60,150,255,.18)':'rgba(255,40,80,.16)'):'rgba(233,196,106,.13)'; g.beginPath(); g.moveTo(0,0); g.lineTo(-90,-1400); g.lineTo(90,-1400); g.closePath(); g.fill(); } g.restore();
   /* ななめの帯が左から走ってくる */
   const sw=clamp(t/.24,0,1), e=1-Math.pow(1-sw,3), bx=-W*(1-e)+out*W*1.2, bh=330;
-  g.save(); g.translate(bx,0); g.transform(1,0,-.18,1,0,0); const gr=g.createLinearGradient(0,cy-bh/2,0,cy+bh/2); gr.addColorStop(0,'#3d0412'); gr.addColorStop(.5,'#b3122f'); gr.addColorStop(1,'#3d0412'); g.fillStyle=gr; g.fillRect(-200,cy-bh/2,W+600,bh);
-  if(ok('kx_burst')){ g.globalCompositeOperation='lighter'; g.drawImage(IMG.kx_burst,0,cy-bh/2,W+200,bh); g.globalCompositeOperation='source-over'; }
+  g.save(); g.translate(bx,0); g.transform(1,0,-.18,1,0,0); const gr=g.createLinearGradient(0,cy-bh/2,0,cy+bh/2); gr.addColorStop(0,X2?'#04163d':'#3d0412'); gr.addColorStop(.5,X2?'#1450b8':'#b3122f'); gr.addColorStop(1,X2?'#04163d':'#3d0412'); g.fillStyle=gr; g.fillRect(-200,cy-bh/2,W+600,bh);
+  
   for(const y of [cy-bh/2,cy+bh/2-10]){ const g2=g.createLinearGradient(0,y,0,y+10); g2.addColorStop(0,'#fff3c4'); g2.addColorStop(.5,'#e9c46a'); g2.addColorStop(1,'#8a6420'); g.fillStyle=g2; g.fillRect(-200,y,W+600,10); }
   for(let i=0;i<9;i++){ const x=((T*900+i*260)%(W+500))-200; g.fillStyle='rgba(255,230,180,.18)'; g.fillRect(x,cy-bh/2+14,90,bh-28); }
   g.restore();
+  /* 爆発の絵（黒い所は光らないので、そのまま重ねる） */
+  { const bk=X2?'kx_burst2':'kx_burst'; if(t>=.28 && ok(bk)){ const u=t-.28, s2=1.12+.7*Math.pow(Math.max(0,1-u/.22),2)+u*.04, bw=W*s2, bh2=bw*9/16; g.save(); g.globalCompositeOperation='lighter'; g.globalAlpha=a*clamp(u/.06,0,1); g.drawImage(IMG[bk],cx-bw/2+out*W*1.2,cy-bh2/2,bw,bh2); g.restore(); } }
   if(t>=.28){ const u=t-.28, sc=1+2.4*Math.pow(Math.max(0,1-u/.16),2), jx=u<.3?rand(-1,1)*14*(1-u/.3):0, ox=out*W*1.2;
     /* うしろの大きなルビー */
-    g.save(); g.translate(cx+ox,cy); const z=250*Math.min(1,u/.2)*(1+.04*Math.sin(T*7)); { const hg=g.createRadialGradient(0,0,0,0,0,z*1.9); hg.addColorStop(0,'rgba(255,60,100,.6)'); hg.addColorStop(1,'rgba(255,60,100,0)'); g.fillStyle=hg; g.beginPath(); g.arc(0,0,z*1.9,0,TAU); g.fill(); }
-    if(ok('kx_ruby')) g.drawImage(IMG.kx_ruby,-z*1.25,-z*1.25,z*2.5,z*2.5); else { g.rotate(T*.6); if(ok('gem2')) g.drawImage(IMG.gem2,-z,-z,z*2,z*2); } g.restore();
-    g.save(); g.translate(cx+jx+ox,cy-18); g.scale(sc,sc); gold('確変',0,0,250); g.restore();
-    if(u>.38){ const v=clamp((u-.38)/.15,0,1); g.globalAlpha=a*v; txt('当たりの穴  2倍タイム',cx+ox+(1-v)*80,cy+150,62,'#fff','center','#3d0412',FONTD); g.globalAlpha=a; }
+    g.save(); g.translate(cx+ox,cy); const z=250*Math.min(1,u/.2)*(1+.04*Math.sin(T*7)); { const hg=g.createRadialGradient(0,0,0,0,0,z*1.9); hg.addColorStop(0,X2?'rgba(70,160,255,.6)':'rgba(255,60,100,.6)'); hg.addColorStop(1,X2?'rgba(70,160,255,0)':'rgba(255,60,100,0)'); g.fillStyle=hg; g.beginPath(); g.arc(0,0,z*1.9,0,TAU); g.fill(); }
+    { const hk=X2?'kx_x2':'kx_ruby'; if(ok(hk)) g.drawImage(IMG[hk],-z*1.5,-z*1.5,z*3,z*3); else if(X2){ for(const sgn of [-1,1]){ g.save(); g.translate(sgn*z*.62,0); g.rotate(T*.6*sgn); if(ok('gem0')) g.drawImage(IMG.gem0,-z*.8,-z*.8,z*1.6,z*1.6); g.restore(); } } else { g.rotate(T*.6); if(ok('gem2')) g.drawImage(IMG.gem2,-z,-z,z*2,z*2); } } g.restore();
+    g.save(); g.translate(cx+jx+ox,cy-18); g.scale(sc,sc); gold(X2?'玉数2倍':'確変',0,0,X2?210:250); g.restore();
+    if(u>.38){ const v=clamp((u-.38)/.15,0,1); g.globalAlpha=a*v; txt(X2?'宝石が ぜんぶ 2倍 出る':'当たりの穴  2倍タイム',cx+ox+(1-v)*80,cy+150,62,'#fff','center',X2?'#04163d':'#3d0412',FONTD); g.globalAlpha=a; }
     if(u>.6 && k.by){ const v=clamp((u-.6)/.15,0,1); g.globalAlpha=a*v; txt(k.by+' さん',cx+ox,cy+236,44,GOLD,'center','#000',FONTD); g.globalAlpha=a; }
-    if(u>.5){ const v=clamp((u-.5)/.15,0,1); g.globalAlpha=a*v; txt(CFG.dblSec+'秒間',cx+ox-(1-v)*80,cy-178,54,'#ffd9df','center','#3d0412',FONTD); g.globalAlpha=a; } }
+    if(u>.5){ const v=clamp((u-.5)/.15,0,1); g.globalAlpha=a*v; txt((X2?CFG.x2Sec:CFG.dblSec)+'秒間',cx+ox-(1-v)*80,cy-178,54,X2?'#d6ebff':'#ffd9df','center',X2?'#04163d':'#3d0412',FONTD); g.globalAlpha=a; } }
   g.restore(); }
 function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-1,1)*S.shake*11:0; g.setTransform(1,0,0,1,0,0);
   if(ok('bg')) g.drawImage(IMG.bg,0,0,W,H); else { g.fillStyle='#0b0507'; g.fillRect(0,0,W,H); }
@@ -440,17 +445,17 @@ function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-
   for(const r of S.rings){ const k=1-r.t/.5; g.globalAlpha=clamp(r.t*4,0,1); g.strokeStyle='#ff5a78'; g.lineWidth=7*(1-k)+1; g.beginPath(); g.ellipse(r.x,r.y,r.r*k,r.r*k*KY,0,0,TAU); g.stroke(); } g.globalAlpha=1;
   /* 確変の間は、画面のふちが赤く脈うつ（残り5秒は速く点めつ） */
   if(S.dblT>0){ const pu=S.dblT<5?(.5+.5*Math.sin(T*16)):(.6+.4*Math.sin(T*5)); for(const [x0,y0,x1,y1] of [[0,0,0,150],[0,H,0,H-150],[0,0,150,0],[W,0,W-150,0]]){ const gr=g.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,'rgba(255,20,60,'+(.5*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(255,20,60,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); }
-    const bw=560*clamp(S.dblT/CFG.dblSec,0,1); g.fillStyle='rgba(8,5,6,.8)'; rr(64,654,562,116,14); g.fill(); g.strokeStyle=RUBY; g.lineWidth=3; g.stroke(); txt('確変モード',90,694,34,RUBY,'left','#000',FONTD); txt('当たり 2倍',90,740,24,'#fff','left',null,FONTD); gold(String(Math.ceil(S.dblT)),560,706,74,'right'); txt('秒',568,722,26,GOLD,'left',null,FONTD); g.fillStyle=RUBY; g.fillRect(66,764,bw,5); }
+    modeBox(64,654,'確変モード','当たり 2倍',S.dblT,CFG.dblSec,RUBY); }
+  if(S.x2T>0){ const pu=S.x2T<5?(.5+.5*Math.sin(T*16)):(.6+.4*Math.sin(T*5+1)); for(const [x0,y0,x1,y1] of [[0,0,0,110],[0,H,0,H-110]]){ const gr=g.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,'rgba(60,150,255,'+(.45*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(60,150,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); } modeBox(1294,712,'玉数2倍タイム','宝石が 2倍',S.x2T,CFG.x2Sec,'#4aa3ff'); }
   if(S.kx) drawKx();
   if(S.flash>0){ g.fillStyle='rgba(255,240,200,'+Math.min(.8,S.flash*1.3).toFixed(2)+')'; g.fillRect(0,0,W,H); }
   /* 大当たり */
   if(S.jp){ const t=6-S.jp.t, k=clamp(Math.min(t*3,S.jp.t*2),0,1); g.globalAlpha=k; g.fillStyle='rgba(4,2,3,.72)'; g.fillRect(0,0,W,H);
     g.save(); g.translate(W/2,H/2-40); for(let i=0;i<16;i++){ g.rotate(TAU/16); g.fillStyle='rgba(233,196,106,'+(.07+.05*Math.sin(T*3+i)).toFixed(3)+')'; g.beginPath(); g.moveTo(0,0); g.lineTo(-70,-1200); g.lineTo(70,-1200); g.closePath(); g.fill(); } g.restore();
-    const sc=1+.25*Math.max(0,1-t*2.2); g.save(); g.translate(W/2,H/2-70); g.scale(sc,sc); gold('大当たり',0,0,230); g.restore();
-    for(let i=0;i<5;i++) gem(S.jp.type!=null?(S.jp.type+i)%6:i,W/2-360+i*180,H/2-290+Math.sin(T*3+i)*10,44,T*.8+i);
-    if(JP.text) txt(JP.text,W/2,H/2+120,74,'#fff','center','#000',FONTD);
-    if(S.jp.by) txt(S.jp.by+' さんの宝石',W/2,H/2+(JP.text?210:140),40,GOLD,'center','#000',FONTD);
-    if(JP.win) txt('Win '+(JP.win>0?'＋':'−')+fmt(Math.abs(JP.win)),W/2,H/2+(JP.text?280:210),46,JP.win>0?'#9fe7ff':RUBY,'center','#000',FONTD);
+    const sc=1+.25*Math.max(0,1-t*2.2), nm=S.jp.by; if(nm){ g.font='900 110px '+FONTD; const fs=Math.min(110,Math.floor(110*1500/Math.max(1,g.measureText(nm+' さん').width))); txt(nm+' さん',W/2,H/2-190,fs,'#fff','center','#120b02',FONTD); } g.save(); g.translate(W/2,H/2+(nm?20:-70)); g.scale(sc,sc); gold('大当たり',0,0,nm?250:230); g.restore();
+    for(let i=0;i<5;i++) gem(S.jp.type!=null?(S.jp.type+i)%6:i,W/2-360+i*180,H/2-(nm?360:290)+Math.sin(T*3+i)*10,44,T*.8+i);
+    const y0=H/2+(nm?200:120); if(JP.text) txt(JP.text,W/2,y0,74,'#fff','center','#000',FONTD);
+    if(JP.win) txt('Win '+(JP.win>0?'＋':'−')+fmt(Math.abs(JP.win)),W/2,y0+(JP.text?90:0),50,JP.win>0?'#9fe7ff':RUBY,'center','#000',FONTD);
     g.globalAlpha=1; }
 }
 
@@ -489,6 +494,7 @@ const FX_LIST=[
  ['from4','jam','4段目から','宝石1個を、4段目から始める',n=>Game.from4(n)],
  ['from5','jam','FINALから','宝石1個を、最後の段から始める',n=>Game.from5(n)],
  ['dbl','jam','確変モード','30秒のあいだ、当たりの穴が2つになる',n=>Game.dbl(n)],
+ ['x2','jam','玉数2倍タイム','60秒のあいだ、入る宝石がぜんぶ2倍になる',n=>Game.x2(n)],
  ['shake','jam','皿をゆらす','皿の上の宝石をぜんぶはじく',n=>Game.shake(n)],
  ['cap','help','フタ','20秒のあいだ、当たりの穴をふさぐ',n=>Game.cap(n)],
  ['wipe','help','全消し','皿の上と待ちの宝石をぜんぶ消す',n=>Game.wipe(n)]];
@@ -502,7 +508,7 @@ const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://1
 try{ TF.map=JSON.parse(localStorage.getItem('jewel_gifts')||'{}')||{}; }catch(e){ TF.map={}; }
 const tfNorm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.');
 /* はじめて開いた時だけ、ギフトの割り当てのたたき台を入れる（あとから自由に変えられる） */
-if(!localStorage.getItem('jewel_gdef')){ try{ localStorage.setItem('jewel_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"gem1": {"id": null, "name": "バラ", "coins": 1, "ci": 1, "pic": null}, "gem5": {"id": null, "name": "フィンガーハート", "coins": 5, "ci": 28, "pic": null}, "gem10": {"id": null, "name": "ローザ", "coins": 10, "ci": 37, "pic": null}, "gem30": {"id": null, "name": "ドーナッツ", "coins": 30, "ci": 58, "pic": null}, "gem100": {"id": null, "name": "ハンドハート", "coins": 100, "ci": 87, "pic": null}, "gem500": {"id": null, "name": "すばらしい！", "coins": 500, "ci": 309, "pic": null}, "from3": {"id": null, "name": "香水", "coins": 20, "ci": 55, "pic": null}, "from4": {"id": null, "name": "歌うキノコ", "coins": 99, "ci": 63, "pic": null}, "from5": {"id": null, "name": "コーギー", "coins": 299, "ci": 155, "pic": null}, "shake": {"id": null, "name": "エール", "coins": 5, "ci": 26, "pic": null}, "cap": {"id": null, "name": "愛してる", "coins": 199, "ci": 107, "pic": null}, "dbl": {"id": null, "name": "だいすき", "coins": 500, "ci": 310, "pic": null}, "wipe": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}}; try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} } }
+if(!localStorage.getItem('jewel_gdef')){ try{ localStorage.setItem('jewel_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"gem1": {"id": null, "name": "バラ", "coins": 1, "ci": 1, "pic": null}, "gem5": {"id": null, "name": "フィンガーハート", "coins": 5, "ci": 28, "pic": null}, "gem10": {"id": null, "name": "ローザ", "coins": 10, "ci": 37, "pic": null}, "gem30": {"id": null, "name": "ドーナッツ", "coins": 30, "ci": 58, "pic": null}, "gem100": {"id": null, "name": "ハンドハート", "coins": 100, "ci": 87, "pic": null}, "gem500": {"id": null, "name": "すばらしい！", "coins": 500, "ci": 309, "pic": null}, "from3": {"id": null, "name": "香水", "coins": 20, "ci": 55, "pic": null}, "from4": {"id": null, "name": "歌うキノコ", "coins": 99, "ci": 63, "pic": null}, "from5": {"id": null, "name": "コーギー", "coins": 299, "ci": 155, "pic": null}, "shake": {"id": null, "name": "エール", "coins": 5, "ci": 26, "pic": null}, "cap": {"id": null, "name": "愛してる", "coins": 199, "ci": 107, "pic": null}, "dbl": {"id": null, "name": "だいすき", "coins": 500, "ci": 310, "pic": null}, "x2": {"id": null, "name": "つながる心", "coins": 299, "ci": 176, "pic": null}, "wipe": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}}; try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} } }
 function tfSave(){ try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} }
 // 名前が合わずに「割り当てなし」になったギフトを覚えておき、設定画面で「どの効果か」を1回えらべば、届いた名前とIDをその効果に結びつける
 let MISS=[]; try{ MISS=JSON.parse(localStorage.getItem('jewel_miss')||'[]')||[]; }catch(e){}
@@ -608,7 +614,7 @@ function pickDraw(){ const tb=document.getElementById('pickTabs'); tb.innerHTML=
     b.appendChild(gi); b.appendChild(sp); b.appendChild(em); b.addEventListener('click',()=>{ TF.map[pickFx[0]]={id:null,name:e[0],coins:e[1],ci:i,pic:null}; tfSave(); document.getElementById('pick').hidden=true; cfgBuild(); }); fr.appendChild(b); });
   g.appendChild(fr); if(!g.children.length){ const d=document.createElement('p'); d.textContent='見つかりませんでした'; g.appendChild(d); } }
 /* ギフト表に出す名前（自分で変えた分だけ入る）。TBL_NAME=元の名前 */
-const TBL_NAME={"gem1": "宝石×1", "gem5": "宝石×5", "gem10": "宝石×10", "gem30": "宝石×30", "gem100": "宝石×100", "gem500": "宝石×500", "from3": "3段目から", "from4": "4段目から", "from5": "FINALから", "shake": "皿をゆらす", "cap": "当たり穴にフタ", "dbl": "確変モード", "wipe": "全消し"}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('jewel_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('jewel_lbl',JSON.stringify(LBL)); }catch(e){} }
+const TBL_NAME={"gem1": "宝石×1", "gem5": "宝石×5", "gem10": "宝石×10", "gem30": "宝石×30", "gem100": "宝石×100", "gem500": "宝石×500", "from3": "3段目から", "from4": "4段目から", "from5": "FINALから", "shake": "皿をゆらす", "cap": "当たり穴にフタ", "dbl": "確変モード", "x2": "玉数2倍タイム", "wipe": "全消し"}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('jewel_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('jewel_lbl',JSON.stringify(LBL)); }catch(e){} }
 let tblCols=7; try{ tblCols=parseInt(localStorage.getItem('jewel_tblcols'),10)||7; }catch(e){}
 function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name || b.off) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
   const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+(OPT.coinOn?1:0)+(OPT.chatOn?1:0)+'&g='+parts.join(',')+(()=>{ const LB=Object.assign(gemLbl(),LBL), l=Object.keys(LB).filter(k=>LB[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LB[k]))); return l.length?'&l='+l.join(','):''; })(); }
