@@ -165,7 +165,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 22:21</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 22:36</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -226,7 +226,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
     <h3>音</h3>
     <button class="g" id="optBgm">BGM</button><button class="g" id="optSe">効果音</button><button class="g" id="optTrack">曲</button>
     <h3>その他</h3>
-    <button class="n" data-a="reset">最初からやり直す</button><button class="n" data-a="title">タイトルに戻る</button><button class="n" id="viewBtn">縦長の画面に切りかえ</button><button class="n" data-a="close">とじる</button>
+    <button class="n" data-a="reset">最初からやり直す</button><button class="n" data-a="title">タイトルに戻る</button><button class="n" id="viewBtn">縦長の画面に切りかえ</button><button class="n" id="bgBtn">背景</button><button class="n" data-a="close">とじる</button>
   </div>
 </div>
 <div id="below"><div id="binfo"><div id="viewers"><small>視聴</small><span id="viewN">–</span></div><div id="memo"></div></div><div id="frow"><div id="feed"><div class="ln hint">ここにコメント・ギフト・フォローが流れます</div></div><div id="photo"></div></div><iframe id="gtbl" title="ギフト表"></iframe></div>
@@ -235,13 +235,17 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 try{ if(localStorage.getItem('jewel_gv')!=='2'){ localStorage.removeItem('jewel_gifts'); localStorage.setItem('jewel_gv','2'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1128-222110';
+const VER='1128-223610';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== 宝石クルーン：黒い大理石の皿が5段。玉は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
    ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで玉が増える ===== */
 /* ?view=tate を付けると縦長（スマホ配信用）の画面になる：1〜4段目は右に小さく、FINALだけ下に大きく。背景はすけて、カメラの上に重ねられる */
-const TATE=/[?&]view=tate/.test(location.search);
-const W=TATE?1080:1920, H=TATE?1920:1080; cv.width=W; cv.height=H; if(TATE){ for(const e of [document.documentElement,document.body,stage,cv]) e.style.background='transparent'; }
+/* 画面の向き：?view=tate＝縦長、?view=yoko＝横長。何も付けない時は、開いた画面が縦長なら縦長にする。
+   背景：?bg=clear＝すける（配信ソフトでカメラに重ねる用）、?bg=black＝黒。何も付けない時は、?view=tate を付けた時だけすける */
+const QV=(/[?&]view=(tate|yoko)/.exec(location.search)||[])[1]||'', QB=(/[?&]bg=(clear|black)/.exec(location.search)||[])[1]||'';
+const TATE=QV?QV==='tate':window.innerHeight>window.innerWidth*1.2, CLEAR=QB?QB==='clear':QV==='tate';
+const W=TATE?1080:1920, H=TATE?1920:1080; cv.width=W; cv.height=H; if(!CLEAR){ for(const e of [document.documentElement,document.body]) e.style.background='#070405'; }
+if(CLEAR){ for(const e of [document.documentElement,document.body,stage,cv]) e.style.background='transparent'; }
 const FONT="MPR,'Hiragino Maru Gothic ProN','Noto Sans JP',sans-serif", FONTD="JS,'Yu Mincho','Hiragino Mincho ProN','Noto Serif JP','Noto Serif CJK JP',serif";
 const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, pick=a=>a[Math.floor(Math.random()*a.length)], fmt=n=>Math.round(n).toLocaleString('en-US');
 const TAU=Math.PI*2, GOLD='#e9c46a', GOLDD='#a9812f', RUBY='#ff3b5c';
@@ -443,8 +447,9 @@ function drawKx(){ const k=S.kx, X2=k.kind==='x2', t=k.t, out=clamp((t-2.45)/.45
     if(u>.5){ const v=clamp((u-.5)/.15,0,1); g.globalAlpha=a*v; txt((X2?CFG.x2Sec:CFG.dblSec)+'秒間',cx+ox-(1-v)*80,cy-178,54,X2?'#d6ebff':'#ffd9df','center',X2?'#04163d':'#3d0412',FONTD); g.globalAlpha=a; } }
   g.restore(); }
 function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-1,1)*S.shake*11:0; g.setTransform(1,0,0,1,0,0);
-  if(TATE){ g.clearRect(0,0,W,H); g.fillStyle='rgba(8,5,6,.82)'; rr(628,606,368,790,22); g.fill(); g.strokeStyle=GOLDD; g.lineWidth=3; g.stroke(); g.strokeStyle='rgba(233,196,106,.35)'; g.lineWidth=1; rr(636,614,352,774,16); g.stroke(); gold('宝石クルーン',812,640,28); }
-  else if(ok('bg')) g.drawImage(IMG.bg,0,0,W,H); else { g.fillStyle='#0b0507'; g.fillRect(0,0,W,H); }
+  if(CLEAR) g.clearRect(0,0,W,H); else if(TATE){ g.fillStyle='#0b0507'; g.fillRect(0,0,W,H); if(ok('bg')){ g.save(); g.translate(W,0); g.rotate(Math.PI/2); g.drawImage(IMG.bg,0,0,H,W); g.restore(); } }
+  if(TATE){ g.fillStyle='rgba(8,5,6,.82)'; rr(628,606,368,790,22); g.fill(); g.strokeStyle=GOLDD; g.lineWidth=3; g.stroke(); g.strokeStyle='rgba(233,196,106,.35)'; g.lineWidth=1; rr(636,614,352,774,16); g.stroke(); gold('宝石クルーン',812,640,28); }
+  else if(!CLEAR){ if(ok('bg')) g.drawImage(IMG.bg,0,0,W,H); else { g.fillStyle='#0b0507'; g.fillRect(0,0,W,H); } }
   g.save(); g.translate(sx,sy);
   /* まん中の金の柱 */
   { const x=DISH[0].x, w=TATE?22:30, y0=DISH[0].y, y1=DISH[TATE?LAST-1:LAST].y, gr=g.createLinearGradient(x-w/2,0,x+w/2,0); gr.addColorStop(0,'#4d350c'); gr.addColorStop(.3,'#c79a3c'); gr.addColorStop(.5,'#f6e2a0'); gr.addColorStop(.7,'#b98a2e'); gr.addColorStop(1,'#4d350c'); g.fillStyle=gr; g.fillRect(x-w/2,y0,w,y1-y0); }
@@ -703,7 +708,7 @@ if(/[?&]notitle=1/.test(location.search)) TITLE=false;
 ttlUI();
 { const a=document.getElementById('jpTx'), b=document.getElementById('jpWin'); a.value=JP.text||''; b.value=JP.win||''; { const h=document.getElementById('jpHead'), tk=document.getElementById('jpTick'); h.value=JP.head||''; tk.checked=JP.tick!==0; h.addEventListener('input',()=>{ JP.head=h.value.slice(0,24); jpSave(); }); h.addEventListener('keydown',ev=>ev.stopPropagation()); tk.addEventListener('change',()=>{ JP.tick=tk.checked?1:0; jpSave(); }); document.getElementById('jpDayClr').addEventListener('click',ev=>{ ev.stopPropagation(); dayClear(); }); } { const c=document.getElementById('jpEase'); c.value=JP.ez||90; c.addEventListener('change',()=>{ JP.ez=clamp(parseInt(c.value,10)||90,5,100); c.value=JP.ez; jpSave(); }); c.addEventListener('keydown',ev=>ev.stopPropagation()); } a.addEventListener('input',()=>{ JP.text=a.value.slice(0,16); jpSave(); }); b.addEventListener('input',()=>{ JP.win=clamp(parseInt(b.value,10)||0,-99999,99999); jpSave(); }); for(const e of [a,b]) e.addEventListener('keydown',ev=>ev.stopPropagation()); }
 gemSync();
-{ const vb=document.getElementById('viewBtn'); vb.textContent=TATE?'横長の画面にもどす':'縦長の画面に切りかえ（FINALを大きく）'; vb.addEventListener('click',ev=>{ ev.stopPropagation(); location.search=TATE?'':'?view=tate'; }); }
+{ const vb=document.getElementById('viewBtn'); const bb=document.getElementById('bgBtn'); vb.textContent=TATE?'横長の画面に切りかえ':'縦長の画面に切りかえ（FINALを大きく）'; bb.textContent=CLEAR?'背景を黒にする':'背景をすけさせる（配信で重ねる用）'; vb.addEventListener('click',ev=>{ ev.stopPropagation(); location.search='?view='+(TATE?'yoko':'tate')+'&bg='+(CLEAR?'clear':'black'); }); bb.addEventListener('click',ev=>{ ev.stopPropagation(); location.search='?view='+(TATE?'tate':'yoko')+'&bg='+(CLEAR?'black':'clear'); }); }
 window.JewelGame=Game; window.__dbg={ dayAdd, dayClear, gemSet, gemN, get S(){ return S; }, Game, DISH, CFG, JP, update, draw, reset, get best(){ return best; }, get TITLE(){ return TITLE; }, set TITLE(v){ TITLE=v; ttlUI(); }, get PAUSE(){ return PAUSE; }, setPause };
 Promise.all([document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()].concat(Object.values(IMG).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.onload=r; im.onerror=r; } })))).then(()=>{ window.__ready=true; requestAnimationFrame(loop); });
 </script>
