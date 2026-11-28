@@ -151,7 +151,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   <button id="pauseBtn" type="button" hidden>一時停止</button>
   <div id="pauseTag" hidden>一時停止中<small>届いたギフトは、再開したら順番に出ます</small></div>
   <div id="ttl">
-    <h1>宝石クルーン<small>ルビーの穴に 5回つづけて入れば 大当たり</small></h1>
+    <h1>宝石クルーン<small>赤い穴に 5回つづけて入れば 大当たり</small></h1>
     <div class="rec" id="ttlRec"></div>
     <button id="ttlGo" type="button">スタート</button>
     <div class="sub"><button id="ttlGift" type="button">ギフト設定</button><span id="ttlNote"></span></div>
@@ -165,7 +165,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 21:21</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 21:25</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -235,7 +235,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 try{ if(localStorage.getItem('jewel_gv')!=='2'){ localStorage.removeItem('jewel_gifts'); localStorage.setItem('jewel_gv','2'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1128-212143';
+const VER='1128-212502';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== 宝石クルーン：黒い大理石の皿が5段。宝石は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
    ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで宝石が増える ===== */
@@ -370,12 +370,17 @@ function drawDish(d){ const a=ang(d.i), th=d.R*.085;
   { const gr=g.createRadialGradient(-d.R*.03,-d.R*.04,0,0,0,d.R*.16); gr.addColorStop(0,'rgba(255,240,200,.16)'); gr.addColorStop(1,'rgba(255,240,200,0)'); g.fillStyle=gr; g.beginPath(); g.arc(0,0,d.R*.16,0,TAU); g.fill(); }
   g.rotate(a);
   for(let k=0;k<d.nh;k++){ const [hx,hy]=holePos(d,k), win=isWin(d,k), z=d.hr*1.36;
-    if(win){ const pu=.55+.45*Math.sin(T*5+d.i), gr=g.createRadialGradient(hx,hy,d.hr*.6,hx,hy,d.hr*2.3); gr.addColorStop(0,'rgba(255,40,80,'+(.55*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(255,40,80,0)'); g.fillStyle=gr; g.beginPath(); g.arc(hx,hy,d.hr*2.3,0,TAU); g.fill(); }
-    g.save(); g.translate(hx,hy); g.rotate(-a); const key=win?'ring_ruby':'ring_gold'; if(ok(key)) g.drawImage(IMG[key],-z,-z,z*2,z*2); else { g.fillStyle='#000'; g.beginPath(); g.arc(0,0,d.hr,0,TAU); g.fill(); g.strokeStyle=win?RUBY:GOLD; g.lineWidth=d.hr*.3; g.stroke(); }
+    if(win){ const pu=.55+.45*Math.sin(T*5+d.i), gr=g.createRadialGradient(hx,hy,d.hr*.6,hx,hy,d.hr*2.3); gr.addColorStop(0,'rgba(255,30,70,'+(.85*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(255,40,80,0)'); g.fillStyle=gr; g.beginPath(); g.arc(hx,hy,d.hr*2.3,0,TAU); g.fill(); }
+    g.save(); g.translate(hx,hy); g.rotate(-a); const key=win?'ring_ruby':'ring_gold'; if(!win){ g.fillStyle='#000'; g.beginPath(); g.arc(0,0,d.hr*1.02,0,TAU); g.fill(); g.globalAlpha=.5; }   /* はずれの穴は、金の輪を暗くして目立たなくする */
+    if(ok(key)) g.drawImage(IMG[key],-z,-z,z*2,z*2); else { g.fillStyle='#000'; g.beginPath(); g.arc(0,0,d.hr,0,TAU); g.fill(); g.strokeStyle=win?RUBY:GOLD; g.lineWidth=d.hr*.3; g.stroke(); } g.globalAlpha=1;
     if(capped(d,k)){ const al=S.capT<3?(Math.floor(T*8)%2?.55:1):1; g.globalAlpha=al; if(ok('cap')) g.drawImage(IMG.cap,-z,-z-d.hr*.25,z*2,z*2); else { g.fillStyle=GOLD; g.beginPath(); g.arc(0,0,d.hr*1.2,0,TAU); g.fill(); } g.globalAlpha=1; }
     g.restore(); }
   g.restore(); }
 function nameTag(s,x,y){ g.font='900 17px '+FONT; const w=Math.min(190,g.measureText(s).width)+14; g.fillStyle='rgba(6,3,4,.78)'; rr(x-w/2,y-12,w,24,12); g.fill(); g.strokeStyle='rgba(233,196,106,.7)'; g.lineWidth=1; g.stroke(); g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff6dc'; g.fillText(s,x,y+1,190); }
+/* 当たりの穴の上に「当たり」の札を出す（フタの間は「フタ」） */
+function drawTags(d){ for(let k=0;k<d.nh;k++){ if(!isWin(d,k)) continue; const [hx,hy]=holePos(d,k), [sx,sy]=toScreen(d,hx,hy), cp=capped(d,k), fs=d.i===LAST?24:18, s=cp?'フタ':'当たり', y=sy-d.hr*KY-fs*.95+Math.sin(T*4+k)*2; g.font='900 '+fs+'px '+FONT; const w=g.measureText(s).width+fs*.9, h=fs*1.4;
+    g.fillStyle=cp?'rgba(60,54,44,.92)':'rgba(214,20,58,.95)'; rr(sx-w/2,y-h/2,w,h,h/2); g.fill(); g.strokeStyle=cp?'#c9c2b0':'#ffd9df'; g.lineWidth=2; g.stroke(); g.beginPath(); g.moveTo(sx-6,y+h/2-1); g.lineTo(sx+6,y+h/2-1); g.lineTo(sx,y+h/2+7); g.closePath(); g.fill();
+    g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff'; g.fillText(s,sx,y+1); } }
 function drawGems(i){ const d=DISH[i], L=[]; for(const q of S.gems){ if(q.d!==i) continue; const [sx,sy]=toScreen(d,q.x,q.y); L.push([sy,sx,q]); } L.sort((a,b)=>a[0]-b[0]);
   for(const [sy,sx,q] of L){ if(q.st==='fall'){ const k=clamp(q.ft/.34,0,1); gem(q.t,sx,sy-d.gr*.45+k*d.gr*.9,d.gr*(1-.6*k),q.rot,1-k*.85); } else gem(q.t,sx,sy-d.gr*.45,d.gr,q.rot); }
   /* 投げた人の名前（たまに出す。3段目から先の宝石にはいつも出す） */
@@ -385,16 +390,19 @@ function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-
   g.save(); g.translate(sx,sy);
   /* まん中の金の柱 */
   { const x=960, w=30, y0=DISH[0].y, y1=DISH[LAST].y, gr=g.createLinearGradient(x-w/2,0,x+w/2,0); gr.addColorStop(0,'#4d350c'); gr.addColorStop(.3,'#c79a3c'); gr.addColorStop(.5,'#f6e2a0'); gr.addColorStop(.7,'#b98a2e'); gr.addColorStop(1,'#4d350c'); g.fillStyle=gr; g.fillRect(x-w/2,y0,w,y1-y0); }
-  for(const d of DISH){ drawDish(d); drawGems(d.i); gold(NAME[d.i],d.x-d.R-34,d.y+4,d.i===LAST?46:34,'right'); }
+  for(const d of DISH){ drawDish(d); drawGems(d.i); drawTags(d); gold(NAME[d.i],d.x-d.R-34,d.y+4,d.i===LAST?46:34,'right'); }
   /* 飛んでいる宝石（上の段から下の段へ落ちる） */
   for(const f of S.fly){ const k=clamp(f.t/f.dur,0,1), d=DISH[f.to], e=k*k, x=lerp(f.x0,f.x1,k), y=lerp(f.y0,f.y1-d.gr*.45,e), r=d.gr*(1+.35*Math.sin(k*Math.PI)); { const gr=g.createRadialGradient(x,y,0,x,y,r*2.6); gr.addColorStop(0,'rgba(255,220,140,.45)'); gr.addColorStop(1,'rgba(255,220,140,0)'); g.fillStyle=gr; g.beginPath(); g.arc(x,y,r*2.6,0,TAU); g.fill(); } gem(f.type,x,y,r,k*9); if(f.by && f.to>=2) nameTag(f.by,x,y-r*1.4-14); }
   for(const p of S.parts){ g.globalAlpha=clamp(p.t*3,0,1); g.fillStyle=p.c; g.beginPath(); g.arc(p.x,p.y,p.s/2,0,TAU); g.fill(); } g.globalAlpha=1;
   g.restore();
   /* 左：題名・ギフトログ・お知らせ */
-  gold('宝石クルーン',345,96,68); txt('ルビーの穴に 5回つづけて入れば 大当たり',345,158,23,'#cbbf9f','center','#000',FONTD);
+  gold('宝石クルーン',345,96,68); txt('赤い穴に 5回つづけて入れば 大当たり',345,158,24,'#cbbf9f','center','#000',FONTD);
   panel(60,210,570,410); txt('ギフトログ',345,246,28,GOLD,'center',null,FONTD);
   g.save(); g.beginPath(); g.rect(72,268,546,344); g.clip(); for(let i=0;i<S.log.length;i++){ const l=S.log[i]; g.globalAlpha=clamp(l.t,0,1)*(i===0?1:.8); let fs=24; g.font='900 '+fs+'px '+FONT; const wd=g.measureText(l.s).width; if(wd>526) fs=Math.max(14,Math.floor(24*526/wd)); txt(l.s,345,294+i*41,fs,l.c,'center','#000'); } g.restore(); g.globalAlpha=1;
   if(S.ban && !S.jp){ const k=clamp(S.ban.t*3,0,1); g.globalAlpha=k; panel(60,650,570,124); txt(S.ban.a,345,S.ban.b?694:712,S.ban.a.length>11?34:40,S.ban.c,'center','#000',FONTD); if(S.ban.b) txt(S.ban.b,345,742,22,'#e6dcc3','center',null,FONTD); g.globalAlpha=1; }
+  /* 左下：穴の見分け方 */
+  panel(60,792,570,80); { const z=27; if(ok('ring_ruby')) g.drawImage(IMG.ring_ruby,96-z+8,832-z,z*2,z*2); txt('赤い穴',146,832,26,RUBY,'left',null,FONTD); txt('＝ 当たり',232,832,26,'#fff','left',null,FONTD);
+    g.globalAlpha=.55; if(ok('ring_gold')) g.drawImage(IMG.ring_gold,372-z+8,832-z,z*2,z*2); g.globalAlpha=1; txt('金の穴',422,832,26,'#a89d82','left',null,FONTD); txt('＝ ハズレ',508,832,26,'#a89d82','left',null,FONTD); }
   /* 右：大当たりの回数・待っている宝石・各段に届いた数・いまの状態 */
   panel(1290,40,570,200); txt('大当たり',1324,88,32,GOLD,'left',null,FONTD); gold(fmt(S.jpN),1750,112,S.jpN>=100?70:92,'right'); txt('回',1762,126,32,GOLD,'left',null,FONTD); txt('通算 '+fmt(best)+' 回',1826,176,20,'#a89d82','right',null,FONTD);
   { const n=qLeft(); txt('待ちの宝石',1324,208,22,'#cbbf9f','left',null,FONTD); txt(fmt(n)+' 個',1826,208,26,n?'#fff':'#857c68','right',null,FONTD); }
