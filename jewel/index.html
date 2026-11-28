@@ -165,7 +165,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 21:25</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 21:27</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -218,7 +218,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
     <h3>とちゅうの段から入れる</h3>
     <button class="j" data-a="from3">3段目から</button><button class="j" data-a="from4">4段目から</button><button class="j" data-a="from5">FINALから</button>
     <h3>そのほか</h3>
-    <button class="j" data-a="dbl">確変<br>当たり穴が2つ</button><button class="j" data-a="shake">皿をゆらす</button><button class="h" data-a="cap">フタ<br>当たり穴をふさぐ</button><button class="h" data-a="wipe">全消し</button>
+    <button class="j" data-a="shake">皿をゆらす</button><button class="h" data-a="cap">フタ<br>当たり穴をふさぐ</button><button class="h" data-a="wipe">全消し</button>
     <h3>無料（コメント・いいね・フォロー）</h3>
     <button class="j" data-a="comment">コメント<br>宝石1個</button><button class="j" data-a="like">いいね×1000<br>宝石3個</button><button class="j" data-a="follow">フォロー<br>宝石5個</button>
     <h3>大当たりの時</h3>
@@ -235,7 +235,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 try{ if(localStorage.getItem('jewel_gv')!=='2'){ localStorage.removeItem('jewel_gifts'); localStorage.setItem('jewel_gv','2'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1128-212502';
+const VER='1128-212703';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== 宝石クルーン：黒い大理石の皿が5段。宝石は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
    ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで宝石が増える ===== */
@@ -266,7 +266,7 @@ const se=(k,v,gap)=>{ if(S.lastSe[k] && T-S.lastSe[k]<(gap||.12)) return; S.last
 const ang=i=>DISH[i].a0+DISH[i].w*T;
 const holePos=(d,k)=>{ const a=k*TAU/d.nh; return [Math.cos(a)*d.rh,Math.sin(a)*d.rh]; };
 const toScreen=(d,x,y)=>{ const a=ang(d.i), c=Math.cos(a), s=Math.sin(a); return [d.x+x*c-y*s,d.y+(x*s+y*c)*KY]; };
-const isWin=(d,k)=>k===0 || (S.dblT>0 && k===(d.nh>>1));
+const isWin=(d,k)=>k===0;   /* 当たりの穴は、どの段もいつも1つだけ */
 const capped=(d,k)=>S.capT>0 && isWin(d,k);
 const countIn=i=>{ let n=0; for(const q of S.gems) if(q.d===i) n++; for(const f of S.fly) if(f.to===i) n++; return n; };
 /* 宝石を皿のふちから入れる。fromX,fromY＝どこから飛んできたか（その方向のふちから、ふちに沿って転がり出す） */
@@ -327,8 +327,6 @@ const Game={
   shake(n){ for(const q of S.gems){ if(q.st!=='roll') continue; const d=DISH[q.d]; q.vx+=rand(-1,1)*420*d.s; q.vy+=rand(-1,1)*420*d.s; q.age=Math.min(q.age,4); } S.shake=Math.max(S.shake,.45); se('don',.6,.3); logAdd((n||'だれか')+' が 皿をゆらした','#ffb38a'); },
   /* フタ：当たりの穴にフタをする（妨害） */
   cap(n){ S.capT=Math.min(120,Math.max(S.capT,0)+CFG.capSec); se('heavy',.6,.3); banner('当たりの穴に フタ！','#c9c2b0',(n||'だれか')+' さん（'+CFG.capSec+'秒）'); logAdd((n||'だれか')+' が 当たりの穴にフタをした','#c9c2b0'); },
-  /* 確変：当たりの穴が2つになる */
-  dbl(n){ S.dblT=Math.min(180,Math.max(S.dblT,0)+CFG.dblSec); S.flash=Math.max(S.flash,.3); play('bell',.5); se('cheer',.6,1); banner('確変！ 当たりの穴が2つ',RUBY,(n||'だれか')+' さん（'+CFG.dblSec+'秒）'); logAdd((n||'だれか')+' が 確変をはじめた',RUBY); },
   /* 全消し：皿の上の宝石と、待っている宝石をぜんぶ消す（妨害） */
   wipe(n){ for(const q of S.gems){ const d=DISH[q.d], [sx,sy]=toScreen(d,q.x,q.y); burst(sx,sy,'#8d8674',3,160); } S.gems=[]; S.fly=[]; S.q=[]; S.flash=Math.max(S.flash,.25); se('glass',.5,.3); banner('全消し…','#c9c2b0',(n||'だれか')+' さん'); logAdd((n||'だれか')+' が 宝石をぜんぶ消した','#c9c2b0'); },
   /* 無料の反応。コメント＝宝石1個（同じ人は30秒に1回）、いいね1000回ごと＝宝石3個、フォロー＝宝石5個、シェア＝宝石3個、サブスク＝宝石30個 */
@@ -409,8 +407,7 @@ function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-
   panel(1290,270,570,420); txt('とどいた数',1575,306,28,GOLD,'center',null,FONTD);
   for(let i=0;i<=LAST;i++){ const y=356+i*46; txt(NAME[i],1330,y,26,i===LAST?RUBY:'#cbbf9f','left',null,FONTD); txt('1/'+DISH[i].nh,1470,y,20,'#857c68','left',null,FONTD); txt(fmt(S.reach[i]),1820,y,28,'#fff','right',null,FONTD); }
   { const y=598; g.strokeStyle='rgba(233,196,106,.35)'; g.lineWidth=1; g.beginPath(); g.moveTo(1320,y-24); g.lineTo(1830,y-24); g.stroke();
-    if(S.dblT>0) txt('確変 のこり '+Math.ceil(S.dblT)+'秒',1575,y+6,26,RUBY,'center',null,FONTD); else txt('確変なし',1575,y+6,21,'#6f6756','center',null,FONTD);
-    if(S.capT>0) txt('フタ のこり '+Math.ceil(S.capT)+'秒',1575,y+50,26,'#e6dcc3','center',null,FONTD); else txt('フタなし',1575,y+50,21,'#6f6756','center',null,FONTD); }
+    if(S.capT>0) txt('フタ のこり '+Math.ceil(S.capT)+'秒',1575,y+26,28,'#e6dcc3','center',null,FONTD); else txt('フタなし',1575,y+26,22,'#6f6756','center',null,FONTD); }
   if(S.flash>0){ g.fillStyle='rgba(255,240,200,'+Math.min(.8,S.flash*1.3).toFixed(2)+')'; g.fillRect(0,0,W,H); }
   /* 大当たり */
   if(S.jp){ const t=6-S.jp.t, k=clamp(Math.min(t*3,S.jp.t*2),0,1); g.globalAlpha=k; g.fillStyle='rgba(4,2,3,.72)'; g.fillRect(0,0,W,H);
@@ -457,7 +454,6 @@ const FX_LIST=[
  ['from3','jam','3段目から','宝石1個を、3段目から始める',n=>Game.from3(n)],
  ['from4','jam','4段目から','宝石1個を、4段目から始める',n=>Game.from4(n)],
  ['from5','jam','FINALから','宝石1個を、最後の段から始める',n=>Game.from5(n)],
- ['dbl','jam','確変','30秒のあいだ、当たりの穴が2つになる',n=>Game.dbl(n)],
  ['shake','jam','皿をゆらす','皿の上の宝石をぜんぶはじく',n=>Game.shake(n)],
  ['cap','help','フタ','20秒のあいだ、当たりの穴をふさぐ',n=>Game.cap(n)],
  ['wipe','help','全消し','皿の上と待ちの宝石をぜんぶ消す',n=>Game.wipe(n)]];
@@ -471,7 +467,7 @@ const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://1
 try{ TF.map=JSON.parse(localStorage.getItem('jewel_gifts')||'{}')||{}; }catch(e){ TF.map={}; }
 const tfNorm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.');
 /* はじめて開いた時だけ、ギフトの割り当てのたたき台を入れる（あとから自由に変えられる） */
-if(!localStorage.getItem('jewel_gdef')){ try{ localStorage.setItem('jewel_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"gem1": {"id": null, "name": "バラ", "coins": 1, "ci": 1, "pic": null}, "gem5": {"id": null, "name": "フィンガーハート", "coins": 5, "ci": 28, "pic": null}, "gem10": {"id": null, "name": "ローザ", "coins": 10, "ci": 37, "pic": null}, "gem30": {"id": null, "name": "ドーナッツ", "coins": 30, "ci": 58, "pic": null}, "gem100": {"id": null, "name": "ハンドハート", "coins": 100, "ci": 87, "pic": null}, "gem500": {"id": null, "name": "すばらしい！", "coins": 500, "ci": 309, "pic": null}, "from3": {"id": null, "name": "香水", "coins": 20, "ci": 55, "pic": null}, "from4": {"id": null, "name": "歌うキノコ", "coins": 99, "ci": 63, "pic": null}, "from5": {"id": null, "name": "コーギー", "coins": 299, "ci": 155, "pic": null}, "shake": {"id": null, "name": "エール", "coins": 5, "ci": 26, "pic": null}, "cap": {"id": null, "name": "愛してる", "coins": 199, "ci": 107, "pic": null}, "dbl": {"id": null, "name": "だいすき", "coins": 500, "ci": 310, "pic": null}, "wipe": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}}; try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} } }
+if(!localStorage.getItem('jewel_gdef')){ try{ localStorage.setItem('jewel_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"gem1": {"id": null, "name": "バラ", "coins": 1, "ci": 1, "pic": null}, "gem5": {"id": null, "name": "フィンガーハート", "coins": 5, "ci": 28, "pic": null}, "gem10": {"id": null, "name": "ローザ", "coins": 10, "ci": 37, "pic": null}, "gem30": {"id": null, "name": "ドーナッツ", "coins": 30, "ci": 58, "pic": null}, "gem100": {"id": null, "name": "ハンドハート", "coins": 100, "ci": 87, "pic": null}, "gem500": {"id": null, "name": "すばらしい！", "coins": 500, "ci": 309, "pic": null}, "from3": {"id": null, "name": "香水", "coins": 20, "ci": 55, "pic": null}, "from4": {"id": null, "name": "歌うキノコ", "coins": 99, "ci": 63, "pic": null}, "from5": {"id": null, "name": "コーギー", "coins": 299, "ci": 155, "pic": null}, "shake": {"id": null, "name": "エール", "coins": 5, "ci": 26, "pic": null}, "cap": {"id": null, "name": "愛してる", "coins": 199, "ci": 107, "pic": null}, "wipe": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}}; try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} } }
 function tfSave(){ try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} }
 // 名前が合わずに「割り当てなし」になったギフトを覚えておき、設定画面で「どの効果か」を1回えらべば、届いた名前とIDをその効果に結びつける
 let MISS=[]; try{ MISS=JSON.parse(localStorage.getItem('jewel_miss')||'[]')||[]; }catch(e){}
@@ -577,7 +573,7 @@ function pickDraw(){ const tb=document.getElementById('pickTabs'); tb.innerHTML=
     b.appendChild(gi); b.appendChild(sp); b.appendChild(em); b.addEventListener('click',()=>{ TF.map[pickFx[0]]={id:null,name:e[0],coins:e[1],ci:i,pic:null}; tfSave(); document.getElementById('pick').hidden=true; cfgBuild(); }); fr.appendChild(b); });
   g.appendChild(fr); if(!g.children.length){ const d=document.createElement('p'); d.textContent='見つかりませんでした'; g.appendChild(d); } }
 /* ギフト表に出す名前（自分で変えた分だけ入る）。TBL_NAME=元の名前 */
-const TBL_NAME={"gem1": "宝石×1", "gem5": "宝石×5", "gem10": "宝石×10", "gem30": "宝石×30", "gem100": "宝石×100", "gem500": "宝石×500", "from3": "3段目から", "from4": "4段目から", "from5": "FINALから", "shake": "皿をゆらす", "cap": "当たり穴にフタ", "dbl": "確変（穴2つ）", "wipe": "全消し"}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('jewel_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('jewel_lbl',JSON.stringify(LBL)); }catch(e){} }
+const TBL_NAME={"gem1": "宝石×1", "gem5": "宝石×5", "gem10": "宝石×10", "gem30": "宝石×30", "gem100": "宝石×100", "gem500": "宝石×500", "from3": "3段目から", "from4": "4段目から", "from5": "FINALから", "shake": "皿をゆらす", "cap": "当たり穴にフタ", "wipe": "全消し"}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('jewel_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('jewel_lbl',JSON.stringify(LBL)); }catch(e){} }
 let tblCols=7; try{ tblCols=parseInt(localStorage.getItem('jewel_tblcols'),10)||7; }catch(e){}
 function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name || b.off) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
   const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+(OPT.coinOn?1:0)+(OPT.chatOn?1:0)+'&g='+parts.join(',')+(()=>{ const LB=Object.assign(gemLbl(),LBL), l=Object.keys(LB).filter(k=>LB[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LB[k]))); return l.length?'&l='+l.join(','):''; })(); }
