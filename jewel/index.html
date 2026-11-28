@@ -165,7 +165,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 22:02</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 22:04</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -218,7 +218,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
     <h3>とちゅうの段から入れる</h3>
     <button class="j" data-a="from3">3段目から</button><button class="j" data-a="from4">4段目から</button><button class="j" data-a="from5">FINALから</button>
     <h3>そのほか</h3>
-    <button class="j" data-a="dbl">確変モード<br>当たり穴が2つ</button><button class="j" data-a="x2">玉数2倍タイム<br>宝石が2倍</button><button class="j" data-a="shake">皿をゆらす</button><button class="h" data-a="cap">フタ<br>当たり穴をふさぐ</button><button class="h" data-a="wipe">全消し</button>
+    <button class="j" data-a="dbl">確変モード<br>当たり穴が2つ</button><button class="j" data-a="x2">玉数2倍タイム<br>玉が2倍</button><button class="j" data-a="shake">皿をゆらす</button><button class="h" data-a="cap">フタ<br>当たり穴をふさぐ</button><button class="h" data-a="wipe">全消し</button>
     <h3>無料（コメント・いいね・フォロー）</h3>
     <button class="j" data-a="comment">コメント<br>宝石1個</button><button class="j" data-a="like">いいね×1000<br>宝石3個</button><button class="j" data-a="follow">フォロー<br>宝石5個</button>
     <h3>大当たりの時</h3>
@@ -235,7 +235,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 try{ if(localStorage.getItem('jewel_gv')!=='2'){ localStorage.removeItem('jewel_gifts'); localStorage.setItem('jewel_gv','2'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1128-220222';
+const VER='1128-220457';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== 宝石クルーン：黒い大理石の皿が5段。宝石は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
    ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで宝石が増える ===== */
@@ -365,7 +365,8 @@ function txt(s,x,y,size,color,align,stroke,font){ g.font='900 '+size+'px '+(font
 function gold(s,x,y,size,align){ g.font='900 '+size+'px '+FONTD; g.textAlign=align||'center'; g.textBaseline='middle'; g.lineJoin='round'; g.lineWidth=Math.max(5,size*.16); g.strokeStyle='#120b02'; g.strokeText(s,x,y); const gr=g.createLinearGradient(0,y-size*.55,0,y+size*.55); gr.addColorStop(0,'#fff3c4'); gr.addColorStop(.45,'#e9c46a'); gr.addColorStop(.55,'#b98a2e'); gr.addColorStop(1,'#f3d98b'); g.fillStyle=gr; g.fillText(s,x,y); }
 function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
 function panel(x,y,w,h){ g.fillStyle='rgba(8,5,6,.72)'; rr(x,y,w,h,14); g.fill(); g.strokeStyle=GOLDD; g.lineWidth=2.5; g.stroke(); g.strokeStyle='rgba(233,196,106,.35)'; g.lineWidth=1; rr(x+7,y+7,w-14,h-14,9); g.stroke(); }
-function gem(type,x,y,r,rot,a){ g.save(); g.translate(x,y); if(a!=null) g.globalAlpha=a; g.fillStyle='rgba(0,0,0,.5)'; g.beginPath(); g.ellipse(r*.1,r*.62,r*.9,r*.42,0,0,TAU); g.fill(); g.rotate(rot||0); const k='gem'+type, z=r*1.18; if(ok(k)) g.drawImage(IMG[k],-z,-z,z*2,z*2); else { g.fillStyle='#4aa3ff'; g.beginPath(); g.arc(0,0,r,0,TAU); g.fill(); } g.restore(); }
+function gem(type,x,y,r,rot,a){ type=3;   /* 皿を回る玉は、ぜんぶダイヤ */
+  g.save(); g.translate(x,y); if(a!=null) g.globalAlpha=a; g.fillStyle='rgba(0,0,0,.5)'; g.beginPath(); g.ellipse(r*.1,r*.62,r*.9,r*.42,0,0,TAU); g.fill(); g.rotate(rot||0); const k='gem'+type, z=r*1.18; if(ok(k)) g.drawImage(IMG[k],-z,-z,z*2,z*2); else { g.fillStyle='#4aa3ff'; g.beginPath(); g.arc(0,0,r,0,TAU); g.fill(); } g.restore(); }
 function drawDish(d){ const a=ang(d.i), th=d.R*.085;
   g.save(); g.translate(d.x,d.y);
   /* 下に落ちる影と、皿の厚み（金のふちの横がわ） */
@@ -412,7 +413,7 @@ function drawKx(){ const k=S.kx, X2=k.kind==='x2', t=k.t, out=clamp((t-2.45)/.45
     g.save(); g.translate(cx+ox,cy); const z=250*Math.min(1,u/.2)*(1+.04*Math.sin(T*7)); { const hg=g.createRadialGradient(0,0,0,0,0,z*1.9); hg.addColorStop(0,X2?'rgba(70,160,255,.6)':'rgba(255,60,100,.6)'); hg.addColorStop(1,X2?'rgba(70,160,255,0)':'rgba(255,60,100,0)'); g.fillStyle=hg; g.beginPath(); g.arc(0,0,z*1.9,0,TAU); g.fill(); }
     { const hk=X2?'kx_x2':'kx_ruby'; if(ok(hk)) g.drawImage(IMG[hk],-z*1.5,-z*1.5,z*3,z*3); else if(X2){ for(const sgn of [-1,1]){ g.save(); g.translate(sgn*z*.62,0); g.rotate(T*.6*sgn); if(ok('gem0')) g.drawImage(IMG.gem0,-z*.8,-z*.8,z*1.6,z*1.6); g.restore(); } } else { g.rotate(T*.6); if(ok('gem2')) g.drawImage(IMG.gem2,-z,-z,z*2,z*2); } } g.restore();
     g.save(); g.translate(cx+jx+ox,cy-18); g.scale(sc,sc); gold(X2?'玉数2倍':'確変',0,0,X2?210:250); g.restore();
-    if(u>.38){ const v=clamp((u-.38)/.15,0,1); g.globalAlpha=a*v; txt(X2?'宝石が ぜんぶ 2倍 出る':'当たりの穴  2倍タイム',cx+ox+(1-v)*80,cy+150,62,'#fff','center',X2?'#04163d':'#3d0412',FONTD); g.globalAlpha=a; }
+    if(u>.38){ const v=clamp((u-.38)/.15,0,1); g.globalAlpha=a*v; txt(X2?'玉が ぜんぶ 2倍 出る':'当たりの穴  2倍タイム',cx+ox+(1-v)*80,cy+150,62,'#fff','center',X2?'#04163d':'#3d0412',FONTD); g.globalAlpha=a; }
     if(u>.6 && k.by){ const v=clamp((u-.6)/.15,0,1); g.globalAlpha=a*v; txt(k.by+' さん',cx+ox,cy+236,44,GOLD,'center','#000',FONTD); g.globalAlpha=a; }
     if(u>.5){ const v=clamp((u-.5)/.15,0,1); g.globalAlpha=a*v; txt((X2?CFG.x2Sec:CFG.dblSec)+'秒間',cx+ox-(1-v)*80,cy-178,54,X2?'#d6ebff':'#ffd9df','center',X2?'#04163d':'#3d0412',FONTD); g.globalAlpha=a; } }
   g.restore(); }
@@ -446,14 +447,14 @@ function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-
   /* 確変の間は、画面のふちが赤く脈うつ（残り5秒は速く点めつ） */
   if(S.dblT>0){ const pu=S.dblT<5?(.5+.5*Math.sin(T*16)):(.6+.4*Math.sin(T*5)); for(const [x0,y0,x1,y1] of [[0,0,0,150],[0,H,0,H-150],[0,0,150,0],[W,0,W-150,0]]){ const gr=g.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,'rgba(255,20,60,'+(.5*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(255,20,60,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); }
     modeBox(64,654,'確変モード','当たり 2倍',S.dblT,CFG.dblSec,RUBY); }
-  if(S.x2T>0){ const pu=S.x2T<5?(.5+.5*Math.sin(T*16)):(.6+.4*Math.sin(T*5+1)); for(const [x0,y0,x1,y1] of [[0,0,0,110],[0,H,0,H-110]]){ const gr=g.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,'rgba(60,150,255,'+(.45*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(60,150,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); } modeBox(1294,712,'玉数2倍タイム','宝石が 2倍',S.x2T,CFG.x2Sec,'#4aa3ff'); }
+  if(S.x2T>0){ const pu=S.x2T<5?(.5+.5*Math.sin(T*16)):(.6+.4*Math.sin(T*5+1)); for(const [x0,y0,x1,y1] of [[0,0,0,110],[0,H,0,H-110]]){ const gr=g.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,'rgba(60,150,255,'+(.45*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(60,150,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); } modeBox(1294,712,'玉数2倍タイム','玉が 2倍',S.x2T,CFG.x2Sec,'#4aa3ff'); }
   if(S.kx) drawKx();
   if(S.flash>0){ g.fillStyle='rgba(255,240,200,'+Math.min(.8,S.flash*1.3).toFixed(2)+')'; g.fillRect(0,0,W,H); }
   /* 大当たり */
   if(S.jp){ const t=6-S.jp.t, k=clamp(Math.min(t*3,S.jp.t*2),0,1); g.globalAlpha=k; g.fillStyle='rgba(4,2,3,.72)'; g.fillRect(0,0,W,H);
     g.save(); g.translate(W/2,H/2-40); for(let i=0;i<16;i++){ g.rotate(TAU/16); g.fillStyle='rgba(233,196,106,'+(.07+.05*Math.sin(T*3+i)).toFixed(3)+')'; g.beginPath(); g.moveTo(0,0); g.lineTo(-70,-1200); g.lineTo(70,-1200); g.closePath(); g.fill(); } g.restore();
     const sc=1+.25*Math.max(0,1-t*2.2), nm=S.jp.by; if(nm){ g.font='900 110px '+FONTD; const fs=Math.min(110,Math.floor(110*1500/Math.max(1,g.measureText(nm+' さん').width))); txt(nm+' さん',W/2,H/2-190,fs,'#fff','center','#120b02',FONTD); } g.save(); g.translate(W/2,H/2+(nm?20:-70)); g.scale(sc,sc); gold('大当たり',0,0,nm?250:230); g.restore();
-    for(let i=0;i<5;i++) gem(S.jp.type!=null?(S.jp.type+i)%6:i,W/2-360+i*180,H/2-(nm?360:290)+Math.sin(T*3+i)*10,44,T*.8+i);
+    for(let i=0;i<5;i++) gem(3,W/2-360+i*180,H/2-(nm?360:290)+Math.sin(T*3+i)*10,44,T*.8+i);
     const y0=H/2+(nm?200:120); if(JP.text) txt(JP.text,W/2,y0,74,'#fff','center','#000',FONTD);
     if(JP.win) txt('Win '+(JP.win>0?'＋':'−')+fmt(Math.abs(JP.win)),W/2,y0+(JP.text?90:0),50,JP.win>0?'#9fe7ff':RUBY,'center','#000',FONTD);
     g.globalAlpha=1; }
@@ -494,7 +495,7 @@ const FX_LIST=[
  ['from4','jam','4段目から','宝石1個を、4段目から始める',n=>Game.from4(n)],
  ['from5','jam','FINALから','宝石1個を、最後の段から始める',n=>Game.from5(n)],
  ['dbl','jam','確変モード','30秒のあいだ、当たりの穴が2つになる',n=>Game.dbl(n)],
- ['x2','jam','玉数2倍タイム','60秒のあいだ、入る宝石がぜんぶ2倍になる',n=>Game.x2(n)],
+ ['x2','jam','玉数2倍タイム','60秒のあいだ、入る玉がぜんぶ2倍になる',n=>Game.x2(n)],
  ['shake','jam','皿をゆらす','皿の上の宝石をぜんぶはじく',n=>Game.shake(n)],
  ['cap','help','フタ','20秒のあいだ、当たりの穴をふさぐ',n=>Game.cap(n)],
  ['wipe','help','全消し','皿の上と待ちの宝石をぜんぶ消す',n=>Game.wipe(n)]];
