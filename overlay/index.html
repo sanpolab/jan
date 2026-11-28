@@ -182,6 +182,16 @@ body.setup{background:#0a0a0c;-webkit-text-size-adjust:100%}
 .mcard.sk-yume .m1{letter-spacing:1px;font-weight:400;font-size:24px;left:96px;top:44px}.mcard.sk-yume .m2{font-style:normal;font-weight:400;font-size:26px;letter-spacing:2px;right:96px;top:42px}.mcard.sk-yume .mc{-webkit-text-stroke:.7px currentColor;text-shadow:0 2px 0 #fff,0 -1px 0 #fff,1px 0 0 #fff,-1px 0 0 #fff}.mcard.sk-yume .mno{left:96px}.mcard.sk-yume .mvi{right:96px}.mcard.sk-yume .mno{font-weight:400;letter-spacing:2px}.mcard.sk-yume .mav{border:4px solid #fff;box-shadow:0 0 0 3px #ffb3d9}
 .mcard.sk-neon .m1,.mcard.sk-neon .m2,.mcard.sk-neon .mno,.mcard.sk-neon .mvi{text-shadow:0 0 10px currentColor}.mcard.sk-neon .mnm{text-shadow:0 0 12px var(--tx);font-weight:900}.mcard.sk-neon .mc{border-radius:6px}.mcard.sk-neon .sh{display:none}
 .mcard .mnm{color:var(--nm,var(--tx))}
+.mcard .mc.idle{animation:mfloat 4.4s ease-in-out infinite}
+@keyframes mfloat{0%,100%{transform:translateY(0) rotateY(0) rotateX(0)}25%{transform:translateY(-7px) rotateY(6deg) rotateX(-2deg)}75%{transform:translateY(-3px) rotateY(-6deg) rotateX(2deg)}}
+.mcard .mc.idle .sh{animation:msh2 2.9s linear infinite}
+@keyframes msh2{0%{left:-60%}42%{left:130%}100%{left:130%}}
+.mcard .mc.on .mvi{animation:mstamp .55s .8s both}
+@keyframes mstamp{0%{opacity:0;transform:scale(2.3) rotate(-9deg)}55%{opacity:1;transform:scale(.9) rotate(-2deg)}100%{opacity:1;transform:none}}
+.mcard .mc.on .mno{animation:mslide .5s .55s both}
+@keyframes mslide{0%{opacity:0;transform:translateX(-26px)}100%{opacity:1;transform:none}}
+.mcard .mc.idle .mav{animation:mavp 2.2s ease-in-out infinite}
+@keyframes mavp{50%{box-shadow:0 4px 10px rgba(0,0,0,.35),0 0 0 6px rgba(255,255,255,.28),0 0 22px rgba(255,255,255,.5)}}
 .mcard .sh{position:absolute;top:-30%;left:-60%;width:40%;height:160%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:rotate(18deg)}
 .mcard .mc.on .sh{animation:msh 1.6s .5s}
 @keyframes msh{to{left:130%}}
@@ -817,16 +827,19 @@ function mountCard(box,o){ const skin=MB_SK[o.skin]?o.skin:'gold', RN=MB_SK[skin
     const r0=rankOf(r.v); r.st=(r.last===mbPrev(day))?(r.st||0)+1:1; r.v++; r.last=day; r.name=e.name; if(e.av) r.av=e.av; up=r.v>1&&rankOf(r.v)>r0;
     if(!o.demo){ const ks=Object.keys(DB.m); if(ks.length>4000){ ks.sort((a,b)=>(DB.m[a].last<DB.m[b].last?-1:1)).slice(0,ks.length-4000).forEach(k=>delete DB.m[k]); } LS.set('ov_members',DB); }
     showCnt(); if(queue.length<25) queue.push({r:Object.assign({},r),uid:e.uid,up}); run(); };
-  const cg=box.querySelector('canvas').getContext('2d'); let sp=[], spL=0; const spark=now=>{ const dt=Math.min(.05,(now-spL)/1000); spL=now; cg.clearRect(0,0,760,520); for(const p of sp){ p.t+=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=380*dt; cg.globalAlpha=Math.max(0,1-p.t/p.l); cg.fillStyle=p.c; cg.save(); cg.translate(p.x,p.y); cg.rotate(p.t*8); cg.fillRect(-p.s/2,-p.s/2,p.s,p.s*1.5); cg.restore(); } cg.globalAlpha=1; sp=sp.filter(p=>p.t<p.l); if(sp.length&&!dead) requestAnimationFrame(spark); };
+  const cg=box.querySelector('canvas').getContext('2d'); let sp=[], spL=0; const spark=now=>{ const dt=Math.min(.05,(now-spL)/1000); spL=now; cg.clearRect(0,0,760,520); for(const p of sp){ p.t+=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=(p.g!=null?p.g:380)*dt; cg.globalAlpha=Math.max(0,1-p.t/p.l); cg.fillStyle=p.c; cg.save(); cg.translate(p.x,p.y); cg.rotate(p.t*8); cg.fillRect(-p.s/2,-p.s/2,p.s,p.s*1.5); cg.restore(); } cg.globalAlpha=1; sp=sp.filter(p=>p.t<p.l); if(sp.length&&!dead) requestAnimationFrame(spark); };
   const fill=(r,uid,k)=>{ mc.className='mc k'+k; q('.m2').textContent=RN[k][0]; const av=q('.mav'); if(r.av){ av.style.backgroundImage='url("'+String(r.av).replace(/["\\\n]/g,'')+'")'; av.textContent=''; } else { av.style.backgroundImage=''; av.style.backgroundColor=hue(uid); av.textContent=[...r.name][0]||'?'; }
     const nm=q('.mnm'); nm.textContent=r.name+' 様'; nm.style.fontSize=Math.max(30,Math.min(62,760/Math.max(5,[...nm.textContent].length)))+'px'; q('.mno').textContent='No.'+String(r.no).padStart(4,'0'); q('.mvi').textContent=(r.v===1?'初来店':'来店 '+r.v+'回目')+(r.st>=2?'　／　'+r.st+'日連続':''); };
   const run=()=>{ if(busy||!queue.length||dead) return; busy=true; const {r,uid,up}=queue.shift(), k=rankOf(r.v); box.classList.remove('upg');
-    if(!up){ fill(r,uid,k); void mc.offsetWidth; mc.classList.add('on'); S_('harp2',.5); setTimeout(()=>{ mc.classList.remove('on'); mc.classList.add('out'); },4600); setTimeout(()=>{ busy=false; run(); },5300); return; }
+    /* 出ている間、カードをゆっくりゆらし、光のすじを流し、ふちからキラキラを少し立ちのぼらせる */
+    const glit=ms=>{ const t0=performance.now(), col=k>=2?['#ffe9a8','#ffffff','#ffd86b']:['#ffffff','#f3ead2']; const iv=setInterval(()=>{ if(dead||performance.now()-t0>ms||!mc.classList.contains('on')){ clearInterval(iv); return; } for(let i=0;i<(k>=2?2:1);i++){ const e=Math.random(), x=e<.5?30+Math.random()*700:(e<.75?30:730), y=e<.5?(Math.random()<.5?16:434):16+Math.random()*418; sp.push({x,y,vx:(Math.random()-.5)*26,vy:-18-Math.random()*34,g:-6,t:0,l:1+Math.random()*1.1,s:2.5+Math.random()*4,c:col[Math.floor(Math.random()*col.length)]}); } if(sp.length&&performance.now()-spL>200){ spL=performance.now(); requestAnimationFrame(spark); } },170); };
+    const idle=()=>setTimeout(()=>{ if(mc.classList.contains('on')) mc.classList.add('idle'); },850);
+    if(!up){ fill(r,uid,k); void mc.offsetWidth; mc.classList.add('on'); idle(); glit(4300); S_('harp2',.5); setTimeout(()=>{ mc.classList.remove('on','idle'); mc.classList.add('out'); },4600); setTimeout(()=>{ busy=false; run(); },5300); return; }
     /* ランクアップ：まず前のランクのカードで出て、光って新しいランクに変わり、「ランクアップ！」が大きく出る */
     fill(r,uid,k-1); void mc.offsetWidth; mc.classList.add('on'); S_('harp2',.5);
-    setTimeout(()=>{ if(dead) return; fill(r,uid,k); mc.classList.add('on','up','flash'); q('.mup .u2').textContent=RN[k-1][1]+' ▶ '+RN[k][1]; box.classList.add('upg'); S_('levelup',.75); S_('cheer',.5);
+    setTimeout(()=>{ if(dead) return; fill(r,uid,k); mc.classList.add('on','up','flash'); idle(); glit(6400); q('.mup .u2').textContent=RN[k-1][1]+' ▶ '+RN[k][1]; box.classList.add('upg'); S_('levelup',.75); S_('cheer',.5);
       for(let i=0;i<110;i++){ const a=Math.random()*6.28, v=140+Math.random()*460; sp.push({x:380,y:224,vx:Math.cos(a)*v,vy:Math.sin(a)*v-140,t:0,l:.9+Math.random()*1.2,s:4+Math.random()*7,c:['#ffd86b','#fff3c4','#ffffff','#ffb24a'][i%4]}); } spL=performance.now(); requestAnimationFrame(spark); },1500); setTimeout(()=>box.classList.remove('upg'),1500+2350);
-    setTimeout(()=>{ mc.classList.remove('on'); mc.classList.add('out'); box.classList.remove('upg'); },8200); setTimeout(()=>{ busy=false; run(); },8900); };
+    setTimeout(()=>{ mc.classList.remove('on','idle'); mc.classList.add('out'); box.classList.remove('upg'); },8200); setTimeout(()=>{ busy=false; run(); },8900); };
   BUS.on('gift',e=>{ if(dead||byChat) return; const nm=String(e.gname||'').toLowerCase(); if(anyGift||want.some(w=>nm.includes(w))) attend(e); });
   BUS.on('chat',c=>{ if(dead||!byChat) return; attend(c); });
   BUS.on('cmd',c=>{ if(dead) return; if(c.cmd==='card'){ attend({uid:c.uid||('test_'+c.name),name:c.name||'テスト'}); } if(c.cmd==='reset'&&c.kind==='members'){ DB={n:0,m:{}}; if(!o.demo) LS.set('ov_members',DB); showCnt(); } });
