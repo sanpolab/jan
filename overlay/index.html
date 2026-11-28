@@ -10,6 +10,8 @@
 @font-face{font-family:MPR;src:url(font/mpr.woff2) format('woff2');font-display:swap}
 *{box-sizing:border-box;margin:0;padding:0}
 html.one,html.one body{overflow:hidden}
+html.guide body::before{content:'';position:fixed;inset:0;border:3px dashed rgba(255,90,90,.95);z-index:99;pointer-events:none}
+html.guide body::after{content:'配置用の見本（本番は、アドレスの &demo=1 を消す）';position:fixed;left:0;top:0;z-index:100;background:rgba(200,40,40,.92);color:#fff;font:700 15px sans-serif;padding:4px 10px;pointer-events:none}
 html,body{background:transparent;font-family:MPR,'Hiragino Maru Gothic ProN','Noto Sans JP','Noto Sans CJK JP',sans-serif;color:#fff}
 html.setup,body.setup{overflow:visible;height:auto;min-height:100%;touch-action:auto}
 body.setup{background:#0a0a0c;-webkit-text-size-adjust:100%}
@@ -390,6 +392,20 @@ body.setup{background:#0a0a0c;-webkit-text-size-adjust:100%}
 .luxe.rank .row.r1 .no{width:64px;height:64px;font-size:34px;color:#4a3000;background:radial-gradient(circle at 50% 50%,#f6d77a 0 52%,transparent 53%),conic-gradient(from 200deg,#fff8d0,#c9952c,#fff3b8,#8a5f14,#f5d880,#b07d1e,#fff8d0);box-shadow:inset 0 0 0 2px #7a5510,inset 0 0 0 4px rgba(255,248,208,.85),inset 0 0 0 12px rgba(138,95,20,.25),inset 0 -8px 12px rgba(122,85,16,.55),0 0 16px rgba(255,201,46,.7),0 3px 6px rgba(0,0,0,.7)}
 .luxe.rank .row.r2 .no{color:#2a2f3a;background:radial-gradient(circle at 50% 50%,#dfe5ee 0 52%,transparent 53%),conic-gradient(from 200deg,#ffffff,#9aa3b3,#f4f6fa,#6c7484,#dfe5ee,#8b93a3,#ffffff);box-shadow:inset 0 0 0 2px #5a6170,inset 0 0 0 4px rgba(255,255,255,.85),inset 0 0 0 11px rgba(90,97,112,.22),inset 0 -7px 10px rgba(80,88,104,.5),0 3px 6px rgba(0,0,0,.7)}
 .luxe.rank .row.r3 .no{color:#3a1c06;background:radial-gradient(circle at 50% 50%,#e6ab7c 0 52%,transparent 53%),conic-gradient(from 200deg,#ffe0c2,#a8643a,#f6c9a0,#6e3a1a,#e6ab7c,#8f5530,#ffe0c2);box-shadow:inset 0 0 0 2px #5e3013,inset 0 0 0 4px rgba(255,224,194,.85),inset 0 0 0 11px rgba(110,58,26,.22),inset 0 -7px 10px rgba(94,48,19,.5),0 3px 6px rgba(0,0,0,.7)}
+/* ランキングのしるし（いいね＝クリスタルのハート、ギフト＝金の宝箱）。題名の帯から少しはみ出させる */
+.rank .ttl{margin-top:22px;position:relative}
+.rank .em{flex:none;width:96px;height:96px;margin:-30px 0 -16px;position:relative;filter:drop-shadow(0 4px 6px rgba(0,0,0,.55))}
+.rank .em.like{background:url(img/heartc.webp) center/contain no-repeat}
+.rank .em.like::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 40% 35%,#ffc4dc,#ff6fa5 45%,#e0457f);-webkit-mask:url(img/heartc_m.png) center/contain no-repeat;mask:url(img/heartc_m.png) center/contain no-repeat;z-index:-1}
+.rank .em.gift{width:112px;background:url(img/jar_chest.webp) center/contain no-repeat;filter:drop-shadow(0 0 10px rgba(255,214,90,.75)) drop-shadow(0 4px 6px rgba(0,0,0,.55))}
+.rank .ttl .tx:empty{display:none}.rank.titled .em{width:64px;height:64px;margin:0 10px 0 0}
+/* 黒金の順位：チャッピーのメダル（金・銀・銅、4位からは黒）に数字を彫りこむ */
+.luxe.rank .no{width:60px;height:60px;border:0;border-radius:0;box-shadow:none;background:url(img/medal3.webp) center/contain no-repeat !important;font-family:'Cinzel','Cormorant Garamond',Georgia,serif;font-weight:900;font-size:25px;color:#e6cf8f;text-shadow:0 1px 0 #000;padding-top:7px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.6))}
+.luxe.rank .row:not(.r1):not(.r2):not(.r3) .no::after{display:none}
+.luxe.rank .row.r1 .no{width:80px;height:80px;font-size:34px;padding-top:9px;background-image:url(img/medal0.webp) !important;color:#4a3000;text-shadow:0 1px 0 rgba(255,246,196,.8),0 -1px 0 rgba(90,60,0,.5);filter:drop-shadow(0 0 10px rgba(255,201,46,.7)) drop-shadow(0 3px 4px rgba(0,0,0,.6))}
+.luxe.rank .row.r2 .no{width:68px;height:68px;font-size:29px;padding-top:8px;background-image:url(img/medal1.webp) !important;color:#2a2f3a;text-shadow:0 1px 0 rgba(255,255,255,.85),0 -1px 0 rgba(60,66,80,.5)}
+.luxe.rank .row.r3 .no{width:68px;height:68px;font-size:29px;padding-top:8px;background-image:url(img/medal2.webp) !important;color:#3a1c06;text-shadow:0 1px 0 rgba(255,224,194,.8),0 -1px 0 rgba(80,40,10,.5)}
+.luxe.rank .row.r1 .cr{left:120px}
 /* テロップ・目標 */
 .thanks .band{position:absolute;inset:14px 0;background:linear-gradient(180deg,rgba(26,21,14,.95),rgba(8,7,6,.95));border-top:2px solid #d9b866;border-bottom:2px solid #d9b866;box-shadow:0 0 0 4px rgba(8,7,6,.85);overflow:hidden;opacity:0;transition:opacity .5s}
 .thanks .band.on{opacity:1}
@@ -497,8 +513,8 @@ function mountWin(box,o){ box.innerHTML='<div class="panel"><div class="lab pop 
 
 /* ===== ランキング（いいね・ギフト） ===== */
 function mountRank(box,o){ const kind=o.kind, top=Math.max(1,Math.min(10,o.top||5)), key='ov_rank_'+kind, RH=78, H1=116, LH=H1+(top-1)*RH+12;
-  box.classList.add('rank',kind); box.innerHTML='<div class="ttl pop ol"></div><div class="list"><div class="empty"></div></div>';
-  box.querySelector('.ttl').textContent=o.title||(kind==='like'?'♥ いいねランキング':'🎁 ギフトランキング'); const list=box.querySelector('.list'), empty=box.querySelector('.empty'); list.style.height=LH+'px';
+  box.classList.add('rank',kind); box.innerHTML='<div class="ttl pop ol"><span class="em '+kind+'"></span><span class="tx"></span></div><div class="list"><div class="empty"></div></div>';
+  if(o.title){ box.querySelector('.ttl .tx').textContent=o.title; box.classList.add('titled'); }   /* 題名の文字は、アドレスに &title= を足した時だけ出す */ const list=box.querySelector('.list'), empty=box.querySelector('.empty'); list.style.height=LH+'px';
   empty.textContent=kind==='like'?'いいねをタップして1位をねらおう！':'ギフトでランクイン！';
   let M=new Map(); if(!o.demo){ const sv=LS.get(key,null); if(sv&&sv.t&&Date.now()-sv.t<8*3600e3) for(const r of sv.l) M.set(r.uid,r); }
   const rows=new Map(); let saveT=0;
@@ -512,7 +528,7 @@ function mountRank(box,o){ const kind=o.kind, top=Math.max(1,Math.min(10,o.top||
   if(kind==='like') BUS.on('like',e=>add(e,e.n)); else BUS.on('gift',e=>add(e,e.coins*e.n));
   BUS.on('cmd',c=>{ if(c.cmd==='reset'&&(c.kind===kind||c.kind==='all')){ M=new Map(); if(!o.demo) LS.set(key,{t:Date.now(),l:[]}); draw(); } });
   BUS.on('chat',c=>{ if(c.admin && /^\s*(ランキング|rank)\s*(リセット|reset)\s*$/i.test(c.text)){ M=new Map(); LS.set(key,{t:Date.now(),l:[]}); draw(); } });
-  draw(); return {w:560,h:74+LH+16}; }
+  draw(); return {w:560,h:22+74+LH+16}; }
 
 /* ===== 時間（時計・配信時間・耐久タイマー） ===== */
 function mountTime(box,o){ const mode=o.mode||'clock'; box.classList.add('time');
@@ -581,7 +597,7 @@ const GA_RK=[['S',0,5,'#ffd86b'],['A',2,15,'#ff6b7d'],['B',3,30,'#6ba8ff'],['C',
 function mountGacha(box,o){ const S_=mkS(o), CW=600, CH=900; let dead=false; box.__kill=()=>{ dead=true; }; box.classList.add('gacha'); if(o.skin==='yume'||o.skin==='neon'||o.skin==='wa'){ box.classList.add('sk-'+o.skin); chFont({yume:'hachi',neon:'orbitron',wa:'yuji'}[o.skin]); } box.style.width=CW+'px'; box.style.height=CH+'px';
   box.innerHTML='<canvas width="'+CW*2+'" height="'+CH*2+'" style="width:'+CW+'px;height:'+CH+'px"></canvas><div class="gres"><div class="rk"></div><div class="pz"></div><div class="who"></div></div>';
   const g=box.querySelector('canvas').getContext('2d'); g.scale(2,2); const res=box.querySelector('.gres');
-  const im=u=>{ const i=new Image(); i.onload=()=>i.ok=true; i.src=u; return i; }, GSK={gold:['',480,772,1088,150,1372],yume:['_yume',545,800,1088,128,1345],neon:['_neon',470,778,1015,112,1312],wa:['_wa',610,905,1110,108,1345,164]}[o.skin]||['',480,772,1088,150,1372], MA=im('img/gacha'+GSK[0]+'.webp'), HA=im('img/gacha'+GSK[0]+'_h.webp'), CAP=[0,1,2,3].map(i=>im('img/cap'+i+'.webp'));
+  const im=u=>{ const i=new Image(); i.onload=()=>i.ok=true; i.src=u; return i; }, GSK={gold:['',480,772,1088,150,1372],yume:['_yume',545,800,1088,128,1345],neon:['_neon',470,778,1015,112,1312],wa:['_wa',610,905,1110,108,1345,164]}[o.skin]||['',480,772,1088,150,1372], MA=im('img/gacha'+GSK[0]+'.webp'), HA=im('img/gacha'+GSK[0]+'_h.webp'), CAP=[0,1,2,3].map(i=>im('img/cap'+(o.skin==='yume'||o.skin==='neon'||o.skin==='wa'?'_'+o.skin:'')+i+'.webp'));
   const MX=60, MY=170, S=480/1024, DC={x:MX+512*S,y:MY+GSK[1]*S,r:GSK[6]||(GSK[0]?174:180)}, FLOOR=MY+GSK[2]*S, HD={x:MX+512*S,y:MY+GSK[3]*S,r:GSK[4]*S}, OUT={x:MX+512*S,y:MY+GSK[5]*S};
   const want=String(o.gift!=null?o.gift:'ハートミー,Heart Me').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean), anyGift=want.includes('*');
   const prizes=()=>{ const sv=LS.get('ov_gacha',null)||{}; const r={}; for(const k of 'SABC'){ const u=o[k]?String(o[k]).split('|').map(x=>x.trim()).filter(Boolean):null; r[k]=(u&&u.length)?u:(sv[k]&&sv[k].length?sv[k]:GA_DEF[k]); } return r; };   /* 中身：アドレスに書いたもの → このブラウザに保存したもの → 仮のお題 */
@@ -887,13 +903,26 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
   document.documentElement.classList.add('one');
   const app=document.getElementById('app'); app.innerHTML='<div id="st" class="st"></div><div class="host" id="host"></div>'; const o=opts();
   place(document.getElementById('host'),W,o,()=>innerWidth,()=>innerHeight);
-  if(Q.get('demo')==='1'){ setInterval(()=>{ tfEvent(Math.random()<.5?demoGift():demoLike()); },900); }
+  if(Q.get('demo')==='1'){ /* 配置用：本物につながず、見本を出し続ける。わくの大きさが分かるよう、点線でかこむ */
+    document.documentElement.classList.add('guide'); const rn=()=>DEMO_N[Math.floor(Math.random()*DEMO_N.length)], CM=['こんばんは！','今日も来たよ〜','それ好きｗ','初見です','がんばって〜 応援してます','かわいい','ナイス！','その曲なに？もう一回聞きたい','笑った','おつかれさま']; let k=0;
+    const every=(ms,f)=>{ setTimeout(f,400); setInterval(f,ms); };
+    if(W==='chat') every(1600,()=>tfEvent({event:'chat',data:{comment:CM[k++%CM.length],nickname:rn(),uniqueId:'demo_c'+(k%7)}}));
+    else if(W==='follow') every(5200,()=>tfEvent({event:'follow',data:{nickname:rn(),uniqueId:'demo_f'+(k++)}}));
+    else if(W==='welcome') every(5600,()=>{ const v=[4,8,20,45][k%4]; BUS.emit('cmd',{cmd:'welcome',uid:'demo_w'+(k++),name:rn(),rec:{no:3+k*4,v}}); });
+    else if(W==='card') every(6200,()=>BUS.emit('cmd',{cmd:'card',uid:'test_'+['レオ'+k,'みけ','ぽんた','たぬ吉','ゆきんこ'][k%5],name:['おきゃく','みけ','ぽんた','たぬ吉','ゆきんこ'][k++%5]}));
+    else if(W==='vip') every(10500,()=>BUS.emit('cmd',{cmd:'vip',name:rn(),gname:'ライオン'}));
+    else if(W==='gacha') every(9000,()=>BUS.emit('cmd',{cmd:'gacha',name:rn()}));
+    else if(W==='roulette') every(12500,()=>BUS.emit('cmd',{cmd:'roulette',name:rn()}));
+    else if(W==='fire') every(7000,()=>BUS.emit('cmd',{cmd:'fire'}));
+    else if(W==='vote') every(700,()=>tfEvent({event:'chat',data:{comment:String(1+Math.floor(Math.pow(Math.random(),1.6)*4)),nickname:rn(),uniqueId:'demo_v'+(k++)}}));
+    else if(W==='combo') every(1100,()=>{ const u=Math.floor(k++/14)%3; tfEvent({event:'gift',data:{giftName:'バラ',diamondCount:1,repeatCount:1+Math.floor(Math.random()*3),repeatEnd:true,nickname:DEMO_N[u],uniqueId:'demo_cb'+u,giftPictureUrl:'../gmerge/img/g0.webp'}}); });
+    else { for(let i=0;i<8;i++) tfEvent(i%2?demoGift():demoLike()); setInterval(()=>{ tfEvent(Math.random()<.5?demoGift():demoLike()); },900); } }
   else if(W==='like'||W==='gift'||W==='jar'||W==='gacha'||W==='card'||W==='vote'||W==='chat'||W==='follow'||W==='welcome'||W==='roulette'||W==='combo'||W==='zukan'||W==='tower'||W==='vip'||W==='king'||W==='heart'||W==='fire'||W==='rain'||W==='thanks'||W==='goals'||(W==='time'&&o.mode==='down')||(W==='win'&&(Q.get('admin')||CLOUD.user))){ tfConnect(); tfUI(); } window.__ready=true;
 } else { /* ---- せつめいページ ---- */
   document.documentElement.classList.add('setup'); document.body.classList.add('setup'); const base=(EMBED?HOME_URL:location.origin+location.pathname.replace(/index\.html$/,''));
   const C=[['win','WINカウンター','?w=win','600 × 220','勝った数を出します。部品にマウスをのせると出るボタン（OBSなら右クリック→「対話」）か、下のボタンで増やしたり減らしたりできます。自分のコメントで「win+1」「win-1」「win=0」と打っても変わります。'],
-    ['like','いいねランキング','?w=like','560 × 530','いいねをたくさん押してくれた人の上位5人を出します。「&top=3」を足すと3人だけになります。'],
-    ['gift','ギフトランキング','?w=gift','560 × 530','ギフトのコイン合計が多い人の上位5人を出します。'],
+    ['like','いいねランキング','?w=like','560 × 552','いいねをたくさん押してくれた人の上位5人を出します。上のクリスタルのハートが、いいねのランキングのしるしです。「&top=3」を足すと3人だけになります。'],
+    ['gift','ギフトランキング','?w=gift','560 × 552','ギフトのコイン合計が多い人の上位5人を出します。上の宝箱が、ギフトのランキングのしるしです。'],
     ['time','時間','?w=time','640 × 220','「いまの時間」「配信時間」「耐久タイマー（ギフトで時間がのびる）」の3つから選べます。'],
     ['gacha','ガチャガチャ','?w=gacha','600 × 900','決めたギフトが来ると、ハンドルが回ってカプセルが出てきます。S・A・B・Cのランクと、その中身が出ます。中身は下で自由に書きかえられます（1行に1つ）。'],
     ['roulette','ルーレット','?w=roulette&min=100','620 × 760','ギフトが来ると金のルーレットが回って、止まったマスのお題と、回した人の名前が出ます。マスの中身は下で書きかえられます（1行に1つ、2〜12個）。'],
@@ -916,8 +945,8 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
     ['jar','ギフトのびん','?w=jar','720 × 800','ギフトが来るたびに、そのギフトがびんの中に落ちてたまっていきます。いっぱいになると、口からあふれて外へこぼれ落ちます。']];
   { const l=document.createElement('link'); l.rel='stylesheet'; l.href='https://fonts.googleapis.com/css2?family=Cinzel:wght@500&family=Cormorant+Garamond:wght@500&family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap'; document.head.appendChild(l); }
   let h='<div class="pg"><div class="hero"><div class="eyeb">Overlay Collection</div><h1>配信オーバーレイ</h1><p>配信画面に重ねて出す部品のコレクションです。<br>下の見本は、にせもののデータで動いています。</p><div class="stat"><div><b>'+C.length+'</b>PARTS</div><div><b>4</b>SERIES</div></div></div><div class="nav">'+C.map(c=>'<a href="#c_'+c[0]+'">'+c[1].replace(/（.*）/,'')+'</a>').join('')+'</div><div class="card"><div class="no">SERIES</div><h3>見た目</h3><p>見た目を5つから選べます（ポップは、WINカウンター・ランキング・時間だけ。目標ボード・図鑑・コンボ・テロップ・フォロー・入室あいさつは、ポップを選ぶと黒と金になります）。会員証・ガチャ・びん・VIPコール・コメントは、それぞれの所で選びます。</p><div class="btns"><select id="thsel"><option value="">ポップ</option><option value="gold">黒と金（高級）</option><option value="yume">ゆめかわ（パステル）</option><option value="neon">ネオン（光る線）</option><option value="wa">和風（和紙と朱色）</option></select></div></div>';
-  let cno=0; for(const [id,ttl,q,sz,desc] of C){ h+='<div class="card" id="c_'+id+'"><div class="no">No.'+String(++cno).padStart(2,'0')+'</div><h3>'+ttl+'</h3><p>'+desc+'</p>'+(id==='jar'?'<div class="btns"><select id="jsel"><option value="">ふつうのびん</option><option value="heart">ハート</option><option value="whale">クジラ</option><option value="cat">ねこ</option><option value="potion">魔法のびん</option><option value="perfume">クリスタルの香水びん</option><option value="chest">金の宝箱</option><option value="yume">ゆめかわのびん</option><option value="neon">ネオンのカプセル</option><option value="wa">和風の金魚ばち</option></select><select id="jsize"><option value="70">ギフト小さめ</option><option value="100" selected>ギフトふつう</option><option value="130">ギフト大きめ</option><option value="170">ギフト特大</option></select><select id="jover"><option value="">いっぱいになったら、あふれる</option><option value="0">あふれず、古いのから消える</option></select></div>':'')+(id==='time'?'<div class="btns"><select id="tmode"><option value="clock">いまの時間</option><option value="up">配信時間</option><option value="down">耐久タイマー</option></select></div>':'')+'<div class="pv"><div class="host" id="pv_'+id+'"></div></div><div class="btns" id="bt_'+id+'"></div><div class="url"><code id="u_'+id+'">'+esc(base+q)+'</code><button data-copy="u_'+id+'">コピー</button></div><p class="sz">OBSのブラウザソースの大きさ：<span id="sz_'+id+'">'+sz+'</span></p></div>'; }
-  h+='<h2>音について</h2><p>音が鳴るのは、派手な場面だけです：ガチャ（ハンドルの音と、Sランクが出た時）、ルーレット（ゲームと同じガラガラ→ジャコン）、VIPコール、シャンパンタワー・いいねゲージ・目標・図鑑の達成、コンボの20回と50回、カウントダウンの0、花火。消したい時は、アドレスの最後に「&sound=0」を足してください。OBSでは、ブラウザソースの設定で「OBSで音声を制御する」に印を付けると、配信に音がのります。</p><h2>OBSへの入れ方</h2><ol><li>OBSの「ソース」の ＋ →「ブラウザ」を選ぶ</li><li>URLに、上の部品のアドレスをはりつける</li><li>幅と高さに、部品の下に書いてある大きさを入れる</li><li>あとは画面の上で好きな場所に動かして、大きさを変えるだけ（背景はすきとおっています）</li></ol>'
+  let cno=0; for(const [id,ttl,q,sz,desc] of C){ h+='<div class="card" id="c_'+id+'"><div class="no">No.'+String(++cno).padStart(2,'0')+'</div><h3>'+ttl+'</h3><p>'+desc+'</p>'+(id==='jar'?'<div class="btns"><select id="jsel"><option value="">ふつうのびん</option><option value="heart">ハート</option><option value="whale">クジラ</option><option value="cat">ねこ</option><option value="potion">魔法のびん</option><option value="perfume">クリスタルの香水びん</option><option value="chest">金の宝箱</option><option value="yume">ゆめかわのびん</option><option value="neon">ネオンのカプセル</option><option value="wa">和風の金魚ばち</option></select><select id="jsize"><option value="70">ギフト小さめ</option><option value="100" selected>ギフトふつう</option><option value="130">ギフト大きめ</option><option value="170">ギフト特大</option></select><select id="jover"><option value="">いっぱいになったら、あふれる</option><option value="0">あふれず、古いのから消える</option></select></div>':'')+(id==='time'?'<div class="btns"><select id="tmode"><option value="clock">いまの時間</option><option value="up">配信時間</option><option value="down">耐久タイマー</option></select></div>':'')+'<div class="pv"><div class="host" id="pv_'+id+'"></div></div><div class="btns" id="bt_'+id+'"></div><div class="url"><code id="u_'+id+'">'+esc(base+q)+'</code><button data-copy="u_'+id+'">コピー</button></div><div class="btns" style="margin:6px 0 0"><button data-copyd="u_'+id+'">配置用をコピー（見本が出っぱなし）</button></div><p class="sz">OBSのブラウザソースの大きさ：<span id="sz_'+id+'">'+sz+'</span></p></div>'; }
+  h+='<h2>配信の前に、大きさと場所を決める</h2><p>コメントや会員証のように「何か起きた時だけ出る」部品は、配信を始めるまで何も映りません。そこで、各部品の<b>「配置用をコピー」</b>のアドレスを使ってください。本物にはつながずに、見本が出っぱなしになります。赤い点線が部品の外わくです。LIVE StudioやOBSに貼って、大きさと場所を決めたら、同じソースのアドレスから最後の「&demo=1」だけ消せば本番用になります（大きさと場所はそのまま残ります）。配置用の間は、音は鳴らず、記録も残りません。</p><h2>音について</h2><p>音が鳴るのは、派手な場面だけです：ガチャ（ハンドルの音と、Sランクが出た時）、ルーレット（ゲームと同じガラガラ→ジャコン）、VIPコール、シャンパンタワー・いいねゲージ・目標・図鑑の達成、コンボの20回と50回、カウントダウンの0、花火。消したい時は、アドレスの最後に「&sound=0」を足してください。OBSでは、ブラウザソースの設定で「OBSで音声を制御する」に印を付けると、配信に音がのります。</p><h2>OBSへの入れ方</h2><ol><li>OBSの「ソース」の ＋ →「ブラウザ」を選ぶ</li><li>URLに、上の部品のアドレスをはりつける</li><li>幅と高さに、部品の下に書いてある大きさを入れる</li><li>あとは画面の上で好きな場所に動かして、大きさを変えるだけ（背景はすきとおっています）</li></ol>'
     +'<h2>つなぎ先</h2><p>なにもしなければ、同じパソコンで動いている TikFinity（アプリ版）から受け取ります。tik.tools を使う時だけ、下に入れてください。<br>※ キーはこのブラウザの中にだけ保存されます。OBSで使う時は、このページをOBSのブラウザソースで開き、右クリック→「対話」でここに入れてください（入れ終わったら、そのソースは消して大丈夫です）。<b>配信にキーが映らないよう、入れる時は配信を止めておいてください。</b></p>'
     +'<div class="card"><label><input type="checkbox" id="clOn" style="width:auto"> tik.tools を使う</label><input id="clUser" placeholder="TikTokのユーザー名（@のあとの英数字）" autocapitalize="off" autocomplete="off" spellcheck="false"><input id="clKey" type="password" placeholder="tik.tools のAPIキー" autocapitalize="off" autocomplete="off" spellcheck="false"><div class="btns"><button id="clSave">保存する</button><span id="clMsg" class="sz"></span></div></div>'
     +'<h2>まとめてリセット</h2><div class="btns"><button data-rs="like">いいねランキング</button><button data-rs="gift">ギフトランキング</button><button data-rs="jar">びんの中身</button><button data-rs="tower">シャンパンタワー</button><button data-rs="goals">目標ボード</button><button data-rs="king">王座</button><button data-rs="combo">コンボの最高記録</button><button data-rs="zukan">ギフト図鑑</button><button data-rs="heart">いいねゲージ</button><button data-rs="vote">投票</button></div><div class="foot">Overlay Collection</div></div>';
@@ -985,7 +1014,8 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
   document.getElementById('bt_like').innerHTML='<button id="tLike">いいねをためす</button>'; document.getElementById('bt_gift').innerHTML='<button id="tGift">ギフトをためす</button>'; document.getElementById('bt_jar').innerHTML='<button id="tJar1">小さいギフト×5</button><button id="tJar2">大きいギフト</button>';
   document.getElementById('tLike').onclick=()=>fire(demoLike()); document.getElementById('tGift').onclick=()=>fire(demoGift()); document.getElementById('tJar1').onclick=()=>fire(demoGift(0,5)); document.getElementById('tJar2').onclick=()=>fire(demoGift(3+Math.floor(Math.random()*3)));
   document.addEventListener('click',e=>{ const c=e.target.closest('[data-copy]'); if(c){ const t=document.getElementById(c.dataset.copy).textContent; (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{ c.textContent='コピーした'; setTimeout(()=>c.textContent='コピー',1500); },()=>{ const r=document.createRange(); r.selectNodeContents(document.getElementById(c.dataset.copy)); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }); }
-    const r=e.target.closest('[data-rs]'); if(r) sendCmd({cmd:'reset',kind:r.dataset.rs}); });
+    const r=e.target.closest('[data-rs]'); if(r) sendCmd({cmd:'reset',kind:r.dataset.rs});
+    const cd=e.target.closest('[data-copyd]'); if(cd){ const u=document.getElementById(cd.dataset.copyd).textContent, t=u+(u.includes('?')?'&':'?')+'demo=1', old=cd.textContent; (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{ cd.textContent='コピーした'; setTimeout(()=>cd.textContent=old,1500); },()=>{ document.getElementById(cd.dataset.copyd).textContent=t; }); } });
   const on=document.getElementById('clOn'), us=document.getElementById('clUser'), ky=document.getElementById('clKey'); on.checked=!!CLOUD.on; us.value=CLOUD.user||''; if(CLOUD.key) ky.placeholder='（保存ずみ。変える時だけ入れる）';
   document.getElementById('clSave').onclick=()=>{ CLOUD.on=on.checked; CLOUD.user=us.value.trim().replace(/^@/,''); if(ky.value.trim()) CLOUD.key=ky.value.trim(); ky.value=''; LS.set('ov_cloud',CLOUD); document.getElementById('clMsg').textContent='保存しました。OBSの部品は、目のマークを消して付け直すと反映されます'; };
   let dn=0; const demo=setInterval(()=>{ dn++; tfEvent(Math.random()<.55?demoGift():demoLike()); },1100); for(let i=0;i<14;i++) tfEvent(i%2?demoGift():demoLike()); window.__ready=true;
