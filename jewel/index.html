@@ -165,7 +165,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 22:36</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 22:38</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -235,7 +235,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 try{ if(localStorage.getItem('jewel_gv')!=='2'){ localStorage.removeItem('jewel_gifts'); localStorage.setItem('jewel_gv','2'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1128-223610';
+const VER='1128-223840';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== 宝石クルーン：黒い大理石の皿が5段。玉は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
    ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで玉が増える ===== */
@@ -704,7 +704,7 @@ function setPause(v,drop){ if(v && TITLE) return; PAUSE=!!v; const b=document.ge
 document.getElementById('pauseBtn').addEventListener('click',()=>setPause(!PAUSE));
 function ttlUI(){ const el=document.getElementById('ttl'); el.hidden=!TITLE; document.getElementById('pauseBtn').hidden=TITLE; if(!TITLE) return; document.getElementById('ttlRec').innerHTML=best>0?'これまでの大当たり<b>'+fmt(best)+'</b>回':'ギフトで玉が増える'; }
 document.getElementById('ttl').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.id==='ttlGo'){ Game.start(); return; } if(b.id==='ttlGift'){ document.getElementById('cfgBtn').click(); return; } });
-if(/[?&]notitle=1/.test(location.search)) TITLE=false;
+if(/[?&]notitle=1/.test(location.search)){ TITLE=false; try{ audioInit(); }catch(e){} }   /* 配信ソフトに貼る時用：スタートを押さなくても始まる（音も鳴らせる所では鳴らす） */
 ttlUI();
 { const a=document.getElementById('jpTx'), b=document.getElementById('jpWin'); a.value=JP.text||''; b.value=JP.win||''; { const h=document.getElementById('jpHead'), tk=document.getElementById('jpTick'); h.value=JP.head||''; tk.checked=JP.tick!==0; h.addEventListener('input',()=>{ JP.head=h.value.slice(0,24); jpSave(); }); h.addEventListener('keydown',ev=>ev.stopPropagation()); tk.addEventListener('change',()=>{ JP.tick=tk.checked?1:0; jpSave(); }); document.getElementById('jpDayClr').addEventListener('click',ev=>{ ev.stopPropagation(); dayClear(); }); } { const c=document.getElementById('jpEase'); c.value=JP.ez||90; c.addEventListener('change',()=>{ JP.ez=clamp(parseInt(c.value,10)||90,5,100); c.value=JP.ez; jpSave(); }); c.addEventListener('keydown',ev=>ev.stopPropagation()); } a.addEventListener('input',()=>{ JP.text=a.value.slice(0,16); jpSave(); }); b.addEventListener('input',()=>{ JP.win=clamp(parseInt(b.value,10)||0,-99999,99999); jpSave(); }); for(const e of [a,b]) e.addEventListener('keydown',ev=>ev.stopPropagation()); }
 gemSync();
