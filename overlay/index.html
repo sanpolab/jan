@@ -337,6 +337,52 @@ body.setup{background:#0a0a0c;-webkit-text-size-adjust:100%}
 .wa .thanks .it::before,.wa.thanks .it::before{content:'❀';color:#a8232b}
 .wa .thanks .band,.wa.thanks .band{border-left:0;border-right:0;border-radius:0}
 .wa .combo .t1 .n,.wa.combo .t1 .n{color:#a8232b}
+/* ランキング・時間の作りこみ */
+.rank .ttl::before,.rank .ttl::after{content:'';flex:1;height:2px;margin:0 16px;background:linear-gradient(90deg,transparent,currentColor);opacity:.65}
+.rank .ttl::after{background:linear-gradient(270deg,transparent,currentColor)}
+.rank .row{height:78px}
+.rank .row.r1{height:116px}
+.rank .row .bar{position:absolute;left:8px;right:8px;top:5px;bottom:5px;border-radius:14px;overflow:hidden;z-index:0;background:rgba(255,255,255,.05)}
+.rank .row .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,rgba(120,170,255,.34),rgba(120,170,255,.05));transition:width .7s cubic-bezier(.2,.8,.3,1)}
+.rank .row>*:not(.bar):not(.cr){position:relative;z-index:1}
+.rank .row.r1 .bar{background:linear-gradient(90deg,rgba(255,201,46,.30),rgba(255,201,46,.07));box-shadow:inset 0 0 0 2px rgba(255,214,90,.6)}
+.rank .row.r1 .bar i{background:linear-gradient(90deg,rgba(255,214,90,.38),rgba(255,214,90,0))}
+.rank .row.r1 .no{width:60px;height:60px;font-size:32px;box-shadow:0 0 16px rgba(255,201,46,.85)}
+.rank .row.r1 .av{width:84px;height:84px;font-size:40px;border-color:#ffd65a;box-shadow:0 0 0 3px rgba(255,214,90,.35),0 0 20px rgba(255,214,90,.65)}
+.rank .row.r1 .nm{font-size:36px}.rank .row.r1 .val{font-size:40px}
+.rank .cr{display:none;position:absolute;z-index:3;left:104px;top:0;width:46px;height:26px;background:linear-gradient(180deg,#fff3a8,#ffb92e);clip-path:polygon(0 100%,0 22%,24% 62%,50% 0,76% 62%,100% 22%,100% 100%);transform:rotate(-9deg);filter:drop-shadow(0 2px 0 rgba(0,0,0,.45))}
+.rank .row.r1 .cr{display:block}
+.rank .row.r2 .av{border-color:#dfe5f0}.rank .row.r3 .av{border-color:#f0b98a}
+.luxe.rank .row .bar{background:rgba(217,184,102,.06);border-radius:4px}.luxe.rank .row .bar i{background:linear-gradient(90deg,rgba(217,184,102,.26),rgba(217,184,102,0))}
+.luxe.rank .row.r1 .bar{background:linear-gradient(90deg,rgba(217,184,102,.30),rgba(217,184,102,.05));box-shadow:inset 0 0 0 1px #d9b866}
+.yume.rank .row .bar{background:rgba(255,255,255,.55);border-radius:22px}.yume.rank .row .bar i{background:linear-gradient(90deg,rgba(255,142,198,.5),rgba(185,164,255,.18))}
+.yume.rank .row.r1 .bar{background:linear-gradient(90deg,#fff6c8,#ffe9f5);box-shadow:inset 0 0 0 3px #ffb3d9}.yume.rank .row.r1 .bar i{background:linear-gradient(90deg,rgba(255,201,94,.55),rgba(255,201,94,0))}
+.yume.rank .row.r1 .av{border-color:#fff;box-shadow:0 0 0 4px #ffc94a,0 0 16px rgba(255,201,74,.7)}
+.neon.rank .row .bar{background:rgba(53,242,255,.05);border-radius:4px}.neon.rank .row .bar i{background:linear-gradient(90deg,rgba(53,242,255,.34),rgba(255,61,214,.06))}
+.neon.rank .row.r1 .bar{background:rgba(255,243,107,.06);box-shadow:inset 0 0 0 2px #fff36b,0 0 16px rgba(255,243,107,.6)}.neon.rank .row.r1 .bar i{background:linear-gradient(90deg,rgba(255,243,107,.3),rgba(255,243,107,0))}
+.neon.rank .row.r1 .av{border-color:#fff36b;box-shadow:0 0 16px #fff36b}.neon.rank .cr{background:#fff36b;filter:drop-shadow(0 0 8px #fff36b)}
+.wa.rank .row .bar{background:rgba(90,60,20,.07);border-radius:3px}.wa.rank .row .bar i{background:linear-gradient(90deg,rgba(168,35,43,.2),rgba(168,35,43,0))}
+.wa.rank .row.r1 .bar{background:linear-gradient(90deg,rgba(201,164,74,.55),rgba(201,164,74,.16));box-shadow:inset 0 0 0 2px #c9a44a}.wa.rank .row.r1 .bar i{background:none}
+.wa.rank .row.r1 .av{border-color:#a8232b;box-shadow:0 0 0 3px #c9a44a}.wa.rank .cr{background:linear-gradient(180deg,#e8cf86,#b8862b)}
+.time .lab{display:flex;align-items:center;justify-content:center;gap:14px;font-size:24px;letter-spacing:4px;margin-bottom:8px}
+.time .lab::before,.time .lab::after{content:'';width:54px;height:2px;background:linear-gradient(90deg,transparent,currentColor);opacity:.7}
+.time .lab::after{background:linear-gradient(270deg,transparent,currentColor)}
+.time .num{display:flex;align-items:center;justify-content:center;gap:7px;font-size:84px;line-height:1;letter-spacing:0;text-shadow:none !important}
+.time .dg{width:76px;height:106px;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;font-style:normal;font-weight:inherit;color:#fff;background:linear-gradient(180deg,#3a3f66 0%,#272b47 49%,#161829 51%,#20233c 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.2),inset 0 -3px 0 rgba(0,0,0,.4),0 5px 0 rgba(0,0,0,.4)}
+.time .dg::after{content:'';position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:rgba(0,0,0,.6)}
+.time .dg.fl{animation:dfl .32s}
+@keyframes dfl{0%{transform:scaleY(.15);filter:brightness(2)}100%{transform:none;filter:none}}
+.time .cl{width:14px;height:106px;position:relative;color:#9fe3ff}
+.time .cl::before,.time .cl::after{content:'';position:absolute;left:1px;width:12px;height:12px;border-radius:50%;background:currentColor;top:30px}
+.time .cl::after{top:64px}
+.time .tbar{width:88%;height:8px;border-radius:4px;margin-top:10px;background:rgba(255,255,255,.14);overflow:hidden}
+.time .tbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#5cc8ff,#7dff9a);transition:width .3s}
+.time.hot .num{animation:none}.time.hot .dg{color:#ff7373;box-shadow:inset 0 2px 0 rgba(255,255,255,.2),0 5px 0 rgba(0,0,0,.4),0 0 18px rgba(255,70,70,.85);animation:blink 1s infinite}.time.hot .tbar i{background:#ff5a5a}
+.luxe.time .dg{background:linear-gradient(180deg,#2e2618 0%,#18130c 49%,#090705 51%,#16110a 100%);box-shadow:inset 0 0 0 1px #8a6d2f,0 0 0 1px #d9b866,0 5px 0 rgba(0,0,0,.55);color:#ffe9a8;border-radius:6px}.luxe.time .cl{color:#d9b866}.luxe.time .tbar{background:#2a2419}.luxe.time .tbar i{background:linear-gradient(90deg,#b8862b,#ffe08a)}
+.yume.time .dg{background:linear-gradient(180deg,#ffffff 0%,#fff0f8 49%,#f3e8ff 51%,#ffffff 100%);box-shadow:0 0 0 3px #ffb3d9,0 5px 0 rgba(255,150,205,.5);color:#8a6ad8;border-radius:18px}.yume.time .dg::after{background:rgba(255,150,205,.45)}.yume.time .cl{color:#ff8ec6}.yume.time .tbar{background:#fff;box-shadow:0 0 0 2px #ffb3d9}.yume.time .tbar i{background:linear-gradient(90deg,#ff8ec6,#b9a4ff)}
+.neon.time .dg{background:#060a1c;box-shadow:inset 0 0 16px rgba(53,242,255,.35),0 0 0 2px #35f2ff,0 0 16px #35f2ff;color:#35f2ff;text-shadow:0 0 14px #35f2ff;border-radius:6px}.neon.time .dg::after{background:rgba(53,242,255,.25)}.neon.time .cl{color:#ff3dd6;filter:drop-shadow(0 0 6px #ff3dd6)}.neon.time .tbar{background:#0a0f26}.neon.time .tbar i{background:linear-gradient(90deg,#35f2ff,#ff3dd6);box-shadow:0 0 10px #35f2ff}
+.wa.time .dg{background:linear-gradient(180deg,#322d27 0%,#1d1a16 49%,#100e0b 51%,#1d1a16 100%);box-shadow:0 0 0 2px #c9a44a,0 5px 0 rgba(40,20,10,.5);color:#f7efdc;border-radius:4px}.wa.time .dg::after{background:rgba(0,0,0,.7)}.wa.time .cl{color:#a8232b}.wa.time .tbar{background:#e0d2b0}.wa.time .tbar i{background:linear-gradient(90deg,#8a1820,#d9434c)}
+.yume.rank .row.r1 .nm,.neon.rank .row.r1 .nm{font-size:30px}.yume.rank .row.r1 .val,.neon.rank .row.r1 .val{font-size:34px}.yume.rank .val,.neon.rank .val{font-size:28px}
 /* テロップ・目標 */
 .thanks .band{position:absolute;inset:14px 0;background:linear-gradient(180deg,rgba(26,21,14,.95),rgba(8,7,6,.95));border-top:2px solid #d9b866;border-bottom:2px solid #d9b866;box-shadow:0 0 0 4px rgba(8,7,6,.85);overflow:hidden;opacity:0;transition:opacity .5s}
 .thanks .band.on{opacity:1}
@@ -443,15 +489,15 @@ function mountWin(box,o){ box.innerHTML='<div class="panel"><div class="lab pop 
   draw(); return {w:600,h:220}; }
 
 /* ===== ランキング（いいね・ギフト） ===== */
-function mountRank(box,o){ const kind=o.kind, top=Math.max(1,Math.min(10,o.top||5)), key='ov_rank_'+kind, RH=84;
+function mountRank(box,o){ const kind=o.kind, top=Math.max(1,Math.min(10,o.top||5)), key='ov_rank_'+kind, RH=78, H1=116, LH=H1+(top-1)*RH+12;
   box.classList.add('rank',kind); box.innerHTML='<div class="ttl pop ol"></div><div class="list"><div class="empty"></div></div>';
-  box.querySelector('.ttl').textContent=o.title||(kind==='like'?'♥ いいねランキング':'🎁 ギフトランキング'); const list=box.querySelector('.list'), empty=box.querySelector('.empty'); list.style.height=(top*RH+12)+'px';
+  box.querySelector('.ttl').textContent=o.title||(kind==='like'?'♥ いいねランキング':'🎁 ギフトランキング'); const list=box.querySelector('.list'), empty=box.querySelector('.empty'); list.style.height=LH+'px';
   empty.textContent=kind==='like'?'いいねをタップして1位をねらおう！':'ギフトでランクイン！';
   let M=new Map(); if(!o.demo){ const sv=LS.get(key,null); if(sv&&sv.t&&Date.now()-sv.t<8*3600e3) for(const r of sv.l) M.set(r.uid,r); }
   const rows=new Map(); let saveT=0;
   const draw=()=>{ const arr=[...M.values()].sort((a,b)=>b.v-a.v).slice(0,top); empty.style.display=arr.length?'none':'flex'; const keep=new Set();
-    arr.forEach((r,i)=>{ keep.add(r.uid); let el=rows.get(r.uid); if(!el){ el=document.createElement('div'); el.className='row'; el.innerHTML='<div class="no pop"></div><div class="av"></div><div class="nm ol"></div><div class="val pop ol"><span></span><small></small></div>'; el.style.top=(top*RH)+'px'; el.style.opacity='0'; list.appendChild(el); rows.set(r.uid,el); void el.offsetWidth; el.querySelector('small').textContent=kind==='like'?'いいね':'コイン'; }
-      el.className='row r'+(i+1); el.style.top=(6+i*RH)+'px'; el.style.opacity='1'; el.querySelector('.no').textContent=i+1; el.querySelector('.nm').textContent=r.name; const av=el.querySelector('.av'); if(r.av){ av.style.backgroundImage='url("'+String(r.av).replace(/["\\\n]/g,'')+'")'; av.textContent=''; } else { av.style.backgroundImage=''; av.style.backgroundColor=hue(r.uid); av.textContent=[...r.name][0]||'?'; }
+    arr.forEach((r,i)=>{ keep.add(r.uid); let el=rows.get(r.uid); if(!el){ el=document.createElement('div'); el.className='row'; el.innerHTML='<div class="bar"><i></i></div><div class="cr"></div><div class="no pop"></div><div class="av"></div><div class="nm ol"></div><div class="val pop ol"><span></span><small></small></div>'; el.style.top=LH+'px'; el.style.opacity='0'; list.appendChild(el); rows.set(r.uid,el); void el.offsetWidth; el.querySelector('small').textContent=kind==='like'?'いいね':'コイン'; }
+      el.className='row r'+(i+1); el.style.top=(6+(i?H1+(i-1)*RH:0))+'px'; el.querySelector('.bar i').style.width=Math.max(4,r.v/arr[0].v*100)+'%'; el.style.opacity='1'; el.querySelector('.no').textContent=i+1; el.querySelector('.nm').textContent=r.name; const av=el.querySelector('.av'); if(r.av){ av.style.backgroundImage='url("'+String(r.av).replace(/["\\\n]/g,'')+'")'; av.textContent=''; } else { av.style.backgroundImage=''; av.style.backgroundColor=hue(r.uid); av.textContent=[...r.name][0]||'?'; }
       const sp=el.querySelector('.val span'), tx=r.v.toLocaleString('ja-JP'); if(sp.textContent!==tx){ sp.textContent=tx; sp.classList.remove('bump'); void sp.offsetWidth; sp.style.display='inline-block'; sp.classList.add('bump'); } });
     for(const [uid,el] of rows) if(!keep.has(uid)){ el.remove(); rows.delete(uid); } };
   const add=(e,amt)=>{ let r=M.get(e.uid); if(!r){ r={uid:e.uid,name:e.name,av:e.av||null,v:0}; M.set(e.uid,r); } r.name=e.name; if(e.av) r.av=e.av; r.v+=amt; draw();
@@ -459,11 +505,12 @@ function mountRank(box,o){ const kind=o.kind, top=Math.max(1,Math.min(10,o.top||
   if(kind==='like') BUS.on('like',e=>add(e,e.n)); else BUS.on('gift',e=>add(e,e.coins*e.n));
   BUS.on('cmd',c=>{ if(c.cmd==='reset'&&(c.kind===kind||c.kind==='all')){ M=new Map(); if(!o.demo) LS.set(key,{t:Date.now(),l:[]}); draw(); } });
   BUS.on('chat',c=>{ if(c.admin && /^\s*(ランキング|rank)\s*(リセット|reset)\s*$/i.test(c.text)){ M=new Map(); LS.set(key,{t:Date.now(),l:[]}); draw(); } });
-  draw(); return {w:560,h:74+top*RH+12+16}; }
+  draw(); return {w:560,h:74+LH+16}; }
 
 /* ===== 時間（時計・配信時間・耐久タイマー） ===== */
 function mountTime(box,o){ const mode=o.mode||'clock'; box.classList.add('time');
-  box.innerHTML='<div class="panel"><div class="lab"></div><div class="num pop ol"></div><div class="add pop ol"></div></div>'+(mode==='clock'?'':'<div class="ctl">'+(mode==='down'?'<button data-a="tog">▶/⏸</button><button data-a="p">＋1分</button><button data-a="m">−1分</button>':'')+'<button data-a="rst">リセット</button></div>');
+  box.innerHTML='<div class="panel"><div class="lab"></div><div class="num pop"></div>'+(mode==='down'?'<div class="tbar"><i></i></div>':'')+'<div class="add pop ol"></div></div>'+(mode==='clock'?'':'<div class="ctl">'+(mode==='down'?'<button data-a="tog">▶/⏸</button><button data-a="p">＋1分</button><button data-a="m">−1分</button>':'')+'<button data-a="rst">リセット</button></div>');
+  let curN=''; const setNum=t=>{ if(t===curN) return; if(t.length!==curN.length){ num.innerHTML=[...t].map(c=>c===':'?'<i class="cl"></i>':'<b class="dg">'+c+'</b>').join(''); } else { [...t].forEach((c,i)=>{ if(c!==curN[i]&&c!==':'){ const e=num.children[i]; e.textContent=c; e.classList.remove('fl'); void e.offsetWidth; e.classList.add('fl'); } }); } curN=t; }, tbar=box.querySelector('.tbar i'), WD='日月火水木金土';
   const lab=box.querySelector('.lab'), num=box.querySelector('.num'), addEl=box.querySelector('.add'), pad=n=>String(n).padStart(2,'0');
   const fmt=s=>{ s=Math.max(0,Math.floor(s)); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':':'')+pad(m)+':'+pad(x); };
   const base=Math.max(1,parseFloat(o.min)||60)*60, per=o.per!=null?Math.max(0,parseFloat(o.per)):1, key='ov_time_'+mode;
@@ -480,9 +527,9 @@ function mountTime(box,o){ const mode=o.mode||'clock'; box.classList.add('time')
     BUS.on('chat',c=>{ if(!c.admin) return; const t=c.text.trim(); if(/^(タイマー|timer)\s*(開始|スタート|start)$/i.test(t)) act('start'); else if(/^(タイマー|timer)\s*(停止|ストップ|stop)$/i.test(t)) act('stop'); else if(/^(タイマー|timer)\s*(リセット|reset)$/i.test(t)) act('rst'); else { const m=/^(?:タイマー|timer)\s*([+\-＋－−])\s*(\d+)$/i.exec(t); if(m) addSec((/[+＋]/.test(m[1])?1:-1)*(+m[2])); } }); }
   BUS.on('cmd',c=>{ if(c.cmd==='time'&&c.mode===mode) act(c.a); });
   lab.textContent=o.label||(mode==='clock'?'いまの時間':mode==='up'?'配信時間':'のこり時間'); if(o.label==='') lab.style.display='none';
-  const tick=()=>{ if(mode==='clock'){ const d=new Date(); num.textContent=pad(d.getHours())+':'+pad(d.getMinutes())+(o.sec==='0'?'':':'+pad(d.getSeconds())); }
-    else if(mode==='up') num.textContent=fmt((Date.now()-S.start)/1000);
-    else { const l=left(); num.textContent=fmt(Math.ceil(l)); box.classList.toggle('hot',S.run&&l<=60); if(S.run&&l<=0){ S.run=false; S.left=0; save(); } } };
+  const tick=()=>{ if(mode==='clock'){ const d=new Date(); setNum(pad(d.getHours())+':'+pad(d.getMinutes())+(o.sec==='0'?'':':'+pad(d.getSeconds()))); if(o.label==null){ const t=(d.getMonth()+1)+'月'+d.getDate()+'日（'+WD[d.getDay()]+'）'; if(lab.textContent!==t) lab.textContent=t; } }
+    else if(mode==='up') setNum(fmt((Date.now()-S.start)/1000));
+    else { const l=left(); setNum(fmt(Math.ceil(l))); if(tbar) tbar.style.width=Math.min(100,l/Math.max(1,S.base)*100)+'%'; box.classList.toggle('hot',S.run&&l<=60); if(S.run&&l<=0){ S.run=false; S.left=0; save(); } } };
   tick(); setInterval(tick,250); return {w:640,h:220}; }
 
 /* ===== ギフトのびん ===== */
@@ -838,8 +885,8 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
 } else { /* ---- せつめいページ ---- */
   document.documentElement.classList.add('setup'); document.body.classList.add('setup'); const base=(EMBED?HOME_URL:location.origin+location.pathname.replace(/index\.html$/,''));
   const C=[['win','WINカウンター','?w=win','600 × 220','勝った数を出します。部品にマウスをのせると出るボタン（OBSなら右クリック→「対話」）か、下のボタンで増やしたり減らしたりできます。自分のコメントで「win+1」「win-1」「win=0」と打っても変わります。'],
-    ['like','いいねランキング','?w=like','560 × 522','いいねをたくさん押してくれた人の上位5人を出します。「&top=3」を足すと3人だけになります。'],
-    ['gift','ギフトランキング','?w=gift','560 × 522','ギフトのコイン合計が多い人の上位5人を出します。'],
+    ['like','いいねランキング','?w=like','560 × 530','いいねをたくさん押してくれた人の上位5人を出します。「&top=3」を足すと3人だけになります。'],
+    ['gift','ギフトランキング','?w=gift','560 × 530','ギフトのコイン合計が多い人の上位5人を出します。'],
     ['time','時間','?w=time','640 × 220','「いまの時間」「配信時間」「耐久タイマー（ギフトで時間がのびる）」の3つから選べます。'],
     ['gacha','ガチャガチャ','?w=gacha','600 × 900','決めたギフトが来ると、ハンドルが回ってカプセルが出てきます。S・A・B・Cのランクと、その中身が出ます。中身は下で自由に書きかえられます（1行に1つ）。'],
     ['roulette','ルーレット','?w=roulette&min=100','620 × 760','ギフトが来ると金のルーレットが回って、止まったマスのお題と、回した人の名前が出ます。マスの中身は下で書きかえられます（1行に1つ、2〜12個）。'],
