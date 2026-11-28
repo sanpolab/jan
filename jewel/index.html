@@ -165,7 +165,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 21:32</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 21:56</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -235,7 +235,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 try{ if(localStorage.getItem('jewel_gv')!=='2'){ localStorage.removeItem('jewel_gifts'); localStorage.setItem('jewel_gv','2'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1128-213223';
+const VER='1128-215651';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== 宝石クルーン：黒い大理石の皿が5段。宝石は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
    ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで宝石が増える ===== */
@@ -249,14 +249,14 @@ const DISH=[{x:960,y:118,R:176},{x:960,y:308,R:176},{x:960,y:498,R:176},{x:960,y
 const NAME=['1st','2nd','3rd','4th','FINAL'], LAST=DISH.length-1;
 /* 調整する数字。maxIn＝1つの皿に同時に入れる数、feed＝宝石を出す間かく（秒）、vcap＝この速さより遅いと穴に落ちる、capSec＝フタの秒数、dblSec＝確変の秒数 */
 const CFG={maxIn:[26,22,18,16,14], feed:.2, feedFast:.1, vcap:235, K:1400, A:1700, drag:.36, mu:26, capSec:20, dblSec:30, qMax:3000};
-const IMG={}; for(const k of ['bg','plate','ring_gold','ring_ruby','cap','gem0','gem1','gem2','gem3','gem4','gem5']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; }
+const IMG={}; for(const k of ['bg','plate','ring_gold','ring_ruby','cap','gem0','gem1','gem2','gem3','gem4','gem5','kx_burst','kx_ruby']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; }
 const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
 /* 当たったときの設定（この端末に保存）。text＝大当たりの時に出す文字、win＝オーバーレイのWinカウンターに足す数（0なら何もしない） */
 const JP=(()=>{ try{ return Object.assign({text:'',win:0},JSON.parse(localStorage.getItem('jewel_jp')||'{}')); }catch(e){ return {text:'',win:0}; } })();
 function jpSave(){ try{ localStorage.setItem('jewel_jp',JSON.stringify(JP)); }catch(e){} }
 let S, T=0, best=0, likeAcc=0; const CMT={}; try{ best=+(localStorage.getItem('jewel_total')||0)||0; }catch(e){}
 
-function reset(){ S={gems:[],fly:[],q:[],qT:0,parts:[],log:[],ban:null,flash:0,shake:0,capT:0,dblT:0,jp:null,jpN:0,reach:[0,0,0,0,0],lastSe:{}}; }
+function reset(){ S={gems:[],fly:[],q:[],qT:0,parts:[],rings:[],kx:null,log:[],ban:null,flash:0,shake:0,capT:0,dblT:0,jp:null,jpN:0,reach:[0,0,0,0,0],lastSe:{}}; }
 function logAdd(s,c){ S.log.unshift({s,c:c||'#fff',t:30}); if(S.log.length>8) S.log.length=8; }
 function banner(a,c,b){ S.ban={a,c:c||GOLD,b:b||'',t:2.4}; }
 function burst(x,y,col,n,v){ for(let i=0;i<n;i++){ const a=rand(0,TAU), sp=rand(v*.3,v); S.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,t:rand(.35,.8),s:rand(3,8),c:pick([col,'#fff',GOLD])}); } }
@@ -266,7 +266,7 @@ const se=(k,v,gap)=>{ if(S.lastSe[k] && T-S.lastSe[k]<(gap||.12)) return; S.last
 const ang=i=>DISH[i].a0+DISH[i].w*T;
 const holePos=(d,k)=>{ const a=k*TAU/d.nh; return [Math.cos(a)*d.rh,Math.sin(a)*d.rh]; };
 const toScreen=(d,x,y)=>{ const a=ang(d.i), c=Math.cos(a), s=Math.sin(a); return [d.x+x*c-y*s,d.y+(x*s+y*c)*KY]; };
-const isWin=(d,k)=>k===0 || (S.dblT>0 && k===(d.nh>>1));   /* 当たりの穴はふだん1つだけ。確変の間だけ2つになる */
+const isWin=(d,k)=>k===0 || (S.dblT>0 && k===(d.nh>>1) && (!S.kx || S.kx.step>d.i));   /* 当たりの穴はふだん1つだけ。確変の間だけ2つになる */
 const capped=(d,k)=>S.capT>0 && isWin(d,k);
 const countIn=i=>{ let n=0; for(const q of S.gems) if(q.d===i) n++; for(const f of S.fly) if(f.to===i) n++; return n; };
 /* 宝石を皿のふちから入れる。fromX,fromY＝どこから飛んできたか（その方向のふちから、ふちに沿って転がり出す） */
@@ -328,7 +328,7 @@ const Game={
   /* フタ：当たりの穴にフタをする（妨害） */
   cap(n){ S.capT=Math.min(120,Math.max(S.capT,0)+CFG.capSec); se('heavy',.6,.3); banner('当たりの穴に フタ！','#c9c2b0',(n||'だれか')+' さん（'+CFG.capSec+'秒）'); logAdd((n||'だれか')+' が 当たりの穴にフタをした','#c9c2b0'); },
   /* 確変：当たりの穴が2つになる */
-  dbl(n){ S.dblT=Math.min(180,Math.max(S.dblT,0)+CFG.dblSec); S.flash=Math.max(S.flash,.3); play('bell',.5); se('cheer',.6,1); banner('確変！ 当たりの穴が2つ',RUBY,(n||'だれか')+' さん（'+CFG.dblSec+'秒）'); logAdd((n||'だれか')+' が 確変をはじめた',RUBY); },
+  dbl(n){ S.dblT=Math.min(180,Math.max(S.dblT,0)+CFG.dblSec); S.kx={t:0,by:n||null,step:0}; S.ban=null; S.flash=Math.max(S.flash,.35); play('don',.7); logAdd((n||'だれか')+' が 確変モードに入れた',RUBY); },
   /* 全消し：皿の上の宝石と、待っている宝石をぜんぶ消す（妨害） */
   wipe(n){ for(const q of S.gems){ const d=DISH[q.d], [sx,sy]=toScreen(d,q.x,q.y); burst(sx,sy,'#8d8674',3,160); } S.gems=[]; S.fly=[]; S.q=[]; S.flash=Math.max(S.flash,.25); se('glass',.5,.3); banner('全消し…','#c9c2b0',(n||'だれか')+' さん'); logAdd((n||'だれか')+' が 宝石をぜんぶ消した','#c9c2b0'); },
   /* 無料の反応。コメント＝宝石1個（同じ人は30秒に1回）、いいね1000回ごと＝宝石3個、フォロー＝宝石5個、シェア＝宝石3個、サブスク＝宝石30個 */
@@ -345,7 +345,12 @@ for(const k in GEMS) Game[k]=n=>addGems(gemN(k),GEMS[k][1],n);
 
 /* ===== 進める ===== */
 function update(dt){ T+=dt; if(S.shake>0) S.shake=Math.max(0,S.shake-dt); if(S.flash>0) S.flash=Math.max(0,S.flash-dt); if(S.ban){ S.ban.t-=dt; if(S.ban.t<=0) S.ban=null; } if(S.jp){ S.jp.t-=dt; if(S.jp.t<=0) S.jp=null; }
-  if(S.capT>0) S.capT=Math.max(0,S.capT-dt); if(S.dblT>0) S.dblT=Math.max(0,S.dblT-dt);
+  if(S.capT>0) S.capT=Math.max(0,S.capT-dt); if(S.dblT>0){ S.dblT=Math.max(0,S.dblT-dt); if(S.dblT<=0) logAdd('確変モード おわり','#b9b2a3'); }
+  /* 確変に入った時の演出：①帯が走る ②「確変」がドンと出る ③上の段から順に、2つ目の当たり穴に火がつく */
+  if(S.kx){ const k=S.kx, t0=k.t; k.t+=dt; if(t0<.28 && k.t>=.28){ S.flash=.7; S.shake=.8; play('jean',.7); play('cheer',.7); burst(W/2,H/2,RUBY,140,1300); }
+    while(k.step<DISH.length && k.t>=1.15+k.step*.16){ const d=DISH[k.step], [hx,hy]=holePos(d,d.nh>>1), [sx,sy]=toScreen(d,hx,hy); burst(sx,sy,RUBY,26,420); S.rings.push({x:sx,y:sy,r:d.hr*3.2,t:.5}); se('bell',.3+k.step*.06,.05); k.step++; }
+    if(t0<1.95 && k.t>=1.95) play('clap',.5); if(k.t>3) S.kx=null; }
+  for(const r of S.rings) r.t-=dt; S.rings=S.rings.filter(r=>r.t>0);
   for(const l of S.log) l.t-=dt; S.log=S.log.filter(l=>l.t>0);
   for(const p of S.parts){ p.t-=dt; p.vx*=1-1.5*dt; p.vy*=1-1.5*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; } S.parts=S.parts.filter(p=>p.t>0); if(S.parts.length>700) S.parts.splice(0,S.parts.length-700);
   /* 待っている宝石を、左上から1段目へ順に出す */
@@ -385,6 +390,27 @@ function drawGems(i){ const d=DISH[i], L=[]; for(const q of S.gems){ if(q.d!==i)
   for(const [sy,sx,q] of L){ if(q.st==='fall'){ const k=clamp(q.ft/.34,0,1); gem(q.t,sx,sy-d.gr*.45+k*d.gr*.9,d.gr*(1-.6*k),q.rot,1-k*.85); } else gem(q.t,sx,sy-d.gr*.45,d.gr,q.rot); }
   /* 投げた人の名前（たまに出す。3段目から先の宝石にはいつも出す） */
   let n=0; for(const [sy,sx,q] of L){ if(!q.tag || q.st!=='roll') continue; if(++n>(i>=2?6:3)) break; nameTag(q.by,sx,sy-d.gr*1.45-14); } }
+/* 確変に入った時のカットイン。絵（kx_burst＝赤と金の爆発、kx_ruby＝大きなルビー）があれば使い、なければ今ある絵で描く */
+function drawKx(){ const k=S.kx, t=k.t, out=clamp((t-2.45)/.45,0,1), a=clamp(t/.12,0,1)*(1-out), cx=W/2, cy=H/2-20;
+  g.save(); g.globalAlpha=a*.72; g.fillStyle='#050203'; g.fillRect(0,0,W,H); g.globalAlpha=a;
+  /* 光のすじ */
+  g.save(); g.translate(cx,cy); g.rotate(T*.5); for(let i=0;i<20;i++){ g.rotate(TAU/20); g.fillStyle=i%2?'rgba(255,40,80,.16)':'rgba(233,196,106,.13)'; g.beginPath(); g.moveTo(0,0); g.lineTo(-90,-1400); g.lineTo(90,-1400); g.closePath(); g.fill(); } g.restore();
+  /* ななめの帯が左から走ってくる */
+  const sw=clamp(t/.24,0,1), e=1-Math.pow(1-sw,3), bx=-W*(1-e)+out*W*1.2, bh=330;
+  g.save(); g.translate(bx,0); g.transform(1,0,-.18,1,0,0); const gr=g.createLinearGradient(0,cy-bh/2,0,cy+bh/2); gr.addColorStop(0,'#3d0412'); gr.addColorStop(.5,'#b3122f'); gr.addColorStop(1,'#3d0412'); g.fillStyle=gr; g.fillRect(-200,cy-bh/2,W+600,bh);
+  if(ok('kx_burst')){ g.globalCompositeOperation='lighter'; g.drawImage(IMG.kx_burst,0,cy-bh/2,W+200,bh); g.globalCompositeOperation='source-over'; }
+  for(const y of [cy-bh/2,cy+bh/2-10]){ const g2=g.createLinearGradient(0,y,0,y+10); g2.addColorStop(0,'#fff3c4'); g2.addColorStop(.5,'#e9c46a'); g2.addColorStop(1,'#8a6420'); g.fillStyle=g2; g.fillRect(-200,y,W+600,10); }
+  for(let i=0;i<9;i++){ const x=((T*900+i*260)%(W+500))-200; g.fillStyle='rgba(255,230,180,.18)'; g.fillRect(x,cy-bh/2+14,90,bh-28); }
+  g.restore();
+  if(t>=.28){ const u=t-.28, sc=1+2.4*Math.pow(Math.max(0,1-u/.16),2), jx=u<.3?rand(-1,1)*14*(1-u/.3):0, ox=out*W*1.2;
+    /* うしろの大きなルビー */
+    g.save(); g.translate(cx+ox,cy); const z=250*Math.min(1,u/.2)*(1+.04*Math.sin(T*7)); { const hg=g.createRadialGradient(0,0,0,0,0,z*1.9); hg.addColorStop(0,'rgba(255,60,100,.6)'); hg.addColorStop(1,'rgba(255,60,100,0)'); g.fillStyle=hg; g.beginPath(); g.arc(0,0,z*1.9,0,TAU); g.fill(); }
+    if(ok('kx_ruby')) g.drawImage(IMG.kx_ruby,-z*1.25,-z*1.25,z*2.5,z*2.5); else { g.rotate(T*.6); if(ok('gem2')) g.drawImage(IMG.gem2,-z,-z,z*2,z*2); } g.restore();
+    g.save(); g.translate(cx+jx+ox,cy-18); g.scale(sc,sc); gold('確変',0,0,250); g.restore();
+    if(u>.38){ const v=clamp((u-.38)/.15,0,1); g.globalAlpha=a*v; txt('当たりの穴  2倍タイム',cx+ox+(1-v)*80,cy+150,62,'#fff','center','#3d0412',FONTD); g.globalAlpha=a; }
+    if(u>.6 && k.by){ const v=clamp((u-.6)/.15,0,1); g.globalAlpha=a*v; txt(k.by+' さん',cx+ox,cy+236,44,GOLD,'center','#000',FONTD); g.globalAlpha=a; }
+    if(u>.5){ const v=clamp((u-.5)/.15,0,1); g.globalAlpha=a*v; txt(CFG.dblSec+'秒間',cx+ox-(1-v)*80,cy-178,54,'#ffd9df','center','#3d0412',FONTD); g.globalAlpha=a; } }
+  g.restore(); }
 function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-1,1)*S.shake*11:0; g.setTransform(1,0,0,1,0,0);
   if(ok('bg')) g.drawImage(IMG.bg,0,0,W,H); else { g.fillStyle='#0b0507'; g.fillRect(0,0,W,H); }
   g.save(); g.translate(sx,sy);
@@ -399,7 +425,7 @@ function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-
   gold('宝石クルーン',345,96,68); txt('赤い穴に 5回つづけて入れば 大当たり',345,158,24,'#cbbf9f','center','#000',FONTD);
   panel(60,210,570,410); txt('ギフトログ',345,246,28,GOLD,'center',null,FONTD);
   g.save(); g.beginPath(); g.rect(72,268,546,344); g.clip(); for(let i=0;i<S.log.length;i++){ const l=S.log[i]; g.globalAlpha=clamp(l.t,0,1)*(i===0?1:.8); let fs=24; g.font='900 '+fs+'px '+FONT; const wd=g.measureText(l.s).width; if(wd>526) fs=Math.max(14,Math.floor(24*526/wd)); txt(l.s,345,294+i*41,fs,l.c,'center','#000'); } g.restore(); g.globalAlpha=1;
-  if(S.ban && !S.jp){ const k=clamp(S.ban.t*3,0,1); g.globalAlpha=k; panel(60,650,570,124); txt(S.ban.a,345,S.ban.b?694:712,S.ban.a.length>11?34:40,S.ban.c,'center','#000',FONTD); if(S.ban.b) txt(S.ban.b,345,742,22,'#e6dcc3','center',null,FONTD); g.globalAlpha=1; }
+  if(S.ban && !S.jp && !(S.dblT>0)){ const k=clamp(S.ban.t*3,0,1); g.globalAlpha=k; panel(60,650,570,124); txt(S.ban.a,345,S.ban.b?694:712,S.ban.a.length>11?34:40,S.ban.c,'center','#000',FONTD); if(S.ban.b) txt(S.ban.b,345,742,22,'#e6dcc3','center',null,FONTD); g.globalAlpha=1; }
   /* 左下：穴の見分け方 */
   panel(60,792,570,80); { const z=27; if(ok('ring_ruby')) g.drawImage(IMG.ring_ruby,96-z+8,832-z,z*2,z*2); txt('赤い穴',146,832,26,RUBY,'left',null,FONTD); txt('＝ 当たり',232,832,26,'#fff','left',null,FONTD);
     g.globalAlpha=.55; if(ok('ring_gold')) g.drawImage(IMG.ring_gold,372-z+8,832-z,z*2,z*2); g.globalAlpha=1; txt('金の穴',422,832,26,'#a89d82','left',null,FONTD); txt('＝ ハズレ',508,832,26,'#a89d82','left',null,FONTD); }
@@ -411,6 +437,11 @@ function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-
   { const y=598; g.strokeStyle='rgba(233,196,106,.35)'; g.lineWidth=1; g.beginPath(); g.moveTo(1320,y-24); g.lineTo(1830,y-24); g.stroke();
     if(S.dblT>0) txt('確変 のこり '+Math.ceil(S.dblT)+'秒',1575,y+6,26,RUBY,'center',null,FONTD); else txt('確変なし',1575,y+6,21,'#6f6756','center',null,FONTD);
     if(S.capT>0) txt('フタ のこり '+Math.ceil(S.capT)+'秒',1575,y+50,26,'#e6dcc3','center',null,FONTD); else txt('フタなし',1575,y+50,21,'#6f6756','center',null,FONTD); }
+  for(const r of S.rings){ const k=1-r.t/.5; g.globalAlpha=clamp(r.t*4,0,1); g.strokeStyle='#ff5a78'; g.lineWidth=7*(1-k)+1; g.beginPath(); g.ellipse(r.x,r.y,r.r*k,r.r*k*KY,0,0,TAU); g.stroke(); } g.globalAlpha=1;
+  /* 確変の間は、画面のふちが赤く脈うつ（残り5秒は速く点めつ） */
+  if(S.dblT>0){ const pu=S.dblT<5?(.5+.5*Math.sin(T*16)):(.6+.4*Math.sin(T*5)); for(const [x0,y0,x1,y1] of [[0,0,0,150],[0,H,0,H-150],[0,0,150,0],[W,0,W-150,0]]){ const gr=g.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,'rgba(255,20,60,'+(.5*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(255,20,60,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); }
+    const bw=560*clamp(S.dblT/CFG.dblSec,0,1); g.fillStyle='rgba(8,5,6,.8)'; rr(64,654,562,116,14); g.fill(); g.strokeStyle=RUBY; g.lineWidth=3; g.stroke(); txt('確変モード',90,694,34,RUBY,'left','#000',FONTD); txt('当たり 2倍',90,740,24,'#fff','left',null,FONTD); gold(String(Math.ceil(S.dblT)),560,706,74,'right'); txt('秒',568,722,26,GOLD,'left',null,FONTD); g.fillStyle=RUBY; g.fillRect(66,764,bw,5); }
+  if(S.kx) drawKx();
   if(S.flash>0){ g.fillStyle='rgba(255,240,200,'+Math.min(.8,S.flash*1.3).toFixed(2)+')'; g.fillRect(0,0,W,H); }
   /* 大当たり */
   if(S.jp){ const t=6-S.jp.t, k=clamp(Math.min(t*3,S.jp.t*2),0,1); g.globalAlpha=k; g.fillStyle='rgba(4,2,3,.72)'; g.fillRect(0,0,W,H);
