@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="宝石クルーン">
+<title>宝石クルーン</title>
+<style>
+@font-face{font-family:MPR;src:url(./font/mpr.woff2) format('woff2');font-weight:400;font-display:swap}   /* ドット文字（DotGothic16）。太さは1種類なので、太字はブラウザが太らせる */
+@font-face{font-family:DELA;src:url(./font/dela.woff2) format('woff2');font-display:swap}
+html,body{margin:0;height:100%;background:#10162b;overflow:hidden;font-family:MPR,'Hiragino Sans','Noto Sans JP',sans-serif;font-weight:900;color:#fff;-webkit-user-select:none;user-select:none}
+#stage{position:absolute;left:50%;top:0;transform:translateX(-50%);overflow:hidden}
+/* スマホの縦画面：ゲームを上につめて、下の空きに「視聴者数と文字」「コメントらん」「ギフト表（空きに写真）」を出す */
+#below{position:absolute;display:none;flex-direction:column;overflow:hidden;background:#03060f;font-weight:900}
+#binfo{flex:0 0 auto;display:flex;align-items:center;gap:calc(var(--u)*1.6);padding:calc(var(--u)*1.6) calc(var(--u)*2.4);box-sizing:border-box;min-height:calc(var(--u)*8.4);background:#0a1730;border-top:calc(var(--u)*.35) solid #b8964a}
+#viewers{flex:0 0 auto;padding:.3em .9em;border-radius:999px;background:#16264a;font-size:calc(var(--u)*3.2);white-space:nowrap}
+#viewers small{font-size:.8em;color:#9fd0ff;margin-right:.5em}
+#memo{flex:1 1 auto;min-width:0;text-align:center;white-space:pre-wrap;word-break:break-all;line-height:1.2;color:#ffd23f;max-height:calc(var(--u)*7.4);overflow:hidden;cursor:text;min-height:calc(var(--u)*5)}
+#memo.empty{color:#56658f}
+#memo input{width:100%;box-sizing:border-box;font:inherit;font-size:calc(var(--u)*3.4);color:#ffd23f;background:#101c3c;border:calc(var(--u)*.3) solid #ffd23f;border-radius:calc(var(--u)*1.2);padding:.25em .5em;text-align:center}
+#frow{flex:0 0 auto;height:calc(var(--u)*25);display:flex;align-items:stretch;gap:calc(var(--u)*1.5);padding:calc(var(--u)*1.6) calc(var(--u)*2.4);box-sizing:border-box;background:#070d1f;margin-bottom:calc(var(--u)*1.2)}
+#feed{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:calc(var(--u)*.6);overflow:hidden}
+#feed .ln{font-size:calc(var(--u)*3.3);line-height:1.25;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:0 0 auto}
+#feed .ln b{color:#a9dcff;margin-right:.45em}#feed .ln.gf{color:#ffe27a}#feed .ln.gf b{color:#ffd23f}#feed .ln.fl{color:#ffc2dc}#feed .ln.fl b{color:#ff8fc0}
+#feed .ln.hint{color:#6f7da6;font-size:calc(var(--u)*2.8)}
+#gtbl{flex:1 1 auto;min-height:0;width:100%;border:0;background:#000;pointer-events:none;display:block}
+#photo{flex:0 0 auto;display:none;height:100%;max-width:30%;overflow:hidden;background:center center no-repeat;pointer-events:none;border-radius:calc(var(--u)*1.4)}
+#cfg #phPrev{max-width:40%;max-height:6em;border-radius:.4em;display:block;margin:.4em 0}
+#cfg textarea#memoTx{width:100%;box-sizing:border-box;height:4.2em;font:inherit;background:#0c1436;color:#fff;border:1px solid #6677aa;border-radius:.4em}
+canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+#testBtn{position:absolute;right:1em;top:.7em;font:inherit;font-size:2em;padding:.25em .9em;border-radius:1.2em;border:.12em solid #fff;background:#0a1730;color:#fff;z-index:8;cursor:pointer}
+#tp{grid-template-columns:repeat(4,1fr) !important;position:absolute;left:3em;right:3em;top:9em;max-height:92em;overflow:auto;box-sizing:border-box;background:rgba(8,16,40,.95);border:.3em solid #2c4a86;border-radius:2em;padding:2em;z-index:9;display:grid;grid-template-columns:repeat(3,1fr);gap:1.2em}
+#tp[hidden]{display:none}
+#tp button{font:inherit;font-size:2em;padding:.45em .2em;border-radius:.6em;border:0;color:#fff;cursor:pointer;line-height:1.25}
+#tp .j{background:#c0392b}#tp .h{background:#1f9a55}#tp .n{background:#42558a}#tp .g{background:#8a6d1f}
+#tp .on{outline:.18em solid #ffd23f}
+/* ギフト設定の画面（つみつみアニマルと同じ作り） */
+#cfgBtn{position:absolute;right:1em;top:2.5em;font:inherit;font-size:2em;padding:.25em .7em;border-radius:1.2em;border:.12em solid #fff;background:#0a1730;color:#fff;z-index:8;cursor:pointer}
+#cfgBtn .dot{display:inline-block;width:.7em;height:.7em;border-radius:50%;background:#888;margin-right:.35em;vertical-align:middle}
+#cfgBtn.on .dot{background:#3ddc6a;box-shadow:0 0 .5em #3ddc6a}
+#cfg{position:absolute;inset:0;background:rgba(8,12,30,.96);color:#fff;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;font-size:calc(var(--u)*2.6);padding:calc(var(--u)*3);box-sizing:border-box;z-index:20;-webkit-user-select:text;user-select:text}
+#cfg[hidden]{display:none}
+#cfg h2{font-size:1.5em;margin:.2em 0 .5em}
+#cfg h3{font-size:1.1em;margin:1.1em 0 .4em;color:#ffd23f}
+#cfg p{margin:.4em 0;line-height:1.5;color:#cfd8f5}
+#cfg .st{padding:.6em .8em;border-radius:.6em;background:#3a1420;border:2px solid #ff5c7a;font-weight:900}
+#cfg .st.on{background:#123a22;border-color:#3ddc6a}
+#cfg .row{display:flex;align-items:center;gap:.4em;padding:.35em 0;border-bottom:1px solid rgba(255,255,255,.12)}
+#cfg .row .nm{flex:0 0 38%;font-weight:900}
+#cfg .row .nm small{display:block;font-weight:700;opacity:.7;font-size:.72em}
+#cfg button.tc.on{background:#ffd23f;color:#201400}
+#cfg .row input{flex:1 1 auto;min-width:0;font:inherit;padding:.35em .5em;border-radius:.4em;border:1px solid #6677aa;background:#0c1436;color:#fff}
+#cfg button{font:inherit;font-weight:900;padding:.4em .8em;border-radius:.5em;border:0;background:#3d6fd1;color:#fff}
+#cfg .gsel{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:.5em;background:#0c1436;border:1px solid #6677aa;border-radius:.5em;padding:.25em .5em;color:#fff;font-weight:900;text-align:left}
+#cfg .gsel .gi,#pick .gi{flex:0 0 auto;width:2.6em;height:2.6em;border-radius:.4em;background-color:#13141c;background-repeat:no-repeat}
+#cfg .gsel .gt{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#cfg .gsel .gt small{display:block;opacity:.75;font-size:.75em;color:#ffd23f}
+#cfg button.x{flex:0 0 auto;background:#553;padding:.4em .6em}
+#pick{position:absolute;inset:0;background:rgba(6,9,24,.98);color:#fff;z-index:21;display:flex;flex-direction:column;font-size:calc(var(--u)*2.6);padding:calc(var(--u)*2.5);box-sizing:border-box}
+#pick[hidden]{display:none}
+#pick .top{display:flex;gap:.5em;align-items:center;margin-bottom:.5em}
+#pick .top b{flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#pick input{flex:1 1 auto;min-width:0;font:inherit;padding:.4em .6em;border-radius:.4em;border:1px solid #6677aa;background:#0c1436;color:#fff}
+#pick button{font:inherit;font-weight:900;padding:.4em .7em;border-radius:.5em;border:0;background:#3d6fd1;color:#fff}
+#pick .tabs{display:flex;gap:.35em;margin:.5em 0;flex-wrap:wrap}
+#pick .tabs button{background:#2a3358;font-size:.9em}
+#pick .tabs button.on{background:#ffd23f;color:#201400}
+#pickGrid{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;display:grid;grid-template-columns:repeat(5,1fr);gap:.4em;align-content:start}
+#pickGrid .it{background:#10162f;border:1px solid #2c3766;border-radius:.5em;padding:.3em .1em;display:flex;flex-direction:column;align-items:center;min-width:0;color:#fff;font-weight:900}
+#pickGrid .it .gi{width:3.4em;height:3.4em}
+#pickGrid .it span{font-size:.62em;line-height:1.2;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#pickGrid .it em{font-style:normal;font-size:.72em;color:#ffd23f}
+#cfg button.lr{flex:0 0 auto;background:#555}
+#cfg button.lr.wait{background:#d1457a}
+#cfg .jam .nm{color:#ff9aa8}
+#cfg .help .nm{color:#9dffb8}
+#cfg .both .nm{color:#9be9ff}
+#cfg #tfLog{font-size:.82em;line-height:1.5;background:#060a20;border-radius:.5em;padding:.6em;min-height:4em;max-height:14em;overflow:auto;white-space:pre-wrap;color:#bcd}
+#cfg textarea{width:100%;box-sizing:border-box;height:5em;font:inherit;font-size:.8em;background:#0c1436;color:#fff;border:1px solid #6677aa;border-radius:.4em}
+#cfg .top{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:rgba(8,12,30,.96);padding-bottom:.4em;z-index:1}
+#cfg .top{flex-wrap:wrap;gap:.4em}
+#cfg .top h2{flex:1 1 auto;white-space:nowrap;margin:.2em 0}
+#cfg #missBox{order:3;flex:1 1 100%}
+#cfg #embedNote{flex:1 1 100%}
+#pauseBtn{position:absolute;right:1em;top:4.3em;font:inherit;font-size:2em;padding:.25em .7em;border-radius:1.2em;border:.12em solid #fff;background:#0a1730;color:#fff;z-index:8;cursor:pointer}
+#pauseBtn.on{background:#d1457a}
+#pauseBtn[hidden],#pauseTag[hidden]{display:none}
+#pauseTag{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);z-index:7;font-family:DELA,MPR,sans-serif;font-size:8em;color:#fff;background:rgba(6,10,30,.82);border:.06em solid #ffd23f;border-radius:.4em;padding:.3em .8em;text-align:center;white-space:nowrap;pointer-events:none}
+#pauseTag small{display:block;font-family:MPR,sans-serif;font-size:.28em;color:#cfd8f5;margin-top:.4em}
+#ttl{gap:1em !important;position:absolute;inset:0;z-index:15;background:linear-gradient(rgba(6,12,36,.18),rgba(4,8,24,.42)),url(./img/ttl.jpg) center/cover #0b2a6a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.15em;text-align:center}
+#ttl[hidden]{display:none}
+#ttl h1{font-family:DELA,MPR,sans-serif;font-size:8.6em;margin:0;line-height:1.15;color:#ffd23f;text-shadow:0 .08em 0 #3a1d00,0 0 .4em rgba(0,10,40,.9)}
+#ttl h1 small{display:block;font-size:.5em;color:#fff;text-shadow:0 .1em 0 #0a1730,0 0 .5em rgba(0,10,40,.9)}
+#ttl .ln{display:flex;align-items:center;gap:.6em;font-size:2.6em;white-space:nowrap;background:rgba(6,12,36,.62);padding:.28em .7em;border-radius:.8em}
+#ttl .ln>span{min-width:5.2em;text-align:right;color:#cfe0ff}
+#ttl .ln b{min-width:3.4em;font-size:1.3em;color:#ffd23f}
+#ttl button{white-space:nowrap;font:inherit;padding:.3em .8em;border-radius:.6em;border:.1em solid rgba(255,255,255,.35);background:#1b2c58;color:#fff;cursor:pointer}
+#ttl button.on{background:#ffd23f;color:#201400;border-color:#fff}
+#ttl #ttlGo{font-size:4.6em;padding:.25em 1.6em;border-radius:1em;background:#1f9a55;border:.08em solid #fff;font-family:DELA,MPR,sans-serif;box-shadow:0 .12em 0 #0b4a26}
+#ttl .sub{font-size:2em;color:#9fb6e6;display:flex;gap:1em}
+#tp h3{grid-column:1/-1;margin:.2em 0 -.3em;font-size:2.4em;color:#9fb6e6}
+/* 宝石クルーン用 */
+canvas{touch-action:none;user-select:none;-webkit-user-select:none}
+#testBtn,#cfgBtn,#pauseBtn{font-size:1.75em;background:#fff;color:#111;border:.12em solid #111;right:.7em;padding:.2em .7em;border-radius:2em}
+#testBtn{top:.6em}#cfgBtn{top:10.2em}#pauseBtn{top:12.4em}
+#testBtn,#cfgBtn,#pauseBtn{right:.5em}
+#cfgBtn .dot{background:#999}#cfgBtn.on .dot{background:#1f9a55}
+#pauseBtn.on{background:#111;color:#fff}
+#tp{touch-action:pan-y;top:6em;left:2em;right:2em;max-height:96em}
+#cfg,#pick,#pickGrid{touch-action:pan-y}
+#ttl{background:url(./img/ttl.jpg) center/cover #0fb4ff;justify-content:flex-start;padding-top:6em;box-sizing:border-box}
+#ttl h1{font-size:10.5em;color:#ffd23f;text-shadow:0 .08em 0 #3a1d00,0 0 .35em rgba(0,10,40,.9)}
+#ttl h1 small{font-size:.34em;margin-top:.4em}
+#ttl .rec{font-size:2.8em;color:#fff;background:rgba(6,12,36,.62);padding:.3em .9em;border-radius:.8em;white-space:nowrap}
+#ttl .rec b{color:#ffd23f;margin:0 .2em}
+/* 操作ボタン：スマホの縦画面ではゲームのすぐ下に大きく出す。それ以外は、ゲームの下の帯に重ねる（左に ← →、右にジャンプ。2本の指で同時に押せる） */
+#pads{position:fixed;z-index:4;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#pads[hidden]{display:none}
+.pad{box-sizing:border-box;position:absolute;top:0;height:100%;border-radius:1.6em;border:.4em solid #fff;background:rgba(255,255,255,.14);color:#fff;font-family:DELA,MPR,sans-serif;font-weight:400;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-tap-highlight-color:transparent}
+.pad.on{background:#ffd23f;color:#111;border-color:#ffd23f}
+#bL{left:2%;width:19%;font-size:6em}#bR{left:23%;width:19%;font-size:6em}#bJ{right:2%;width:34%;font-size:4.6em}
+
+/* 宝石クルーン用（黒と金） */
+@font-face{font-family:JS;src:url(./font/js.woff2) format('woff2');font-weight:100 900;font-display:swap}
+#testBtn{top:.6em}#cfgBtn{top:2.9em}#pauseBtn{top:5.2em}
+#testBtn,#cfgBtn,#pauseBtn{background:rgba(10,6,7,.88);color:#e9c46a;border-color:#a9812f;right:auto;left:.6em;font-size:1.5em;opacity:.0;transition:opacity .2s}
+#stage:hover #testBtn,#stage:hover #cfgBtn,#stage:hover #pauseBtn,#testBtn:focus,#cfgBtn:focus,#pauseBtn:focus{opacity:1}
+@media (hover:none){#testBtn,#cfgBtn,#pauseBtn{opacity:.55}}
+#ttl{background:#070405 url(./img/bg.webp) center/cover;justify-content:center !important;padding-top:0 !important}
+#ttl h1{font-family:JS,'Yu Mincho','Hiragino Mincho ProN',serif;font-size:9em;letter-spacing:.06em;color:#e9c46a;text-shadow:0 .03em 0 #5c4210,0 0 .5em rgba(233,196,106,.35)}
+#ttl h1 small{font-family:JS,'Yu Mincho','Hiragino Mincho ProN',serif;color:#cbbf9f;font-size:.26em;letter-spacing:.1em;margin-top:.6em;text-shadow:none}
+#ttl .rec{font-family:JS,'Yu Mincho',serif;color:#cbbf9f}
+#ttl .rec b{color:#e9c46a}
+#ttl #ttlGo{font-family:JS,'Yu Mincho','Hiragino Mincho ProN',serif;background:linear-gradient(#f3d98b,#b98a2e);color:#1a1004;border:.06em solid #fff3c4;box-shadow:0 .1em 0 #5c4210}
+#ttl button{background:#17100c;border-color:#a9812f;color:#e9c46a}
+#tp{background:rgba(12,7,8,.96) !important;border-color:#a9812f !important}#tp h3{color:#e9c46a !important}
+#ttl .rec{background:rgba(20,12,6,.7);border:1px solid #a9812f}
+#tp .jpset small{flex-basis:100%;color:#cbbf9f}
+#tp .jpset{font-size:2em !important;grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.6em 1.2em;align-items:center;color:#fff}
+#tp .jpset input{font:inherit;padding:.3em .5em;border-radius:.4em;border:1px solid #a9812f;background:#17100c;color:#fff}
+#tp .jpset #jpTx{width:14em}#tp .jpset #jpWin{width:6em}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" width="1920" height="1080"></canvas>
+  <button id="testBtn" type="button">テスト</button>
+  <button id="pauseBtn" type="button" hidden>一時停止</button>
+  <div id="pauseTag" hidden>一時停止中<small>届いたギフトは、再開したら順番に出ます</small></div>
+  <div id="ttl">
+    <h1>宝石クルーン<small>ルビーの穴に 5回つづけて入れば 大当たり</small></h1>
+    <div class="rec" id="ttlRec"></div>
+    <button id="ttlGo" type="button">スタート</button>
+    <div class="sub"><button id="ttlGift" type="button">ギフト設定</button><span id="ttlNote"></span></div>
+  </div>
+  <button id="cfgBtn" type="button"><span class="dot"></span>ギフト</button>
+  <div id="pick" hidden>
+    <div class="top"><b id="pickTitle">ギフトをえらぶ</b><button id="pickClose" type="button">もどる</button></div>
+    <div class="top"><input id="pickQ" type="text" placeholder="名前かコイン数でさがす"></div>
+    <div class="tabs" id="pickTabs"></div>
+    <div id="pickGrid"></div>
+  </div>
+  <div id="cfg" hidden>
+    <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 21:12</small></h2>
+    <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
+    <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
+    <div id="missList"></div></div>
+<button id="cfgClose" type="button">とじる</button></div>
+    <div id="tfSt" class="st">TikFinity：つながっていません</div>
+    <div id="tfDiag" style="white-space:pre-wrap;line-height:1.6;background:#060a20;border:1px solid #6677aa;border-radius:.5em;padding:.6em;margin-top:.5em;font-size:.9em"></div>
+    <p>このPCでTikFinity（デスクトップ版）を開いて配信につなぐと、自動でつながります。つながらない時は <button id="tfRe" type="button">つなぎ直す</button></p>
+  <h3>スマホだけで配信する時（パソコンなし）</h3>
+  <p>TikFinityのかわりに、ネット経由でギフトを受け取ります。tik.tools で取った「APIキー」と、自分のTikTokのユーザー名（@のあとの英数字）を入れて「つなぐ」を押してください。キーはこの端末の中にだけ保存されます。</p>
+  <div class="row"><input id="clUser" type="text" placeholder="TikTokのユーザー名（@なし）" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
+  <div class="row"><input id="clKey" type="password" placeholder="tik.tools のAPIキー" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
+  <p><button id="clOn" type="button">つなぐ</button> <span id="clSt"></span></p>
+    <h3>どのギフトで何が起きるか</h3>
+    <p>緑の「ON」を押すと「OFF」になり、そのギフトは来ても何も起きず、ギフト表からも消えます（割り当ては残るので、もう一度押せば元に戻ります）。</p> <p>効果の名前の下のらんに文字を入れると、ギフト表に出る名前を変えられます（空にすると元の名前に戻ります）。</p> <p>左のわくを押して一覧からギフトをえらびます。「受信で登録」は、押してからそのギフトを1個投げてもらうと確実に結びつきます。未設定の効果はギフトでは起きません。</p>
+    <p><button id="seqLearn" type="button">上から順に受信で登録</button> <span id="seqNote"></span></p>
+    <div id="cfgRows"></div>
+    <h3>ギフト表（配信にのせる用）</h3>
+    <p>下のURLがギフト表です。ギフトを変えると、URLも表も自動で変わります。</p>
+    <div class="row"><input id="tblUrl" type="text" readonly></div>
+    <p>1段の数 <button class="tc" type="button" data-c="6">6</button> <button class="tc" type="button" data-c="7">7</button> <button class="tc" type="button" data-c="9">9</button>　<button id="tblCopy" type="button">URLをコピー</button> <button id="cfgTable" type="button">ひらく</button></p>
+    <p id="tblNote">このChromeで開いた表は、ギフトを変えると数秒で自動で変わります。配信ソフトにURLを貼る場合は、ギフトを変えたあとにもう一度コピーして貼り直してください。</p>
+    <h3>ギフト以外</h3>
+    <div class="row jam"><div class="nm">コメント<small>宝石が1個入る（同じ人は30秒に1回）</small></div><button id="optChat" type="button"></button></div>
+    <div class="row jam"><div class="nm">いいね1000回<small>宝石が3個入る</small></div><button id="optLike" type="button"></button></div>
+    <div class="row help"><div class="nm">フォロー<small>宝石が5個入る</small></div><button id="optFollow" type="button"></button></div>
+    <div class="row both"><div class="nm">ギフト表のコイン数<small>オフにすると、ギフト表のギフトの絵にコイン数を出さない</small></div><button id="optCoin" type="button"></button></div>
+    <h3>画面にのせる文字と写真（スマホの縦画面）</h3>
+    <p>文字はゲームのすぐ下（視聴者数の右）に、写真はコメントらんの右に小さく出ます。この端末にだけ保存されます。</p>
+    <textarea id="memoTx" maxlength="40" placeholder="例：初見さん歓迎！ギフトで妨害できるよ"></textarea>
+    <img id="phPrev" alt="" hidden>
+    <div class="row" style="border:0"><input id="phFile" type="file" accept="image/*" hidden><button id="phPick" type="button">写真をえらぶ</button><button id="phDel" type="button" class="x">写真を消す</button><span id="phSt" style="font-size:.85em;color:#ffb0b8"></span></div>
+    <div class="row" style="border:0"><button id="phMinus" type="button">写真を小さく</button><button id="phPlus" type="button">写真を大きく</button><button id="phReset" type="button">元の大きさ</button><span id="phZ" style="font-size:.9em"></span></div>
+    <p>大きくして、わくからはみ出した分は切れます。</p>
+    <h3>届いたもの（新しい順）</h3>
+    <div id="tfLog">まだ何も届いていません</div>
+    <p id="viewDbg" style="font-size:.7em;color:#6f7fa8"></p>
+    <h3>調査用：TikFinityから届いた生データ</h3>
+    <p>ギフトが反応しない時は、ここをスクショして送ってください。</p>
+    <div id="tfRaw" style="font-size:.7em;line-height:1.4;background:#060a20;border-radius:.5em;padding:.6em;min-height:3em;max-height:22em;overflow:auto;white-space:pre-wrap;word-break:break-all;color:#9ab">まだ何も届いていません</div>
+    <h3>設定の持ち運び</h3>
+    <p><b>人に配る時：</b>下のボタンでリンクを作って送ると、相手はそのリンクを開くだけで、あなたと同じギフトの割り当てになります（APIキーとユーザー名は入りません）。</p>
+    <p><button id="shareMk" type="button" style="background:#1f8f3c">配る用のリンクを作る</button> <span id="shareSt" style="font-size:.85em;color:#9dffb8"></span></p>
+    <p>下の文字をコピーして別の端末のここに貼り、「読みこむ」を押すと同じ設定になります。</p>
+    <textarea id="cfgIO"></textarea>
+    <p><button id="cfgExp" type="button">書き出す</button> <button id="cfgImp" type="button">読みこむ</button></p>
+  </div>
+  <div id="tp" hidden>
+    <h3>宝石を入れる</h3>
+    <button class="j" data-a="gem1">宝石×1</button><button class="j" data-a="gem5">宝石×5</button><button class="j" data-a="gem10">宝石×10</button><button class="j" data-a="gem30">宝石×30</button><button class="j" data-a="gem100">宝石×100</button><button class="j" data-a="gem500">宝石×500</button>
+    <h3>とちゅうの段から入れる</h3>
+    <button class="j" data-a="from3">3段目から</button><button class="j" data-a="from4">4段目から</button><button class="j" data-a="from5">FINALから</button>
+    <h3>そのほか</h3>
+    <button class="j" data-a="dbl">確変<br>当たり穴が2つ</button><button class="j" data-a="shake">皿をゆらす</button><button class="h" data-a="cap">フタ<br>当たり穴をふさぐ</button><button class="h" data-a="wipe">全消し</button>
+    <h3>無料（コメント・いいね・フォロー）</h3>
+    <button class="j" data-a="comment">コメント<br>宝石1個</button><button class="j" data-a="like">いいね×1000<br>宝石3個</button><button class="j" data-a="follow">フォロー<br>宝石5個</button>
+    <h3>大当たりの時</h3>
+    <div class="jpset"><label>出す文字 <input id="jpTx" maxlength="16" placeholder="例：罰ゲーム！"></label><label>Winカウンターに足す数 <input id="jpWin" type="number" step="1" placeholder="0"></label><small>0なら何もしません。マイナスにすると減ります（オーバーレイのWinカウンターと同じ端末で開いている時）</small></div>
+    <h3>音</h3>
+    <button class="g" id="optBgm">BGM</button><button class="g" id="optSe">効果音</button><button class="g" id="optTrack">曲</button>
+    <h3>その他</h3>
+    <button class="n" data-a="reset">最初からやり直す</button><button class="n" data-a="title">タイトルに戻る</button><button class="n" data-a="close">とじる</button>
+  </div>
+</div>
+<div id="below"><div id="binfo"><div id="viewers"><small>視聴</small><span id="viewN">–</span></div><div id="memo"></div></div><div id="frow"><div id="feed"><div class="ln hint">ここにコメント・ギフト・フォローが流れます</div></div><div id="photo"></div></div><iframe id="gtbl" title="ギフト表"></iframe></div>
+<script>
+/* ギフトの初期割り当てを作り直した時は番号を上げる（古い保存を捨てて、新しい初期値にする） */
+try{ if(localStorage.getItem('jewel_gv')!=='1'){ localStorage.removeItem('jewel_gifts'); localStorage.setItem('jewel_gv','1'); } }catch(e){}
+'use strict';
+const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
+const VER='1128-211236';
+let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
+/* ===== 宝石クルーン：黒い大理石の皿が5段。宝石は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
+   ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで宝石が増える ===== */
+const W=1920, H=1080, FONT="MPR,'Hiragino Maru Gothic ProN','Noto Sans JP',sans-serif", FONTD="JS,'Yu Mincho','Hiragino Mincho ProN','Noto Serif JP','Noto Serif CJK JP',serif";
+const rand=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t, pick=a=>a[Math.floor(Math.random()*a.length)], fmt=n=>Math.round(n).toLocaleString('en-US');
+const TAU=Math.PI*2, GOLD='#e9c46a', GOLDD='#a9812f', RUBY='#ff3b5c';
+/* 皿（5段）。x,y＝まん中、R＝皿の大きさ。Ri＝宝石が動ける内がわ、rh＝穴がならぶ輪の半径、hr＝穴の半径、gr＝宝石の半径、w＝皿が回る速さ */
+const DISH=[{x:330,y:340,R:255},{x:700,y:700,R:215},{x:1040,y:370,R:190},{x:1345,y:715,R:165},{x:1630,y:400,R:145}].map((d,i)=>Object.assign(d,{i,Ri:d.R*.795,rh:d.R*.43,hr:d.R*.17,gr:15*Math.sqrt(d.R/255),s:d.R/255,w:(i%2?-1:1)*(.16+i*.035),a0:i*1.3}));
+const NAME=['1st','2nd','3rd','4th','FINAL'], LAST=DISH.length-1;
+/* 調整する数字。maxIn＝1つの皿に同時に入れる数、feed＝宝石を出す間かく（秒）、vcap＝この速さより遅いと穴に落ちる、capSec＝フタの秒数、dblSec＝確変の秒数 */
+const CFG={maxIn:[26,22,18,16,14], feed:.2, feedFast:.1, vcap:235, K:1400, A:1700, drag:.36, mu:26, capSec:20, dblSec:30, qMax:3000};
+const IMG={}; for(const k of ['bg','plate','ring_gold','ring_ruby','cap','gem0','gem1','gem2','gem3','gem4','gem5']){ const im=new Image(); im.src='./img/'+k+'.webp'; IMG[k]=im; }
+const ok=k=>IMG[k] && IMG[k].complete && IMG[k].naturalWidth>0;
+/* 当たったときの設定（この端末に保存）。text＝大当たりの時に出す文字、win＝オーバーレイのWinカウンターに足す数（0なら何もしない） */
+const JP=(()=>{ try{ return Object.assign({text:'',win:0},JSON.parse(localStorage.getItem('jewel_jp')||'{}')); }catch(e){ return {text:'',win:0}; } })();
+function jpSave(){ try{ localStorage.setItem('jewel_jp',JSON.stringify(JP)); }catch(e){} }
+let S, T=0, best=0, likeAcc=0; const CMT={}; try{ best=+(localStorage.getItem('jewel_total')||0)||0; }catch(e){}
+
+function reset(){ S={gems:[],fly:[],q:[],qT:0,parts:[],log:[],ban:null,flash:0,shake:0,capT:0,dblT:0,jp:null,jpN:0,reach:[0,0,0,0,0],lastSe:{}}; }
+function logAdd(s,c){ S.log.unshift({s,c:c||'#fff',t:30}); if(S.log.length>8) S.log.length=8; }
+function banner(a,c,b){ S.ban={a,c:c||GOLD,b:b||'',t:2.4}; }
+function burst(x,y,col,n,v){ for(let i=0;i<n;i++){ const a=rand(0,TAU), sp=rand(v*.3,v); S.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,t:rand(.35,.8),s:rand(3,8),c:pick([col,'#fff',GOLD])}); } }
+const se=(k,v,gap)=>{ if(S.lastSe[k] && T-S.lastSe[k]<(gap||.12)) return; S.lastSe[k]=T; play(k,v); };
+
+/* ===== 皿の上の計算。宝石の位置は「皿といっしょに回る目線」で持っておき、描く時に皿の回転ぶん回す ===== */
+const ang=i=>DISH[i].a0+DISH[i].w*T;
+const holePos=(d,k)=>{ const a=k*TAU/3; return [Math.cos(a)*d.rh,Math.sin(a)*d.rh]; };
+const toScreen=(d,x,y)=>{ const a=ang(d.i), c=Math.cos(a), s=Math.sin(a); return [d.x+x*c-y*s,d.y+x*s+y*c]; };
+const isWin=k=>k===0 || (S.dblT>0 && k===1);
+const capped=k=>S.capT>0 && isWin(k);
+const countIn=i=>{ let n=0; for(const q of S.gems) if(q.d===i) n++; for(const f of S.fly) if(f.to===i) n++; return n; };
+/* 宝石を皿のふちから入れる。fromX,fromY＝どこから飛んできたか（その方向のふちから、ふちに沿って転がり出す） */
+function enter(i,type,by,fromX,fromY){ const d=DISH[i], phi=Math.atan2(fromY-d.y,fromX-d.x)+rand(-.12,.12), a=phi-ang(i), r=d.Ri-d.gr-2, dir=i%2?-1:1, v=rand(600,800)*d.s, vin=rand(10,90)*d.s;
+  S.gems.push({d:i,x:Math.cos(a)*r,y:Math.sin(a)*r,vx:-Math.sin(a)*v*dir-Math.cos(a)*vin,vy:Math.cos(a)*v*dir-Math.sin(a)*vin,t:type,by:by||null,rot:rand(0,TAU),st:'roll',ft:0,hole:-1,age:0}); S.reach[i]++; }
+function flyTo(i,type,by,x0,y0,dur){ const d=DISH[i], a=Math.atan2(y0-d.y,x0-d.x), r=d.Ri-d.gr; S.fly.push({x0,y0,x1:d.x+Math.cos(a)*r,y1:d.y+Math.sin(a)*r,t:0,dur:dur||.5,type,by:by||null,to:i}); }
+function stepGem(q,dt){ const d=DISH[q.d]; q.age+=dt;
+  if(q.st==='fall'){ q.ft+=dt; const [hx,hy]=holePos(d,q.hole); q.x=lerp(q.x,hx,Math.min(1,dt*14)); q.y=lerp(q.y,hy,Math.min(1,dt*14)); if(q.ft>=.34) landed(q); return; }
+  let r=Math.hypot(q.x,q.y)||1e-6; const nx=q.x/r, ny=q.y/r, sp0=Math.hypot(q.vx,q.vy);
+  /* 皿のかたむき：穴のならぶ輪がいちばん低い（外からは内へ、まん中からは外へ） */
+  let ax=-nx*CFG.K*d.s*(r-d.rh)/d.Ri, ay=-ny*CFG.K*d.s*(r-d.rh)/d.Ri;
+  for(let k=0;k<3;k++){ const [hx,hy]=holePos(d,k), dx=hx-q.x, dy=hy-q.y, dd=Math.hypot(dx,dy)||1e-6; if(dd>d.hr*2.2) continue;
+    const f=dd<d.hr?(.35+.65*dd/d.hr):(2.2*d.hr-dd)/(1.2*d.hr);
+    if(capped(k)){ ax-=dx/dd*CFG.A*d.s*f*.8; ay-=dy/dd*CFG.A*d.s*f*.8; continue; }   /* フタがある穴は、もり上がっていて入れない */
+    ax+=dx/dd*CFG.A*d.s*f; ay+=dy/dd*CFG.A*d.s*f;
+    if((dd<d.hr*.62 && sp0<CFG.vcap*d.s) || (q.age>16 && dd<d.hr)){ q.st='fall'; q.ft=0; q.hole=k; q.win=isWin(k); return; } }
+  if(q.age>8){ let bk=-1, bd=1e9; for(let k=0;k<3;k++){ if(capped(k)) continue; const [hx,hy]=holePos(d,k), dd=Math.hypot(hx-q.x,hy-q.y); if(dd<bd){ bd=dd; bk=k; } } if(bk>=0 && bd>1){ const [hx,hy]=holePos(d,bk), f=Math.min(1,(q.age-8)/3)*320*d.s; ax+=(hx-q.x)/bd*f; ay+=(hy-q.y)/bd*f; } }   /* 長く止まりそうな時は、いちばん近い穴へ少しずつ引っぱって必ず落とす */
+  q.vx+=ax*dt; q.vy+=ay*dt; const sp=Math.hypot(q.vx,q.vy); if(sp>0){ const k=Math.max(0,sp-(CFG.drag*sp+CFG.mu*d.s)*dt)/sp; q.vx*=k; q.vy*=k; }
+  q.x+=q.vx*dt; q.y+=q.vy*dt; q.rot+=sp*dt/d.gr*.35;
+  r=Math.hypot(q.x,q.y); const lim=d.Ri-d.gr; if(r>lim){ const ux=q.x/r, uy=q.y/r, vn=q.vx*ux+q.vy*uy; if(vn>0){ q.vx-=vn*ux*1.08; q.vy-=vn*uy*1.08; } q.x=ux*lim; q.y=uy*lim; } }
+function collide(){ const g=S.gems; for(let i=0;i<g.length;i++){ const a=g[i]; if(a.st!=='roll') continue; const d=DISH[a.d], m=d.gr*2; for(let j=i+1;j<g.length;j++){ const b=g[j]; if(b.d!==a.d || b.st!=='roll') continue; const dx=b.x-a.x, dy=b.y-a.y; if(Math.abs(dx)>m || Math.abs(dy)>m) continue; const dd=Math.hypot(dx,dy); if(dd>=m || dd<1e-6) continue;
+      const ux=dx/dd, uy=dy/dd, ov=(m-dd)/2; a.x-=ux*ov; a.y-=uy*ov; b.x+=ux*ov; b.y+=uy*ov; const rv=(b.vx-a.vx)*ux+(b.vy-a.vy)*uy; if(rv<0){ const jm=-rv*.92; a.vx-=ux*jm; a.vy-=uy*jm; b.vx+=ux*jm; b.vy+=uy*jm; } } } }
+/* 穴に落ちきった時 */
+function landed(q){ const d=DISH[q.d], [hx,hy]=holePos(d,q.hole), [sx,sy]=toScreen(d,hx,hy); q.dead=true;
+  if(!q.win){ for(let i=0;i<4;i++) S.parts.push({x:sx,y:sy,vx:rand(-40,40),vy:rand(-70,-10),t:rand(.3,.6),s:rand(3,6),c:'#6b6252'}); if(q.d===LAST){ se('bad',.35,.6); logAdd((q.by?q.by+' の宝石':'宝石')+'：FINAL ではずれ…','#b9b2a3'); } return; }
+  burst(sx,sy,RUBY,8+q.d*4,180+q.d*40);
+  if(q.d<LAST){ const n=q.d+1; flyTo(n,q.t,q.by,sx,sy,.55); if(n===LAST){ se('jean',.5,.5); banner('FINAL に入った！',RUBY,q.by?q.by+' の宝石':''); logAdd((q.by?q.by+' の宝石':'宝石')+' が FINAL へ',RUBY); } else se('bell',.22+q.d*.08,.14); return; }
+  jackpot(q); }
+function jackpot(q){ S.jpN++; best++; try{ localStorage.setItem('jewel_total',String(best)); }catch(e){} S.jp={t:6,by:q.by,type:q.t}; S.flash=.6; S.shake=.7; const d=DISH[LAST]; burst(d.x,d.y,GOLD,90,900); burst(W/2,H/2,GOLD,120,1100);
+  play('fanfare',.8); play('cheer',.75); play('clap',.6); logAdd('大当たり！'+(q.by?'（'+q.by+'）':''),GOLD);
+  if(JP.win){ try{ let v=0; try{ v=JSON.parse(localStorage.getItem('ov_win')||'0')|0; }catch(e){} v=clamp(v+(JP.win|0),-999999,999999); localStorage.setItem('ov_win',String(v)); }catch(e){} } }
+
+/* ===== 音（効果音は効果音ラボ、BGMは甘茶の音楽工房） ===== */
+const SND=['glass','bell','don','bad','cheer','clap','swing','heavy','fanfare','jean'], sndBuf={}; let actx=null, seGain=null, bgmGain=null, bgmSrc=null, bgmNow='';
+/* 音の設定（この端末に保存）。bgm＝BGMを鳴らすか、se＝効果音を鳴らすか、track＝BGMの曲（bgm1＝ハッピータイム、bgm2＝うずまき。どちらも甘茶の音楽工房） */
+const OPTS=(()=>{ try{ return Object.assign({bgm:0,se:1,track:'bgm1'},JSON.parse(localStorage.getItem('jewel_snd')||'{}')); }catch(e){ return {bgm:0,se:1,track:'bgm1'}; } })(); if(OPTS.track!=='bgm1' && OPTS.track!=='bgm2') OPTS.track='bgm1';
+function audioInit(){ if(actx) return; try{ actx=new (window.AudioContext||window.webkitAudioContext)(); seGain=actx.createGain(); seGain.gain.value=.8; const hs=actx.createBiquadFilter(); hs.type='highshelf'; hs.frequency.value=5000; hs.gain.value=-6; seGain.connect(hs); hs.connect(actx.destination); bgmGain=actx.createGain(); bgmGain.gain.value=0; bgmGain.connect(actx.destination);
+  for(const k of SND) fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>actx.decodeAudioData(b)).then(b=>{ sndBuf[k]=b; }).catch(()=>{}); bgmLoad(OPTS.track); }catch(e){} }
+function bgmLoad(k){ if(!actx) return; if(sndBuf[k]){ bgmStart(); return; } fetch('./snd/'+k+'.mp3').then(r=>r.arrayBuffer()).then(b=>actx.decodeAudioData(b)).then(b=>{ sndBuf[k]=b; bgmStart(); }).catch(()=>{}); }
+function bgmStart(){ const k=OPTS.track; if(!actx || !sndBuf[k] || bgmNow===k) return; try{ if(bgmSrc){ bgmSrc.stop(); bgmSrc.disconnect(); } }catch(e){} bgmSrc=actx.createBufferSource(); bgmSrc.buffer=sndBuf[k]; bgmSrc.loop=true; bgmSrc.connect(bgmGain); bgmSrc.start(); bgmNow=k; }
+setInterval(()=>{ if(!bgmGain) return; const tg=OPTS.bgm?(PAUSE?.08:.2):0; bgmGain.gain.value+=(tg-bgmGain.gain.value)*.15; window.__bgm={tg,g:+bgmGain.gain.value.toFixed(3),now:bgmNow}; },50);
+const SE_LAST={};   /* 同じ音が一度にたくさん重なって、うるさくならないようにする（同じ音は0.05秒あける） */
+function play(k,v){ if(!actx || !sndBuf[k] || !OPTS.se) return; const now=actx.currentTime; if(SE_LAST[k] && now-SE_LAST[k]<.05) return; SE_LAST[k]=now; try{ const s=actx.createBufferSource(), gn=actx.createGain(); s.buffer=sndBuf[k]; gn.gain.value=v==null?.7:v; s.connect(gn); gn.connect(seGain); s.start(); }catch(e){} }
+window.addEventListener('pointerdown',()=>{ audioInit(); if(actx && actx.state==='suspended') actx.resume(); },{passive:true});
+
+/* ===== ギフトで起きること ===== */
+const GEMS={gem1:[1,0],gem5:[5,1],gem10:[10,2],gem30:[30,5],gem100:[100,3],gem500:[500,4]};
+function qLeft(){ let n=0; for(const b of S.q) n+=b.n; return n; }
+function addGems(n,type,by,quiet){ const room=CFG.qMax-qLeft(); n=Math.min(n,room); if(n<=0){ logAdd((by||'だれか')+' の宝石（いっぱいで入らなかった）','#9a927f'); return; } S.q.push({n,t:type,by:by||null});
+  if(!quiet){ logAdd((by||'だれか')+' が 宝石 ×'+n,GOLD); if(n>=100){ banner('宝石 ×'+n+'！',GOLD,(by||'だれか')+' さん'); se('cheer',.5,1); S.flash=Math.max(S.flash,.15); } else if(n>=10) se('swing',.3,.3); } }
+function fromStage(i,by){ const d=DISH[i]; flyTo(i,4,by,d.x+rand(-60,60),-40,.6); logAdd((by||'だれか')+' が '+NAME[i]+' に宝石を直接入れた','#9fe7ff'); banner(NAME[i]+' から スタート！','#9fe7ff',(by||'だれか')+' さん'); se('swing',.4,.2); if(i===LAST) se('jean',.5,.5); }
+const Game={
+  start(){ audioInit(); play('bell',.4); reset(); TITLE=false; ttlUI(); },
+  title(){ setPause(false,true); reset(); TITLE=true; ttlUI(); },
+  reset(){ reset(); },
+  from3(n){ fromStage(2,n); }, from4(n){ fromStage(3,n); }, from5(n){ fromStage(4,n); },
+  /* ゆらす：皿の上の宝石をぜんぶはじく */
+  shake(n){ for(const q of S.gems){ if(q.st!=='roll') continue; const d=DISH[q.d]; q.vx+=rand(-1,1)*420*d.s; q.vy+=rand(-1,1)*420*d.s; q.age=Math.min(q.age,4); } S.shake=Math.max(S.shake,.45); se('don',.6,.3); logAdd((n||'だれか')+' が 皿をゆらした','#ffb38a'); },
+  /* フタ：当たりの穴にフタをする（妨害） */
+  cap(n){ S.capT=Math.min(120,Math.max(S.capT,0)+CFG.capSec); se('heavy',.6,.3); banner('当たりの穴に フタ！','#c9c2b0',(n||'だれか')+' さん（'+CFG.capSec+'秒）'); logAdd((n||'だれか')+' が 当たりの穴にフタをした','#c9c2b0'); },
+  /* 確変：当たりの穴が2つになる */
+  dbl(n){ S.dblT=Math.min(180,Math.max(S.dblT,0)+CFG.dblSec); S.flash=Math.max(S.flash,.3); play('bell',.5); se('cheer',.6,1); banner('確変！ 当たりの穴が2つ',RUBY,(n||'だれか')+' さん（'+CFG.dblSec+'秒）'); logAdd((n||'だれか')+' が 確変をはじめた',RUBY); },
+  /* 全消し：皿の上の宝石と、待っている宝石をぜんぶ消す（妨害） */
+  wipe(n){ for(const q of S.gems){ const d=DISH[q.d], [sx,sy]=toScreen(d,q.x,q.y); burst(sx,sy,'#8d8674',3,160); } S.gems=[]; S.fly=[]; S.q=[]; S.flash=Math.max(S.flash,.25); se('glass',.5,.3); banner('全消し…','#c9c2b0',(n||'だれか')+' さん'); logAdd((n||'だれか')+' が 宝石をぜんぶ消した','#c9c2b0'); },
+  /* 無料の反応。コメント＝宝石1個（同じ人は30秒に1回）、いいね1000回ごと＝宝石3個、フォロー＝宝石5個、シェア＝宝石3個、サブスク＝宝石30個 */
+  comment(n){ const now=performance.now(), k=String(n||''); if(CMT[k] && now-CMT[k]<30000) return; CMT[k]=now; addGems(1,0,n,true); },
+  like(c,n){ likeAcc+=Math.max(1,c|0); let k=0; while(likeAcc>=1000 && k<3){ likeAcc-=1000; k++; addGems(3,0,n,true); } if(likeAcc>=1000) likeAcc=likeAcc%1000; },
+  follow(n){ addGems(5,1,n); }, share(n){ addGems(3,0,n); }, subscribe(n){ addGems(30,5,n); } };
+for(const k in GEMS) Game[k]=n=>addGems(GEMS[k][0],GEMS[k][1],n);
+
+/* ===== 進める ===== */
+function update(dt){ T+=dt; if(S.shake>0) S.shake=Math.max(0,S.shake-dt); if(S.flash>0) S.flash=Math.max(0,S.flash-dt); if(S.ban){ S.ban.t-=dt; if(S.ban.t<=0) S.ban=null; } if(S.jp){ S.jp.t-=dt; if(S.jp.t<=0) S.jp=null; }
+  if(S.capT>0) S.capT=Math.max(0,S.capT-dt); if(S.dblT>0) S.dblT=Math.max(0,S.dblT-dt);
+  for(const l of S.log) l.t-=dt; S.log=S.log.filter(l=>l.t>0);
+  for(const p of S.parts){ p.t-=dt; p.vx*=1-1.5*dt; p.vy*=1-1.5*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; } S.parts=S.parts.filter(p=>p.t>0); if(S.parts.length>700) S.parts.splice(0,S.parts.length-700);
+  /* 待っている宝石を、左上から1段目へ順に出す */
+  if(S.q.length){ S.qT-=dt; let guard=0; while(S.q.length && S.qT<=0 && countIn(0)<CFG.maxIn[0] && guard++<4){ const b=S.q[0]; flyTo(0,b.n>1||b.mix?pick([0,1,2,3,5]):b.t,b.by,rand(20,70),rand(-30,10),.32); b.mix=1; if(--b.n<=0) S.q.shift(); S.qT+=qLeft()>60?CFG.feedFast:CFG.feed; } if(S.qT<-.5) S.qT=0; }
+  for(const f of S.fly){ f.t+=dt; if(f.t>=f.dur){ f.done=true; enter(f.to,f.type,f.by,f.x0,f.y0); } } S.fly=S.fly.filter(f=>!f.done);
+  for(const q of S.gems) stepGem(q,dt); collide(); S.gems=S.gems.filter(q=>!q.dead); }
+
+/* ===== 描く ===== */
+function txt(s,x,y,size,color,align,stroke,font){ g.font='900 '+size+'px '+(font||FONT); g.textAlign=align||'left'; g.textBaseline='middle'; if(stroke){ g.lineJoin='round'; g.lineWidth=Math.max(5,size*.2); g.strokeStyle=stroke; g.strokeText(s,x,y); } g.fillStyle=color||'#fff'; g.fillText(s,x,y); }
+function gold(s,x,y,size,align){ g.font='900 '+size+'px '+FONTD; g.textAlign=align||'center'; g.textBaseline='middle'; g.lineJoin='round'; g.lineWidth=Math.max(5,size*.16); g.strokeStyle='#120b02'; g.strokeText(s,x,y); const gr=g.createLinearGradient(0,y-size*.55,0,y+size*.55); gr.addColorStop(0,'#fff3c4'); gr.addColorStop(.45,'#e9c46a'); gr.addColorStop(.55,'#b98a2e'); gr.addColorStop(1,'#f3d98b'); g.fillStyle=gr; g.fillText(s,x,y); }
+function rr(x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+function panel(x,y,w,h){ g.fillStyle='rgba(8,5,6,.72)'; rr(x,y,w,h,14); g.fill(); g.strokeStyle=GOLDD; g.lineWidth=2.5; g.stroke(); g.strokeStyle='rgba(233,196,106,.35)'; g.lineWidth=1; rr(x+7,y+7,w-14,h-14,9); g.stroke(); }
+function gem(type,x,y,r,rot,a){ g.save(); g.translate(x,y); if(a!=null) g.globalAlpha=a; g.fillStyle='rgba(0,0,0,.45)'; g.beginPath(); g.ellipse(r*.18,r*.3,r*.95,r*.8,0,0,TAU); g.fill(); g.rotate(rot||0); const k='gem'+type, z=r*1.18; if(ok(k)) g.drawImage(IMG[k],-z,-z,z*2,z*2); else { g.fillStyle='#4aa3ff'; g.beginPath(); g.arc(0,0,r,0,TAU); g.fill(); } g.restore(); }
+function drawDish(d){ const a=ang(d.i);
+  g.save(); g.translate(d.x,d.y);
+  g.fillStyle='rgba(0,0,0,.55)'; g.beginPath(); g.ellipse(10,16,d.R*1.02,d.R*1.02,0,0,TAU); g.fill();
+  /* 皿の絵（皿ごとゆっくり回る） */
+  g.save(); g.rotate(a); if(ok('plate')) g.drawImage(IMG.plate,-d.R,-d.R,d.R*2,d.R*2); else { g.fillStyle='#0c0a0b'; g.beginPath(); g.arc(0,0,d.R,0,TAU); g.fill(); g.strokeStyle=GOLD; g.lineWidth=d.R*.1; g.stroke(); } g.restore();
+  /* まん中の小さな山と、穴がならぶ輪をうっすら見せる */
+  g.strokeStyle='rgba(233,196,106,.16)'; g.lineWidth=1.5; g.beginPath(); g.arc(0,0,d.rh,0,TAU); g.stroke();
+  { const gr=g.createRadialGradient(-d.R*.03,-d.R*.04,0,0,0,d.R*.16); gr.addColorStop(0,'rgba(255,240,200,.16)'); gr.addColorStop(1,'rgba(255,240,200,0)'); g.fillStyle=gr; g.beginPath(); g.arc(0,0,d.R*.16,0,TAU); g.fill(); }
+  g.rotate(a);
+  for(let k=0;k<3;k++){ const [hx,hy]=holePos(d,k), win=isWin(k), z=d.hr*1.36;
+    if(win){ const pu=.55+.45*Math.sin(T*5+d.i), gr=g.createRadialGradient(hx,hy,d.hr*.6,hx,hy,d.hr*2.3); gr.addColorStop(0,'rgba(255,40,80,'+(.5*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(255,40,80,0)'); g.fillStyle=gr; g.beginPath(); g.arc(hx,hy,d.hr*2.3,0,TAU); g.fill(); }
+    g.save(); g.translate(hx,hy); g.rotate(-a); const key=win?'ring_ruby':'ring_gold'; if(ok(key)) g.drawImage(IMG[key],-z,-z,z*2,z*2); else { g.fillStyle='#000'; g.beginPath(); g.arc(0,0,d.hr,0,TAU); g.fill(); g.strokeStyle=win?RUBY:GOLD; g.lineWidth=d.hr*.3; g.stroke(); }
+    if(capped(k)){ const left=S.capT, al=left<3?(Math.floor(T*8)%2?.55:1):1; g.globalAlpha=al; if(ok('cap')) g.drawImage(IMG.cap,-z,-z,z*2,z*2); else { g.fillStyle=GOLD; g.beginPath(); g.arc(0,0,d.hr*1.2,0,TAU); g.fill(); } g.globalAlpha=1; }
+    g.restore(); }
+  g.restore(); }
+function drawGems(i){ const d=DISH[i]; for(const q of S.gems){ if(q.d!==i) continue; const [sx,sy]=toScreen(d,q.x,q.y); if(q.st==='fall'){ const k=clamp(q.ft/.34,0,1); gem(q.t,sx,sy,d.gr*(1-.65*k),q.rot,1-k*.85); } else gem(q.t,sx,sy,d.gr,q.rot+ang(i)); } }
+function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-1,1)*S.shake*11:0; g.setTransform(1,0,0,1,0,0);
+  if(ok('bg')) g.drawImage(IMG.bg,0,0,W,H); else { g.fillStyle='#0b0507'; g.fillRect(0,0,W,H); }
+  g.save(); g.translate(sx,sy);
+  /* 段をつなぐ細い金の線（当たりの宝石が飛ぶ道すじ） */
+  g.setLineDash([3,11]); g.strokeStyle='rgba(233,196,106,.32)'; g.lineWidth=2; for(let i=0;i<LAST;i++){ const a=DISH[i], b=DISH[i+1], dx=b.x-a.x, dy=b.y-a.y, L=Math.hypot(dx,dy); g.beginPath(); g.moveTo(a.x+dx/L*(a.R+6),a.y+dy/L*(a.R+6)); g.lineTo(b.x-dx/L*(b.R+6),b.y-dy/L*(b.R+6)); g.stroke(); } g.setLineDash([]);
+  for(const d of DISH){ drawDish(d); drawGems(d.i); }
+  /* 段の名前 */
+  for(const d of DISH){ const y=d.y+d.R+30; gold(NAME[d.i],d.x,y,d.i===LAST?40:32); }
+  /* 飛んでいる宝石 */
+  for(const f of S.fly){ const k=clamp(f.t/f.dur,0,1), e=k*k*(3-2*k), x=lerp(f.x0,f.x1,e), y=lerp(f.y0,f.y1,e)-Math.sin(k*Math.PI)*(f.to?70:20), r=DISH[f.to].gr*(1+.5*Math.sin(k*Math.PI)); if(f.to){ const gr=g.createRadialGradient(x,y,0,x,y,r*3); gr.addColorStop(0,'rgba(255,220,140,.55)'); gr.addColorStop(1,'rgba(255,220,140,0)'); g.fillStyle=gr; g.beginPath(); g.arc(x,y,r*3,0,TAU); g.fill(); } gem(f.type,x,y,r,k*9); }
+  for(const p of S.parts){ g.globalAlpha=clamp(p.t*3,0,1); g.fillStyle=p.c; g.beginPath(); g.arc(p.x,p.y,p.s/2,0,TAU); g.fill(); } g.globalAlpha=1;
+  g.restore();
+  /* 上：題名 */
+  gold('宝石クルーン',930,92,66); txt('ルビーの穴に 5回つづけて入れば 大当たり',930,150,24,'#cbbf9f','center','#000',FONTD);
+  /* 右上：大当たりの回数と、待っている宝石 */
+  panel(1500,34,386,196); txt('大当たり',1530,78,30,GOLD,'left',null,FONTD); gold(fmt(S.jpN),1790,104,S.jpN>=100?64:84,'right'); txt('回',1800,116,30,GOLD,'left',null,FONTD); txt('通算 '+fmt(best)+' 回',1856,160,20,'#a89d82','right',null,FONTD);
+  { const n=qLeft(); txt('待ちの宝石',1530,198,22,'#cbbf9f','left',null,FONTD); txt(fmt(n)+' 個',1856,198,26,n?'#fff':'#857c68','right',null,FONTD); }
+  /* 左下：ギフトのログ */
+  panel(46,668,412,376); txt('ギフトログ',252,702,26,GOLD,'center',null,FONTD);
+  g.save(); g.beginPath(); g.rect(58,722,388,312); g.clip(); for(let i=0;i<S.log.length;i++){ const l=S.log[i]; g.globalAlpha=clamp(l.t,0,1)*(i===0?1:.8); let fs=21; g.font='900 '+fs+'px '+FONT; const wd=g.measureText(l.s).width; if(wd>372) fs=Math.max(13,Math.floor(21*372/wd)); txt(l.s,252,746+i*37,fs,l.c,'center','#000'); } g.restore(); g.globalAlpha=1;
+  /* 右下：いまの状態と、各段に届いた数 */
+  panel(1556,640,330,404); txt('とどいた数',1721,674,26,GOLD,'center',null,FONTD);
+  for(let i=0;i<=LAST;i++){ const y=722+i*44; txt(NAME[i],1586,y,24,i===LAST?RUBY:'#cbbf9f','left',null,FONTD); txt(fmt(S.reach[i]),1856,y,26,'#fff','right',null,FONTD); }
+  { const y=954; g.strokeStyle='rgba(233,196,106,.35)'; g.lineWidth=1; g.beginPath(); g.moveTo(1580,y-22); g.lineTo(1862,y-22); g.stroke();
+    if(S.dblT>0) txt('確変 のこり '+Math.ceil(S.dblT)+'秒',1721,y+4,24,RUBY,'center',null,FONTD); else txt('確変なし',1721,y+4,20,'#6f6756','center',null,FONTD);
+    if(S.capT>0) txt('フタ のこり '+Math.ceil(S.capT)+'秒',1721,y+46,24,'#e6dcc3','center',null,FONTD); else txt('フタなし',1721,y+46,20,'#6f6756','center',null,FONTD); }
+  if(S.ban && !S.jp){ const k=clamp(S.ban.t*3,0,1); g.globalAlpha=k; panel(W/2-330+50,934,660,112); txt(S.ban.a,W/2+50,S.ban.b?974:990,40,S.ban.c,'center','#000',FONTD); if(S.ban.b) txt(S.ban.b,W/2+50,1020,22,'#e6dcc3','center',null,FONTD); g.globalAlpha=1; }
+  if(S.flash>0){ g.fillStyle='rgba(255,240,200,'+Math.min(.8,S.flash*1.3).toFixed(2)+')'; g.fillRect(0,0,W,H); }
+  /* 大当たり */
+  if(S.jp){ const t=6-S.jp.t, k=clamp(Math.min(t*3,S.jp.t*2),0,1); g.globalAlpha=k; g.fillStyle='rgba(4,2,3,.72)'; g.fillRect(0,0,W,H);
+    g.save(); g.translate(W/2,H/2-40); for(let i=0;i<16;i++){ g.rotate(TAU/16); g.fillStyle='rgba(233,196,106,'+(.07+.05*Math.sin(T*3+i)).toFixed(3)+')'; g.beginPath(); g.moveTo(0,0); g.lineTo(-70,-1200); g.lineTo(70,-1200); g.closePath(); g.fill(); } g.restore();
+    const sc=1+.25*Math.max(0,1-t*2.2); g.save(); g.translate(W/2,H/2-70); g.scale(sc,sc); gold('大当たり',0,0,230); g.restore();
+    for(let i=0;i<5;i++) gem(S.jp.type!=null?(S.jp.type+i)%6:i,W/2-360+i*180,H/2-290+Math.sin(T*3+i)*10,44,T*.8+i);
+    if(JP.text) txt(JP.text,W/2,H/2+120,74,'#fff','center','#000',FONTD);
+    if(S.jp.by) txt(S.jp.by+' さんの宝石',W/2,H/2+(JP.text?210:140),40,GOLD,'center','#000',FONTD);
+    if(JP.win) txt('Win '+(JP.win>0?'＋':'−')+fmt(Math.abs(JP.win)),W/2,H/2+(JP.text?280:210),46,JP.win>0?'#9fe7ff':RUBY,'center','#000',FONTD);
+    g.globalAlpha=1; }
+}
+
+/* ===== 画面に合わせる・テスト・ループ ===== */
+var TALL=false; /* 本当に見えている高さ。ホーム画面から開いたiPhoneは、時計の段のぶん画面が下にずれるのに高さは画面いっぱいで返ってくることがあり、そのままだと下がはみ出して切れる。下のホームバーのぶんも空ける */
+let SAFE=null; function safeIn(){ if(!SAFE){ SAFE=document.createElement('div'); SAFE.style.cssText='position:fixed;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)'; document.body.appendChild(SAFE); } const cs=getComputedStyle(SAFE); return {t:parseFloat(cs.paddingTop)||0,b:parseFloat(cs.paddingBottom)||0}; }
+function viewH(){ const vv=window.visualViewport, de=document.documentElement; let h=Math.min(window.innerHeight,(de&&de.clientHeight)||1e9,(vv&&vv.height)||1e9); const sf=safeIn(), alone=window.navigator.standalone===true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  if(alone && sf.t<1 && screen.height>=700 && h>=screen.height-1) h-=(screen.height>=850?59:47);   /* 時計の段のぶん（画面が下にずれているのに高さに入っている時だけ引く） */
+  window.__viewH={inner:window.innerHeight,client:de&&de.clientHeight,vv:vv&&vv.height,screen:screen.height,safeT:sf.t,safeB:sf.b,alone,use:h-sf.b}; return h-sf.b; }
+function fit(){ const iw=window.innerWidth, ih=viewH(), hh=Math.min(ih,iw*9/16), w=hh*16/9, left=ih-hh; TALL=iw<=ih && left>=200; const top=TALL?0:(ih-hh)/2; stage.style.width=w+'px'; stage.style.height=hh+'px'; stage.style.top=top+'px'; stage.style.fontSize=(hh/108)+'px'; stage.style.setProperty('--u',(hh/150)+'px');
+  const bl=document.getElementById('below'), tb=document.getElementById('gtbl'); if(bl){ bl.style.display=TALL?'flex':'none'; if(TALL){ bl.style.left=((iw-w)/2)+'px'; bl.style.top=hh+'px'; bl.style.width=w+'px'; bl.style.height=left+'px'; bl.style.setProperty('--u',(w/100)+'px'); try{ if(tb && !tb.getAttribute('src')) tb.setAttribute('src','./gifts.html?fit=1&pg=2&cols=7&v='+VER); }catch(e){} } } try{ memoUI(); photoFit(); }catch(e){} }
+fit(); window.addEventListener('resize',fit); setTimeout(fit,0); setTimeout(fit,600); if(window.visualViewport) window.visualViewport.addEventListener('resize',fit);
+const tp=document.getElementById('tp'), NAMES=['たぬ吉','ぽんた','みけ','そら','りく','はな','こてつ','もも','ゆず','まる'];
+document.getElementById('testBtn').onclick=()=>{ tp.hidden=!tp.hidden; };
+{ const up=()=>{ const b=document.getElementById('optBgm'), e=document.getElementById('optSe'), t=document.getElementById('optTrack'); b.innerHTML='BGM<br>'+(OPTS.bgm?'オン':'オフ'); e.innerHTML='効果音<br>'+(OPTS.se?'オン':'オフ'); t.innerHTML='BGMの曲<br>'+(OPTS.track==='bgm2'?'2：うずまき':'1：ハッピータイム'); try{ localStorage.setItem('jewel_snd',JSON.stringify(OPTS)); }catch(_){} };
+  document.getElementById('optBgm').addEventListener('click',ev=>{ ev.stopPropagation(); OPTS.bgm=OPTS.bgm?0:1; up(); }); document.getElementById('optSe').addEventListener('click',ev=>{ ev.stopPropagation(); OPTS.se=OPTS.se?0:1; up(); }); document.getElementById('optTrack').addEventListener('click',ev=>{ ev.stopPropagation(); OPTS.track=OPTS.track==='bgm1'?'bgm2':'bgm1'; up(); audioInit(); bgmLoad(OPTS.track); }); up(); }
+tp.addEventListener('click',ev=>{ const b=ev.target.closest('button'); if(!b || !b.dataset.a) return; const a=b.dataset.a; tp.hidden=true; if(a==='close') return; if(a==='title'){ Game.title(); return; } if(TITLE || PAUSE) return; const n=pick(NAMES); if(a==='reset'){ Game.reset(); return; } if(a==='like'){ Game.like(1000,n); return; } if(a==='comment') feedAdd(n,'テストのコメントです'); else if(a==='follow') feedAdd(n,'がフォローした','fl'); if(Game[a]) Game[a](n); });
+reset();
+let last=performance.now(); window.__ready=false;
+function loop(now){ let dt=Math.min(.05,(now-last)/1000); last=now; if(!window.__frozen){ if(!TITLE && !PAUSE){ const n=Math.max(1,Math.ceil(dt/(1/120))); for(let i=0;i<n;i++) update(dt/n); } draw(); } requestAnimationFrame(loop); }
+/* 新しい版が出ていたら、タイトル画面にいる時だけ読みこみ直す */
+(function(){ if(VER.indexOf('__')===0) return; const chk=()=>{ if(!TITLE) return; fetch('./ver.txt?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{ t=(t||'').trim(); if(!/^[0-9-]{6,12}$/.test(t) || t===VER) return; let done=''; try{ done=sessionStorage.getItem('jewel_upd')||''; }catch(e){} if(done===t) return; try{ sessionStorage.setItem('jewel_upd',t); }catch(e){} location.replace(location.pathname+'?v='+t+location.hash); }).catch(()=>{}); }; chk(); setInterval(chk,45000); })();
+
+/* ===== TikTokとの接続とギフトの割り当て（ほかのゲームと同じ仕組み）。キーはこの端末の中にだけ保存し、配るリンクや書き出しには入れない ===== */
+const OPT={chatOn:true,likeOn:true,followOn:true,coinOn:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('jewel_opts')||'{}')); }catch(e){}
+function optSave(){ try{ localStorage.setItem('jewel_opts',JSON.stringify(OPT)); }catch(e){} }
+function runFx(fn){ if(TITLE){ tfLogAdd('タイトル画面なので何も起きません（スタートを押してください）'); return; } if(PAUSE){ PENDQ.push(fn); return; } fn(); }
+const FX_LIST=[
+ ['gem1','jam','宝石×1','宝石が1個、1段目に入る',n=>Game.gem1(n)],
+ ['gem5','jam','宝石×5','宝石が5個入る',n=>Game.gem5(n)],
+ ['gem10','jam','宝石×10','宝石が10個入る',n=>Game.gem10(n)],
+ ['gem30','jam','宝石×30','宝石が30個入る',n=>Game.gem30(n)],
+ ['gem100','jam','宝石×100','宝石が100個入る',n=>Game.gem100(n)],
+ ['gem500','jam','宝石×500','宝石が500個入る',n=>Game.gem500(n)],
+ ['from3','jam','3段目から','宝石1個を、3段目から始める',n=>Game.from3(n)],
+ ['from4','jam','4段目から','宝石1個を、4段目から始める',n=>Game.from4(n)],
+ ['from5','jam','FINALから','宝石1個を、最後の段から始める',n=>Game.from5(n)],
+ ['dbl','jam','確変','30秒のあいだ、当たりの穴が2つになる',n=>Game.dbl(n)],
+ ['shake','jam','皿をゆらす','皿の上の宝石をぜんぶはじく',n=>Game.shake(n)],
+ ['cap','help','フタ','20秒のあいだ、当たりの穴をふさぐ',n=>Game.cap(n)],
+ ['wipe','help','全消し','皿の上と待ちの宝石をぜんぶ消す',n=>Game.wipe(n)]];
+/* スマホ用のつなぎ先（tik.tools）。オンの間はTikFinityのかわりに、ネット経由で同じ形の知らせを受け取る。キーはこの端末にだけ保存 */
+const HOME_URL='https://sanpolab.github.io/jan/jewel/', EMBED=!/(^|\.)github\.io$|^localhost$|^127\./.test(location.hostname);   // EMBED：Claudeの共有ページなど、正式なアドレス以外で開いている
+let CLOUD={on:false,user:'',key:''}; try{ Object.assign(CLOUD,JSON.parse(localStorage.getItem('jewel_cloud')||'{}')); }catch(e){}
+/* まだ宝石クルーンにキーを入れていない時は、月まで届け・つみつみアニマル・チャリで行け・ワナだらけ・ユニバゲームに入れたキーとユーザー名をそのまま引き継ぐ（同じサイトなので読める。入れ直さなくていいように） */
+if(!CLOUD.key){ for(const src of ['rocket_cloud','tsumi_cloud','bike_cloud','trap_cloud','gmerge_cloud']){ try{ const t=JSON.parse(localStorage.getItem(src)||'{}'); if(t && t.key && t.user){ CLOUD={on:!!t.on,user:String(t.user),key:String(t.key)}; localStorage.setItem('jewel_cloud',JSON.stringify(CLOUD)); break; } }catch(e){} } }
+const cloudOn=()=>!!(CLOUD.on && CLOUD.user && CLOUD.key), srcName=()=>cloudOn()?'スマホ用のつなぎ先':'TikFinity';
+const TF={raw:[],kinds:{},tries:0,lna:null,urls:['ws://localhost:21213/','ws://127.0.0.1:21213/'],url:'ws://localhost:21213/',ws:null,ok:false,wait:3000,timer:null,streak:{},log:[],learn:null,map:{}};
+try{ TF.map=JSON.parse(localStorage.getItem('jewel_gifts')||'{}')||{}; }catch(e){ TF.map={}; }
+const tfNorm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.');
+/* はじめて開いた時だけ、ギフトの割り当てのたたき台を入れる（あとから自由に変えられる） */
+if(!localStorage.getItem('jewel_gdef')){ try{ localStorage.setItem('jewel_gdef','1'); }catch(e){} if(!Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name)){ TF.map={"gem1": {"id": null, "name": "バラ", "coins": 1, "ci": 1, "pic": null}, "gem5": {"id": null, "name": "フィンガーハート", "coins": 5, "ci": 28, "pic": null}, "gem10": {"id": null, "name": "ローザ", "coins": 10, "ci": 37, "pic": null}, "gem30": {"id": null, "name": "ドーナッツ", "coins": 30, "ci": 58, "pic": null}, "gem100": {"id": null, "name": "ハンドハート", "coins": 100, "ci": 87, "pic": null}, "gem500": {"id": null, "name": "だいすき", "coins": 500, "ci": 310, "pic": null}, "from3": {"id": null, "name": "香水", "coins": 20, "ci": 55, "pic": null}, "from4": {"id": null, "name": "天才", "coins": 50, "ci": 59, "pic": null}, "from5": {"id": null, "name": "歌うキノコ", "coins": 99, "ci": 63, "pic": null}, "shake": {"id": null, "name": "エール", "coins": 5, "ci": 26, "pic": null}, "cap": {"id": null, "name": "愛してる", "coins": 199, "ci": 107, "pic": null}, "dbl": {"id": null, "name": "つながる心", "coins": 299, "ci": 176, "pic": null}, "wipe": {"id": null, "name": "銀河", "coins": 1000, "ci": 347, "pic": null}}; try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} } }
+function tfSave(){ try{ localStorage.setItem('jewel_gifts',JSON.stringify(TF.map)); }catch(e){} }
+// 名前が合わずに「割り当てなし」になったギフトを覚えておき、設定画面で「どの効果か」を1回えらべば、届いた名前とIDをその効果に結びつける
+let MISS=[]; try{ MISS=JSON.parse(localStorage.getItem('jewel_miss')||'[]')||[]; }catch(e){}
+const missSave=()=>{ try{ localStorage.setItem('jewel_miss',JSON.stringify(MISS.slice(0,30))); }catch(e){} };
+function missAdd(gf){ if(!gf.name && gf.id==null) return; const k=m=>(m.id!=null&&gf.id!=null)?String(m.id)===String(gf.id):tfNorm(m.name)===tfNorm(gf.name); let m=MISS.find(k); if(m) m.n=(m.n||1)+1; else MISS.unshift({id:gf.id!=null?gf.id:null,name:gf.name||'',coins:gf.coins!=null?gf.coins:null,pic:gf.pic||null,n:1}); missSave(); missBuild(); }
+function missBind(i,fx){ const m=MISS[i], b=TF.map[fx]; if(!m || !b) return; if(m.id!=null) b.id=m.id; b.rx=m.name; if(b.coins==null && m.coins!=null) b.coins=m.coins; if(!b.pic && m.pic) b.pic=m.pic; tfSave(); MISS.splice(i,1); missSave(); tfLogAdd('登録：'+m.name+' → '+(FX_LIST.find(f=>f[0]===fx)||[])[2]+'（次から自動で反応します）'); try{ cfgBuild(); }catch(e){} missBuild(); }
+function missBuild(){ const box=document.getElementById('missBox'), el=document.getElementById('missList'), cb=document.getElementById('cfgBtn'); if(cb) cb.style.boxShadow=MISS.length?'0 0 0 3px #ff4f6a, 0 0 14px #ff4f6a':''; if(!box || !el) return; box.hidden=!MISS.length; el.innerHTML='';
+  MISS.forEach((m,i)=>{ const row=document.createElement('div'); row.style.cssText='background:#1a1030;border:2px solid #ff6a80;border-radius:.6em;padding:.5em .6em;margin:.4em 0'; const t=document.createElement('div'); t.style.cssText='font-weight:900;margin-bottom:.35em'; t.textContent=m.name+(m.coins!=null?'（'+m.coins+'コイン）':'')+(m.n>1?'　×'+m.n+'回届いた':''); row.appendChild(t);
+    const all=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && b.name && !b.off; }), same=all.filter(f=>m.coins!=null && TF.map[f[0]].coins!=null && Number(TF.map[f[0]].coins)===Number(m.coins)), free=same.filter(f=>TF.map[f[0]].id==null), list=free.length?free:(same.length?same:all);
+    if(!list.length){ const n=document.createElement('div'); n.textContent='割り当てているギフトがありません'; row.appendChild(n); }
+    const wrap=document.createElement('div'); wrap.style.cssText='display:flex;flex-wrap:wrap;gap:.4em'; for(const f of list){ const bt=document.createElement('button'); bt.type='button'; bt.style.cssText='font:inherit;font-weight:900;font-size:.85em;padding:.45em .7em;border-radius:.6em;border:0;color:#fff;background:'+(f[1]==='help'?'#1f8f3c':f[1]==='jam'?'#b3262e':'#8a6a00'); bt.textContent=TF.map[f[0]].name+' → '+f[2]; bt.addEventListener('click',()=>missBind(i,f[0])); wrap.appendChild(bt); }
+    const del=document.createElement('button'); del.type='button'; del.style.cssText='font:inherit;font-size:.8em;padding:.45em .7em;border-radius:.6em;border:1px solid #778;background:transparent;color:#aab'; del.textContent='使わない（消す）'; del.addEventListener('click',()=>{ MISS.splice(i,1); missSave(); missBuild(); }); wrap.appendChild(del); row.appendChild(wrap); el.appendChild(row); }); }
+setTimeout(()=>{ const cb=document.getElementById('cfgBtn'); if(cb) cb.addEventListener('click',()=>setTimeout(()=>{ const bx=document.getElementById('missBox'); if(MISS.length && bx && !bx.hidden) bx.scrollIntoView({block:'center'}); },80)); missBuild(); },0);   // 分からなかったギフトがある時は、ギフト画面を開いたらそこまで自動で進む
+/* スマホの縦画面で、ゲームの下に出すもの：コメントらん（コメント・ギフト・フォローを下から足す）、視聴者数、自分で入れる文字、ギフト表の空きに出す写真。文字と写真はこの端末にだけ保存する */
+const FEED_MAX=5;
+function feedAdd(name,text,kind){ const el=document.getElementById('feed'); if(!el) return; const h=el.querySelector('.hint'); if(h) el.removeChild(h); const ln=document.createElement('div'); ln.className='ln'+(kind?' '+kind:''); const b=document.createElement('b'); b.textContent=String(name||'').slice(0,16); ln.appendChild(b); ln.appendChild(document.createTextNode(String(text||'').slice(0,60))); el.appendChild(ln); while(el.children.length>FEED_MAX) el.removeChild(el.firstChild); }
+function feedViewers(n){ n=parseInt(n,10); if(!(n>=0)) return; const e=document.getElementById('viewN'); if(e) e.textContent=n.toLocaleString('ja-JP')+'人'; }
+const PHIMG=new Image(); let PHZ=1;   /* PHZ＝写真の大きさ（1がわくにぴったり。大きくしてわくからはみ出た分は切れる） */
+try{ const z=parseFloat(localStorage.getItem('jewel_photoz')); if(z>=.3 && z<=5) PHZ=z; }catch(e){}
+let MEMO='', PHOTO=''; try{ MEMO=localStorage.getItem('jewel_memo')||''; PHOTO=localStorage.getItem('jewel_photo')||''; }catch(e){}
+function memoUI(){ const m=document.getElementById('memo'); if(!m || m.querySelector('input')) return; const t=MEMO.trim(); m.classList.toggle('empty',!t); m.textContent=t||'ここを押すと文字を書けます'; const lines=t.split('\n'), longest=Math.max.apply(null,lines.map(l=>l.length)), two=lines.length>1 || longest>18; m.style.fontSize='calc(var(--u)*'+(two?2.9:Math.max(2.9,Math.min(4.4,62/Math.max(1,longest)))).toFixed(2)+')'; }
+function photoFit(){ const im=document.getElementById('photo'); if(!im) return; const on=!!PHOTO && PHIMG.naturalWidth>0; im.style.display=on?'block':'none'; if(!on) return; const row=im.parentElement.getBoundingClientRect(); if(row.height<4) return; const a=PHIMG.naturalWidth/PHIMG.naturalHeight, maxW=row.width*.30, cw=Math.min(maxW,row.height*a), iw=cw*PHZ, ih=cw/a*PHZ; im.style.width=Math.min(maxW,iw)+'px'; im.style.backgroundSize=iw+'px '+ih+'px'; }   /* わく＝コメントらんの右（横はばの3割まで・高さいっぱい）。写真はわくに収まる大きさ×PHZ で、はみ出た分は切れる */
+window.addEventListener('resize',()=>setTimeout(photoFit,50));
+function photoSet(u){ PHOTO=u||''; const im=document.getElementById('photo'), pv=document.getElementById('phPrev'); if(pv){ pv.hidden=!PHOTO; if(PHOTO) pv.src=PHOTO; else pv.removeAttribute('src'); } if(im){ if(PHOTO){ PHIMG.onload=photoFit; PHIMG.src=PHOTO; im.style.backgroundImage='url("'+PHOTO+'")'; } else { PHIMG.removeAttribute('src'); im.style.backgroundImage='none'; im.style.display='none'; } } phzUI(); }
+function phzUI(){ const t=document.getElementById('phZ'); if(t) t.textContent='大きさ '+Math.round(PHZ*100)+'%'; }
+function phzSet(z){ PHZ=Math.max(.3,Math.min(5,z)); try{ localStorage.setItem('jewel_photoz',String(PHZ)); }catch(e){} phzUI(); photoFit(); }
+setTimeout(()=>{ const tx=document.getElementById('memoTx'), fl=document.getElementById('phFile'), st=document.getElementById('phSt'); if(!tx || !fl) return; tx.value=MEMO; tx.addEventListener('input',()=>{ MEMO=tx.value.slice(0,40); try{ localStorage.setItem('jewel_memo',MEMO); }catch(e){} memoUI(); }); for(const ev of ['pointerdown','keydown','keyup']) tx.addEventListener(ev,e=>e.stopPropagation());
+  document.getElementById('phMinus').addEventListener('click',()=>phzSet(PHZ/1.15)); document.getElementById('phPlus').addEventListener('click',()=>phzSet(PHZ*1.15)); document.getElementById('phReset').addEventListener('click',()=>phzSet(1));
+  document.getElementById('phPick').addEventListener('click',()=>fl.click()); document.getElementById('phDel').addEventListener('click',()=>{ try{ localStorage.removeItem('jewel_photo'); }catch(e){} st.textContent=''; photoSet(''); });
+  fl.addEventListener('change',()=>{ const f=fl.files && fl.files[0]; fl.value=''; if(!f) return; const rd=new FileReader(); rd.onload=()=>{ const i=new Image(); i.onload=()=>{ const k=Math.min(1,720/Math.max(i.naturalWidth,i.naturalHeight)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(i.naturalWidth*k)); c.height=Math.max(1,Math.round(i.naturalHeight*k)); c.getContext('2d').drawImage(i,0,0,c.width,c.height); let u=c.toDataURL('image/webp',.86); if(u.indexOf('data:image/webp')!==0 && u.length>900000) u=c.toDataURL('image/jpeg',.86); try{ localStorage.setItem('jewel_photo',u); st.textContent=''; }catch(e){ st.textContent='保存できませんでした（開き直すと消えます）'; } photoSet(u); }; i.onerror=()=>{ st.textContent='この写真は読みこめませんでした'; }; i.src=rd.result; }; rd.readAsDataURL(f); });
+  /* 画面の文字のところを直接押して書けるようにする（設定画面のらんと同じ中身） */
+  { const m=document.getElementById('memo'); if(m) m.addEventListener('click',()=>{ if(m.querySelector('input')) return; const i=document.createElement('input'); i.type='text'; i.maxLength=40; i.value=MEMO; i.placeholder='例：初見さん歓迎！'; i.enterKeyHint='done'; m.classList.remove('empty'); m.textContent=''; m.style.fontSize=''; m.appendChild(i); for(const ev of ['pointerdown','keydown','keyup']) i.addEventListener(ev,e=>e.stopPropagation());
+      const done=()=>{ MEMO=i.value.slice(0,40); try{ localStorage.setItem('jewel_memo',MEMO); }catch(e){} tx.value=MEMO; i.remove(); memoUI(); }; i.addEventListener('blur',done); i.addEventListener('keydown',e=>{ if(e.key==='Enter') i.blur(); }); i.focus(); }); }
+  photoSet(PHOTO); memoUI(); setInterval(photoFit,700); },0);
+function tfLogAdd(t){ TF.log.unshift(t); if(TF.log.length>40) TF.log.length=40; const el=document.getElementById('tfLog'); if(el) el.textContent=TF.log.join('\n'); }
+function tfUI(){ const b=document.getElementById('cfgBtn'), st=document.getElementById('tfSt'); if(b) b.classList.toggle('on',TF.ok); if(st){ st.classList.toggle('on',TF.ok); st.textContent=srcName()+(TF.ok?'：つながっています':(cloudOn()&&TF.offline?'：配信が始まるのを待っています':'：つながっていません')); } { const cu=document.getElementById('clUser'), ck=document.getElementById('clKey'), cb=document.getElementById('clOn'), cs=document.getElementById('clSt'); if(cb){ if(document.activeElement!==cu && !cu.dataset.d) cu.value=CLOUD.user; if(document.activeElement!==ck && !ck.dataset.d) ck.value=CLOUD.key; cb.textContent=CLOUD.on?'やめる（TikFinityに戻す）':'つなぐ'; cb.style.background=CLOUD.on?'#d1457a':''; cs.textContent=CLOUD.on?(TF.ok?'つながっています':(TF.offline?'キーとユーザー名は通りました。いまは配信していないので待っています（配信を始めたら、上の「つなぎ直す」を押すとすぐつながります）':(EMBED?'このページ（Claudeの共有ページ）からは、つなぐことができません。Safariで '+HOME_URL+' を開いて、そちらでユーザー名とキーを入れてください':TF.why?'つながりません：'+TF.why:'つなぎ中…（つながらない時は、ユーザー名・キー・配信中かどうかを確かめてください）'))):''; } } tfDiag(); }
+function tfDiag(){ const el=document.getElementById('tfDiag'); if(!el) return; const L=[]; const n=TF.rawN||0, kinds=Object.keys(TF.kinds||{}).map(k=>k+'×'+TF.kinds[k]).join('、');
+  if(cloudOn()){ el.textContent='① ゲーム → スマホ用のつなぎ先：'+(TF.ok?'○ つながっている':'✕ つながっていない（'+(TF.tries||0)+'回ためした）')+'\n② 届いた知らせの数：'+n+' 件'+(kinds?'（'+kinds+'）':'')+(TF.offline?'\n→ キーとユーザー名は通りました。いまは配信していません。配信を始めると自動でつながります（1分おきに確かめます）。':(TF.ok&&n===0?'\n→ つながっていますが、まだ何も届いていません。配信中かどうか、ユーザー名が合っているかを確かめてください。':'')); return; }
+  L.push('① ゲーム → TikFinity：'+(TF.ok?'○ つながっている':'✕ つながっていない（'+(TF.tries||0)+'回ためした）'));
+  L.push('② ChromeのPC内アクセス許可：'+(TF.lna==='granted'?'○ 許可':TF.lna==='denied'?'✕ ブロック中 → アドレスバー左のマーク →「サイトの設定」→「ローカル ネットワークへのアクセス」を許可':TF.lna==='prompt'?'△ まだ聞かれていない（聞かれたら「許可」）':'― （このChromeでは調べられない）'));
+  L.push('③ TikFinityから届いた数：'+n+' 件'+(kinds?'（'+kinds+'）':''));
+  let v; if(!TF.ok) v=TF.lna==='denied'?'→ ②を許可にして、Ctrl+Shift+R で読みこみ直してください。':'→ TikFinityのデスクトップ版を開いてください（ブラウザ版ではつながりません）。開いているのにダメなら②の許可を見てください。';
+  else if(n===0) v='→ つながっていますが、TikFinityが何も送ってきていません。TikFinityを最新版にして、開き直してください。';
+  else if(!(TF.kinds.gift||TF.kinds.chat||TF.kinds.like)) v='→ つながっていますが、配信の中身（コメント・ギフト）がまだ1つも来ていません。配信を始めてから、TikFinityで自分のアカウントに接続し直してください。TikFinityの Event Simulator でも試せます。';
+  else v='→ ちゃんと届いています。';
+  L.push(v); el.textContent=L.join('\n'); }
+try{ navigator.permissions.query({name:'local-network-access'}).then(r=>{ TF.lna=r.state; r.onchange=()=>{ TF.lna=r.state; tfDiag(); }; tfDiag(); },()=>{ navigator.permissions.query({name:'loopback-network'}).then(r=>{ TF.lna=r.state; tfDiag(); },()=>{}); }); }catch(e){}
+function tfConnect(){ clearTimeout(TF.timer); try{ if(TF.ws){ TF.ws.onclose=null; TF.ws.close(); } }catch(e){}
+  TF.tries++; TF.url=cloudOn()?'wss://api.tik.tools?uniqueId='+encodeURIComponent(CLOUD.user.replace(/^@/,''))+'&apiKey='+encodeURIComponent(CLOUD.key):TF.urls[TF.tries%2]; let ws; try{ ws=new WebSocket(TF.url); }catch(e){ TF.ok=false; tfUI(); TF.wait=Math.min(20000,TF.wait*1.5); TF.timer=setTimeout(tfConnect,TF.wait); return; }
+  TF.ws=ws; ws.onopen=()=>{ TF.ok=true; TF.tries=0; TF.why=''; TF.wait=3000; tfUI(); tfLogAdd(srcName()+'につながった'); };
+  ws.onclose=ev=>{ if(TF.ws!==ws) return; const was=TF.ok; TF.ok=false; if(cloudOn() && ev){ const c=ev.code, r=String(ev.reason||''), q=r.toLowerCase(); TF.why=/not currently live|not live|offline/.test(q)?'いまは配信していないようです。TikTokで配信を始めてから、上の「つなぎ直す」を押してください':
+      (/expired|evaluation|trial/.test(q)?'APIキーの期限が切れています（無料のおためしは7日間）':/limit|too many|concurrent|quota|rate/.test(q)||c===1013||c===4429?'同時につなげる数か回数の上限に当たっています。同じキーをほかの人が使っているとつながりません':/key|unauthor|forbidden|auth|invalid/.test(q)||c===4401||c===4403?'APIキーがちがうようです（前後の空白や、文字の抜けがないか見てください）':/not found|no such|user|unique/.test(q)?'ユーザー名がちがうようです（表示名ではなく、@のあとの英数字）':c===1006&&!r?'つなぎ先に届いていません（通信がわるいか、アドレスをブロックされています）':'')+((c||r)&&!/not currently live|not live/.test(q)?'　［'+c+' '+r.slice(0,70)+'］':''); }
+    tfUI(); if(was) tfLogAdd(srcName()+'との接続が切れた'); if(cloudOn() && ev && (ev.code||ev.reason) && !TF.offline) tfLogAdd('切れた理由：'+ev.code+' '+String(ev.reason||'').slice(0,80)); if(cloudOn() && TF.offline){ TF.waitOff=true; } TF.wait=Math.min(20000,TF.wait*1.5); if(cloudOn() && TF.offline) TF.wait=60000; { const mm=/retry after (\d+)\s*s/i.exec(String((ev&&ev.reason)||'')); if(cloudOn() && mm){ const sec=Math.min(600,(+mm[1])+3); TF.wait=sec*1000; TF.why='つなぎ先が「いまは配信していない」と答えています。'+sec+'秒後に自動でつなぎ直します（それまで何回押しても同じ答えが返ってきます）。配信中なのにこう出る時は、ユーザー名（@のあとの英数字）が合っているか見てください'; } } TF.timer=setTimeout(tfConnect,TF.wait); tfUI(); };
+  ws.onerror=()=>{}; ws.onmessage=e=>{ let m=null; TF.rawN=(TF.rawN||0)+1; try{ const t=String(e.data); if(!/"event"\s*:\s*"(like|roomUser|member|chat)"/.test(t) || !TF.raw.length){ TF.raw.unshift(t.slice(0,700)); if(TF.raw.length>6) TF.raw.length=6; } const el=document.getElementById('tfRaw'); if(el) el.textContent='受信 '+TF.rawN+' 件\n'+TF.raw.join('\n---\n'); }catch(_){} try{ m=JSON.parse(e.data); }catch(_){ return; } { const kk=String(m.event||m.type||'?').toLowerCase(); TF.kinds[kk]=(TF.kinds[kk]||0)+1; if(kk==='streamend') TF.offline=true; else if(kk!=='roominfo') TF.offline=false; tfDiag(); } try{ tfEvent(m); }catch(err){ tfLogAdd('読み取りエラー：'+err.message); } }; }
+function tfEvent(m){ const ev=String(m.event||m.type||'').toLowerCase(), d=m.data||m||{}, u=d.user||{}, name=d.nickname||u.nickname||d.uniqueId||u.uniqueId||'だれか';
+  if(ev==='gift'){ const gd=d.giftDetails||d.extendedGiftInfo||d.gift||{}, id=d.giftId!=null?d.giftId:(gd.id!=null?gd.id:gd.giftId), gname=d.giftName||gd.giftName||gd.name||('ID'+id), coins=d.diamondCount!=null?d.diamondCount:(gd.diamondCount!=null?gd.diamondCount:gd.diamond_count), pic=d.giftPictureUrl||gd.giftPictureUrl||gd.pictureUrl||(gd.icon&&gd.icon.url_list&&gd.icon.url_list[0])||(gd.image&&gd.image.url_list&&gd.image.url_list[0])||null, gtype=d.giftType!=null?d.giftType:gd.giftType, rc=Math.max(1,parseInt(d.repeatCount,10)||1), end=!!d.repeatEnd;
+    let n=rc; if(gtype===1){ const k=(d.uniqueId||u.uniqueId||name)+'|'+id, last=TF.streak[k]||0; n=Math.max(0,rc-last); if(end) delete TF.streak[k]; else TF.streak[k]=rc; }
+    if(n<=0) return; feedAdd(name,'が '+gname+(n>1?' ×'+n:'')+' を贈った','gf'); tfGift({id,name:gname,coins,pic},name,Math.min(n,5000)); }
+  else if(ev==='roomuser'){ const vc=d.viewerCount!=null?d.viewerCount:(d.viewer_count!=null?d.viewer_count:(d.totalUser!=null?d.totalUser:d.total)); if(vc!=null) feedViewers(vc); }
+  else if(ev==='chat'){ { const tx=d.comment!=null?d.comment:(d.text!=null?d.text:d.content); if(tx) feedAdd(name,tx); } if(OPT.chatOn && !TITLE && !PAUSE) Game.comment(name); tfLogAdd('コメント：'+name+(OPT.chatOn?'':'（オフ）')); }
+  else if(ev==='like'){ const c=parseInt(d.likeCount!=null?d.likeCount:(d.count!=null?d.count:d.likes),10)||1; if(OPT.likeOn && !TITLE && !PAUSE) Game.like(c,name); }
+  else if(ev==='error'||ev==='disconnected'||ev==='streamend'){ tfLogAdd('つなぎ先から：'+ev+' '+JSON.stringify(d).slice(0,140)); }
+  else if(ev==='follow'||ev==='share'||ev==='subscribe'){ if(ev==='follow') feedAdd(name,'がフォローした','fl'); if(ev==='follow' && OPT.followOn) runFx(()=>Game.follow(name)); if(ev==='share') runFx(()=>Game.share(name)); if(ev==='subscribe') runFx(()=>Game.subscribe(name));   /* シェア＝宝石3個、サブスク＝宝石30個 */ tfLogAdd((ev==='follow'?'フォロー：':ev==='share'?'シェア：':'サブスク：')+name); } }
+const GIFT_EN={'heartglasses':["恋のメガネ"],'loveglasses':["恋のメガネ"],'glassesoflove':["恋のメガネ"],'daisuki':["だいすき"],'loveyousomuch':["だいすき"],'heartpose':["ハートポーズ"],'heartgesture':["ハートポーズ"],'bow':["蝶結び"],'bowknot':["蝶結び"],'ribbon':["蝶結び"],'rosehand':["ローズハンド"],'handrose':["ローズハンド"],'snowflower':["雪の花"],'snowblossom':["雪の花"],'penguin':["うっとりペンギン"],'lovestruckpenguin':["うっとりペンギン"],'dragoncrown':["ドラゴンの冠"],'fireworks':["幕開けの花火"],'openingfireworks':["幕開けの花火"],'meow':["ニャオ"],'nyao':["ニャオ"],'sukisukibeam':["すきすきビーム"],'lovebeam':["すきすきビーム"],'heartballoon':["ハートの風船"],'heartballoons':["ハートの風船"],'goddesscrown':["女神の花冠"],'goddessgarland':["女神の花冠"],'goddesswreath':["女神の花冠"],'lovecall':["ラブコール"],'amazing':["すばらしい！"],'wonderful':["すばらしい！"],'happyweekend':["良い週末を"],'goodweekend':["良い週末を"],'haveagoodweekend':["良い週末を"],'meromero':["メロメロ〜"],'melodydrop':["音色のしずく"],'sounddrop':["音色のしずく"],'connectedhearts':["つながる心"],'heartsconnected':["つながる心"],'singingmushroom':["歌うキノコ"],'goatbusker':["G.O.A.T.バスカー"],'iceloll':["アイスバー"],'icelolly':["アイスバー"],'rose':['バラ','ローズ'],'tiktok':['TikTok','ティックトック'],'gg':['GG'],'icecreamcone':['ソフトクリーム','アイスクリーム'],'fingerheart':['フィンガーハート','指ハート'],'heartme':['ハートミー'],'rosa':['ローザ'],'perfume':['香水'],'doughnut':['ドーナッツ','ドーナツ'],'donut':['ドーナッツ','ドーナツ'],'handhearts':['ハンドハート'],'handheart':['ハンドハート'],'hatandmustache':['帽子と口ひげ','帽子とひげ'],'papercrane':['折り鶴','折り稚'],'swan':['白鳥','スワン'],'train':['列車'],'corgi':['コーギー'],'confetti':['紙吹雪','コンフェッティ'],'goldenconfetti':['金の紙吹雪'],'lion':['ライオン'],'galaxy':['ギャラクシー','銀河'],'moneygun':['マネーガン'],'sunglasses':['サングラス'],'hearts':['ハート'],'heart':['ハート'],'cap':['キャップ'],'littlecrown':['小さな王冠'],'bubblegum':['風船ガム'],'friendshipnecklace':['友情ネックレス'],'loveyou':['愛してる'],'garlandheadpiece':['花冠'],'coral':['サンゴ'],'football':['サッカー'],'soccer':['サッカー'],'winkwink':['ウインク'],'wink':['ウインク'],'cheeryouup':['エール'],'whalediving':['ダイビングするクジラ','クジラダイビング'],'universe':['TikTok Universe','ユニバース'],'tiktokuniverse':['TikTok Universe','ユニバース'],'interstellar':['インターステラー'],'rocket':['ロケット'],'pegasus':['ペガサス'],'firephoenix':['不死鳥','フェニックス','火の鳥'],'phoenix':['不死鳥','フェニックス'],'feather':['羽根'],'featherstiara':['羽のティアラ'],'feathermask':['羽根のマスク'],'loveshelter':['ラブシェルター'],'superpopular':['スーパー人気'],'ilovepoyou':['大好き'],'ilyso':['大好き'],'youreawesome':['素晴らしい'],'acorn':['どんぐり'],'popsicle':['アイスバー'],'baseball':['野球'],'catpaws':['猫の足'],'glowstick':['ペンライト'],'fan':['うちわ'],'omamori':['おまもり'],'amulet':['おまもり'],'slowmotion':['スローモーション'],'bravo':['ブラボー！'],'genius':['天才'],'firstvisit':['初見です'],'mirrorbloom':['ミラーブルーム'],'butterfly':['蝶結び'],'chili':['チリ'],'starglasses':['スターメガネ'],'ramune':['ラムネ']};
+const enKey=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]/g,''), enHit=(b,gf)=>{ const c=GIFT_EN[enKey(gf.name)]; return !!(c && b.name && c.some(j=>tfNorm(j)===tfNorm(b.name))); };
+/* 名前が合わないギフト（スマホ用のつなぎ先は英語の名前で届く、など）を、絵で見分ける。
+   同じコイン数で、まだIDが決まっていない割り当てが2つ以上ある時だけ使う。届いたギフトの絵と、ギフト一覧の絵（img/giftcat.jpg）の色の分布をくらべて、
+   いちばん近いものがはっきり1つに決まれば、そのギフトのIDを覚える（次からはIDで一発で合う）。絵が読めない・決めきれない時は、今まで通り「分からなかったギフト」に出す */
+const PICM={cat:null,wait:null,sig:{}};
+function picHist(d,w,h,useAlpha){ const H=new Float32Array(64); let n=0; const bg=[d[0],d[1],d[2]]; let alphaSeen=false; if(useAlpha){ for(let i=3;i<d.length;i+=4) if(d[i]<200){ alphaSeen=true; break; } }
+  for(let i=0;i<d.length;i+=4){ const r=d[i], g=d[i+1], b=d[i+2]; if(alphaSeen){ if(d[i+3]<110) continue; } else if(Math.abs(r-bg[0])+Math.abs(g-bg[1])+Math.abs(b-bg[2])<70) continue; H[(r>>6)*16+(g>>6)*4+(b>>6)]++; n++; } if(n<12) return null; for(let i=0;i<64;i++) H[i]/=n; return H; }
+function picDist(a,b){ let s=0; for(let i=0;i<64;i++) s+=Math.min(a[i],b[i]); return 1-s; }
+function picCat(cb){ if(PICM.cat){ cb(PICM.cat); return; } if(PICM.wait){ PICM.wait.push(cb); return; } PICM.wait=[cb]; const im=new Image(); im.onload=()=>{ PICM.cat=im; const q=PICM.wait; PICM.wait=null; q.forEach(f=>f(im)); }; im.onerror=()=>{ const q=PICM.wait; PICM.wait=null; q.forEach(f=>f(null)); }; im.src=CAT.img; }
+function picCell(im,ci){ if(PICM.sig[ci]!==undefined) return PICM.sig[ci]; const rows=CAT.list?Math.ceil(CAT.list.length/CAT.cols):20, cw=im.naturalWidth/CAT.cols, ch=im.naturalHeight/rows, c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,(ci%CAT.cols)*cw,Math.floor(ci/CAT.cols)*ch,cw,ch,0,0,32,32); let s=null; try{ s=picHist(x.getImageData(0,0,32,32).data,32,32,false); }catch(e){} PICM.sig[ci]=s; return s; }
+function picMatch(url,cand,cb){ let done=false; const fin=v=>{ if(done) return; done=true; cb(v); }; setTimeout(()=>fin(null),3000);
+  picCat(cat=>{ if(!cat){ fin(null); return; } const im=new Image(); im.crossOrigin='anonymous'; im.referrerPolicy='no-referrer'; im.onerror=()=>fin(null);
+    im.onload=()=>{ try{ const c=document.createElement('canvas'); c.width=c.height=32; const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(im,0,0,32,32); const hs=picHist(x.getImageData(0,0,32,32).data,32,32,true); if(!hs){ fin(null); return; }
+        const sc=cand.map(f=>{ const s=picCell(cat,TF.map[f[0]].ci); return {f,d:s?picDist(hs,s):9}; }).sort((a,b)=>a.d-b.d); window.__picm=sc.map(q=>[q.f[0],+q.d.toFixed(3)]); fin(sc[0].d<.72 && sc[1].d-sc[0].d>.07?sc[0].f:null); }catch(e){ fin(null); } };
+    im.src=url; }); }
+function namePick(gf){ const k=enKey(gf.name); if(k.length<2) return null; const same=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.name && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(same.length<2) return null;
+  const lat=same.filter(f=>{ const bk=enKey(TF.map[f[0]].name); return bk.length>=2 && (k.includes(bk)||bk.includes(k)); }); if(lat.length===1) return [lat[0],true];
+  const known=nm=>Object.keys(GIFT_EN).some(e=>GIFT_EN[e].some(j=>tfNorm(j)===tfNorm(nm))); const rest=same.filter(f=>!known(TF.map[f[0]].name)); if(rest.length===1) return [rest[0],false]; return null; }
+function tfGift(gf,name,n){ const coin=gf.coins!=null?'（'+gf.coins+'コイン）':'';
+  if(TF.learn){ const id=TF.learn; TF.learn=null; if(TF.seqLearn){ const k=FX_LIST.findIndex(f=>f[0]===id); let nx=null; for(let q=k+1;q<FX_LIST.length;q++){ if(TF.map[FX_LIST[q][0]] && TF.map[FX_LIST[q][0]].name){ nx=FX_LIST[q][0]; break; } } if(nx) TF.learn=nx; else { TF.seqLearn=false; tfLogAdd('順番に受信登録：ぜんぶ終わりました'); } } { const old=TF.map[id]||{}; TF.map[id]={id:gf.id,name:old.name||gf.name,rx:gf.name,coins:gf.coins!=null?gf.coins:old.coins,pic:gf.pic||null,ci:old.ci!=null?old.ci:null}; } tfSave(); cfgBuild(); tfLogAdd('登録：'+gf.name+coin+' → '+(FX_LIST.find(f=>f[0]===id)||[])[2]); return; }
+  let hit=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && ((b.id!=null && gf.id!=null && String(b.id)===String(gf.id)) || (b.name && tfNorm(b.name)===tfNorm(gf.name)) || (b.rx && tfNorm(b.rx)===tfNorm(gf.name)) || (b.alt && b.alt.some(t=>tfNorm(t)===tfNorm(gf.name))) || enHit(b,gf)); }), byCoin=false;
+  if(!hit.length && gf.coins!=null){ const same=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(same.length===1){ hit=same; byCoin=true; } }
+  /* 英語の名前で届いて、同じコイン数の候補が2つ以上ある時：①英数字の部分が合うもの（G.O.A.T. Busker ⇔ G.O.A.T.バスカー）②英語名が分かっている別のギフトを外して1つに決まるもの、を自動でえらぶ */
+  if(!hit.length && gf.coins!=null){ const r=namePick(gf); if(r){ hit=[r[0]]; if(r[1]){ const b=TF.map[r[0][0]]; if(gf.id!=null) b.id=gf.id; b.rx=gf.name; tfSave(); tfLogAdd('名前で見分けた：'+gf.name+' → '+r[0][2]); } else byCoin=true; } }
+  { let ch=false; for(const f of hit){ const b=TF.map[f[0]]; if(byCoin) continue; if(b.id==null && gf.id!=null){ b.id=gf.id; ch=true; } if(b.coins==null && gf.coins!=null){ b.coins=gf.coins; ch=true; } if(!b.pic && gf.pic){ b.pic=gf.pic; ch=true; } } if(ch) tfSave(); }
+  if(!hit.length && !gf._img && gf.coins!=null && gf.pic){ const cand=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && !b.off && b.id==null && b.ci!=null && b.coins!=null && Number(b.coins)===Number(gf.coins); }); if(cand.length>1){ picMatch(gf.pic,cand,f=>{ if(f){ const b=TF.map[f[0]]; if(gf.id!=null) b.id=gf.id; b.rx=gf.name; tfSave(); tfLogAdd('絵で見分けた：'+gf.name+' → '+f[2]); } tfGift(Object.assign({},gf,{_img:1}),name,n); }); return; } }
+  tfLogAdd('ギフト：'+name+' が '+gf.name+coin+' ×'+n+(hit.length?' → '+hit.map(f=>f[2]).join('・')+(byCoin?'（コイン数で判定）':''):' → 割り当てなし')); if(!hit.length) missAdd(gf);
+  for(const f of hit) for(let i=0;i<Math.min(n,50);i++) setTimeout(()=>{ try{ runFx(()=>f[4](name)); }catch(e){} },i*350); }
+const CAT={list:null,cols:24,img:'./img/giftcat.jpg'}; let pickFx=null, pickTab=0;
+const PICK_TABS=[['ぜんぶ',0,1e9],['1',1,1],['5〜30',5,30],['50〜199',50,199],['200〜499',200,499],['500〜999',500,999],['1000〜4999',1000,4999],['5000〜',5000,1e9]];
+function catLink(){ if(!CAT.list) return; let ch=false; for(const k in TF.map){ const b=TF.map[k]; if(!b || !b.name || b.ci!=null) continue; const i=CAT.list.findIndex(e=>tfNorm(e[0])===tfNorm(b.name)); if(i>=0){ b.ci=i; if(b.coins==null) b.coins=CAT.list[i][1]; ch=true; } } if(ch) tfSave(); }
+function catLoad(cb){ if(CAT.list){ catLink(); cb(); return; } fetch('./gifts_cat.json').then(r=>r.json()).then(j=>{ CAT.list=j; catLink(); cb(); }).catch(()=>{ CAT.list=[]; cb(); }); }
+function catIcon(el,ci){ const rows=CAT.list?Math.ceil(CAT.list.length/CAT.cols):20; el.style.backgroundImage='url('+CAT.img+')'; el.style.backgroundSize=(CAT.cols*100)+'% '+(rows*100)+'%'; el.style.backgroundPosition=((ci%CAT.cols)/(CAT.cols-1)*100)+'% '+(rows>1?(Math.floor(ci/CAT.cols)/(rows-1)*100):0)+'%'; }
+function pickOpen(f){ pickFx=f; catLoad(()=>{ document.getElementById('pickTitle').textContent=f[2]+' に使うギフト'; document.getElementById('pickQ').value=''; pickDraw(); document.getElementById('pick').hidden=false; }); }
+function pickDraw(){ const tb=document.getElementById('pickTabs'); tb.innerHTML=''; PICK_TABS.forEach((t,i)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=t[0]; if(i===pickTab) b.className='on'; b.addEventListener('click',()=>{ pickTab=i; pickDraw(); }); tb.appendChild(b); });
+  const g=document.getElementById('pickGrid'), qv=tfNorm(document.getElementById('pickQ').value), t=PICK_TABS[pickTab]; g.innerHTML=''; const fr=document.createDocumentFragment();
+  CAT.list.forEach((e,i)=>{ if(qv){ if(!(tfNorm(e[0]).includes(qv) || String(e[1])===qv)) return; } else if(e[1]<t[1] || e[1]>t[2]) return;
+    const b=document.createElement('button'); b.type='button'; b.className='it'; const gi=document.createElement('div'); gi.className='gi'; catIcon(gi,i); const sp=document.createElement('span'); sp.textContent=e[0]; const em=document.createElement('em'); em.textContent=e[1];
+    b.appendChild(gi); b.appendChild(sp); b.appendChild(em); b.addEventListener('click',()=>{ TF.map[pickFx[0]]={id:null,name:e[0],coins:e[1],ci:i,pic:null}; tfSave(); document.getElementById('pick').hidden=true; cfgBuild(); }); fr.appendChild(b); });
+  g.appendChild(fr); if(!g.children.length){ const d=document.createElement('p'); d.textContent='見つかりませんでした'; g.appendChild(d); } }
+/* ギフト表に出す名前（自分で変えた分だけ入る）。TBL_NAME=元の名前 */
+const TBL_NAME={"gem1": "宝石×1", "gem5": "宝石×5", "gem10": "宝石×10", "gem30": "宝石×30", "gem100": "宝石×100", "gem500": "宝石×500", "from3": "3段目から", "from4": "4段目から", "from5": "FINALから", "shake": "皿をゆらす", "cap": "当たり穴にフタ", "dbl": "確変（穴2つ）", "wipe": "全消し"}; let LBL={}; try{ LBL=JSON.parse(localStorage.getItem('jewel_lbl')||'{}')||{}; }catch(e){ LBL={}; } function lblSave(){ try{ localStorage.setItem('jewel_lbl',JSON.stringify(LBL)); }catch(e){} }
+let tblCols=7; try{ tblCols=parseInt(localStorage.getItem('jewel_tblcols'),10)||7; }catch(e){}
+function tblUrl(){ const parts=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name || b.off) continue; parts.push(f[0]+'.'+(b.ci!=null?b.ci:'n'+encodeURIComponent(b.name))+(b.coins!=null?'.'+b.coins:'')); }
+  const base=new URL('./gifts.html',location.href); return base.origin+base.pathname+'?cols='+tblCols+'#o='+(OPT.followOn?1:0)+(OPT.likeOn?1:0)+(OPT.coinOn?1:0)+(OPT.chatOn?1:0)+'&g='+parts.join(',')+(()=>{ const l=Object.keys(LBL).filter(k=>LBL[k]&&TBL_NAME[k]).map(k=>k+'.'+encodeURIComponent(encodeURIComponent(LBL[k]))); return l.length?'&l='+l.join(','):''; })(); }
+function tblUI(){ const el=document.getElementById('tblUrl'); if(el) el.value=tblUrl(); document.querySelectorAll('#cfg button.tc').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.c,10)===tblCols)); }
+function cfgBuild(){ tblUI(); missBuild(); { const en=document.getElementById('embedNote'); if(en) en.hidden=!EMBED; } { const sb=document.getElementById('seqLearn'), sn=document.getElementById('seqNote'); if(sb){ sb.textContent=TF.seqLearn?'順番登録をやめる':'上から順に受信で登録'; sb.style.background=TF.seqLearn?'#d1457a':''; const f=TF.seqLearn&&FX_LIST.find(x=>x[0]===TF.learn); sn.textContent=f?'いま待っているのは「'+f[2]+'」（'+((TF.map[f[0]]||{}).name||'')+'）。このギフトを1個流してください':''; } } const box=document.getElementById('cfgRows'); if(!box) return; box.innerHTML='';
+  for(const f of FX_LIST){ const b=TF.map[f[0]]||{}, row=document.createElement('div'); row.className='row '+f[1];
+    const nm=document.createElement('div'); nm.className='nm'; nm.textContent=(f[1]==='jam'?'挑戦｜':f[1]==='help'?'守り｜':'')+f[2]; const sm=document.createElement('small'); sm.textContent=f[3]+(b.coins!=null?'　'+b.coins+'コイン':''); nm.appendChild(sm); { const li=document.createElement('input'); li.type='text'; li.maxLength=14; li.value=LBL[f[0]]||''; li.placeholder='表の名前：'+(TBL_NAME[f[0]]||f[2]); li.style.cssText='display:block;width:100%;box-sizing:border-box;font-size:.8em;margin-top:.25em;padding:.25em .4em'; const sv=()=>{ const v=li.value.trim(); if(v) LBL[f[0]]=v; else delete LBL[f[0]]; lblSave(); tblUI(); }; li.addEventListener('input',sv); li.addEventListener('pointerdown',e=>e.stopPropagation()); li.addEventListener('keydown',e=>e.stopPropagation()); nm.appendChild(li); } 
+    const inp=document.createElement('button'); inp.type='button'; inp.className='gsel'; const gi=document.createElement('div'); gi.className='gi'; if(b.ci!=null) catIcon(gi,b.ci); else if(b.pic){ gi.style.backgroundImage='url('+b.pic+')'; gi.style.backgroundSize='contain'; gi.style.backgroundPosition='center'; }
+    const gt=document.createElement('div'); gt.className='gt'; gt.textContent=b.name||'未設定（押してえらぶ）'; if(b.name){ const sm2=document.createElement('small'); sm2.textContent=(b.coins!=null?b.coins+'コイン':'')+(b.id!=null?'　受信ずみ':''); gt.appendChild(sm2); }
+    inp.appendChild(gi); inp.appendChild(gt); inp.addEventListener('click',()=>pickOpen(f));
+    const lr=document.createElement('button'); lr.type='button'; lr.className='lr'+(TF.learn===f[0]?' wait':''); lr.textContent=TF.learn===f[0]?'ギフト待ち…':'受信で登録'; lr.addEventListener('click',()=>{ TF.learn=TF.learn===f[0]?null:f[0]; cfgBuild(); });
+    const xb=document.createElement('button'); xb.type='button'; xb.className='x'; xb.textContent='×'; xb.addEventListener('click',()=>{ delete TF.map[f[0]]; tfSave(); cfgBuild(); });
+    const sw=document.createElement('button'); sw.type='button'; sw.className='lr'; sw.textContent=b.off?'OFF':'ON'; sw.style.cssText='flex:0 0 auto;min-width:3.6em;font-weight:900;color:#fff;background:'+(b.off?'#5b6478':'#1fa45a'); sw.addEventListener('click',()=>{ const e=TF.map[f[0]]; if(!e) return; if(e.off) delete e.off; else e.off=true; tfSave(); cfgBuild(); });   // ON/OFF：OFFの間は、このギフトが来ても何も起きず、ギフト表にも出ない（割り当ては残る）
+    if(b.off){ inp.style.opacity='.45'; nm.style.opacity='.6'; }
+    row.appendChild(nm); row.appendChild(inp); if(b.name) row.appendChild(sw); row.appendChild(lr); if(b.name) row.appendChild(xb); box.appendChild(row); } }
+{ const cfg=document.getElementById('cfg'); document.getElementById('cfgBtn').addEventListener('click',()=>{ catLoad(()=>{ cfgBuild(); }); cfgBuild(); tfUI(); cfg.hidden=false; tp.hidden=true; try{ const v=window.__viewH||{}; document.getElementById('viewDbg').textContent='画面の高さ（調査用）：'+[v.inner,v.client,Math.round(v.vv||0),v.screen,v.safeT,v.safeB,v.alone?'ホーム':'ブラウザ',Math.round(v.use||0)].join(' / '); }catch(e){} }); document.getElementById('cfgClose').addEventListener('click',()=>{ TF.learn=null; TF.seqLearn=false; cfg.hidden=true; }); for(const id of ['clUser','clKey']) document.getElementById(id).addEventListener('input',e=>{ e.target.dataset.d='1'; CLOUD.user=document.getElementById('clUser').value.trim().replace(/^@/,''); CLOUD.key=document.getElementById('clKey').value.trim(); try{ localStorage.setItem('jewel_cloud',JSON.stringify(CLOUD)); }catch(err){} });   /* 打ったその場で保存する（「つなぐ」を押す前に読みこみ直しても消えないように）。キーはこの端末の中だけ */
+  document.getElementById('clOn').addEventListener('click',()=>{ const u=document.getElementById('clUser').value.trim().replace(/^@/,''), k=document.getElementById('clKey').value.trim(); if(!CLOUD.on && (!u || !k)){ document.getElementById('clSt').textContent='ユーザー名とキーの両方を入れてください'; return; } CLOUD={on:!CLOUD.on,user:u,key:k}; delete document.getElementById('clUser').dataset.d; delete document.getElementById('clKey').dataset.d; try{ localStorage.setItem('jewel_cloud',JSON.stringify(CLOUD)); }catch(e){} TF.tries=0; TF.wait=3000; TF.ok=false; tfConnect(); tfUI(); });
+  document.getElementById('pickClose').addEventListener('click',()=>{ document.getElementById('pick').hidden=true; }); document.getElementById('pickQ').addEventListener('input',pickDraw);
+  document.getElementById('cfgTable').addEventListener('click',()=>{ window.open(tblUrl(),'_blank'); });
+  document.querySelectorAll('#cfg button.tc').forEach(b=>b.addEventListener('click',()=>{ tblCols=parseInt(b.dataset.c,10); try{ localStorage.setItem('jewel_tblcols',String(tblCols)); }catch(e){} tblUI(); }));
+  document.getElementById('tblCopy').addEventListener('click',()=>{ const el=document.getElementById('tblUrl'), bt=document.getElementById('tblCopy'); el.select(); const done=()=>{ bt.textContent='コピーしました'; setTimeout(()=>{ bt.textContent='URLをコピー'; },1500); }; try{ navigator.clipboard.writeText(el.value).then(done,()=>{ document.execCommand('copy'); done(); }); }catch(e){ try{ document.execCommand('copy'); done(); }catch(_){} } });
+  document.getElementById('seqLearn').addEventListener('click',()=>{ if(TF.seqLearn){ TF.seqLearn=false; TF.learn=null; } else { const f=FX_LIST.find(x=>TF.map[x[0]] && TF.map[x[0]].name); if(f){ TF.seqLearn=true; TF.learn=f[0]; } else tfLogAdd('先にギフトをえらんでください'); } cfgBuild(); });
+  document.getElementById('tfRe').addEventListener('click',()=>{ TF.wait=3000; tfConnect(); });
+  // 配る用のリンク：ギフトの割り当て（名前・コイン・届いた名前とID・ON/OFF・表の名前）を短くまとめてアドレスの後ろに付ける。キーは入れない
+  const b64e=t=>btoa(unescape(encodeURIComponent(t))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''), b64d=t=>decodeURIComponent(escape(atob(t.replace(/-/g,'+').replace(/_/g,'/'))));
+  const sharePack=()=>{ const g=[]; for(const f of FX_LIST){ const b=TF.map[f[0]]; if(!b || !b.name) continue; g.push([f[0],b.name,b.coins!=null?b.coins:null,b.ci!=null?b.ci:null,b.id!=null?b.id:null,b.rx||null,b.off?1:0,b.alt||null]); } return b64e(JSON.stringify({g,l:LBL})); };
+  const shareApply=o=>{ const m={}; for(const a of (o.g||[])){ if(!FX_LIST.some(f=>f[0]===a[0])) continue; const e={id:a[4]!=null?a[4]:null,name:String(a[1]||''),coins:a[2]!=null?a[2]:null,pic:null,ci:a[3]!=null?a[3]:null}; if(a[5]) e.rx=String(a[5]); if(a[6]) e.off=true; if(Array.isArray(a[7])) e.alt=a[7].map(String); m[a[0]]=e; } TF.map=m; tfSave(); if(o.l && typeof o.l==='object'){ LBL=o.l; lblSave(); } try{ cfgBuild(); }catch(e){} tfLogAdd('受け取ったギフトの割り当てを読みこんだ（'+Object.keys(m).length+'個）'); };
+  document.getElementById('shareMk').addEventListener('click',()=>{ const url=(EMBED?HOME_URL:location.origin+location.pathname)+'#set='+sharePack(), st=document.getElementById('shareSt'), io=document.getElementById('cfgIO'); io.value=url; const copied=()=>{ st.textContent='リンクをコピーしました。LINEなどに貼って送ってください'; };
+    if(navigator.share){ navigator.share({title:'宝石クルーン',url}).then(()=>{ st.textContent='送りました'; }).catch(()=>{ if(navigator.clipboard) navigator.clipboard.writeText(url).then(copied).catch(()=>{ st.textContent='下の箱の文字をコピーして送ってください'; io.select(); }); }); }
+    else if(navigator.clipboard) navigator.clipboard.writeText(url).then(copied).catch(()=>{ st.textContent='下の箱の文字をコピーして送ってください'; io.select(); }); else { st.textContent='下の箱の文字をコピーして送ってください'; io.select(); } });
+  { const m=/[#&]set=([A-Za-z0-9_-]+)/.exec(location.hash||''); if(m){ try{ const o=JSON.parse(b64d(m[1])), has=Object.keys(TF.map).some(k=>TF.map[k] && TF.map[k].name && !/^(dragonAtk)$/.test(k)) ; if(o && Array.isArray(o.g) && o.g.length && (!has || window.confirm('受け取ったギフトの割り当てに入れかえますか？（今の割り当ては消えます）'))) shareApply(o); }catch(e){ tfLogAdd('受け取った設定を読みこめませんでした'); } try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} } }
+  document.getElementById('cfgExp').addEventListener('click',()=>{ const t=document.getElementById('cfgIO'); t.value=JSON.stringify(Object.keys(LBL).length?Object.assign({},TF.map,{__lbl:LBL}):TF.map); t.select(); });
+  // 読みこむ：そのままの文字のほか、「配る用のリンク」を貼った時、前後に余計な文が付いた時、メッセージアプリで「”」などに変わった時でも読めるようにする
+  document.getElementById('cfgImp').addEventListener('click',()=>{ const raw=String(document.getElementById('cfgIO').value||''), st=document.getElementById('shareSt'); const say=t=>{ tfLogAdd(t); if(st) st.textContent=t; };
+    try{ const flat=raw.replace(/\s+/g,''), m=/set=([A-Za-z0-9_-]{20,})/.exec(flat)||/^()?([A-Za-z0-9_-]{40,})$/.exec(flat); if(m && !m[1]) m[1]=m[2]; if(m){ const o=JSON.parse(b64d(m[1])); if(o && Array.isArray(o.g) && o.g.length){ shareApply(o); say('読みこみました（'+o.g.length+'個）'); return; } } }catch(e){}
+    let t=raw.replace(/[\u201C\u201D\u201E\u201F\u2033\uFF02]/g,'"').replace(/[\u2018\u2019\u2032\uFF07]/g,"'").replace(/\uFF1A/g,':').replace(/\uFF0C/g,',').replace(/[\u200B\uFEFF]/g,''); const i=t.indexOf('{'), j=t.lastIndexOf('}'); if(i<0 || j<=i){ say(raw.trim()?'読みこめません：文字が途中で切れているか、ちがう文字です。「配る用のリンク」を送ってもらうのが確実です':'箱が空です。もらった文字を貼ってから押してください'); return; }
+    try{ const o=JSON.parse(t.slice(i,j+1)); if(o && typeof o==='object'){ if(Array.isArray(o.g)){ shareApply(o); say('読みこみました（'+o.g.length+'個）'); return; } if(o.__lbl && typeof o.__lbl==='object'){ LBL=o.__lbl; lblSave(); } delete o.__lbl; TF.map=o; tfSave(); cfgBuild(); say('読みこみました（'+Object.keys(o).length+'個）'); } }
+    catch(e){ say('読みこめません：文字が途中で切れているようです（'+raw.length+'文字）。「配る用のリンク」を送ってもらうのが確実です'); } }); }
+function optUI(){ for(const [id,k] of [['optChat','chatOn'],['optLike','likeOn'],['optFollow','followOn'],['optCoin','coinOn']]){ const b=document.getElementById(id); if(!b) continue; b.textContent=OPT[k]?'オン（押すとオフ）':'オフ（押すとオン）'; b.style.background=OPT[k]?'#1f8a4c':'#555'; } }
+for(const [id,k] of [['optChat','chatOn'],['optLike','likeOn'],['optFollow','followOn'],['optCoin','coinOn']]) document.getElementById(id).addEventListener('click',()=>{ OPT[k]=!OPT[k]; optSave(); optUI(); tblUI(); }); optUI();
+catLoad(()=>{});
+window.JewelTF={ TF, simulate:m=>tfEvent(m), connect:tfConnect };
+tfConnect();
+/* タイトル画面と一時停止 */
+function setPause(v,drop){ if(v && TITLE) return; PAUSE=!!v; const b=document.getElementById('pauseBtn'), t=document.getElementById('pauseTag'); b.textContent=PAUSE?'再開':'一時停止'; b.classList.toggle('on',PAUSE); t.hidden=!PAUSE; if(!PAUSE){ last=performance.now(); const q=PENDQ.splice(0); if(!drop) q.forEach((fn,i)=>setTimeout(()=>{ try{ if(!TITLE) fn(); }catch(e){} },i*350)); } }
+document.getElementById('pauseBtn').addEventListener('click',()=>setPause(!PAUSE));
+function ttlUI(){ const el=document.getElementById('ttl'); el.hidden=!TITLE; document.getElementById('pauseBtn').hidden=TITLE; if(!TITLE) return; document.getElementById('ttlRec').innerHTML=best>0?'これまでの大当たり<b>'+fmt(best)+'</b>回':'ギフトで宝石が増える'; }
+document.getElementById('ttl').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.id==='ttlGo'){ Game.start(); return; } if(b.id==='ttlGift'){ document.getElementById('cfgBtn').click(); return; } });
+if(/[?&]notitle=1/.test(location.search)) TITLE=false;
+ttlUI();
+{ const a=document.getElementById('jpTx'), b=document.getElementById('jpWin'); a.value=JP.text||''; b.value=JP.win||''; a.addEventListener('input',()=>{ JP.text=a.value.slice(0,16); jpSave(); }); b.addEventListener('input',()=>{ JP.win=clamp(parseInt(b.value,10)||0,-99999,99999); jpSave(); }); for(const e of [a,b]) e.addEventListener('keydown',ev=>ev.stopPropagation()); }
+window.JewelGame=Game; window.__dbg={ get S(){ return S; }, Game, DISH, CFG, JP, update, draw, reset, get best(){ return best; }, get TITLE(){ return TITLE; }, set TITLE(v){ TITLE=v; ttlUI(); }, get PAUSE(){ return PAUSE; }, setPause };
+Promise.all([document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()].concat(Object.values(IMG).map(im=>new Promise(r=>{ if(im.complete) r(); else { im.onload=r; im.onerror=r; } })))).then(()=>{ window.__ready=true; requestAnimationFrame(loop); });
+</script>
+</body>
+</html>

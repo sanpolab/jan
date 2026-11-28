@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>宝石クルーン ギフト表</title>
+<style>
+@font-face{font-family:'MPR';src:url('./font/mpr.woff2') format('woff2');font-weight:100 900;font-display:swap}
+html,body{margin:0;background:#000;color:#fff;font-family:'MPR','Hiragino Kaku Gothic ProN','Noto Sans JP','Yu Gothic','Meiryo',sans-serif}
+#grid{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.55vw;padding:.6vw;box-sizing:border-box;width:100%}
+.c{border:.32vw solid #e0262e;border-radius:1.3vw;background:linear-gradient(#17171d,#08080b);padding:.5vw .3vw .45vw;display:flex;flex-direction:column;align-items:center;min-width:0;box-shadow:0 0 1vw rgba(224,38,46,.35) inset}
+.c.help{border-color:#2fbf4f;box-shadow:0 0 1vw rgba(47,191,79,.35) inset}
+.c.free{border-color:#58b8ff;box-shadow:0 0 1vw rgba(88,184,255,.35) inset}
+.g svg{width:86%;height:86%}
+.c.both{border-color:#ffcc33;box-shadow:0 0 1vw rgba(255,204,51,.35) inset}
+.pair{display:flex;align-items:center;justify-content:center;gap:.2vw;width:100%}
+.pair>div{flex:1 1 50%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;min-width:0;position:relative}
+.pair img{width:100%;height:100%;object-fit:contain}
+.g .t{font-weight:900;font-size:calc(11.5vw / var(--cols));line-height:1.15;text-align:center;overflow-wrap:anywhere;color:#ffe680}
+.g .q{font-weight:900;font-size:calc(34vw / var(--cols));color:#555}
+.g .coin{position:absolute;right:0;bottom:0;font-weight:900;font-size:calc(10.5vw / var(--cols));background:rgba(0,0,0,.78);border-radius:.6vw;padding:0 .35vw;color:#ffd23f}
+.nm{font-weight:900;font-size:calc(13.5vw / var(--cols));line-height:1.15;text-align:center;margin-top:.25vw;text-shadow:0 .15vw 0 #000;white-space:nowrap;overflow:hidden;max-width:100%}
+.g .sp{width:92%;height:92%;border-radius:12%;background-image:url('./img/giftcat.jpg');background-repeat:no-repeat}
+.split{display:block!important;position:relative;height:100vh;overflow:hidden;padding:0!important}
+.sec{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:1.6vw;padding:0 .8vw .6vw;box-sizing:border-box;transition:transform .55s cubic-bezier(.3,.9,.3,1)}
+.sec.jam{background:rgba(224,38,46,.20);box-shadow:0 0 0 .4vw rgba(224,38,46,.75) inset}
+.sec.help{background:rgba(47,191,79,.18);box-shadow:0 0 0 .4vw rgba(47,191,79,.75) inset}
+.sec .hd{font-weight:900;font-size:3.6vw;line-height:1.4;text-align:center;letter-spacing:.3vw;text-shadow:0 .2vw 0 #000}
+.sec .hd small{font-size:2.8vw;opacity:.85;margin-left:1.5vw;letter-spacing:0}
+.sec.jam .hd{color:#ff8a90}.sec.help .hd{color:#8dffa6}
+.sec .gr{display:grid;gap:.7vw;justify-content:center}
+.g.txt{flex-direction:column;gap:.15vw}.g.txt .coin{position:static}
+.scr{display:flex!important;flex-direction:column;height:100vh;padding:.5vh!important;gap:.7vh;overflow:hidden;box-sizing:border-box}
+.strip{flex:1 1 0;min-height:0;display:flex;align-items:stretch;border-radius:1.6vh;overflow:hidden}
+.strip.jam{background:rgba(224,38,46,.20);box-shadow:0 0 0 .45vh rgba(224,38,46,.75) inset}
+.strip.help{background:rgba(47,191,79,.18);box-shadow:0 0 0 .45vh rgba(47,191,79,.75) inset}
+.strip .lb{flex:0 0 auto;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:upright;font-weight:900;letter-spacing:.05em;padding:0 .9vh;text-shadow:0 .25vh 0 #000;background:rgba(0,0,0,.45);white-space:nowrap}
+.strip.jam .lb{color:#ff8a90}.strip.help .lb{color:#8dffa6}
+.strip .vp{flex:1 1 0;min-width:0;overflow:hidden;position:relative;padding:.9vh 0}
+.strip .trk{height:100%;display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--r),1fr);gap:.8vh;width:max-content;will-change:transform;padding:0 .8vh;box-sizing:border-box}
+.scr .c{box-sizing:border-box;justify-content:center}
+@keyframes altIn{from{opacity:0;transform:translateY(1.2vh)}to{opacity:1;transform:none}}
+.scr .strip{animation:altIn .4s ease-out}
+</style>
+</head>
+<body>
+<div id="grid"></div>
+<script>
+/* 宝石クルーンのギフト表。ゲームの「ギフト」画面で登録した割り当てをそのまま表示する。
+   URLの後ろに ?cols=9（1段の数）や ?all=1（未登録の効果も出す）を付けられる */
+const FX=[["gem1", "jam", "宝石×1", "宝石"], ["gem5", "jam", "宝石×5", "宝石"], ["gem10", "jam", "宝石×10", "宝石"], ["gem30", "jam", "宝石×30", "宝石"], ["gem100", "jam", "宝石×100", "宝石"], ["gem500", "jam", "宝石×500", "宝石"], ["from3", "jam", "3段目から", "途中から"], ["from4", "jam", "4段目から", "途中から"], ["from5", "jam", "FINALから", "途中から"], ["dbl", "jam", "確変（穴2つ）", "スキル"], ["shake", "jam", "皿をゆらす", "スキル"], ["cap", "help", "当たり穴にフタ", "スキル"], ["wipe", "help", "全消し", "スキル"]];
+const FREE_GRP=FX.some(f=>f[3])?FX[FX.length-1][3]:'';
+const q=new URLSearchParams(location.search), cols=Math.max(3,Math.min(13,parseInt(q.get('cols'),10)||9)), showAll=q.get('all')==='1';
+document.documentElement.style.setProperty('--cols',cols);
+let last='', CATN=0, CATL=null; const nrm=t=>String(t||'').trim().toLowerCase().replace(/\s+/g,'').replace(/！/g,'!').replace(/？/g,'?').replace(/[〜～]/g,'~').replace(/[．。]/g,'.'); fetch('./gifts_cat.json').then(r=>r.json()).then(j=>{ CATL=j; CATN=j.length; last=''; build(); }).catch(()=>{});
+/* 割り当ての読みこみ元：①同じブラウザでゲームを開いていればその設定（変えると自動で反映）②なければURLの # 以降に書かれた設定 */
+function fromHash(){ const h=new URLSearchParams(location.hash.replace(/^#/,'')), g=h.get('g'), o=h.get('o'), m={}; if(g) for(const part of g.split(',')){ const a=part.split('.'); if(a.length<2) continue; const e={id:null,name:'',coins:a[2]!=null&&a[2]!==''?Number(a[2]):null,ci:null}; if(a[1][0]==='n'){ try{ e.name=decodeURIComponent(a[1].slice(1)); }catch(_){ e.name=a[1].slice(1); } } else { e.ci=parseInt(a[1],10); e.name=(CATL&&CATL[e.ci])?CATL[e.ci][0]:'#'+e.ci; } m[a[0]]=e; }
+  const lb={}, l=h.get('l'); if(l) for(const part of l.split(',')){ const p=part.indexOf('.'); if(p<1) continue; try{ lb[part.slice(0,p)]=decodeURIComponent(part.slice(p+1)); }catch(_){} } return {m, lb, op:o?{followOn:o[0]==='1',likeOn:o[1]==='1',coinOn:o[2]!=='0',chatOn:o[3]!=='0'}:null}; }
+function load(){ let m={}, src='local'; try{ m=JSON.parse(localStorage.getItem('jewel_gifts')||'{}')||{}; }catch(e){} if(!Object.keys(m).some(k=>m[k]&&m[k].name)){ m=fromHash().m; src='hash'; } if(window.__sample) m=window.__sample; SRC=src; return m; }
+let SRC='local';
+function build(){ const m=load(); if(CATL) for(const k in m){ const b=m[k]; if(b && b.name && b.ci==null){ const i=CATL.findIndex(e=>nrm(e[0])===nrm(b.name)); if(i>=0){ b.ci=i; if(b.coins==null) b.coins=CATL[i][1]; } } } for(const k in m) if(m[k] && m[k].off) delete m[k]; let LB={}; if(SRC==='hash') LB=fromHash().lb; else { try{ LB=JSON.parse(localStorage.getItem('jewel_lbl')||'{}')||{}; }catch(e){} } const key=JSON.stringify(m)+JSON.stringify(LB)+CATN+(localStorage.getItem('jewel_opts')||'')+location.hash; if(key===last) return; last=key; const g=document.getElementById('grid'); g.innerHTML=''; const any=FX.some(f=>m[f[0]]&&m[f[0]].name);
+  let op={likeOn:true,followOn:true,coinOn:true,chatOn:true}; if(SRC==='hash'){ const ho=fromHash().op; if(ho) op=ho; } else { try{ Object.assign(op,JSON.parse(localStorage.getItem('jewel_opts')||'{}')); }catch(e){} }
+  const COIN_ON=op.coinOn!==false;
+  const free=(svg,label,icon,kind)=>{ const c=document.createElement('div'); c.className='c '+(kind||'jam'); if(FREE_GRP) c.dataset.grp=FREE_GRP; const pair=document.createElement('div'); pair.className='pair'; const gd=document.createElement('div'); gd.className='g'; gd.innerHTML=svg; const fx=document.createElement('div'); const fi=document.createElement('img'); fi.src='./img/fx/'+icon+'.webp'; fx.appendChild(fi); pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; nm.textContent=label; c.appendChild(pair); c.appendChild(nm); g.appendChild(c); };
+  if(op.chatOn!==false) free('<svg viewBox="0 0 100 100"><path d="M10 14h80a6 6 0 0 1 6 6v44a6 6 0 0 1-6 6H44L22 90V70H10a6 6 0 0 1-6-6V20a6 6 0 0 1 6-6z" fill="#58b8ff"/><circle cx="30" cy="42" r="6" fill="#fff"/><circle cx="50" cy="42" r="6" fill="#fff"/><circle cx="70" cy="42" r="6" fill="#fff"/></svg>','宝石×1','gem1');
+  if(op.followOn) free('<svg viewBox="0 0 100 100"><circle cx="40" cy="30" r="20" fill="#3ddc6a"/><path d="M6 92c0-24 15-38 34-38s34 14 34 38z" fill="#3ddc6a"/><path d="M78 40v34M61 57h34" stroke="#3ddc6a" stroke-width="11" stroke-linecap="round"/></svg>','宝石×5','gem5');
+  if(op.likeOn) free('<svg viewBox="0 0 100 100"><path d="M50 90C20 68 6 52 6 33 6 18 17 8 30 8c8 0 15 4 20 11 5-7 12-11 20-11 13 0 24 10 24 25 0 19-14 35-44 57z" fill="#ff3b5c"/><text x="50" y="57" text-anchor="middle" font-size="27" font-weight="900" fill="#fff" font-family="MPR,sans-serif">1000</text></svg>','宝石×3','gem1');
+  for(const f of FX){ const b=m[f[0]]; if(!showAll && any && !(b&&b.name)) continue; const c=document.createElement('div'); c.className='c '+f[1]; if(f[3]) c.dataset.grp=f[3];
+    const pair=document.createElement('div'); pair.className='pair'; const gd=document.createElement('div'); gd.className='g';
+    if(b&&b.ci!=null){ const d2=document.createElement('div'); d2.className='sp'; const rows=CATN?Math.ceil(CATN/24):20; d2.style.backgroundSize='2400% '+(rows*100)+'%'; d2.style.backgroundPosition=((b.ci%24)/23*100)+'% '+(rows>1?(Math.floor(b.ci/24)/(rows-1)*100):0)+'%'; gd.appendChild(d2); }
+    else if(b&&b.pic){ const im=document.createElement('img'); im.src=b.pic; im.alt=b.name||''; im.referrerPolicy='no-referrer'; im.onerror=()=>{ gd.innerHTML=''; gd.classList.add('txt'); const t=document.createElement('div'); t.className='t'; t.textContent=b.name||'？'; gd.appendChild(t); }; gd.appendChild(im); }
+    else if(b&&b.name){ gd.classList.add('txt'); const t=document.createElement('div'); t.className='t'; t.textContent=b.name; gd.appendChild(t); }
+    else { const t=document.createElement('div'); t.className='q'; t.textContent='？'; gd.appendChild(t); }
+    if(b&&b.coins!=null&&COIN_ON){ const cn=document.createElement('div'); cn.className='coin'; cn.textContent=b.coins; gd.appendChild(cn); }
+    const fx=document.createElement('div'); const fi=document.createElement('img'); fi.src='./img/fx/'+f[0]+'.webp'; fi.alt=f[2]; fx.appendChild(fi);
+    pair.appendChild(gd); pair.appendChild(fx); const nm=document.createElement('div'); nm.className='nm'; { const lab=LB[f[0]]||f[2]; nm.textContent=lab; if(LB[f[0]] && lab.length>8) nm.style.fontSize='calc('+(13.5*8/lab.length).toFixed(2)+'vw / var(--cols))'; } c.appendChild(pair); c.appendChild(nm); g.appendChild(c); } autoFit(); scrollFit(); }
+// fit=1：窓の高さに全部おさまる中で、いちばん大きく見える列の数を自動でえらぶ（ゲームの下に出す時用）
+// fit=1（ゲームの下に出す時）：妨害とお助けを別のページにして、大きく見える数だけ並べ、5秒ごとに横へスライドして切りかえる
+let CELLS=null, PG=[], pgI=0, pgTm=0;
+const mkSec=(k,cells,c,lab)=>{ const s=document.createElement('div'); s.className='sec '+k; const h=document.createElement('div'); h.className='hd'; h.innerHTML=(k==='jam'?'▼ 挑戦':'▼ 守り')+(lab?'<small>'+lab+'</small>':''); const r=document.createElement('div'); r.className='gr'; r.style.gridTemplateColumns='repeat('+c+',calc((100vw - 1.6vw - '+(c-1)+' * .7vw) / '+c+'))'; for(const x of cells) r.appendChild(x); s.appendChild(h); s.appendChild(r); return s; };
+function showPg(){ PG.forEach((s,i)=>{ let d=i-pgI; if(PG.length>2 && d<-1) d+=PG.length; if(PG.length>2 && d>PG.length-2) d-=PG.length; s.style.transform='translateX('+(d*103)+'%)'; s.style.visibility=Math.abs(d)<=1?'':'hidden'; }); }
+function autoFit(){ if(q.get('fit')!=='1') return; const gr=document.getElementById('grid'); const fresh=[...gr.children].filter(c=>c.classList.contains('c'));
+  if(fresh.length||!CELLS){ CELLS={jam:[],help:[]}; for(const c of fresh) CELLS[(c.classList.contains('help')||c.classList.contains('free')||c.classList.contains('both'))?'help':'jam'].push(c); }
+  gr.classList.add('split'); gr.innerHTML=''; const H=window.innerHeight, nj=CELLS.jam.length, nh=CELLS.help.length, all=CELLS.jam.concat(CELLS.help); if(!all.length) return; let best=null;
+  const MAXPG=Math.max(1,parseInt(q.get('pg'),10)||4), MINC=Math.max(4,Math.min(13,parseInt(q.get('min'),10)||4));   // pg=ページ数の上限（少ないほど札が小さくなって段が増える）、min=1段の数の下限
+  for(let c=MINC;c<=13;c++){ document.documentElement.style.setProperty('--cols',c); const t=mkSec('jam',all.slice(0,1),c,''); t.style.height='auto'; t.style.position='static'; gr.appendChild(t); const hd=t.firstChild.offsetHeight, rh=t.lastChild.offsetHeight, gap=Math.max(1,window.innerWidth*.007), pad=window.innerWidth*.006; gr.removeChild(t);
+    const rows=Math.floor((H-hd-pad+gap)/(rh+gap)); if(rows<1) continue; const cap=c*rows, pages=Math.ceil(nj/cap)+Math.ceil(nh/cap); best={c,cap}; if(pages<=MAXPG) break; }
+  if(!best) best={c:13,cap:13}; document.documentElement.style.setProperty('--cols',best.c); PG=[];
+  for(const k of ['jam','help']){ const a=CELLS[k], n=Math.ceil(a.length/best.cap); if(!n) continue; const per=Math.ceil(a.length/n); for(let i=0;i<n;i++) PG.push(mkSec(k,a.slice(i*per,(i+1)*per),best.c,n>1?(i+1)+' / '+n:'')); }
+  for(const s of PG) gr.appendChild(s); if(pgI>=PG.length) pgI=0; showPg(); clearInterval(pgTm); if(PG.length>1) pgTm=setInterval(()=>{ pgI=(pgI+1)%PG.length; showPg(); },5000); }
+window.addEventListener('resize',autoFit);
+/* ふつうの表示：種類ごと（妨害・お助けなど）に段を分けて、入りきらない段は横にゆっくり流す。札を大きくできるので文字が読みやすい */
+let SCELLS=null, STRK=[], sRaf=0, sPrev=0;
+const ALT_ON=q.get('alt')!=='0'; let altTimer=0;
+function scrollFit(){ if(q.get('fit')==='1' || q.get('scroll')==='0') return; const gr=document.getElementById('grid'); const fresh=[...gr.children].filter(c=>c.classList.contains('c')); if(fresh.length||!SCELLS) SCELLS=fresh; const all=SCELLS; gr.classList.add('scr'); gr.innerHTML=''; STRK=[]; if(!all.length) return;
+  const isH=c=>c.classList.contains('help')||c.classList.contains('both')||c.classList.contains('free'), groups=[]; for(const c of all){ const k=c.dataset.grp||(isH(c)?'お助け':'妨害'); let G=groups.find(x=>x.k===k); if(!G){ G={k,kind:isH(c)?'help':'jam',cells:[]}; groups.push(G); } G.cells.push(c); }
+  if(FREE_GRP){ const i=groups.findIndex(x=>x.k===FREE_GRP); if(i>=0){ const G=groups.splice(i,1)[0]; G.kind=G.cells.every(isH)?'help':'jam'; groups.push(G); } }
+  const probe=all[all.length-1].cloneNode(true) /* 大きさをはかる用の写し（本物を使うと、表から1枚ぬけてしまう） */, natH=w=>{ document.documentElement.style.setProperty('--cols',window.innerWidth/w); probe.style.width=w+'px'; probe.style.height='auto'; gr.appendChild(probe); const h=probe.offsetHeight; gr.removeChild(probe); return h; };
+  /* 札の高さ ch にぴったり入る札の幅をさがす */
+  const fitW=ch=>{ let w=ch*1.4; for(let i=0;i<6;i++){ const h=natH(w); if(Math.abs(h-ch)<.6) break; w*=ch/h; } while(natH(w)>ch+.5 && w>20) w*=.985; return w; };
+  const rowsQ=parseInt(q.get('rows'),10)||0, minCols=parseFloat(q.get('min'))||3.5; let R=rowsQ||1;
+  for(const G of groups){ const st=document.createElement('div'); st.className='strip '+G.kind; const lb=document.createElement('div'); lb.className='lb'; lb.textContent=G.k; const vp=document.createElement('div'); vp.className='vp'; const trk=document.createElement('div'); trk.className='trk'; trk.style.setProperty('--r',R); vp.appendChild(trk); st.appendChild(lb); st.appendChild(vp); gr.appendChild(st); G.vp=vp; G.trk=trk; G.lb=lb; }
+  /* 交互に映す：1種類ずつ画面いっぱいに出して、数秒ごとに入れかえる。札は「その種類が全部入る、いちばん大きい大きさ」にする */
+  clearInterval(altTimer); if(ALT_ON && groups.length>1){ const gap=window.innerHeight*.008, sts=groups.slice().sort((a,b)=>(a.kind==='jam'?0:1)-(b.kind==='jam'?0:1)).map(G=>G.vp.parentNode);   /* 妨害を先に映す */
+    /* 妨害とお助けで札の大きさと段数をそろえる（入れかわる時に表の高さが変わらないように、数の多い方に合わせる） */
+    const nMax=Math.max(...groups.map(G=>G.cells.length)), rAll=Math.max(1,parseInt(q.get('rows'),10)||(nMax<=6?1:nMax<=14?2:3)), colsAll=Math.ceil(nMax/rAll);
+    for(const G of groups){ const st=G.vp.parentNode; for(const x of sts) x.style.display=(x===st)?'':'none'; const cs=getComputedStyle(G.vp), vh=G.vp.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom), vw0=G.vp.clientWidth, n=G.cells.length, pad=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom); /* 段は多くても3段（?rows=2 などで指定もできる）。札の大きさは横幅いっぱいから決めて、表は上につめた細い帯にする。たてに入りきらない時だけ小さくする */ /* 横の余白を作らない：種類ごとに、横幅ぴったりに札をならべる。段数は 2 か 3（数がきれいに割り切れる方。6個までは1段） */ const rq=parseInt(q.get('rows'),10)||0, r=Math.max(1,rq||(n<=6?1:(n%3===0||n>16)?3:(n%2===0?2:3))), cols=Math.ceil(n/r); let cw=0, ch=0, vhS=0; const maxH=(vh-gap*(r-1))/r, tp=window.innerHeight*.012+2; st.style.flex='0 0 auto'; G.lb.style.padding='0 .5vh'; G.vp.style.padding='.6vh .6vh'; G.trk.style.padding='0'; /* 見出し（妨害・お助け）の幅が札の大きさで変わるので、2回はかって合わせる */ for(let pass=0;pass<3;pass++){ const vwN=G.vp.clientWidth-tp; cw=Math.max(20,(vwN-gap*(cols-1))/cols); ch=natH(cw); G.natS=r*ch+gap*(r-1)+pad+2;   /* 横いっぱいにならべた時に本当は必要な帯の高さ */ /* 枠の高さがほんの少し足りないだけなら、札の幅はそのまま（横いっぱい）で高さだけ合わせる。大きく足りない時だけ札を小さくする */ if(ch>maxH){ if(ch<=maxH*1.1) ch=Math.max(20,maxH); else { ch=Math.max(20,maxH); cw=fitW(ch); } } vhS=r*ch+gap*(r-1); st.style.height=(vhS+pad+2)+'px'; G.lb.style.fontSize=Math.max(10,Math.min(vhS*.26,vhS/(G.k.length+.3)))+'px'; }
+      st.style.setProperty('--cols',window.innerWidth/cw); G.trk.style.setProperty('--r',r); G.trk.style.margin='0 auto'; G.lb.style.fontSize=Math.max(10,Math.min(vhS*.26,vhS/(G.k.length+.3)))+'px'; G.lb.style.padding='0 .5vh'; G.trk.style.padding='0'; G.trk.style.margin='0 auto'; G.vp.style.padding='.6vh .6vh'; for(const c of G.cells){ c.style.width=cw+'px'; c.style.height=ch+'px'; G.trk.appendChild(c); } /* それでもはみ出していたら、入るまで少しずつ小さくする */ for(let k=0;k<8 && G.trk.scrollWidth>G.vp.clientWidth-parseFloat(getComputedStyle(G.vp).paddingLeft)*2+1;k++){ cw*=.97; ch=natH(cw); for(const c of G.cells){ c.style.width=cw+'px'; c.style.height=ch+'px'; } st.style.setProperty('--cols',window.innerWidth/cw); st.style.height=(r*ch+gap*(r-1)+pad+2)+'px'; } }
+    /* 妨害とお助けの帯の高さをそろえる（高い方に合わせて、低い方は札を少したてにのばす）。そのうえで、枠の下に空きが残る時は「ブラウザソースの高さをいくつにすればぴったりか」を空いた所に出す（?hint=0 で出さない）。切り取ってから拡大すると画質が落ちるので、枠の大きさそのものを合わせてもらうため */
+    { const hs=sts.map(x=>parseFloat(x.style.height)||0), Hm=Math.max(...hs); for(const G of groups){ const st=G.vp.parentNode, h0=parseFloat(st.style.height)||0; if(Hm-h0>1){ const rr=parseInt(G.trk.style.getPropertyValue('--r'),10)||1, add=(Hm-h0)/rr; for(const c of G.cells) c.style.height=(parseFloat(c.style.height)+add)+'px'; st.style.height=Hm+'px'; } }
+      let hint=document.getElementById('altHint'); const need=Math.ceil(Hm+window.innerHeight*.01)+4, spare=window.innerHeight-need; if(q.get('hint')!=='0' && spare>24){ if(!hint){ hint=document.createElement('div'); hint.id='altHint'; hint.style.cssText='position:fixed;left:0;right:0;text-align:center;font-weight:900;color:#fff;background:rgba(0,0,0,.7);padding:.4em .6em;line-height:1.4;z-index:9'; document.body.appendChild(hint); } hint.style.bottom='auto'; hint.style.top=(need+6)+'px'; hint.style.fontSize=Math.max(12,window.innerWidth*.022)+'px'; hint.textContent='↑ 表はここまで。配信ソフト（OBS）のブラウザソースの「高さ」を '+need+' にすると、この空きがなくなります（幅は今の '+window.innerWidth+' のまま）'; } else { const want=Math.ceil(Math.max(...groups.map(G=>G.natS||0))+window.innerHeight*.01)+4; /* 逆に枠の高さが足りなくて札を小さくしている時（横にすき間ができる）は、下のはしに必要な高さを出す */ if(q.get('hint')!=='0' && want-window.innerHeight>window.innerHeight*.1){ if(!hint){ hint=document.createElement('div'); hint.id='altHint'; hint.style.cssText='position:fixed;left:0;right:0;text-align:center;font-weight:900;color:#fff;background:rgba(0,0,0,.82);padding:.3em .6em;line-height:1.35;z-index:9'; document.body.appendChild(hint); } hint.style.top='auto'; hint.style.bottom='0'; hint.style.fontSize=Math.max(11,window.innerWidth*.02)+'px'; hint.textContent='高さが足りず、横にすき間ができています。ブラウザソースの「高さ」を '+want+' にすると、横いっぱいにぴったり入ります（幅は今の '+window.innerWidth+' のまま）'; } else if(hint) hint.remove(); } }
+    let cur=0; const show=i=>{ sts.forEach((x,k)=>{ x.style.display=k===i?'':'none'; }); }; show(0); const hold=Math.max(2,parseFloat(q.get('hold'))||8); altTimer=setInterval(()=>{ cur=(cur+1)%sts.length; show(cur); },hold*1000); return; }
+  const cs=getComputedStyle(groups[0].vp), vh=groups[0].vp.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom), gap=window.innerHeight*.008, vw0=groups[0].vp.clientWidth; let ch=0, cw=0; const maxN=Math.max(...groups.map(G=>G.cells.length)), calc=()=>{ ch=Math.max(20,(vh-gap*(R-1))/R); cw=fitW(ch); }; /* まず「流さなくても全部入る、いちばん大きい札」をさがす。入りきらない時だけ、横に流す前提で段数を決める */ if(rowsQ) calc(); else { let ok=false; for(R=1;R<=2;R++){ calc(); if(Math.ceil(maxN/R)*(cw+gap)+gap*2<=vw0){ ok=true; break; } } if(!ok){ for(R=1;;R++){ calc(); if(R>=4 || vw0/cw>=minCols) break; } } } for(const G of groups) G.trk.style.setProperty('--r',R); const sec=Math.max(.5,parseFloat(q.get('sec'))||3);
+  document.documentElement.style.setProperty('--cols',window.innerWidth/cw);
+  for(const G of groups){ G.lb.style.fontSize=Math.max(10,Math.min(vh*.2,vh/(G.k.length+.3)))+'px'; for(const c of G.cells){ c.style.width=cw+'px'; c.style.height=ch+'px'; G.trk.appendChild(c); } const full=G.trk.scrollWidth, over=full>G.vp.clientWidth+2; if(over){ for(const c of G.cells){ const d=c.cloneNode(true); G.trk.appendChild(d); } } else G.trk.style.margin='0 auto'; G.trk.style.transform='translate3d(0,0,0)'; STRK.push({el:G.trk,loop:over?full-gap:0,x:0,v:cw/sec}); }
+  if(!sRaf){ const step=t=>{ const dt=Math.min(.1,(t-(sPrev||t))/1000); sPrev=t; for(const k of STRK){ if(!k.loop) continue; k.x-=k.v*dt; if(k.x<=-k.loop) k.x+=k.loop; k.el.style.transform='translate3d('+k.x.toFixed(1)+'px,0,0)'; } sRaf=requestAnimationFrame(step); }; sRaf=requestAnimationFrame(step); } }
+window.addEventListener('resize',scrollFit);
+build(); window.addEventListener('storage',build); window.addEventListener('hashchange',build); setInterval(build,2000);
+</script>
+</body>
+</html>
