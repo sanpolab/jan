@@ -523,7 +523,7 @@ function mountWin(box,o){ box.innerHTML='<div class="panel"><div class="lab pop 
   const draw=b=>{ num.textContent=v; num.className='num pop ol '+(v>0?'pos':v<0?'neg':''); if(b){ void num.offsetWidth; num.classList.add('bump'); } };
   const set=nv=>{ v=Math.max(-999,Math.min(9999,nv|0)); LS.set('ov_win',v); draw(true); };
   box.querySelector('.ctl').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.dataset.z) set(0); else set(v+(+b.dataset.d)); });
-  window.addEventListener('storage',e=>{ if(e.key==='ov_win'){ v=LS.get('ov_win',0)|0; draw(true); } });
+  window.addEventListener('storage',e=>{ if(e.key==='ov_win'){ v=LS.get('ov_win',0)|0; draw(true); } }); BUS.on('winset',nv=>{ v=nv|0; draw(true); });
   BUS.on('chat',c=>{ if(!c.admin) return; const m=/^\s*win\s*([+\-=＋－−＝])\s*(\d+)\s*$/i.exec(c.text); if(!m) return; const k=m[1], n=+m[2]; set(/[=＝]/.test(k)?n:/[+＋]/.test(k)?v+n:v-n); });
   draw(); return {w:600,h:220}; }
 
@@ -610,6 +610,8 @@ const mkS=o=>(n,v)=>{ if(o.sound==='0'||(o.demo&&!o.snd)) return; try{ const a=n
 /* ===== ガチャガチャ ===== */
 const GA_DEF={S:['なんでも1つお願いを聞く','10分間リクエストに全部こたえる'],A:['名前を呼んで全力で感謝','モノマネを1つ'],B:['決めポーズ','早口言葉に挑戦'],C:['ありがとう！','投げキッス']};
 const GA_RK=[['S',0,5,'#ffd86b'],['A',2,15,'#ff6b7d'],['B',3,30,'#6ba8ff'],['C',1,50,'#d5dbe6']];   /* ランク、カプセルの色番号、出やすさ(%)、文字の色 */
+/* ガチャの中身に「Win+3」「Win-2」「Win×2」と書いてあれば、Winカウンターの数を動かす（べつの画面のWinカウンターにも伝わる） */
+const winFx=t=>{ const m=/win\s*([+\-＋－−×xX*＊])\s*(\d+)/i.exec(String(t||'')); if(!m) return false; const n=+m[2]; let v=LS.get('ov_win',0)|0; v=/[×xX*＊]/.test(m[1])?v*n:/[+＋]/.test(m[1])?v+n:v-n; v=Math.max(-999,Math.min(9999,v|0)); LS.set('ov_win',v); BUS.emit('winset',v); return true; };
 function mountGacha(box,o){ const S_=mkS(o), CW=600, CH=900; let dead=false; box.__kill=()=>{ dead=true; }; box.classList.add('gacha'); if(o.skin==='yume'||o.skin==='neon'||o.skin==='wa'){ box.classList.add('sk-'+o.skin); chFont({yume:'hachi',neon:'orbitron',wa:'yuji'}[o.skin]); } box.style.width=CW+'px'; box.style.height=CH+'px';
   box.innerHTML='<canvas width="'+CW*2+'" height="'+CH*2+'" style="width:'+CW+'px;height:'+CH+'px"></canvas><div class="gres"><div class="rk"></div><div class="pz"></div><div class="who"></div></div>';
   const g=box.querySelector('canvas').getContext('2d'); g.scale(2,2); const res=box.querySelector('.gres');
@@ -635,7 +637,7 @@ function mountGacha(box,o){ const S_=mkS(o), CW=600, CH=900; let dead=false; box
       if(t>1.3){ const c=cur.rk[1];  if(t<1.9){ const u=(t-1.3)/.6, y=lerp(OUT.y-30,OUT.y+34,Math.min(1,u*1.6))-Math.abs(Math.sin(Math.max(0,u-.6)*8))*10*(1-u); drawCap(c,OUT.x,y,30,u*5,0); }
         else if(t<2.7){ const u=ease((t-1.9)/.8); drawCap(c,lerp(OUT.x,300,u),lerp(OUT.y+34,430,u),lerp(30,120,u),5+u*7.566,0); }
         else if(t<3.3){ const u=(t-2.7)/.6; drawCap(c,300+Math.sin(u*38)*7*(1-u*.3),430,120,0,0); }
-        else if(t<7.4){ const u=(t-3.3)/.45; drawCap(c,300,430,120,0,u); if(!cur.shown){ cur.shown=true; { if(cur.rk[0]==='S'){ S_('fanfare',.8); S_('cheer',.6); S_('clap',.55); } } res.querySelector('.rk').textContent=cur.rk[0]; res.querySelector('.rk').style.color=cur.rk[3]; res.querySelector('.pz').textContent=cur.prize; res.querySelector('.who').textContent=cur.name+' さん'; res.className='gres on r'+cur.rk[0]; for(let i=0;i<(cur.rk[0]==='S'?70:cur.rk[0]==='A'?40:18);i++){ const a=Math.random()*6.28, v=120+Math.random()*420; sparks.push({x:300,y:430,vx:Math.cos(a)*v,vy:Math.sin(a)*v-160,t:0,l:.8+Math.random()*1.1,c:Math.random()<.6?cur.rk[3]:'#fff3c4',s:3+Math.random()*5}); } } g.globalAlpha=Math.max(0,1-(t-6.9)/.5); }
+        else if(t<7.4){ const u=(t-3.3)/.45; drawCap(c,300,430,120,0,u); if(!cur.shown){ cur.shown=true; { if(cur.rk[0]==='S'){ S_('fanfare',.8); S_('cheer',.6); S_('clap',.55); } } res.querySelector('.rk').textContent=cur.rk[0]; res.querySelector('.rk').style.color=cur.rk[3]; res.querySelector('.pz').textContent=cur.prize; winFx(cur.prize); res.querySelector('.who').textContent=cur.name+' さん'; res.className='gres on r'+cur.rk[0]; for(let i=0;i<(cur.rk[0]==='S'?70:cur.rk[0]==='A'?40:18);i++){ const a=Math.random()*6.28, v=120+Math.random()*420; sparks.push({x:300,y:430,vx:Math.cos(a)*v,vy:Math.sin(a)*v-160,t:0,l:.8+Math.random()*1.1,c:Math.random()<.6?cur.rk[3]:'#fff3c4',s:3+Math.random()*5}); } } g.globalAlpha=Math.max(0,1-(t-6.9)/.5); }
         else { res.classList.remove('on'); cur=null; } g.globalAlpha=1; } }
     if(HA.ok){ g.save(); g.translate(HD.x,HD.y); g.rotate(hAng); g.drawImage(HA,-160*S,-160*S,320*S,320*S); g.restore(); }
     for(const s of sparks){ s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vy+=420*dt; g.globalAlpha=Math.max(0,1-s.t/s.l); g.fillStyle=s.c; g.save(); g.translate(s.x,s.y); g.rotate(s.t*9); g.fillRect(-s.s/2,-s.s/2,s.s,s.s*1.6); g.restore(); } g.globalAlpha=1; sparks=sparks.filter(s=>s.t<s.l);
@@ -943,7 +945,7 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
     ['like','いいねランキング','?w=like','560 × 552','いいねをたくさん押してくれた人の上位5人を出します。上のクリスタルのハートが、いいねのランキングのしるしです。「&top=3」を足すと3人だけになります。'],
     ['gift','ギフトランキング','?w=gift','560 × 552','ギフトのコイン合計が多い人の上位5人を出します。上の宝箱が、ギフトのランキングのしるしです。'],
     ['time','時間','?w=time','640 × 220','「いまの時間」「配信時間」「耐久タイマー（ギフトで時間がのびる）」の3つから選べます。'],
-    ['gacha','ガチャガチャ','?w=gacha','600 × 900','決めたギフトが来ると、ハンドルが回ってカプセルが出てきます。S・A・B・Cのランクと、その中身が出ます。中身は下で自由に書きかえられます（1行に1つ）。'],
+    ['gacha','ガチャガチャ','?w=gacha','600 × 900','決めたギフトが来ると、ハンドルが回ってカプセルが出てきます。S・A・B・Cのランクと、その中身が出ます。中身は下で自由に書きかえられます（1行に1つ）。中身に「Win+3」「Win-2」「Win×2」と書くと、当たった時にWinカウンターの数が動きます。'],
     ['roulette','ルーレット','?w=roulette&min=100','620 × 760','ギフトが来ると金のルーレットが回って、止まったマスのお題と、回した人の名前が出ます。マスの中身は下で書きかえられます（1行に1つ、2〜12個）。'],
     ['tower','シャンパンタワー','?w=tower&goal=1000','760 × 685','ギフトのコインがたまるほど、上のグラスから順にシャンパンが満ちていきます。目標に届くと金の紙ふぶきが舞って、2周目に入ります。「goal=」の数字が目標のコイン数です。'],
     ['chat','コメント表示','?w=chat','640 × 572','届いたコメントを画面に出します。OBS配信ではコメント欄が画面に映らないので、これで視聴者にも見えます。見た目は「黒金の吹き出し」「ゆめかわの吹き出し」「わくなし」「ニコニコ風（横から流れる）」から選べて、フォント・文字の色・大きさも変えられます。「&max=3」で出す数、「&sec=30」で消えるまでの秒数（0なら消えない）。'],
@@ -1021,9 +1023,10 @@ if(W){ /* ---- 部品1つだけを表示（OBSのブラウザソース用） ---
     for(const id of ['rlGift','rlMin','rlIt']) document.getElementById(id).oninput=url; document.getElementById('rlSet').onclick=mk; document.getElementById('rlSkin').onchange=mk; document.getElementById('tRl').onclick=()=>sendCmd({cmd:'roulette',name:DEMO_N[Math.floor(Math.random()*DEMO_N.length)]}); }
   place(document.getElementById('pv_tower'),'tower',{demo:true,goal:3000},()=>Math.min(pvW(),420));
   { const bg=document.getElementById('bt_gacha'), pv=LS.get('ov_gacha',null)||{}; let gab=null; const gam=()=>{ const hst=document.getElementById('pv_gacha'); if(gab&&gab.__kill) gab.__kill(); hst.innerHTML=''; gab=place(hst,'gacha',{demo:true,snd:true,gift:'*__none__',skin:(document.getElementById('gaSkin')||{}).value||''},()=>Math.min(pvW(),340)); }; let h2='<select id="gaSkin"><option value="">黒と金</option><option value="wa">和風</option><option value="yume">ゆめかわ</option><option value="neon">ネオン</option></select><button id="tGa">回してみる</button><div style="width:100%"></div><label class="sz" style="width:100%">回すギフトの名前（「*」にすると、どのギフトでも回る）<input id="gaGift" value="ハートミー"></label>';
-    for(const k of 'SABC') h2+='<label class="sz" style="width:100%">'+k+'ランクの中身（出やすさ '+GA_RK.find(r=>r[0]===k)[2]+'%）<textarea id="ga'+k+'">'+esc(((pv[k]&&pv[k].length)?pv[k]:GA_DEF[k]).join('\n'))+'</textarea></label>'; h2+='<button id="gaSave">見本に反映する</button><span id="gaMsg" class="sz"></span>'; bg.innerHTML=h2;
+    for(const k of 'SABC') h2+='<label class="sz" style="width:100%">'+k+'ランクの中身（出やすさ '+GA_RK.find(r=>r[0]===k)[2]+'%）<textarea id="ga'+k+'">'+esc(((pv[k]&&pv[k].length)?pv[k]:GA_DEF[k]).join('\n'))+'</textarea></label>'; h2+='<button id="gaSave">見本に反映する</button><button id="gaWin">Winカウンターが増減する中身にする</button><span id="gaMsg" class="sz"></span>'; bg.innerHTML=h2;
     document.getElementById('tGa').onclick=()=>sendCmd({cmd:'gacha',name:DEMO_N[Math.floor(Math.random()*DEMO_N.length)]});
     const gg=document.getElementById('gaGift'), gaL=k=>document.getElementById('ga'+k).value.split('\n').map(x=>x.trim().replace(/\|/g,'／')).filter(Boolean).slice(0,30), ug=()=>{ const v=gg.value.trim(); let q='?w=gacha'+(document.getElementById('gaSkin').value?'&skin='+document.getElementById('gaSkin').value:'')+(v&&v!=='ハートミー'?'&gift='+encodeURIComponent(v):''); for(const k of 'SABC'){ const l=gaL(k); if(l.length&&l.join('|')!==GA_DEF[k].join('|')) q+='&'+k+'='+encodeURIComponent(l.join('|')); } document.getElementById('u_gacha').textContent=base+q; }; gg.oninput=ug; for(const k of 'SABC') document.getElementById('ga'+k).oninput=ug; document.getElementById('gaSkin').onchange=()=>{ gam(); ug(); }; gam(); ug();
+    document.getElementById('gaWin').onclick=()=>{ const P={S:'Win+5\nWin×2',A:'Win+3\nWin+2',B:'Win+1\nWin-1',C:'Win-2\nWin-3'}; for(const k of 'SABC') document.getElementById('ga'+k).value=P[k]; document.getElementById('gaSave').click(); };
     document.getElementById('gaSave').onclick=()=>{ const d={}; for(const k of 'SABC') d[k]=gaL(k); LS.set('ov_gacha',d); ug(); document.getElementById('gaMsg').textContent='見本に反映しました。中身は上のアドレスにも入っているので、コピーしてOBSに貼ればそのまま使えます'; };
     document.getElementById('bt_tower').innerHTML='<button id="tTw">ギフトをためす</button><button data-rs="tower">0にもどす</button>'; document.getElementById('tTw').onclick=()=>fire(demoGift(2+Math.floor(Math.random()*3))); }
   const tmode=document.getElementById('tmode'), TQ={clock:'?w=time',up:'?w=time&mode=up',down:'?w=time&mode=down&min=60&per=1'};
