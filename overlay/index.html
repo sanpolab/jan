@@ -637,7 +637,8 @@ function mountJar(box,o){ const SK0=(window.JARS||{})[o.jar]||(window.JARS||{}).
   requestAnimationFrame(frame); window.__jar=()=>({n:P.length,total}); return {w:CW,h:BH}; }
 
 /* 効果音（効果音ラボの音）。アドレスに &sound=0 を付けると鳴らない。見本は、ボタンで動かす部品だけ鳴る */
-const mkS=o=>(n,v)=>{ if(o.sound==='0'||(o.demo&&!o.snd)) return; try{ const a=new Audio('snd/'+n+'.mp3'); a.volume=v||.7; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} };
+/* せつめいページの見本は、ボタンを押した直後だけ音を出す（勝手に流れる見本では鳴らさない） */
+const mkS=o=>(n,v)=>{ if(o.sound==='0'||(o.demo&&(!o.snd||!(window.__sndUntil>Date.now())))) return; try{ const a=new Audio('snd/'+n+'.mp3'); a.volume=v||.7; const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} };
 /* ===== ガチャガチャ ===== */
 const GA_DEF={S:['なんでも1つお願いを聞く','10分間リクエストに全部こたえる'],A:['名前を呼んで全力で感謝','モノマネを1つ'],B:['決めポーズ','早口言葉に挑戦'],C:['ありがとう！','投げキッス']};
 const GA_RK=[['S',0,5,'#ffd86b'],['A',2,15,'#ff6b7d'],['B',3,30,'#6ba8ff'],['C',1,50,'#d5dbe6']];   /* ランク、カプセルの色番号、出やすさ(%)、文字の色 */
@@ -831,7 +832,7 @@ function mountHeart(box,o){ const S_=mkS(o), CW=520, CH=520, BH=CH+84, goal=Math
 function mountFire(box,o){ const CW=o.W||1920, CH=o.H||1080, minC=Math.max(1,parseInt(o.min,10)||500); let dead=false; box.__kill=()=>{ dead=true; }; box.classList.add('fire'); box.style.width=CW+'px'; box.style.height=CH+'px';
   const v=document.createElement('video'); v.playsInline=true; v.preload='auto'; v.setAttribute('playsinline',''); const alpha=!!v.canPlayType('video/webm; codecs="vp9"') && !/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   v.src=alpha?'vid/fire.webm':'vid/fire.mp4'; if(!alpha) v.style.mixBlendMode='screen'; v.style.cssText+=';position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .25s'; box.appendChild(v);
-  let q=0, busy=false; const run=()=>{ if(busy||q<=0||dead) return; busy=true; q--; v.currentTime=0; v.muted=o.sound==='0'; v.style.opacity='1'; const p=v.play(); if(p&&p.catch) p.catch(()=>{ v.muted=true; const p2=v.play(); if(p2&&p2.catch) p2.catch(()=>{ busy=false; v.style.opacity='0'; }); }); };
+  let q=0, busy=false; const run=()=>{ if(busy||q<=0||dead) return; busy=true; q--; v.currentTime=0; v.muted=o.sound==='0'||(o.demo&&!(window.__sndUntil>Date.now())); v.style.opacity='1'; const p=v.play(); if(p&&p.catch) p.catch(()=>{ v.muted=true; const p2=v.play(); if(p2&&p2.catch) p2.catch(()=>{ busy=false; v.style.opacity='0'; }); }); };
   v.onended=()=>{ v.style.opacity='0'; busy=false; setTimeout(run,300); };
   BUS.on('gift',e=>{ if(dead||e.coins*e.n<minC) return; q=Math.min(5,q+1); run(); }); BUS.on('cmd',c=>{ if(c.cmd==='fire'&&!dead){ q=Math.min(5,q+1); run(); } });
   window.__fire=()=>({q,busy,t:v.currentTime,alpha}); return {w:CW,h:CH}; }
@@ -1049,6 +1050,7 @@ if(W){ if(!LIC_PUB||Q.get('demo')==='1') runW();   /* 配置用（見本が出�
     +(LIC_PUB?'<h2 id="h_lic">ライセンスキー</h2><p>買った時に届いたキーを、ここに貼ってください。キーは <b>あなたのTikTok ID専用</b> で、期限があります。保存すると、このページでコピーするアドレスにキーが入ります（キーを入れる前にコピーしたアドレスは、コピーし直してください）。</p><div class="btns"><textarea id="licIn" placeholder="EVE1-…" style="width:100%;height:5.2em"></textarea><button id="licSave">保存する</button><span id="licMsg" class="sz"></span></div>':'')
     +'<h2>まとめてリセット</h2><div class="btns"><button data-rs="like">いいねランキング</button><button data-rs="gift">ギフトランキング</button><button data-rs="jar">びんの中身</button><button data-rs="tower">シャンパンタワー</button><button data-rs="goals">目標ボード</button><button data-rs="king">王座</button><button data-rs="combo">コンボの最高記録</button><button data-rs="zukan">ギフト図鑑</button><button data-rs="heart">いいねゲージ</button><button data-rs="vote">投票</button></div><div class="foot">Overlay Collection</div></div>';
   document.getElementById('app').innerHTML=h;
+  document.addEventListener('click',e=>{ if(e.target.closest('button')) window.__sndUntil=Date.now()+15000; },true);
   const pvW=()=>Math.min(document.querySelector('.pv').clientWidth-16,460);
   place(document.getElementById('pv_win'),'win',{},pvW).classList.add('show');
   place(document.getElementById('pv_like'),'like',{demo:true},()=>Math.min(pvW(),380));
