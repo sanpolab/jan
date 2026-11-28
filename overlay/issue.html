@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ライセンスキー発行（運営用）</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0a0a0c;color:#e9e4d8;font:16px/1.7 -apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;padding:20px 16px 80px}
+main{max-width:640px;margin:0 auto}
+h1{font:600 22px/1.4 'Hiragino Mincho ProN','Yu Mincho',serif;color:#c8a96a;letter-spacing:.08em;margin:8px 0 4px}
+h2{font:600 17px/1.4 'Hiragino Mincho ProN','Yu Mincho',serif;color:#c8a96a;margin:34px 0 8px;padding-top:18px;border-top:1px solid #2a2620}
+p{margin:6px 0;color:#bdb6a6;font-size:14px}
+b{color:#f1e7cf}
+input,textarea{width:100%;background:#15151a;color:#fff;border:1px solid #3a352b;border-radius:10px;padding:12px;font:16px/1.4 inherit;margin:6px 0}
+textarea{height:6.5em;font:13px/1.5 ui-monospace,Menlo,monospace;word-break:break-all}
+button{background:#c8a96a;color:#16130c;border:0;border-radius:10px;padding:12px 16px;font:700 15px/1 inherit;margin:6px 6px 6px 0}
+button.sub{background:#24211b;color:#e9e4d8;border:1px solid #4a4334}
+button.red{background:#3a1c20;color:#ffb3bd;border:1px solid #6a2d36}
+.box{background:#121216;border:1px solid #2a2620;border-radius:14px;padding:14px;margin:10px 0}
+.out{background:#0e1512;border:1px solid #2c5a41;border-radius:10px;padding:12px;font:13px/1.5 ui-monospace,Menlo,monospace;word-break:break-all;color:#bff0cf;margin:8px 0}
+.warn{background:#2a1418;border:1px solid #6a2d36;border-radius:10px;padding:10px 12px;color:#ffc2ca;font-size:14px;margin:8px 0}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid #24211b;padding:10px 0;font-size:14px}
+.row small{color:#8f887a}.row .ex{color:#ff9aa8}.row .soon{color:#ffd27a}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>ライセンスキー発行</h1>
+<p>運営（あなた）だけが使うページです。お客さんには見せません。</p>
+
+<div id="first">
+  <h2>はじめに（1回だけ）</h2>
+  <p>キーを作るための「発行用のカギ」を、このスマホの中に作ります。</p>
+  <button id="gen">発行用のカギを作る</button>
+  <p style="margin-top:18px">前に作ったカギがある時（機種変更・ブラウザを変えた時）：</p>
+  <textarea id="resIn" placeholder="EVEPRIV-…（保存しておいた「ひみつのバックアップ」を貼る）"></textarea>
+  <button class="sub" id="res">バックアップから戻す</button>
+  <div id="resMsg" class="warn hide"></div>
+</div>
+
+<div id="main" class="hide">
+  <h2>キーを出す</h2>
+  <div class="box">
+    <p>お客さんのTikTok ID（@のあとの英数字）</p>
+    <input id="uid" placeholder="例：eve_liver01" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <p>いつまで使えるようにするか</p>
+    <input id="exp" type="date">
+    <button class="sub" data-m="1">今日から1か月</button><button class="sub" data-m="3">3か月</button><button class="sub" data-m="12">1年</button>
+    <div><button id="mk">キーを作る</button></div>
+    <div id="mkMsg" class="warn hide"></div>
+    <div id="keyBox" class="hide"><div class="out" id="keyOut"></div><button id="cp">キーをコピー</button><p>このキーをお客さんに送ってください。お客さんは設定ページの「ライセンスキー」に貼ります。</p></div>
+  </div>
+
+  <h2>出したキーの一覧</h2>
+  <p>このスマホで出したキーの記録です。期限が近い人は黄色、切れた人は赤になります。</p>
+  <div id="list"></div>
+
+  <h2>公開コード</h2>
+  <p>オーバーレイ側に入れる「合わせカギ」です。<b>これは人に見せても大丈夫</b>。最初の1回、Claudeに送ってください。</p>
+  <div class="out" id="pub"></div><button class="sub" id="cpPub">公開コードをコピー</button>
+
+  <h2>ひみつのバックアップ</h2>
+  <div class="warn">これがあれば誰でもキーを作れてしまいます。<b>だれにも送らないでください（Claudeにも送らないでください）</b>。メモ帳やパスワード管理アプリに保存しておいてください。スマホのブラウザは、しばらく開かないと中身を消すことがあるので、保存は必ずしてください。</div>
+  <button class="sub" id="showPriv">バックアップを表示する</button>
+  <div id="privBox" class="hide"><div class="out" id="priv" style="color:#ffd9a8;border-color:#6a5230;background:#17130c"></div><button class="sub" id="cpPriv">バックアップをコピー</button></div>
+
+  <h2>カギを消す</h2>
+  <p>このスマホから発行用のカギを消します（バックアップがあれば戻せます）。</p>
+  <button class="red" id="del">このスマホからカギを消す</button>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id), LSK='ov_issuer', LSH='ov_issued';
+const get=(k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } }, set=(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
+const b64u=buf=>btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const copy=(t,btn)=>{ const old=btn.textContent; (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{ btn.textContent='コピーした'; setTimeout(()=>btn.textContent=old,1500); },()=>{ btn.textContent='長押しでコピーしてください'; setTimeout(()=>btn.textContent=old,2500); }); };
+const msg=(el,t)=>{ el.textContent=t; el.classList.toggle('hide',!t); };
+let K=get(LSK,null);   /* {d,x,y} */
+const okKey=k=>k&&[k.d,k.x,k.y].every(v=>/^[A-Za-z0-9_-]{40,46}$/.test(String(v||'')));
+const signKey=()=>crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',d:K.d,x:K.x,y:K.y,ext:true},{name:'ECDSA',namedCurve:'P-256'},false,['sign']);
+function draw(){ const has=okKey(K); $('first').classList.toggle('hide',has); $('main').classList.toggle('hide',!has); if(!has) return;
+  $('pub').textContent=K.x+'.'+K.y; $('priv').textContent='EVEPRIV-'+K.d+'.'+K.x+'.'+K.y; if(!$('exp').value) setM(1); list(); }
+function setM(m){ const d=new Date(); d.setMonth(d.getMonth()+m); $('exp').value=ymd(d); }
+function list(){ const H=get(LSH,[]), t=ymd(new Date()), soon=ymd(new Date(Date.now()+5*864e5)), el=$('list'); el.innerHTML=H.length?'':'<p>まだありません。</p>';
+  H.slice().sort((a,b)=>a.e<b.e?-1:1).forEach(h=>{ const r=document.createElement('div'); r.className='row'; const st=h.e<t?'ex':h.e<=soon?'soon':''; const a=document.createElement('div'); a.innerHTML='<b></b><br><small class="'+st+'"></small>'; a.querySelector('b').textContent='@'+h.u; a.querySelector('small').textContent=h.e+' まで'+(st==='ex'?'（期限切れ）':st==='soon'?'（もうすぐ切れる）':'');
+    const c=document.createElement('div'); const b1=document.createElement('button'); b1.className='sub'; b1.textContent='コピー'; b1.onclick=()=>copy(h.k,b1); const b2=document.createElement('button'); b2.className='sub'; b2.textContent='延長'; b2.onclick=()=>{ $('uid').value=h.u; const d=new Date((h.e>t?h.e:t)+'T12:00:00'); d.setMonth(d.getMonth()+1); $('exp').value=ymd(d); $('uid').scrollIntoView({behavior:'smooth',block:'center'}); }; const b3=document.createElement('button'); b3.className='red'; b3.textContent='記録を消す'; b3.onclick=()=>{ if(b3.dataset.sure){ set(LSH,get(LSH,[]).filter(x=>x.k!==h.k)); list(); } else { b3.dataset.sure=1; b3.textContent='もう一度押すと消える'; } }; c.append(b1,b2,b3); r.append(a,c); el.append(r); }); }
+$('gen').onclick=async()=>{ const kp=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']), j=await crypto.subtle.exportKey('jwk',kp.privateKey); K={d:j.d,x:j.x,y:j.y}; set(LSK,K); draw(); $('pub').scrollIntoView({behavior:'smooth',block:'center'}); };
+$('res').onclick=()=>{ const m=/^EVEPRIV-([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec($('resIn').value.replace(/\s+/g,'')); const k=m&&{d:m[1],x:m[2],y:m[3]}; if(!okKey(k)){ msg($('resMsg'),'バックアップの文字が正しくないようです。'); return; } K=k; signKey().then(()=>{ set(LSK,K); $('resIn').value=''; draw(); },()=>{ K=null; msg($('resMsg'),'バックアップの文字が正しくないようです。'); }); };
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-m]'); if(b) setM(+b.dataset.m); });
+$('mk').onclick=async()=>{ msg($('mkMsg'),''); $('keyBox').classList.add('hide'); const u=$('uid').value.trim().replace(/^@/,'').toLowerCase(), e=$('exp').value;
+  if(!/^[a-z0-9._]{2,24}$/.test(u)){ msg($('mkMsg'),'TikTok IDは、@のあとの英数字（と . _ ）だけを入れてください。名前（日本語）ではなくIDです。'); return; }
+  if(!/^\d{4}-\d\d-\d\d$/.test(e)||e<ymd(new Date())){ msg($('mkMsg'),'期限は、今日より先の日にしてください。'); return; }
+  const pl=new TextEncoder().encode('ov|'+u+'|'+e), sig=await crypto.subtle.sign({name:'ECDSA',hash:'SHA-256'},await signKey(),pl), k='EVE1-'+b64u(pl)+'.'+b64u(sig);
+  $('keyOut').textContent=k; $('keyBox').classList.remove('hide'); const H=get(LSH,[]).filter(x=>!(x.u===u&&x.e===e)); H.push({u,e,k}); set(LSH,H); list(); };
+$('cp').onclick=()=>copy($('keyOut').textContent,$('cp')); $('cpPub').onclick=()=>copy($('pub').textContent,$('cpPub')); $('cpPriv').onclick=()=>copy($('priv').textContent,$('cpPriv'));
+$('showPriv').onclick=()=>$('privBox').classList.toggle('hide');
+$('del').onclick=()=>{ const b=$('del'); if(b.dataset.sure){ localStorage.removeItem(LSK); K=null; delete b.dataset.sure; b.textContent='このスマホからカギを消す'; draw(); } else { b.dataset.sure=1; b.textContent='バックアップは保存した？ もう一度押すと消える'; } };
+if(!(window.crypto&&crypto.subtle)) document.querySelector('main').innerHTML='<h1>ライセンスキー発行</h1><div class="warn">このページは https のアドレスで開いてください。</div>'; else draw();
+window.__issuer=()=>K&&(K.x+'.'+K.y);
+</script>
+</body>
+</html>
