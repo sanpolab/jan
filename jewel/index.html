@@ -165,7 +165,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
   </div>
   <div id="cfg" hidden>
     <div class="top"><div id="embedNote" hidden style="background:#5a1020;border:3px solid #ff6a80;border-radius:.6em;padding:.6em .8em;margin:.2em 0 .6em;font-weight:900;line-height:1.5">このページ（Claudeの共有ページ）では、スマホだけの配信（ギフトの受け取り）は動きません。<br>Safariでこちらを開いてください：<br><a href="https://sanpolab.github.io/jan/jewel/" target="_blank" rel="noopener" style="color:#ffe680;word-break:break-all">https://sanpolab.github.io/jan/jewel/</a></div>
-<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 22:19</small></h2>
+<h2>ギフト設定 <small id="verTag" style="font-size:.5em;font-weight:700;color:#9ab;margin-left:.6em">版 11/28 22:21</small></h2>
     <div id="missBox" hidden><h3 style="color:#ff9aa8">届いたけど、どの効果か分からなかったギフト</h3>
     <p>スマホ用のつなぎ先は、ギフトの名前を英語で送ってくることがあります。下で「どの効果のギフトか」を1回えらぶと、次からは自動で反応します（コイン数が同じ効果だけを出しています）。</p>
     <div id="missList"></div></div>
@@ -222,7 +222,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
     <h3>無料（コメント・いいね・フォロー）</h3>
     <button class="j" data-a="comment">コメント<br>玉1個</button><button class="j" data-a="like">いいね×1000<br>玉3個</button><button class="j" data-a="follow">フォロー<br>玉5個</button>
     <h3>大当たりの時</h3>
-    <div class="jpset"><label>出す文字 <input id="jpTx" maxlength="16" placeholder="例：罰ゲーム！"></label><label>Winカウンターに足す数 <input id="jpWin" type="number" step="1" placeholder="0"></label><label>見出しの文字 <input id="jpHead" maxlength="24" placeholder="例：5段目入ったら罰ゲーム" style="width:16em"></label><label><input type="checkbox" id="jpTick"> 今日の大当たり（当てた人と回数）を出す</label><label><input type="checkbox" id="jpLeg"> ギフトの一覧を出す（縦長の画面）</label><button class="n" id="jpDayClr" type="button" style="font:inherit;padding:.3em .8em">今日の大当たりの記録を消す</button><label>当たりの穴の入りやすさ <input id="jpEase" type="number" min="5" max="100" step="5" style="width:5em"> %</label><small>入りやすさ：はじめは90（玉1個が大当たりまで行くのは、およそ1000個に1個）。小さくするほど、当たりの穴のふちではじかれて入りにくくなります（60でおよそ5000個に1個）。<br>Win：0なら何もしません。マイナスにすると減ります（オーバーレイのWinカウンターと同じ端末で開いている時）</small></div>
+    <div class="jpset"><label>出す文字 <input id="jpTx" maxlength="16" placeholder="例：罰ゲーム！"></label><label>Winカウンターに足す数 <input id="jpWin" type="number" step="1" placeholder="0"></label><label>見出しの文字 <input id="jpHead" maxlength="24" placeholder="例：5段目入ったら罰ゲーム" style="width:16em"></label><label><input type="checkbox" id="jpTick"> 今日の大当たり（当てた人と回数）を出す</label><button class="n" id="jpDayClr" type="button" style="font:inherit;padding:.3em .8em">今日の大当たりの記録を消す</button><label>当たりの穴の入りやすさ <input id="jpEase" type="number" min="5" max="100" step="5" style="width:5em"> %</label><small>入りやすさ：はじめは90（玉1個が大当たりまで行くのは、およそ1000個に1個）。小さくするほど、当たりの穴のふちではじかれて入りにくくなります（60でおよそ5000個に1個）。<br>Win：0なら何もしません。マイナスにすると減ります（オーバーレイのWinカウンターと同じ端末で開いている時）</small></div>
     <h3>音</h3>
     <button class="g" id="optBgm">BGM</button><button class="g" id="optSe">効果音</button><button class="g" id="optTrack">曲</button>
     <h3>その他</h3>
@@ -235,7 +235,7 @@ canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 try{ if(localStorage.getItem('jewel_gv')!=='2'){ localStorage.removeItem('jewel_gifts'); localStorage.setItem('jewel_gv','2'); } }catch(e){}
 'use strict';
 const cv=document.getElementById('cv'), g=cv.getContext('2d'), stage=document.getElementById('stage');
-const VER='1128-221905';
+const VER='1128-222110';
 let TITLE=true, PAUSE=false; const PENDQ=[];   /* TITLE＝タイトル画面を出しているか、PAUSE＝一時停止中か、PENDQ＝一時停止の間に届いたギフト（再開したら順番に出す） */
 /* ===== 宝石クルーン：黒い大理石の皿が5段。玉は皿の上をぐるぐる回って、3つの穴のどれかに落ちる。
    ルビーの穴＝当たり（つぎの段へ）、金の穴＝はずれ。5段ぜんぶ当たりの穴に入ると「大当たり」。視聴者のギフトで玉が増える ===== */
@@ -271,9 +271,13 @@ function drawTop(){ let y=150;
   if(JP.tick!==0){ const L=dayList(), s='今日の大当たり　'+(L.length?L.map(e=>'【'+e[0]+' ×'+e[1]+'】').join('　'):'まだ いません'); g.fillStyle='rgba(8,5,6,.86)'; g.fillRect(0,y,W,56); const gr=g.createLinearGradient(0,0,W,0); gr.addColorStop(0,'rgba(233,196,106,0)'); gr.addColorStop(.5,GOLD); gr.addColorStop(1,'rgba(233,196,106,0)'); g.fillStyle=gr; g.fillRect(0,y,W,3); g.fillRect(0,y+53,W,3);
     g.font='900 32px '+FONTD; const wd=g.measureText(s).width; g.save(); g.beginPath(); g.rect(0,y,W,56); g.clip(); if(wd<W-40) txt(s,W/2,y+29,32,GOLD,'center','#000',FONTD); else { const sp=wd+160, x=W-((T*130)%sp); for(const xx of [x,x+sp,x-sp]) txt(s,xx,y+29,32,GOLD,'left','#000',FONTD); } g.restore(); y+=66; }
   if(JP.head){ g.font='900 54px '+FONTD; const wd=g.measureText(JP.head).width, fs=Math.min(54,Math.floor(54*(W-120)/Math.max(1,wd))); g.fillStyle='rgba(8,5,6,.82)'; rr(40,y,W-80,76,16); g.fill(); g.strokeStyle=GOLDD; g.lineWidth=2; g.stroke(); gold(JP.head,W/2,y+40,fs); y+=86; }
-  if(JP.legend!==0){ let L=[]; try{ L=FX_LIST.filter(f=>{ const b=TF.map[f[0]]; return b && b.name && !b.off; }); }catch(e){} if(!L.length) return; const per=L.length>12?Math.ceil(L.length/2):Math.min(L.length,7), rows=Math.ceil(L.length/per), cw=(W-40)/per, rh=rows>1?124:150, ic=rows>1?64:84; g.fillStyle='rgba(8,5,6,.8)'; rr(20,y,W-40,rows*rh+12,18); g.fill();
-    L.forEach((f,i)=>{ const b=TF.map[f[0]], cx=20+cw*(i%per)+cw/2, cy=y+8+Math.floor(i/per)*rh; if(b.ci!=null && CATIMG.complete && CATIMG.naturalWidth){ const c=CATIMG.naturalWidth/24; g.drawImage(CATIMG,(b.ci%24)*c,Math.floor(b.ci/24)*c,c,c,cx-ic/2,cy,ic,ic); } else if(ok('fx_'+f[0])) g.drawImage(IMG['fx_'+f[0]],cx-ic/2,cy,ic,ic);
-      let nm=''; try{ nm=LBL[f[0]]||TBL_NAME[f[0]]||f[2]; }catch(e){ nm=f[2]; } g.font='900 24px '+FONT; const fs=Math.min(24,Math.floor(24*(cw-8)/Math.max(1,g.measureText(nm).width))); txt(nm,cx,cy+ic+18,Math.max(13,fs),'#fff','center','#000'); if(b.coins!=null) txt(b.coins+'コイン',cx,cy+ic+(rows>1?40:44),rows>1?15:17,GOLD,'center','#000'); }); } }
+  /* ランプ：玉数2倍・確変・大当たり。ついている間は光って残り秒数が出る */
+  const lw=(W-80-28)/3, todayN=dayList().reduce((a,e)=>a+e[1],0);
+  lamp(40,y,lw,124,'玉数2倍',S.x2T>0,S.x2T>0?Math.ceil(S.x2T)+'秒':'','#4aa3ff');
+  lamp(40+lw+14,y,lw,124,'確変',S.dblT>0,S.dblT>0?Math.ceil(S.dblT)+'秒':'',RUBY);
+  lamp(40+(lw+14)*2,y,lw,124,'大当たり',todayN>0,todayN>0?'今日 '+todayN+'回':'',GOLD,'まだ'); }
+function lamp(x,y,w,h,title,on,val,col,offTx){ const pu=on?(.7+.3*Math.sin(T*6)):0; g.fillStyle='rgba(8,5,6,.86)'; rr(x,y,w,h,16); g.fill(); if(on){ g.save(); g.shadowColor=col; g.shadowBlur=26*pu; g.strokeStyle=col; g.lineWidth=5; rr(x,y,w,h,16); g.stroke(); g.restore(); const gr=g.createLinearGradient(0,y,0,y+h); gr.addColorStop(0,'rgba(255,255,255,0)'); gr.addColorStop(1,col); g.globalAlpha=.22*pu; g.fillStyle=gr; rr(x,y,w,h,16); g.fill(); g.globalAlpha=1; } else { g.strokeStyle='#4a4338'; g.lineWidth=2; rr(x,y,w,h,16); g.stroke(); }
+  txt(title,x+w/2,y+38,on?36:32,on?col:'#857c68','center','#000',FONTD); if(on) txt(val,x+w/2,y+88,40,'#fff','center','#000',FONTD); else txt(offTx||'消灯中',x+w/2,y+86,24,'#5d564a','center',null,FONTD); }
 function reset(){ S={gems:[],fly:[],q:[],qT:0,parts:[],rings:[],kx:null,log:[],ban:null,flash:0,shake:0,capT:0,dblT:0,x2T:0,jp:null,jpN:0,reach:[0,0,0,0,0],lastSe:{}}; }
 function logAdd(s,c){ S.log.unshift({s,c:c||'#fff',t:30}); if(S.log.length>8) S.log.length=8; }
 function banner(a,c,b){ S.ban={a,c:c||GOLD,b:b||'',t:2.4}; }
@@ -464,21 +468,20 @@ function draw(){ const sx=S.shake>0?rand(-1,1)*S.shake*16:0, sy=S.shake>0?rand(-
   panel(1290,270,570,420); txt('とどいた数',1575,306,28,GOLD,'center',null,FONTD);
   for(let i=0;i<=LAST;i++){ const y=356+i*46; txt(NAME[i],1330,y,26,i===LAST?RUBY:'#cbbf9f','left',null,FONTD); txt(fmt(S.reach[i]),1820,y,28,'#fff','right',null,FONTD); }
   { const y=598; g.strokeStyle='rgba(233,196,106,.35)'; g.lineWidth=1; g.beginPath(); g.moveTo(1320,y-24); g.lineTo(1830,y-24); g.stroke();
-    if(S.dblT>0) txt('確変 のこり '+Math.ceil(S.dblT)+'秒',1575,y+6,26,RUBY,'center',null,FONTD); else txt('確変なし',1575,y+6,21,'#6f6756','center',null,FONTD);
-    if(S.capT>0) txt('フタ のこり '+Math.ceil(S.capT)+'秒',1575,y+50,26,'#e6dcc3','center',null,FONTD); else txt('フタなし',1575,y+50,21,'#6f6756','center',null,FONTD); }
+    const st=(lab,v,col,yy)=>{ txt(lab,1330,yy,22,v>0?col:'#6f6756','left',null,FONTD); txt(v>0?'のこり '+Math.ceil(v)+'秒':'消灯中',1820,yy,22,v>0?'#fff':'#5d564a','right',null,FONTD); }; st('玉数2倍',S.x2T,'#4aa3ff',y-4); st('確変',S.dblT,RUBY,y+28); st('フタ',S.capT,'#e6dcc3',y+60); }
     if(JP.tick!==0){ const L=dayList(); panel(1290,850,570,190); txt('今日の大当たり',1575,884,26,GOLD,'center',null,FONTD); if(!L.length) txt('まだ いません',1575,950,22,'#6f6756','center',null,FONTD); for(let i=0;i<Math.min(3,L.length);i++){ txt(L[i][0],1326,926+i*38,24,'#fff','left','#000'); txt('×'+L[i][1],1826,926+i*38,26,GOLD,'right',null,FONTD); } }
     if(JP.head) { g.font='900 30px '+FONTD; txt(JP.head,345,982,Math.min(34,Math.floor(34*540/Math.max(540,g.measureText(JP.head).width*34/30))),'#fff','center','#000',FONTD); }
   } else {
     /* 縦長：数字だけ小さく出す（大当たりの回数・待ちの玉）と、お知らせ */
     g.fillStyle='rgba(8,5,6,.82)'; rr(40,1266,562,70,16); g.fill(); g.strokeStyle=GOLDD; g.lineWidth=2; g.stroke(); txt('大当たり',62,1302,24,GOLD,'left',null,FONTD); txt(fmt(S.jpN)+' 回',300,1302,30,'#fff','right',null,FONTD); txt('待ちの玉',340,1302,22,'#cbbf9f','left',null,FONTD); txt(fmt(qLeft())+' 個',582,1302,26,'#fff','right',null,FONTD);
     drawTop();
-    if(S.ban && !S.jp && !(S.dblT>0)){ const k=clamp(S.ban.t*3,0,1); g.globalAlpha=k; panel(40,1130,570,124); txt(S.ban.a,325,S.ban.b?1174:1192,S.ban.a.length>11?34:40,S.ban.c,'center','#000',FONTD); if(S.ban.b) txt(S.ban.b,325,1222,22,'#e6dcc3','center',null,FONTD); g.globalAlpha=1; }
+    if(S.ban && !S.jp){ const k=clamp(S.ban.t*3,0,1); g.globalAlpha=k; panel(40,1130,570,124); txt(S.ban.a,325,S.ban.b?1174:1192,S.ban.a.length>11?34:40,S.ban.c,'center','#000',FONTD); if(S.ban.b) txt(S.ban.b,325,1222,22,'#e6dcc3','center',null,FONTD); g.globalAlpha=1; }
   }
   for(const r of S.rings){ const k=1-r.t/.5; g.globalAlpha=clamp(r.t*4,0,1); g.strokeStyle='#ff5a78'; g.lineWidth=7*(1-k)+1; g.beginPath(); g.ellipse(r.x,r.y,r.r*k,r.r*k*KY,0,0,TAU); g.stroke(); } g.globalAlpha=1;
   /* 確変の間は、画面のふちが赤く脈うつ（残り5秒は速く点めつ） */
-  if(S.dblT>0){ const pu=S.dblT<5?(.5+.5*Math.sin(T*16)):(.6+.4*Math.sin(T*5)); for(const [x0,y0,x1,y1] of [[0,0,0,150],[0,H,0,H-150],[0,0,150,0],[W,0,W-150,0]]){ const gr=g.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,'rgba(255,20,60,'+(.5*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(255,20,60,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); }
-    modeBox(TATE?40:64,TATE?1134:654,'確変モード','当たり 2倍',S.dblT,CFG.dblSec,RUBY); }
-  if(S.x2T>0){ const pu=S.x2T<5?(.5+.5*Math.sin(T*16)):(.6+.4*Math.sin(T*5+1)); for(const [x0,y0,x1,y1] of [[0,0,0,110],[0,H,0,H-110]]){ const gr=g.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,'rgba(60,150,255,'+(.45*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(60,150,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); } modeBox(TATE?40:1294,TATE?1010:712,'玉数2倍タイム','玉が 2倍',S.x2T,CFG.x2Sec,'#4aa3ff'); }
+  const MB=!TATE; if(S.dblT>0){ const pu=S.dblT<5?(.5+.5*Math.sin(T*16)):(.6+.4*Math.sin(T*5)); for(const [x0,y0,x1,y1] of [[0,0,0,150],[0,H,0,H-150],[0,0,150,0],[W,0,W-150,0]]){ const gr=g.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,'rgba(255,20,60,'+(.5*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(255,20,60,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); }
+    if(MB) modeBox(TATE?40:64,TATE?1134:654,'確変モード','当たり 2倍',S.dblT,CFG.dblSec,RUBY); }
+  if(S.x2T>0){ const pu=S.x2T<5?(.5+.5*Math.sin(T*16)):(.6+.4*Math.sin(T*5+1)); for(const [x0,y0,x1,y1] of [[0,0,0,110],[0,H,0,H-110]]){ const gr=g.createLinearGradient(x0,y0,x1,y1); gr.addColorStop(0,'rgba(60,150,255,'+(.45*pu).toFixed(2)+')'); gr.addColorStop(1,'rgba(60,150,255,0)'); g.fillStyle=gr; g.fillRect(0,0,W,H); } if(MB) modeBox(TATE?40:1294,TATE?1010:712,'玉数2倍タイム','玉が 2倍',S.x2T,CFG.x2Sec,'#4aa3ff'); }
   if(S.kx) drawKx();
   if(S.flash>0){ g.fillStyle='rgba(255,240,200,'+Math.min(.8,S.flash*1.3).toFixed(2)+')'; g.fillRect(0,0,W,H); }
   /* 大当たり */
@@ -698,7 +701,7 @@ function ttlUI(){ const el=document.getElementById('ttl'); el.hidden=!TITLE; doc
 document.getElementById('ttl').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; if(b.id==='ttlGo'){ Game.start(); return; } if(b.id==='ttlGift'){ document.getElementById('cfgBtn').click(); return; } });
 if(/[?&]notitle=1/.test(location.search)) TITLE=false;
 ttlUI();
-{ const a=document.getElementById('jpTx'), b=document.getElementById('jpWin'); a.value=JP.text||''; b.value=JP.win||''; { const h=document.getElementById('jpHead'), tk=document.getElementById('jpTick'), lg=document.getElementById('jpLeg'); h.value=JP.head||''; tk.checked=JP.tick!==0; lg.checked=JP.legend!==0; h.addEventListener('input',()=>{ JP.head=h.value.slice(0,24); jpSave(); }); h.addEventListener('keydown',ev=>ev.stopPropagation()); tk.addEventListener('change',()=>{ JP.tick=tk.checked?1:0; jpSave(); }); lg.addEventListener('change',()=>{ JP.legend=lg.checked?1:0; jpSave(); }); document.getElementById('jpDayClr').addEventListener('click',ev=>{ ev.stopPropagation(); dayClear(); }); } { const c=document.getElementById('jpEase'); c.value=JP.ez||90; c.addEventListener('change',()=>{ JP.ez=clamp(parseInt(c.value,10)||90,5,100); c.value=JP.ez; jpSave(); }); c.addEventListener('keydown',ev=>ev.stopPropagation()); } a.addEventListener('input',()=>{ JP.text=a.value.slice(0,16); jpSave(); }); b.addEventListener('input',()=>{ JP.win=clamp(parseInt(b.value,10)||0,-99999,99999); jpSave(); }); for(const e of [a,b]) e.addEventListener('keydown',ev=>ev.stopPropagation()); }
+{ const a=document.getElementById('jpTx'), b=document.getElementById('jpWin'); a.value=JP.text||''; b.value=JP.win||''; { const h=document.getElementById('jpHead'), tk=document.getElementById('jpTick'); h.value=JP.head||''; tk.checked=JP.tick!==0; h.addEventListener('input',()=>{ JP.head=h.value.slice(0,24); jpSave(); }); h.addEventListener('keydown',ev=>ev.stopPropagation()); tk.addEventListener('change',()=>{ JP.tick=tk.checked?1:0; jpSave(); }); document.getElementById('jpDayClr').addEventListener('click',ev=>{ ev.stopPropagation(); dayClear(); }); } { const c=document.getElementById('jpEase'); c.value=JP.ez||90; c.addEventListener('change',()=>{ JP.ez=clamp(parseInt(c.value,10)||90,5,100); c.value=JP.ez; jpSave(); }); c.addEventListener('keydown',ev=>ev.stopPropagation()); } a.addEventListener('input',()=>{ JP.text=a.value.slice(0,16); jpSave(); }); b.addEventListener('input',()=>{ JP.win=clamp(parseInt(b.value,10)||0,-99999,99999); jpSave(); }); for(const e of [a,b]) e.addEventListener('keydown',ev=>ev.stopPropagation()); }
 gemSync();
 { const vb=document.getElementById('viewBtn'); vb.textContent=TATE?'横長の画面にもどす':'縦長の画面に切りかえ（FINALを大きく）'; vb.addEventListener('click',ev=>{ ev.stopPropagation(); location.search=TATE?'':'?view=tate'; }); }
 window.JewelGame=Game; window.__dbg={ dayAdd, dayClear, gemSet, gemN, get S(){ return S; }, Game, DISH, CFG, JP, update, draw, reset, get best(){ return best; }, get TITLE(){ return TITLE; }, set TITLE(v){ TITLE=v; ttlUI(); }, get PAUSE(){ return PAUSE; }, setPause };
